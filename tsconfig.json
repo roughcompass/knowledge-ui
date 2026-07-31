@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/remote-contract" },
+    { "path": "./packages/api-client" },
+    { "path": "./packages/auth" },
+    { "path": "./packages/ui-kit" },
+    { "path": "./packages/testing" },
+    { "path": "./apps/shell" },
+    { "path": "./remotes/catalog" },
+    { "path": "./remotes/operations" }
+  ]
+}

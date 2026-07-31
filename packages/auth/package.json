@@ -1,0 +1,11 @@
+{
+  "name": "@knowledge-ui/auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "types": "./src/index.ts",
+  "peerDependencies": {
+    "react": "18.3.1"
+  }
+}

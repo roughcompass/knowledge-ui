@@ -1,0 +1,28 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "declaration-property-value-allowed-list": {
+      "/^color$|^background|^border.*color|^outline-color|^fill$|^stroke$/": [
+        "/^var\\(--salt-/",
+        "transparent",
+        "currentColor",
+        "inherit",
+        "none"
+      ],
+      "/^padding|^margin|^gap$|^row-gap|^column-gap|^inset/": [
+        "/^var\\(--salt-/",
+        "0",
+        "auto",
+        "inherit"
+      ],
+      "/^font-size$|^font-weight$|^font-family$|^line-height$/": [
+        "/^var\\(--salt-/",
+        "inherit"
+      ],
+      "/^border-radius/": ["/^var\\(--salt-/", "0", "50%", "inherit"]
+    },
+    "custom-property-pattern": null,
+    "selector-class-pattern": "^[a-z][a-zA-Z0-9]+$",
+    "no-descending-specificity": null
+  }
+}

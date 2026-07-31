@@ -1,0 +1,13 @@
+{
+  "name": "@knowledge-ui/ui-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "types": "./src/index.ts",
+  "peerDependencies": {
+    "@salt-ds/core": "1.67.0",
+    "@salt-ds/icons": "1.18.0",
+    "react": "18.3.1"
+  }
+}
