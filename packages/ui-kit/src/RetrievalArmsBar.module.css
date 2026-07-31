@@ -1,0 +1,54 @@
+/*
+ * Fills a Salt gap: a proportional multi-segment bar.
+ *
+ * Salt has Progress for a single value, but nothing for showing how several
+ * contributions add up to one score. Every colour, gap and radius below is a
+ * Salt token — the layout mechanics (flex, widths as percentages) are the only
+ * plain values, because there is no token for "how wide is this segment".
+ */
+
+.track {
+  display: flex;
+  inline-size: 100%;
+  min-inline-size: 0;
+  gap: var(--salt-spacing-25);
+  overflow: hidden;
+  border-radius: var(--salt-palette-corner, 0);
+  background: var(--salt-container-secondary-background);
+}
+
+.segment {
+  block-size: var(--salt-size-selectable);
+  min-inline-size: 0;
+  transition: none;
+}
+
+/*
+ * Three distinguishable hues from the categorical palette rather than three
+ * shades of one colour: the arms are unordered categories, and a sequential
+ * ramp would imply a ranking the data does not carry.
+ */
+.semantic {
+  background: var(--salt-category-20-foreground, var(--salt-accent-background));
+}
+
+.lexical {
+  background: var(--salt-category-40-foreground, var(--salt-status-info-foreground));
+}
+
+.graph {
+  background: var(--salt-category-50-foreground, var(--salt-status-success-foreground));
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--salt-spacing-100);
+}
+
+.swatch {
+  display: inline-block;
+  inline-size: var(--salt-size-indicator);
+  block-size: var(--salt-size-indicator);
+  border-radius: var(--salt-palette-corner, 0);
+}

@@ -1,11 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist-types",
-    "noEmit": false,
-    "emitDeclarationOnly": true,
+    "noEmit": true,
+    "composite": false,
+    "incremental": false,
+    "declaration": false,
+    "declarationMap": false,
     "types": ["vite/client", "node"],
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src/**/*", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src/**/*"]
 }

@@ -1,3 +1,4 @@
+import { isDevBuild, personaSwitcherFlag } from './env';
 import type { Persona } from './personaRoster';
 
 export type { Persona } from './personaRoster';
@@ -10,9 +11,7 @@ export type { Persona } from './personaRoster';
  * inlined array — is what lets the bundler drop the module entirely.
  */
 export function personaSwitcherEnabled(): boolean {
-  return (
-    import.meta.env.DEV === true || import.meta.env.VITE_PERSONA_SWITCHER === 'on'
-  );
+  return isDevBuild() || personaSwitcherFlag() === 'on';
 }
 
 /**

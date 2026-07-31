@@ -37,3 +37,5 @@ export {
 } from './AuthProvider';
 
 export { SessionProvider, useSession, type SessionContextValue } from './SessionContext';
+
+export { apiBaseUrl, isDevBuild, personaSwitcherFlag } from './env';

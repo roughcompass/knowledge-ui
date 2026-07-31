@@ -1,0 +1,27 @@
+/*
+ * Fills a Salt gap: an inline trend line.
+ *
+ * Salt has no chart primitive at all. This is the smallest thing that shows a
+ * direction of travel next to a number, which is what the metrics screen needs
+ * and what a full charting dependency would be disproportionate for.
+ */
+
+.svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+.line {
+  fill: none;
+  stroke: var(--salt-accent-foreground);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.baseline {
+  stroke: var(--salt-separable-tertiary-borderColor);
+  stroke-width: 1;
+}
