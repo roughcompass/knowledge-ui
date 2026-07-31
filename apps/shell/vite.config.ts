@@ -1,0 +1,95 @@
+import { federation } from '@module-federation/vite';
+import react from '@vitejs/plugin-react';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vite';
+
+import { devProxy } from '../../dev-proxy';
+import { shared } from '../../mf.shared';
+
+const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
+
+const CATALOG = process.env.VITE_REMOTE_CATALOG ?? 'http://localhost:5171/remoteEntry.js';
+const OPERATIONS = process.env.VITE_REMOTE_OPERATIONS ?? 'http://localhost:5172/remoteEntry.js';
+
+export default defineConfig({
+  // The asset base. The router's basename is resolved separately at runtime,
+  // because the two are allowed to differ: assets can sit on a CDN path while
+  // the app is routed under a different prefix.
+  base: process.env.VITE_PUBLIC_PATH ?? '/',
+
+  plugins: [
+    react(),
+    federation({
+      name: 'shell',
+      filename: 'remoteEntry.js',
+      remotes: {
+        catalog: { type: 'module', name: 'catalog', entry: CATALOG },
+        operations: { type: 'module', name: 'operations', entry: OPERATIONS },
+      },
+      shared,
+      // Keeps hot reload working across the boundary: editing a file inside a
+      // remote refreshes that module inside the running shell.
+      dev: { remoteHmr: true },
+      // Remote types are hand-written in src/remotes/remotes.d.ts. Generated
+      // declarations require the remote's dev server to be reachable during
+      // typecheck, which would make `npm run typecheck` depend on a running
+      // process.
+      dts: false,
+    }),
+  ],
+
+  resolve: {
+    alias: { '@': r('./src') },
+    // Belt and braces on top of npm's hoisting. A second physical copy of any
+    // of these is the failure mode the whole share contract exists to prevent.
+    dedupe: [
+      'react',
+      'react-dom',
+      'react-router',
+      'react-router-dom',
+      '@tanstack/react-query',
+      '@salt-ds/core',
+    ],
+  },
+
+  optimizeDeps: {
+    // The workspace packages are consumed as TypeScript source. Pre-bundling
+    // them freezes a copy that survives edits until the cache is cleared by
+    // hand, which reads as "my change did nothing".
+    exclude: [
+      '@knowledge-ui/api-client',
+      '@knowledge-ui/auth',
+      '@knowledge-ui/remote-contract',
+      '@knowledge-ui/testing',
+      '@knowledge-ui/ui-kit',
+    ],
+    // The federation runtime emits top-level await, so the dependency
+    // optimizer needs a target that accepts it — same reason as build.target.
+    esbuildOptions: { target: 'chrome89' },
+  },
+
+  server: {
+    port: 5170,
+    strictPort: true,
+    proxy: devProxy(),
+  },
+
+  preview: {
+    port: 4270,
+    strictPort: true,
+    // The preview server carries the same proxy table so the relative-URL
+    // contract still holds in the built-artefact end-to-end lane.
+    proxy: devProxy(),
+  },
+
+  build: {
+    // Lowest target that accepts top-level await, which the federation runtime
+    // emits. Anything lower fails the build outright rather than degrading.
+    target: 'chrome89',
+    sourcemap: true,
+    // Deliberately no rollupOptions.output.manualChunks. The federation plugin
+    // owns chunking; a manualChunks entry is accepted by the config schema and
+    // then silently ignored, which looks like a working budget control and is
+    // not one. Route-level lazy imports are the real splitting lever.
+  },
+});

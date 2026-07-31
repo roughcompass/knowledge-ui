@@ -1,0 +1,124 @@
+# =============================================================================
+# knowledge-ui CI
+# =============================================================================
+# Every step invokes an npm script rather than inlining a command, so the same
+# gates run identically on a laptop. `npm run ci` is the whole pipeline.
+#
+# The end-to-end lane runs against a build with the request mocks compiled in,
+# so it needs no registry, no database and no identity provider. That is a
+# deliberate property: a UI repo whose tests only pass when a backend happens
+# to be running is a repo whose tests do not get run.
+# =============================================================================
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: lint, types, guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      # The token rule for CSS Modules. A raw hex or px in a design property
+      # fails here, which is the only thing keeping "use the design system"
+      # from being a convention nobody notices breaking.
+      - run: npm run lint:css
+      - run: npm run typecheck
+      # Federated share drift and internal-doc references. Both are silent
+      # failures without a gate: a share drift logs a console warning and loads
+      # a second copy of React.
+      - run: npm run guards
+      - run: npm run format:check
+
+  codegen-drift:
+    name: openapi codegen is current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # The spec is vendored rather than read across the repo boundary, so the
+      # generated bindings must match the vendored copy. Drift against the live
+      # registry is caught by the live end-to-end lane instead.
+      - run: npm run codegen
+      - run: git diff --exit-code packages/api-client/src/generated/
+
+  unit:
+    name: unit and component tests
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test
+
+  e2e:
+    name: end to end (mocked backend)
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # Builds all three artefacts with the remote URLs wired, which is the
+      # only place real Module Federation is exercised — the unit suite aliases
+      # the boundary away.
+      - run: npm run build:e2e
+      - run: npm run e2e -- --project=mocked
+      - run: node scripts/check-bundle-budget.mjs
+      # No manualChunks is possible under Module Federation, so the bundle
+      # budget is the only remaining guard against size regression.
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  no-dev-secrets:
+    name: no dev secrets in the production bundle
+    runs-on: ubuntu-latest
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # The persona roster carries dev client secrets and is meant to be elided
+      # from a production build by the environment guard around its dynamic
+      # import. This asserts the elision actually happened, because a bundler
+      # change that defeats it would otherwise ship credentials silently.
+      - name: assert the persona roster was tree-shaken out
+        run: |
+          if grep -rl "dev-secret" apps/shell/dist/ remotes/*/dist/ 2>/dev/null; then
+            echo "::error::dev client secret found in a production bundle"
+            exit 1
+          fi
+          echo "no dev secrets in dist/"

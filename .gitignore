@@ -17,3 +17,4 @@ blob-report/
 !.env.development
 
 .DS_Store
+dist-types/

@@ -1,0 +1,87 @@
+# HELP python_gc_objects_collected_total Objects collected during gc
+# TYPE python_gc_objects_collected_total counter
+python_gc_objects_collected_total{generation="0"} 4005.0
+python_gc_objects_collected_total{generation="1"} 396.0
+python_gc_objects_collected_total{generation="2"} 31.0
+# HELP python_gc_objects_uncollectable_total Uncollectable objects found during GC
+# TYPE python_gc_objects_uncollectable_total counter
+python_gc_objects_uncollectable_total{generation="0"} 0.0
+python_gc_objects_uncollectable_total{generation="1"} 0.0
+python_gc_objects_uncollectable_total{generation="2"} 0.0
+# HELP python_gc_collections_total Number of times this generation was collected
+# TYPE python_gc_collections_total counter
+python_gc_collections_total{generation="0"} 412.0
+python_gc_collections_total{generation="1"} 37.0
+python_gc_collections_total{generation="2"} 3.0
+# HELP python_info Python platform information
+# TYPE python_info gauge
+python_info{implementation="CPython",major="3",minor="12",patchlevel="13",version="3.12.13"} 1.0
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 1.115021312e+09
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 1.4272512e+08
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.78547804356e+09
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 2.27
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 22.0
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.048576e+06
+# HELP registry_identity_extraction_failures_total JWTs that passed signature validation but lacked both 'sub' and 'winaccountname' claims.
+# TYPE registry_identity_extraction_failures_total counter
+registry_identity_extraction_failures_total 0.0
+# HELP registry_identity_extraction_failures_created JWTs that passed signature validation but lacked both 'sub' and 'winaccountname' claims.
+# TYPE registry_identity_extraction_failures_created gauge
+registry_identity_extraction_failures_created 1.7854780448937976e+09
+# HELP registry_entitlement_calls_total Entitlement service HTTP calls, labeled by outcome status class.
+# TYPE registry_entitlement_calls_total counter
+# HELP registry_entitlement_call_duration_seconds End-to-end latency of entitlement service HTTP calls (including retries).
+# TYPE registry_entitlement_call_duration_seconds histogram
+registry_entitlement_call_duration_seconds_bucket{le="0.001"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="0.005"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="0.01"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="0.025"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="0.05"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="0.1"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="0.25"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="0.5"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="1.0"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="2.5"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="5.0"} 0.0
+registry_entitlement_call_duration_seconds_bucket{le="+Inf"} 0.0
+registry_entitlement_call_duration_seconds_count 0.0
+registry_entitlement_call_duration_seconds_sum 0.0
+# HELP registry_entitlement_call_duration_seconds_created End-to-end latency of entitlement service HTTP calls (including retries).
+# TYPE registry_entitlement_call_duration_seconds_created gauge
+registry_entitlement_call_duration_seconds_created 1.7854780448948565e+09
+# HELP registry_entitlement_dropped_entries_total Entitlement entries dropped by the middleware before reaching the route handler.
+# TYPE registry_entitlement_dropped_entries_total counter
+# HELP catalog_outbox_pending_size Number of rows currently pending in embedding_outbox
+# TYPE catalog_outbox_pending_size gauge
+catalog_outbox_pending_size 0.0
+# HELP catalog_audit_write_failures_total Count of audit_log writes that raised an exception and were swallowed.
+# TYPE catalog_audit_write_failures_total counter
+catalog_audit_write_failures_total 0.0
+# HELP catalog_audit_write_failures_created Count of audit_log writes that raised an exception and were swallowed.
+# TYPE catalog_audit_write_failures_created gauge
+catalog_audit_write_failures_created 1.7854780450020719e+09
+# HELP catalog_audit_partitions_eligible_for_archival Number of audit_log monthly partitions whose lower bound is older than 24 months
+# TYPE catalog_audit_partitions_eligible_for_archival gauge
+catalog_audit_partitions_eligible_for_archival 0.0
+# HELP registry_entitlement_parse_ignored_total Entitlement string was silently ignored (not addressed to this service).
+# TYPE registry_entitlement_parse_ignored_total counter
+# HELP registry_entitlement_parse_dropped_total Entitlement string addressed this service but could not be used.
+# TYPE registry_entitlement_parse_dropped_total counter
+# HELP auth_authority_parse_skipped_total Authority string did not match the SEAL prefix grammar (probably a platform-wide authority).
+# TYPE auth_authority_parse_skipped_total counter
+# HELP auth_authority_parse_failed_total Authority string looked SEAL-shaped but failed the full grammar (unexpected emission).
+# TYPE auth_authority_parse_failed_total counter
+# HELP registry_entitlement_cache_total Entitlement resolver cache outcomes per request.
+# TYPE registry_entitlement_cache_total counter

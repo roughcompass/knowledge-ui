@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Knowledge — Capability Registry</title>
+    <!--
+      The router basename is read from this tag at runtime, so a reverse proxy
+      or a deploy step can mount the app under a sub-path by rewriting the
+      served HTML — no rebuild. The placeholder form is treated as "not set",
+      so an un-rewritten template falls back to the build-time base rather
+      than routing to a literal "{{...}}".
+    -->
+    <meta name="app-basename" content="{{APP_BASENAME}}" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
