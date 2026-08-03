@@ -28,7 +28,9 @@ for (const persona of PERSONAS) {
       failed++;
       console.error(`  FAIL ${persona.key.padEnd(13)} ${res.status} ${await res.text()}`);
     } else {
-      console.log(`  ok   ${persona.key.padEnd(13)} ${persona.clientId} -> ${persona.entitlements.join(', ')}`);
+      console.log(
+        `  ok   ${persona.key.padEnd(13)} ${persona.clientId} -> ${persona.entitlements.join(', ')}`,
+      );
     }
   } catch (err) {
     failed++;

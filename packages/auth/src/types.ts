@@ -19,7 +19,12 @@
 export type Role = 'admin' | 'producer' | 'consumer' | 'auditor';
 
 /** The roles as a runtime value, same order. */
-export const ROLES = ['admin', 'producer', 'consumer', 'auditor'] as const satisfies readonly Role[];
+export const ROLES = [
+  'admin',
+  'producer',
+  'consumer',
+  'auditor',
+] as const satisfies readonly Role[];
 
 export function isRole(value: unknown): value is Role {
   return typeof value === 'string' && (ROLES as readonly string[]).includes(value);

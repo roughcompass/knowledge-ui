@@ -3,7 +3,13 @@ import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react
 import type { RegistryClient } from './client';
 import type { components } from './generated/registry';
 import { queryKeys, type KeyScope } from './keys';
-import { fetchMetricsText, probeLiveness, probeReadiness, type Liveness, type Readiness } from './ops';
+import {
+  fetchMetricsText,
+  probeLiveness,
+  probeReadiness,
+  type Liveness,
+  type Readiness,
+} from './ops';
 import { parsePrometheusText, type MetricsSnapshot } from './metrics/parse';
 import { clampPageSize, compact, toApiTimestamp } from './params';
 
@@ -119,10 +125,13 @@ export function useCapability(
   return useQuery({
     queryKey: queryKeys.capability(scope, handle ?? '', query),
     queryFn: ({ signal }) =>
-      client.request<Record<string, unknown>>(`/v1/capabilities/${encodeURIComponent(handle as string)}`, {
-        query,
-        signal,
-      }),
+      client.request<Record<string, unknown>>(
+        `/v1/capabilities/${encodeURIComponent(handle as string)}`,
+        {
+          query,
+          signal,
+        },
+      ),
     enabled: Boolean(handle),
     staleTime: 60_000,
   });

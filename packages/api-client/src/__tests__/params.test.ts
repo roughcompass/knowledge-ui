@@ -21,7 +21,7 @@ describe('toApiTimestamp', () => {
 });
 
 describe('clampPageSize', () => {
-  it('uses each endpoint\'s own default when unset', () => {
+  it("uses each endpoint's own default when unset", () => {
     expect(clampPageSize('capabilities', undefined)).toBe(PAGE_LIMITS.capabilities.default);
     expect(clampPageSize('audit', undefined)).toBe(PAGE_LIMITS.audit.default);
     expect(clampPageSize('search', undefined)).toBe(PAGE_LIMITS.search.default);

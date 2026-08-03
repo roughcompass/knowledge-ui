@@ -29,11 +29,34 @@ const PATTERNS = [
   { re: /\bDCU-P\d+-T\d+[a-z]?\b/, hint: 'task ID from the sibling app' },
   { re: /PRD\s+§/, hint: 'document citation' },
   { re: /TDD\s+§/, hint: 'document citation' },
-  { re: /\bPhase \d+\b/, hint: 'delivery-phase label — say what the code does, not when it was written' },
+  {
+    re: /\bPhase \d+\b/,
+    hint: 'delivery-phase label — say what the code does, not when it was written',
+  },
 ];
 
-const SCANNED = new Set(['.ts', '.tsx', '.mts', '.mjs', '.js', '.jsx', '.css', '.md', '.json', '.yml', '.yaml']);
-const SKIP_DIRS = new Set(['node_modules', 'dist', '.git', 'coverage', 'generated', 'test-results', 'playwright-report']);
+const SCANNED = new Set([
+  '.ts',
+  '.tsx',
+  '.mts',
+  '.mjs',
+  '.js',
+  '.jsx',
+  '.css',
+  '.md',
+  '.json',
+  '.yml',
+  '.yaml',
+]);
+const SKIP_DIRS = new Set([
+  'node_modules',
+  'dist',
+  '.git',
+  'coverage',
+  'generated',
+  'test-results',
+  'playwright-report',
+]);
 
 function* walk(dir) {
   for (const name of readdirSync(dir)) {
@@ -64,7 +87,9 @@ for (const file of walk(ROOT)) {
 if (hits.length > 0) {
   console.error('check-no-doc-refs: FAIL\n');
   for (const h of hits) console.error(`  ${h}`);
-  console.error('\nExplain the rule in the code\'s own words. End a line with `doc-ref: intentional` to allow one.');
+  console.error(
+    "\nExplain the rule in the code's own words. End a line with `doc-ref: intentional` to allow one.",
+  );
   process.exit(1);
 }
 console.log('check-no-doc-refs: PASS');

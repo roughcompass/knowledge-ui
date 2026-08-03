@@ -47,8 +47,12 @@ describe('parsePrometheusText against a real capture', () => {
   });
 
   it('separates the runtime collectors from the application families', () => {
-    const app = [...snapshot.keys()].filter((k) => k.startsWith('registry_') || k.startsWith('catalog_'));
-    const runtime = [...snapshot.keys()].filter((k) => k.startsWith('python_') || k.startsWith('process_'));
+    const app = [...snapshot.keys()].filter(
+      (k) => k.startsWith('registry_') || k.startsWith('catalog_'),
+    );
+    const runtime = [...snapshot.keys()].filter(
+      (k) => k.startsWith('python_') || k.startsWith('process_'),
+    );
     expect(app.length).toBeGreaterThan(0);
     expect(runtime.length).toBeGreaterThan(0);
   });
@@ -149,13 +153,23 @@ describe('histogramQuantile', () => {
   it('returns the largest finite boundary when everything is in +Inf', () => {
     // Reporting Infinity would render as nonsense; "at least 4" is the honest
     // answer and the only one a reader can act on.
-    const all = ['# TYPE h histogram', 'h_bucket{le="4"} 0', 'h_bucket{le="+Inf"} 10', 'h_count 10'].join('\n');
+    const all = [
+      '# TYPE h histogram',
+      'h_bucket{le="4"} 0',
+      'h_bucket{le="+Inf"} 10',
+      'h_count 10',
+    ].join('\n');
     expect(histogramQuantile(parsePrometheusText(all), 'h', 0.9)).toBe(4);
   });
 
   it('returns undefined for an empty histogram rather than 0', () => {
     // A p95 of 0 reads as "very fast". Undefined lets the UI say "no data".
-    const empty = ['# TYPE h histogram', 'h_bucket{le="1"} 0', 'h_bucket{le="+Inf"} 0', 'h_count 0'].join('\n');
+    const empty = [
+      '# TYPE h histogram',
+      'h_bucket{le="1"} 0',
+      'h_bucket{le="+Inf"} 0',
+      'h_count 0',
+    ].join('\n');
     expect(histogramQuantile(parsePrometheusText(empty), 'h', 0.95)).toBeUndefined();
   });
 
@@ -167,7 +181,9 @@ describe('histogramQuantile', () => {
     // The dev stack has served no entitlement calls, so every bucket is 0.
     // This must not produce 0 or Infinity.
     const s = parsePrometheusText(REAL);
-    expect(histogramQuantile(s, 'registry_entitlement_call_duration_seconds', 0.95)).toBeUndefined();
+    expect(
+      histogramQuantile(s, 'registry_entitlement_call_duration_seconds', 0.95),
+    ).toBeUndefined();
   });
 });
 

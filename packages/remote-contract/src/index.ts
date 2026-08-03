@@ -8,9 +8,14 @@
  *
  * Types only — no runtime export. That is deliberate. This package is not
  * federated, so a runtime value here would be duplicated into every bundle and
- * identity comparisons across the boundary would fail.
+ * identity comparisons across the boundary would fail. The `@knowledge-ui/auth`
+ * import below is `import type` for the same reason: it is erased at build time,
+ * so depending on that package costs nothing at runtime and avoids maintaining a
+ * second persona shape that could drift from the real one.
  */
 import type { ComponentType } from 'react';
+
+import type { Persona } from '@knowledge-ui/auth';
 
 /** Names the shell knows how to mount. Adding one is a change here and in the shell's route table. */
 export type RemoteName = 'catalog' | 'operations';
@@ -46,6 +51,25 @@ export interface RemoteMountProps<TSession = unknown, TClient = unknown> {
 
   /** Host-owned navigation, for links that cross into another remote. */
   navigateAbsolute: (to: string) => void;
+
+  /**
+   * Who the reader could become, and how to become them.
+   *
+   * Part of the handshake because a remote cannot work this out for itself: the
+   * roster is a host concern, and a remote that guessed at it would offer to
+   * switch to an identity the host does not have. It is here so a remote can
+   * gate its own sub-routes and still explain the way out — the audit log is the
+   * case that forces it, since the registry resolves a session to one role and
+   * requires `auditor` specifically, so being refused is normal and the fix is
+   * to authenticate as someone else.
+   *
+   * Empty in a production build, where the switcher does not exist; the gate
+   * then explains without offering an action.
+   */
+  personas: readonly Persona[];
+
+  /** Undefined when switching is not available, which is the production case. */
+  onSwitchPersona?: ((personaKey: string) => void) | undefined;
 }
 
 /** The shape every `./App` expose must satisfy. Asserted by a type-level test. */

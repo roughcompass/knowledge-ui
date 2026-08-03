@@ -38,4 +38,8 @@ export {
 
 export { SessionProvider, useSession, type SessionContextValue } from './SessionContext';
 
+export { RequireCapability } from './RequireCapability';
+
+export { readSelectedPersona, writeSelectedPersona } from './storage';
+
 export { apiBaseUrl, isDevBuild, personaSwitcherFlag } from './env';

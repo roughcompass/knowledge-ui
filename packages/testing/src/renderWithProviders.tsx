@@ -49,11 +49,15 @@ export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper
 
 export function renderWithProviders(
   ui: ReactElement,
-  { route = '/', queryClient = makeTestQueryClient(), ...renderOptions }: RenderWithProvidersOptions = {},
+  {
+    route = '/',
+    queryClient = makeTestQueryClient(),
+    ...renderOptions
+  }: RenderWithProvidersOptions = {},
 ): RenderResult & { queryClient: QueryClient } {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <SaltProviderNext mode="light" density="medium" accent="blue" corner="rounded">
+      <SaltProviderNext mode="light" density="low" accent="teal" corner="rounded">
         <QueryClientProvider client={queryClient}>
           <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
         </QueryClientProvider>

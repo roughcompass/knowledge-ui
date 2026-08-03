@@ -22,7 +22,7 @@
     "build:e2e": "node scripts/build-e2e.mjs",
     "preview:shell": "npm run preview -w @knowledge-ui/shell",
     "lint": "eslint .",
-    "lint:css": "stylelint \"**/*.module.css\"",
+    "lint:css": "stylelint \"**/*.css\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -b --pretty false && tsc -p apps/shell --pretty false && tsc -p remotes/catalog --pretty false && tsc -p remotes/operations --pretty false",
@@ -34,7 +34,7 @@
     "seed:personas": "node scripts/seed-personas.mjs",
     "verify:personas": "node scripts/verify-personas.mjs",
     "doctor": "npm run seed:personas && npm run verify:personas",
-    "guards": "node scripts/check-no-doc-refs.mjs && node scripts/check-shared-parity.mjs",
+    "guards": "node scripts/check-no-doc-refs.mjs && node scripts/check-shared-parity.mjs && node scripts/check-salt-tokens.mjs",
     "ci": "npm run lint && npm run lint:css && npm run typecheck && npm run guards && npm run test && npm run build:e2e && node scripts/check-bundle-budget.mjs"
   },
   "devDependencies": {
@@ -70,5 +70,10 @@
     "react-dom": "18.3.1",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "apps/shell/public"
+    ]
   }
 }

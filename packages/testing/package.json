@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./server": "./src/msw/server.ts",
+    "./browser": "./src/msw/browser.ts"
   },
   "types": "./src/index.ts",
   "peerDependencies": {

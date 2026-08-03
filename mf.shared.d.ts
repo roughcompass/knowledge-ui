@@ -23,68 +23,68 @@
  */
 /** Versions every workspace must pin identically. Enforced by scripts/check-shared-parity.mjs. */
 export declare const PINNED: {
-    readonly react: "18.3.1";
-    readonly 'react-dom': "18.3.1";
-    readonly 'react-router': "6.30.1";
-    readonly 'react-router-dom': "6.30.1";
-    readonly '@tanstack/react-query': "5.90.2";
-    readonly '@salt-ds/core': "1.67.0";
-    readonly '@salt-ds/icons': "1.18.0";
+  readonly react: '18.3.1';
+  readonly 'react-dom': '18.3.1';
+  readonly 'react-router': '6.30.1';
+  readonly 'react-router-dom': '6.30.1';
+  readonly '@tanstack/react-query': '5.90.2';
+  readonly '@salt-ds/core': '1.67.0';
+  readonly '@salt-ds/icons': '1.18.0';
 };
 export declare const shared: {
-    readonly react: {
-        readonly singleton: true;
-        readonly strictVersion: true;
-        readonly requiredVersion: "18.3.1";
-    };
-    readonly 'react/jsx-runtime': {
-        readonly singleton: true;
-        readonly strictVersion: true;
-        readonly requiredVersion: "18.3.1";
-    };
-    readonly 'react-dom': {
-        readonly singleton: true;
-        readonly strictVersion: true;
-        readonly requiredVersion: "18.3.1";
-    };
-    readonly 'react-dom/client': {
-        readonly singleton: true;
-        readonly strictVersion: true;
-        readonly requiredVersion: "18.3.1";
-    };
-    readonly 'react-router': {
-        readonly singleton: true;
-        readonly strictVersion: true;
-        readonly requiredVersion: "6.30.1";
-    };
-    readonly 'react-router-dom': {
-        readonly singleton: true;
-        readonly strictVersion: true;
-        readonly requiredVersion: "6.30.1";
-    };
-    readonly '@tanstack/react-query': {
-        readonly singleton: true;
-        readonly strictVersion: true;
-        readonly requiredVersion: "5.90.2";
-    };
-    readonly '@salt-ds/core': {
-        readonly singleton: true;
-        readonly strictVersion: true;
-        readonly requiredVersion: "1.67.0";
-    };
-    readonly '@salt-ds/icons': {
-        readonly singleton: true;
-        readonly strictVersion: false;
-        readonly requiredVersion: "1.18.0";
-    };
-    readonly '@salt-ds/styles': {
-        readonly singleton: true;
-        readonly requiredVersion: false;
-    };
-    readonly '@salt-ds/window': {
-        readonly singleton: true;
-        readonly requiredVersion: false;
-    };
+  readonly react: {
+    readonly singleton: true;
+    readonly strictVersion: true;
+    readonly requiredVersion: '18.3.1';
+  };
+  readonly 'react/jsx-runtime': {
+    readonly singleton: true;
+    readonly strictVersion: true;
+    readonly requiredVersion: '18.3.1';
+  };
+  readonly 'react-dom': {
+    readonly singleton: true;
+    readonly strictVersion: true;
+    readonly requiredVersion: '18.3.1';
+  };
+  readonly 'react-dom/client': {
+    readonly singleton: true;
+    readonly strictVersion: true;
+    readonly requiredVersion: '18.3.1';
+  };
+  readonly 'react-router': {
+    readonly singleton: true;
+    readonly strictVersion: true;
+    readonly requiredVersion: '6.30.1';
+  };
+  readonly 'react-router-dom': {
+    readonly singleton: true;
+    readonly strictVersion: true;
+    readonly requiredVersion: '6.30.1';
+  };
+  readonly '@tanstack/react-query': {
+    readonly singleton: true;
+    readonly strictVersion: true;
+    readonly requiredVersion: '5.90.2';
+  };
+  readonly '@salt-ds/core': {
+    readonly singleton: true;
+    readonly strictVersion: true;
+    readonly requiredVersion: '1.67.0';
+  };
+  readonly '@salt-ds/icons': {
+    readonly singleton: true;
+    readonly strictVersion: false;
+    readonly requiredVersion: '1.18.0';
+  };
+  readonly '@salt-ds/styles': {
+    readonly singleton: true;
+    readonly requiredVersion: false;
+  };
+  readonly '@salt-ds/window': {
+    readonly singleton: true;
+    readonly requiredVersion: false;
+  };
 };
 /**
  * Deliberately NOT shared: the `@knowledge-ui/*` workspace packages.

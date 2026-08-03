@@ -17,6 +17,10 @@ export default defineConfig({
   // the app is routed under a different prefix.
   base: process.env.VITE_PUBLIC_PATH ?? '/',
 
+  // One env file for the whole workspace, at the repo root. Without this each
+  // app would look only in its own directory and need its own copy.
+  envDir: fileURLToPath(new URL('../..', import.meta.url)),
+
   plugins: [
     react(),
     federation({
@@ -35,6 +39,12 @@ export default defineConfig({
       // typecheck, which would make `npm run typecheck` depend on a running
       // process.
       dts: false,
+      // Emits mf-manifest.json and mf-stats.json. Worth having beyond
+      // tooling: the manifest is the only build artefact that proves the
+      // federation plugin actually ran, so the bundle-budget check keys off
+      // its presence rather than trusting that a build which produced files
+      // produced federated ones.
+      manifest: true,
     }),
   ],
 

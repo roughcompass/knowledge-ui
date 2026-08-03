@@ -1,0 +1,28 @@
+/*
+ * Fills a Salt gap: measure and page width.
+ *
+ * Salt's layout components handle arrangement and spacing but express no opinion
+ * about how wide a line of text should be, because that depends on the content.
+ * On a 1440px monitor the audit-log explainer ran the full width — about 180
+ * characters per line against a comfortable 45–75 — which is a readability
+ * problem no amount of correct spacing fixes.
+ *
+ * The values here are the two that have no Salt token and should not have one:
+ * a measure is a property of prose, and a page cap is a property of the layout
+ * tier. Everything else on these elements still comes from tokens.
+ */
+
+.content {
+  /* The "standard" tier: dashboards and data pages. Tables get the full width up
+     to this point, which is enough for the widest table in the app. */
+  max-inline-size: 1200px;
+  inline-size: 100%;
+  margin-inline: auto;
+  min-inline-size: 0;
+}
+
+.prose {
+  /* Character-based, so the measure holds when the density changes the font
+     size — which is exactly what a `px` value would get wrong. */
+  max-inline-size: 68ch;
+}

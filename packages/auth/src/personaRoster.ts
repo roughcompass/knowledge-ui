@@ -14,6 +14,27 @@ import type { Role } from './types';
  * what catches a drift, by minting a token per persona and asserting the role
  * the server resolves matches `expectedRole`.
  */
+
+/**
+ * The shared development client secret, from the environment rather than a literal.
+ *
+ * Tree-shaking removes this module's *code* from a production build, but a
+ * sourcemap keeps every module's original text in `sourcesContent` — so a literal
+ * here still shipped inside `dist/**.map`, which is exactly what a published
+ * bundle exposes. Reading it from the environment means no artefact contains the
+ * credential, whether or not the elision works.
+ *
+ * `.env.development` supplies it for `vite dev`, and `build:e2e` passes it
+ * explicitly for the mocked end-to-end build. A production build has neither, so
+ * this is the empty string — correct, because the switcher is disabled there and
+ * nothing ever reads it.
+ *
+ * The mock identity provider accepts any client_id/secret pair, so the value only
+ * has to be present, not correct.
+ */
+const CLIENT_SECRET =
+  (import.meta as unknown as { env: { VITE_PERSONA_SECRET: string | undefined } }).env
+    .VITE_PERSONA_SECRET ?? '';
 export interface Persona {
   key: string;
   label: string;
@@ -38,7 +59,7 @@ export const PERSONA_ROSTER: readonly Persona[] = [
     label: 'Tenant — Consumer',
     description: 'Read-only browse of the capability catalog.',
     clientId: 'knowledge-ui-consumer',
-    clientSecret: 'dev-secret',
+    clientSecret: CLIENT_SECRET,
     entitlements: [grant(TENANT, 'CONSUMER')],
     expectedRole: 'consumer',
   },
@@ -47,7 +68,7 @@ export const PERSONA_ROSTER: readonly Persona[] = [
     label: 'Tenant — Producer',
     description: 'Everything a consumer sees, plus the write surfaces when they land.',
     clientId: 'knowledge-ui-producer',
-    clientSecret: 'dev-secret',
+    clientSecret: CLIENT_SECRET,
     entitlements: [grant(TENANT, 'PRODUCER')],
     expectedRole: 'producer',
   },
@@ -56,7 +77,7 @@ export const PERSONA_ROSTER: readonly Persona[] = [
     label: 'Platform — Admin',
     description: 'Health and metrics. Cannot read the audit log — that needs the auditor.',
     clientId: 'knowledge-ui-admin',
-    clientSecret: 'dev-secret',
+    clientSecret: CLIENT_SECRET,
     entitlements: [grant(TENANT, 'ADMIN')],
     expectedRole: 'admin',
   },
@@ -65,7 +86,7 @@ export const PERSONA_ROSTER: readonly Persona[] = [
     label: 'Platform — Auditor',
     description: 'The only role the server permits to read the audit log.',
     clientId: 'knowledge-ui-auditor',
-    clientSecret: 'dev-secret',
+    clientSecret: CLIENT_SECRET,
     entitlements: [grant(TENANT, 'AUDITOR')],
     expectedRole: 'auditor',
   },
@@ -74,7 +95,7 @@ export const PERSONA_ROSTER: readonly Persona[] = [
     label: 'Tenant — Two grants',
     description: 'Exercises tenant selection: whoami is refused until a tenant is chosen.',
     clientId: 'knowledge-ui-multi',
-    clientSecret: 'dev-secret',
+    clientSecret: CLIENT_SECRET,
     entitlements: [grant(TENANT, 'CONSUMER'), grant(SECOND_TENANT, 'CONSUMER')],
     expectedRole: 'consumer',
   },

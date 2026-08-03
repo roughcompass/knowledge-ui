@@ -1,0 +1,79 @@
+/*
+ * stylelint's `selector-class-pattern` governs class names we author. Every
+ * selector in this file is either Salt's or the user agent's, and the rule has no
+ * ignore option.
+ */
+/* stylelint-disable selector-class-pattern */
+
+/*
+ * Global corrections: a body reset, and repairs for tokens `theme-next` leaves
+ * dangling.
+ *
+ * Salt's next theme defines `--salt-text-code-fontFamily` as
+ * `var(--salt-palette-text-fontFamily-code)`, and then never defines that
+ * palette token — it exists only in the legacy `theme.css`. So under the theme
+ * this app actually loads, `<Text styleAs="code">` resolves to nothing and
+ * inherits Open Sans. The app has been shipping `@fontsource/pt-mono` for a
+ * monospace face that no component could reach.
+ *
+ * Loading the legacy sheet to supply the missing name is exactly what
+ * `main.tsx` warns against: the two themes then compete for the same custom
+ * properties. Defining the one dangling token is the smaller, contained fix.
+ *
+ * The selector matches theme-next's own `.salt-theme.salt-theme-next`
+ * specificity (0,2,0); this file is imported after it, so it wins on source
+ * order. A single-class selector would silently lose.
+ *
+ * Imported only by the shell entry and the two standalone entries — the same
+ * three files allowed to import global CSS at all.
+ */
+.salt-theme.salt-theme-next {
+  --salt-text-code-fontFamily: var(--salt-typography-fontFamily-ptMono);
+}
+
+/*
+ * The app shell is `100dvh`. The browser's default `body { margin: 8px }` then
+ * makes the document 16px taller than the viewport, so a second scrollbar appears
+ * beside the content column's own. Salt's `global.css` styles typography and
+ * colour on `.salt-theme` but resets nothing on `body`.
+ */
+body {
+  margin: 0;
+}
+
+/*
+ * The canvas tint, on the document rather than only on the shell.
+ *
+ * `AppShell` already paints it, but the document behind it stays white — which
+ * shows during overscroll and rubber-banding, and behind a portalled overlay. The
+ * reference sets it on both `html` and `body`.
+ */
+html.salt-theme,
+html.salt-theme body {
+  background: var(--salt-container-secondary-background);
+}
+
+/*
+ * Heading margins.
+ *
+ * Salt's `Text` sets no margin at all — verified against
+ * `@salt-ds/core/dist-es/text/Text.css.js` — and neither theme resets the
+ * user-agent's. So the moment a `Text` renders as a real heading element, which is
+ * what `as` is for and what an accessible outline requires, the browser adds its own
+ * `0.83em` block margin on top of the layout component's gap.
+ *
+ * Measured cost: a card header band 90px tall around 24px of text, and a page title
+ * whose spacing came from Chrome rather than from any token. Every gap in this app
+ * is a `StackLayout`/`FlexLayout` gap, so the correct margin is zero.
+ *
+ * Scoped to `.saltText` so a heading written outside the design system — there are
+ * none, but a future one would be a bug worth seeing — is left alone.
+ */
+h1.saltText,
+h2.saltText,
+h3.saltText,
+h4.saltText,
+h5.saltText,
+h6.saltText {
+  margin-block: 0;
+}

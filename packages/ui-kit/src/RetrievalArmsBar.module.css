@@ -2,9 +2,24 @@
  * Fills a Salt gap: a proportional multi-segment bar.
  *
  * Salt has Progress for a single value, but nothing for showing how several
- * contributions add up to one score. Every colour, gap and radius below is a
+ * contributions add up to one score. Every colour, size and radius below is a
  * Salt token — the layout mechanics (flex, widths as percentages) are the only
  * plain values, because there is no token for "how wide is this segment".
+ *
+ * WHY THE TOKEN NAMES ARE SPELLED OUT WITH NO FALLBACKS. The first version of
+ * this file used `var(--salt-category-40-foreground, var(--salt-status-info-foreground))`.
+ * Neither name exists under `theme-next`: the categorical palette runs 1–20, and
+ * the bare `--salt-status-*-foreground` form is legacy-only (theme-next spells it
+ * `-foreground-informative` / `-foreground-decorative`). When a token and its
+ * fallback are both undefined the declaration is invalid at computed-value time,
+ * so `background` fell back to `transparent` and two of the three arms rendered
+ * invisible — a chart that silently showed one series and looked like an ordinary
+ * progress bar.
+ *
+ * A fallback would have hidden that again. Naming one token per rule means a
+ * wrong name renders as nothing rather than as something plausible, and
+ * `scripts/check-salt-tokens.mjs` fails the build on any name that theme-next
+ * does not define.
  */
 
 .track {
@@ -13,42 +28,45 @@
   min-inline-size: 0;
   gap: var(--salt-spacing-25);
   overflow: hidden;
-  border-radius: var(--salt-palette-corner, 0);
+  border-radius: var(--salt-palette-corner);
   background: var(--salt-container-secondary-background);
 }
 
 .segment {
-  block-size: var(--salt-size-selectable);
+  /* The bar token, not `--salt-size-selectable` — that is a control height, and
+     using it made a data bar as tall as a checkbox. */
+  block-size: var(--salt-size-bar);
   min-inline-size: 0;
   transition: none;
 }
 
 /*
  * Three distinguishable hues from the categorical palette rather than three
- * shades of one colour: the arms are unordered categories, and a sequential
- * ramp would imply a ranking the data does not carry.
+ * shades of one colour: the arms are unordered categories, and a sequential ramp
+ * would imply a ranking the data does not carry.
+ *
+ * The `-dataviz` variant specifically. Salt publishes it for exactly this
+ * purpose, and it is tuned for adjacent fills in a chart rather than for text or
+ * borders.
  */
 .semantic {
-  background: var(--salt-category-20-foreground, var(--salt-accent-background));
+  background: var(--salt-category-1-dataviz);
 }
 
 .lexical {
-  background: var(--salt-category-40-foreground, var(--salt-status-info-foreground));
+  background: var(--salt-category-2-dataviz);
 }
 
 .graph {
-  background: var(--salt-category-50-foreground, var(--salt-status-success-foreground));
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--salt-spacing-100);
+  background: var(--salt-category-3-dataviz);
 }
 
 .swatch {
   display: inline-block;
-  inline-size: var(--salt-size-indicator);
-  block-size: var(--salt-size-indicator);
-  border-radius: var(--salt-palette-corner, 0);
+
+  /* `--salt-size-indicator` is 3px — a dot, not a swatch. */
+  inline-size: var(--salt-size-icon);
+  block-size: var(--salt-size-icon);
+  border-radius: var(--salt-palette-corner);
+  flex-shrink: 0;
 }

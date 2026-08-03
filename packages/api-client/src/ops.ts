@@ -34,7 +34,10 @@ export interface ProbeOptions {
  * `GET /healthz` — the only one of the three that returns JSON.
  * Body is `{"status": "ok"}`.
  */
-export async function probeLiveness({ baseUrl = '', signal }: ProbeOptions = {}): Promise<Liveness> {
+export async function probeLiveness({
+  baseUrl = '',
+  signal,
+}: ProbeOptions = {}): Promise<Liveness> {
   let res: Response;
   try {
     res = await fetch(`${baseUrl}/healthz`, { signal, headers: { Accept: 'application/json' } });
@@ -44,7 +47,9 @@ export async function probeLiveness({ baseUrl = '', signal }: ProbeOptions = {})
   if (!res.ok) return { state: 'degraded', detail: `HTTP ${res.status}` };
   try {
     const body = (await res.json()) as { status?: string };
-    return body.status === 'ok' ? { state: 'ok' } : { state: 'degraded', detail: String(body.status) };
+    return body.status === 'ok'
+      ? { state: 'ok' }
+      : { state: 'degraded', detail: String(body.status) };
   } catch {
     return { state: 'degraded', detail: 'response was not JSON' };
   }
@@ -56,7 +61,10 @@ export async function probeLiveness({ baseUrl = '', signal }: ProbeOptions = {})
  * Read as text, always. The body is trimmed because a trailing newline is not
  * a meaningful difference and depending on its absence would be brittle.
  */
-export async function probeReadiness({ baseUrl = '', signal }: ProbeOptions = {}): Promise<Readiness> {
+export async function probeReadiness({
+  baseUrl = '',
+  signal,
+}: ProbeOptions = {}): Promise<Readiness> {
   let res: Response;
   try {
     res = await fetch(`${baseUrl}/readyz`, { signal, headers: { Accept: 'text/plain' } });
@@ -70,7 +78,10 @@ export async function probeReadiness({ baseUrl = '', signal }: ProbeOptions = {}
 }
 
 /** `GET /metrics` — Prometheus text exposition. Returned raw for the parser. */
-export async function fetchMetricsText({ baseUrl = '', signal }: ProbeOptions = {}): Promise<string> {
+export async function fetchMetricsText({
+  baseUrl = '',
+  signal,
+}: ProbeOptions = {}): Promise<string> {
   const res = await fetch(`${baseUrl}/metrics`, { signal, headers: { Accept: 'text/plain' } });
   if (!res.ok) throw new Error(`metrics endpoint returned ${res.status}`);
   return res.text();

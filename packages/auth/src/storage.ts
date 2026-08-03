@@ -85,6 +85,43 @@ export function clearToken(key: string): void {
 }
 
 /**
+ * Which persona was last chosen, for this API origin.
+ *
+ * Without this, every reload silently drops the reader back to the first persona
+ * in the roster. That is worst exactly where the switcher matters most: reading
+ * the audit log requires becoming the auditor, and the natural next actions —
+ * refresh, or paste the URL to a colleague — would land back on a consumer
+ * looking at an empty table.
+ *
+ * Namespaced by origin like the token cache, and in `sessionStorage` for the same
+ * reason: a persona is a per-tab experiment, not a lasting preference.
+ */
+function selectedPersonaKey(apiBaseUrl: string): string {
+  const scope = apiBaseUrl === '' ? 'same-origin' : apiBaseUrl;
+  return `kui:persona:${shortHash(scope)}`;
+}
+
+export function readSelectedPersona(apiBaseUrl: string): string | null {
+  const s = storage();
+  if (!s) return null;
+  try {
+    return s.getItem(selectedPersonaKey(apiBaseUrl));
+  } catch {
+    return null;
+  }
+}
+
+export function writeSelectedPersona(apiBaseUrl: string, personaKey: string): void {
+  const s = storage();
+  if (!s) return;
+  try {
+    s.setItem(selectedPersonaKey(apiBaseUrl), personaKey);
+  } catch {
+    // Same tolerance as the token cache: losing this costs a default, not a crash.
+  }
+}
+
+/**
  * Seconds of headroom before `exp` at which a token counts as expired.
  *
  * A token that is valid for another second is not useful: the request carrying

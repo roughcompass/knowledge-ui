@@ -1,5 +1,7 @@
 {
-  "extends": ["stylelint-config-standard"],
+  "extends": [
+    "stylelint-config-standard"
+  ],
   "rules": {
     "declaration-property-value-allowed-list": {
       "/^color$|^background|^border.*color|^outline-color|^fill$|^stroke$/": [
@@ -19,10 +21,30 @@
         "/^var\\(--salt-/",
         "inherit"
       ],
-      "/^border-radius/": ["/^var\\(--salt-/", "0", "50%", "inherit"]
+      "/^border-radius/": [
+        "/^var\\(--salt-/",
+        "0",
+        "50%",
+        "inherit"
+      ]
     },
     "custom-property-pattern": null,
     "selector-class-pattern": "^[a-z][a-zA-Z0-9]+$",
-    "no-descending-specificity": null
-  }
+    "no-descending-specificity": null,
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": [
+          "global",
+          "local"
+        ]
+      }
+    ]
+  },
+  "ignoreFiles": [
+    "**/dist/**",
+    "**/dist-types/**",
+    "**/node_modules/**",
+    "**/playwright-report/**"
+  ]
 }

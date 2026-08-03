@@ -52,7 +52,11 @@ describe('toRegistryError', () => {
 
   it('reads Retry-After off a 429', () => {
     const headers = new Headers({ 'Retry-After': '30' });
-    const err = toRegistryError(429, { errors: [{ path: null, code: 'rate_limited', message: 'slow down' }] }, headers);
+    const err = toRegistryError(
+      429,
+      { errors: [{ path: null, code: 'rate_limited', message: 'slow down' }] },
+      headers,
+    );
     expect(err.retryAfterSeconds).toBe(30);
   });
 

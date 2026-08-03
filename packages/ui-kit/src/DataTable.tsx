@@ -1,6 +1,8 @@
 import { TBody, TD, TH, THead, TR, Table, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
+import { SectionCard } from './SectionCard';
+import styles from './DataTable.module.css';
 import { EmptyState } from './EmptyState';
 import { LoadingPanel } from './LoadingPanel';
 
@@ -18,23 +20,87 @@ export interface Column<TRow> {
   header: ReactNode;
   /** Rendered content. Defaults to the row's value at `key`, stringified. */
   render?: (row: TRow) => ReactNode;
+  /**
+   * `right` also switches the column to tabular figures, because the two always
+   * want each other: right alignment is what makes a numeric column scannable,
+   * and proportional digits undo it by giving each row a different width.
+   *
+   * This was declared and then never read, so every numeric column in the app —
+   * scores, counts, totals — rendered left-aligned with proportional digits.
+   */
   align?: 'left' | 'right' | 'center';
 }
 
 export interface DataTableProps<TRow> {
   columns: ReadonlyArray<Column<TRow>>;
   rows: readonly TRow[];
-  getRowId: (row: TRow) => string;
+  /**
+   * Stable React key for a row.
+   *
+   * The index is passed as a second argument for rows that genuinely have no id of
+   * their own — a fact with no `fact_id`, a derived row. It was previously *not*
+   * passed, while one caller declared `(row, index = 0) => …`: the default fired
+   * every time, so every id-less row collided on the key `"0"` and React reused
+   * the wrong DOM nodes between renders.
+   *
+   * Prefer a real id where one exists. An index-keyed row is wrong the moment the
+   * list is reordered or filtered.
+   */
+  getRowId: (row: TRow, index: number) => string;
   /**
    * Describes the table for a screen reader. Required rather than optional: a
    * table with no accessible name is announced as an unlabelled grid, which is
    * the point at which the content stops being navigable.
    */
   caption: string;
+  /**
+   * Keep the caption for assistive technology but take it off screen.
+   *
+   * For tables that already sit under a visible heading saying the same thing —
+   * "Attributes" as a section heading, then "Attributes" again as a caption
+   * directly beneath it. Removing the caption entirely would cost the table its
+   * accessible name; hiding it visually keeps both correct.
+   */
+  hideCaption?: boolean;
+  /**
+   * Alternate the row background. Worth it once a table is wide enough that a
+   * reader has to track one row across several columns; noise on a narrow one.
+   *
+   * Salt's own `zebra` prop, not a stripe of our own. This was hand-rolled in CSS
+   * before, which duplicated a built-in, striped `nth-child(even)` where Salt
+   * stripes `nth-of-type(odd)` — the opposite rows — and needed a specificity fix
+   * to stop it beating the row hover.
+   *
+   * Turning it on also turns the row divider off: the reference separates rows with
+   * one mechanism, and drawing both a stripe and a rule is what made our tables
+   * look heavier than theirs.
+   */
+  zebra?: boolean;
+  /**
+   * Draw a bordered boundary around the table, running edge to edge.
+   *
+   * Owned here rather than by the caller so the loading and empty branches
+   * *replace* the boundary instead of appearing inside it — `EmptyState` is itself
+   * a card, and a card inside a card reads as a mistake.
+   */
+  card?: boolean;
   isLoading?: boolean;
   emptyTitle?: string;
   emptyDescription?: ReactNode;
+  /**
+   * Heading level for the empty state's title. `h3` when the table sits inside a
+   * `SectionCard`, whose own title is already an `h2` — otherwise the empty state
+   * would announce as a sibling of the section that contains it.
+   */
+  emptyHeadingLevel?: 'h2' | 'h3';
   onRowClick?: (row: TRow) => void;
+}
+
+/** Left is the default and needs no class. */
+function alignClass(align: Column<unknown>['align']): string | undefined {
+  if (align === 'right') return styles.numeric;
+  if (align === 'center') return styles.center;
+  return undefined;
 }
 
 export function DataTable<TRow>({
@@ -42,19 +108,30 @@ export function DataTable<TRow>({
   rows,
   getRowId,
   caption,
+  hideCaption = false,
+  zebra = false,
+  card = false,
   isLoading = false,
   emptyTitle = 'Nothing to show',
   emptyDescription,
+  emptyHeadingLevel = 'h2',
   onRowClick,
 }: DataTableProps<TRow>) {
   // Loading before empty: an empty state shown while the first page is still in
   // flight tells the reader there is no data when nobody knows yet.
   if (isLoading && rows.length === 0) return <LoadingPanel label={`Loading ${caption}`} />;
-  if (rows.length === 0) return <EmptyState title={emptyTitle} description={emptyDescription} />;
+  if (rows.length === 0)
+    return (
+      <EmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+        headingLevel={emptyHeadingLevel}
+      />
+    );
 
-  return (
-    <Table>
-      <caption>
+  const table = (
+    <Table className={styles.table} zebra={zebra} divider={zebra ? 'none' : 'tertiary'}>
+      <caption className={hideCaption ? 'salt-visuallyHidden' : undefined}>
         <Text color="secondary" styleAs="notation">
           {caption}
         </Text>
@@ -62,23 +139,37 @@ export function DataTable<TRow>({
       <THead>
         <TR>
           {columns.map((column) => (
-            <TH key={column.key} scope="col">
+            <TH key={column.key} scope="col" className={alignClass(column.align)}>
               {column.header}
             </TH>
           ))}
         </TR>
       </THead>
       <TBody>
-        {rows.map((row) => (
+        {rows.map((row, index) => (
           <TR
-            key={getRowId(row)}
-            // A clickable row must also be reachable and activatable from the
-            // keyboard, or the interaction exists only for pointer users.
+            key={getRowId(row, index)}
+            /*
+             * A clickable row must be reachable and activatable from the
+             * keyboard, or the interaction exists only for pointer users.
+             *
+             * Deliberately no `role="button"`. It was here, and it takes the row
+             * out of the table's row set — the cells inside then lose their
+             * association with the column headers, which is a worse outcome than
+             * the affordance it was buying. Deliberately no `aria-label` either:
+             * on a row it replaces the announcement of the cell contents.
+             *
+             * The genuinely correct pattern is a real link in the row's primary
+             * cell. That needs an href, which means the router, which this
+             * package does not depend on — so it belongs to the caller. Until
+             * then this keeps keyboard parity and the hover class supplies the
+             * visual affordance.
+             */
             {...(onRowClick
               ? {
                   onClick: () => onRowClick(row),
                   tabIndex: 0,
-                  role: 'button',
+                  className: styles.clickableRow,
                   onKeyDown: (event: React.KeyboardEvent) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
@@ -89,7 +180,7 @@ export function DataTable<TRow>({
               : {})}
           >
             {columns.map((column) => (
-              <TD key={column.key}>
+              <TD key={column.key} className={alignClass(column.align)}>
                 {column.render
                   ? column.render(row)
                   : String((row as Record<string, unknown>)[column.key] ?? '')}
@@ -100,4 +191,6 @@ export function DataTable<TRow>({
       </TBody>
     </Table>
   );
+
+  return card ? <SectionCard flush>{table}</SectionCard> : table;
 }

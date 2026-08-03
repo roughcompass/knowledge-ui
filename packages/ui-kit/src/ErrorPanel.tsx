@@ -40,9 +40,19 @@ function normalise(error: unknown): Normalised {
     }
   }
   if (error instanceof Error) {
-    return { status: undefined, code: undefined, message: error.message, retryAfterSeconds: undefined };
+    return {
+      status: undefined,
+      code: undefined,
+      message: error.message,
+      retryAfterSeconds: undefined,
+    };
   }
-  return { status: undefined, code: undefined, message: String(error), retryAfterSeconds: undefined };
+  return {
+    status: undefined,
+    code: undefined,
+    message: String(error),
+    retryAfterSeconds: undefined,
+  };
 }
 
 export function ErrorPanel({
@@ -66,7 +76,9 @@ export function ErrorPanel({
             // Surfaced because the code is what makes a support conversation
             // short — it is the same identifier the server logs.
             <Text color="secondary" styleAs="notation">
-              {[code, status !== undefined ? `HTTP ${status}` : undefined].filter(Boolean).join(' · ')}
+              {[code, status !== undefined ? `HTTP ${status}` : undefined]
+                .filter(Boolean)
+                .join(' · ')}
             </Text>
           ) : null}
           {retryAfterSeconds !== undefined ? (

@@ -39,7 +39,11 @@ function workspacePackageJsons() {
     if (!existsSync(dir)) continue;
     for (const name of readdirSync(dir)) {
       const p = join(dir, name, 'package.json');
-      if (existsSync(p)) out.push({ rel: `${group}/${name}/package.json`, json: JSON.parse(readFileSync(p, 'utf8')) });
+      if (existsSync(p))
+        out.push({
+          rel: `${group}/${name}/package.json`,
+          json: JSON.parse(readFileSync(p, 'utf8')),
+        });
     }
   }
   return out;
@@ -67,7 +71,9 @@ for (const { rel, json } of workspacePackageJsons()) {
 if (failures.length > 0) {
   console.error('check-shared-parity: FAIL\n');
   for (const f of failures) console.error(`  ${f}`);
-  console.error('\nA drift here does not fail loudly at runtime — it loads a second copy of the module.');
+  console.error(
+    '\nA drift here does not fail loudly at runtime — it loads a second copy of the module.',
+  );
   process.exit(1);
 }
 console.log(`check-shared-parity: PASS (${Object.keys(pinned).length} shared modules verified)`);

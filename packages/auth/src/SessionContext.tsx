@@ -1,5 +1,6 @@
 import { createContext, useContext, type ReactNode } from 'react';
 
+import type { Persona } from './personas';
 import type { Session } from './types';
 
 /**
@@ -19,6 +20,17 @@ export interface SessionContextValue<TClient = unknown> {
   mountPath: string;
   /** Host-owned navigation, for links into a different remote. */
   navigateAbsolute: (to: string) => void;
+
+  /**
+   * The identities available to switch to. Empty in a production build.
+   *
+   * Here so a surface can gate itself on a capability *and* offer the way out,
+   * without every page threading the roster down by hand.
+   */
+  personas: readonly Persona[];
+
+  /** Undefined when switching is unavailable. */
+  onSwitchPersona?: ((personaKey: string) => void) | undefined;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -31,7 +43,9 @@ export function SessionProvider<TClient>({
   children: ReactNode;
 }) {
   return (
-    <SessionContext.Provider value={value as SessionContextValue}>{children}</SessionContext.Provider>
+    <SessionContext.Provider value={value as SessionContextValue}>
+      {children}
+    </SessionContext.Provider>
   );
 }
 

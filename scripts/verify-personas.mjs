@@ -25,8 +25,12 @@ for (const persona of PERSONAS) {
 
     if (claims.sub !== persona.clientId) {
       failed++;
-      console.error(`  FAIL ${label} token sub is "${claims.sub}", expected "${persona.clientId}".`);
-      console.error('       The persona model assumes the identity provider echoes client_id into sub.');
+      console.error(
+        `  FAIL ${label} token sub is "${claims.sub}", expected "${persona.clientId}".`,
+      );
+      console.error(
+        '       The persona model assumes the identity provider echoes client_id into sub.',
+      );
       continue;
     }
 
@@ -41,10 +45,14 @@ for (const persona of PERSONAS) {
       const code = body?.errors?.[0]?.code;
       if (res.status === 400 && code === 'tenant_required') {
         const available = body.errors[0].available_tenants ?? [];
-        console.log(`  ok   ${label} tenant_required as expected (${available.join(', ') || 'no list'})`);
+        console.log(
+          `  ok   ${label} tenant_required as expected (${available.join(', ') || 'no list'})`,
+        );
       } else {
         failed++;
-        console.error(`  FAIL ${label} expected 400 tenant_required, got ${res.status} ${JSON.stringify(body)}`);
+        console.error(
+          `  FAIL ${label} expected 400 tenant_required, got ${res.status} ${JSON.stringify(body)}`,
+        );
       }
       continue;
     }
@@ -52,7 +60,8 @@ for (const persona of PERSONAS) {
     if (!res.ok) {
       failed++;
       console.error(`  FAIL ${label} whoami ${res.status} ${JSON.stringify(body)}`);
-      if (res.status === 403) console.error('       Most likely an unseeded entitlement — run: npm run seed:personas');
+      if (res.status === 403)
+        console.error('       Most likely an unseeded entitlement — run: npm run seed:personas');
       continue;
     }
 

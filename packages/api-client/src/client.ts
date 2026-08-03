@@ -14,7 +14,13 @@
 import { RegistryError, toNetworkError, toRegistryError } from './errors';
 
 /** Values a query parameter may hold. An array repeats the key. */
-export type QueryValue = string | number | boolean | null | undefined | readonly (string | number | boolean)[];
+export type QueryValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | readonly (string | number | boolean)[];
 
 export type QueryParams = Record<string, QueryValue>;
 
@@ -128,7 +134,10 @@ export function createRegistryClient(options: RegistryClientOptions): RegistryCl
     onUnauthenticated?.();
   }
 
-  async function buildHeaders(extra: Record<string, string> | undefined, hasBody: boolean): Promise<Headers> {
+  async function buildHeaders(
+    extra: Record<string, string> | undefined,
+    hasBody: boolean,
+  ): Promise<Headers> {
     const headers = new Headers({ Accept: 'application/json' });
     if (hasBody) headers.set('Content-Type', 'application/json');
 

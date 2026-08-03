@@ -51,10 +51,14 @@ export const scenarios = {
   /** The list endpoints answer 400; audit answers 422. Both are covered. */
   invalidCursor: () => [
     http.get('*/v1/capabilities', () =>
-      HttpResponse.json(makeErrorEnvelope('invalid_cursor', 'cursor is not valid'), { status: 400 }),
+      HttpResponse.json(makeErrorEnvelope('invalid_cursor', 'cursor is not valid'), {
+        status: 400,
+      }),
     ),
     http.get('*/v1/admin/audit', () =>
-      HttpResponse.json(makeErrorEnvelope('invalid_cursor', 'cursor is not valid'), { status: 422 }),
+      HttpResponse.json(makeErrorEnvelope('invalid_cursor', 'cursor is not valid'), {
+        status: 422,
+      }),
     ),
   ],
 
@@ -63,24 +67,32 @@ export const scenarios = {
   ],
 
   /** Readiness fails while liveness still passes — the split the two probes exist for. */
-  notReady: () => [
-    http.get('*/readyz', () => new HttpResponse('db unreachable', { status: 503 })),
-  ],
+  notReady: () => [http.get('*/readyz', () => new HttpResponse('db unreachable', { status: 503 }))],
 
   /**
    * A metrics snapshot lower than the previous one, which only happens when the
    * process restarted. The UI must draw a gap rather than a negative rate.
    */
   metricsCounterReset: () => [
-    http.get('*/metrics', () =>
-      new HttpResponse(METRICS_TEXT.replace('registry_entitlement_calls_total{status_class="2xx"} 42.0', 'registry_entitlement_calls_total{status_class="2xx"} 1.0'), {
-        status: 200,
-      }),
+    http.get(
+      '*/metrics',
+      () =>
+        new HttpResponse(
+          METRICS_TEXT.replace(
+            'registry_entitlement_calls_total{status_class="2xx"} 42.0',
+            'registry_entitlement_calls_total{status_class="2xx"} 1.0',
+          ),
+          {
+            status: 200,
+          },
+        ),
     ),
   ],
 
   /** A request that never reaches the server, which is also how CORS presents. */
   networkError: (path = '*/v1/*') => [http.get(path, () => HttpResponse.error())],
 
-  whoamiAs: (role: string) => [http.get('*/v1/whoami', () => HttpResponse.json(makeWhoami({ role })))],
+  whoamiAs: (role: string) => [
+    http.get('*/v1/whoami', () => HttpResponse.json(makeWhoami({ role }))),
+  ],
 } as const;

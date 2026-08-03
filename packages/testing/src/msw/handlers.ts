@@ -37,8 +37,80 @@ const decodeCursor = (cursor: string | null): number => {
   }
 };
 
+/**
+ * client_id -> role, mirroring the entitlements the seeder installs.
+ *
+ * This exists so the mocked lane can exercise every persona. Under
+ * `client_credentials` the real token's `sub` *is* the `client_id`, and the
+ * entitlement service is keyed by `sub` — so the client_id chooses the identity
+ * and the seeded entitlement chooses the role. Reproducing that chain here is
+ * what makes a persona switch observable without a backend.
+ *
+ * A flat `makeWhoami()` for every token would quietly make the mocked lane blind
+ * to the most important permission rule in the system: the audit log requires
+ * `auditor` specifically, so a mock that always answers `consumer` can never show
+ * that endpoint working, and can never catch a regression in the gate that hides
+ * it.
+ *
+ * Mirrors the seeder rather than importing the persona roster: the roster is a
+ * dev-only module behind a guarded dynamic import, and the server's behaviour is
+ * what these handlers are imitating.
+ */
+const ROLE_BY_CLIENT_ID: Record<string, string> = {
+  'knowledge-ui-consumer': 'consumer',
+  'knowledge-ui-producer': 'producer',
+  'knowledge-ui-admin': 'admin',
+  'knowledge-ui-auditor': 'auditor',
+  // Two tenant grants, one role. The interesting thing about this identity is the
+  // tenant choice, not its permissions.
+  'knowledge-ui-multi': 'consumer',
+};
+
+/** The `sub` claim of the bearer token, or null when there is no usable one. */
+function subjectOf(request: Request): string | null {
+  const header = request.headers.get('authorization');
+  if (!header?.startsWith('Bearer ')) return null;
+  const payload = header.slice('Bearer '.length).split('.')[1];
+  if (!payload) return null;
+  try {
+    const claims = JSON.parse(atob(payload)) as { sub?: unknown };
+    return typeof claims.sub === 'string' ? claims.sub : null;
+  } catch {
+    return null;
+  }
+}
+
+/** The role the server would resolve for this request's bearer token. */
+export function roleFor(request: Request): string {
+  const sub = subjectOf(request);
+  return (sub && ROLE_BY_CLIENT_ID[sub]) || 'consumer';
+}
+
 export const whoamiHandlers = [
-  http.get('*/v1/whoami', () => HttpResponse.json(makeWhoami())),
+  http.get('*/v1/whoami', ({ request }) => {
+    const sub = subjectOf(request);
+
+    // The two-grant identity cannot be resolved without a choice, which is the
+    // whole reason it exists. `available_tenants` sits inside the error item, not
+    // at the envelope root.
+    if (sub === 'knowledge-ui-multi' && !request.headers.get('x-tenant-id')) {
+      return HttpResponse.json(
+        makeErrorEnvelope('tenant_required', 'this identity has access to more than one tenant', {
+          available_tenants: ['dev', 'dev-secondary'],
+        }),
+        { status: 400 },
+      );
+    }
+
+    const chosenTenant = request.headers.get('x-tenant-id');
+    return HttpResponse.json(
+      makeWhoami({
+        role: roleFor(request),
+        ...(sub ? { actorDisplayName: sub } : {}),
+        ...(chosenTenant ? { tenantSlug: chosenTenant } : {}),
+      }),
+    );
+  }),
 ];
 
 export const capabilityHandlers = [
@@ -115,6 +187,15 @@ export const searchHandlers = [
 
 export const auditHandlers = [
   http.get('*/v1/admin/audit', ({ request }) => {
+    // The real endpoint requires the `auditor` role exactly, and a session
+    // resolves to one role by precedence with admin above auditor — so an
+    // administrator is refused here. Enforcing it in the mock is what lets the
+    // page's own 403 handling be exercised, and keeps the mocked lane from
+    // implying a permission the server does not grant.
+    if (roleFor(request) !== 'auditor') {
+      return HttpResponse.json(makeErrorEnvelope('forbidden', 'access denied'), { status: 403 });
+    }
+
     const url = new URL(request.url);
     const pageSize = Number(url.searchParams.get('page_size') ?? 50);
     const offset = decodeCursor(url.searchParams.get('cursor'));
@@ -145,17 +226,25 @@ export const opsHandlers = [
 ];
 
 export const idpHandlers = [
-  http.post('*/__idp/default/token', () =>
-    HttpResponse.json({
+  http.post('*/__idp/default/token', async ({ request }) => {
+    // Echo the requested client_id into `sub`, because that is what the real IdP
+    // does under client_credentials and it is the link the entitlement lookup
+    // depends on. Hardcoding a subject here made every persona mint a consumer
+    // token, so switching identity changed the label in the header and nothing
+    // else.
+    const form = new URLSearchParams(await request.text());
+    const clientId = form.get('client_id') ?? 'knowledge-ui-consumer';
+
+    return HttpResponse.json({
       // Header and payload are decodable but unsigned: the app only ever decodes
       // a token to read `exp`, and validation is the server's job.
       access_token: `header.${btoa(
-        JSON.stringify({ sub: 'knowledge-ui-consumer', exp: Math.floor(Date.now() / 1000) + 3600 }),
+        JSON.stringify({ sub: clientId, exp: Math.floor(Date.now() / 1000) + 3600 }),
       )}.signature`,
       token_type: 'Bearer',
       expires_in: 3600,
-    }),
-  ),
+    });
+  }),
 ];
 
 export const defaultHandlers = [

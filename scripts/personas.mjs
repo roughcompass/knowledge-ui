@@ -45,7 +45,8 @@ export const PERSONAS = [
   {
     key: 'admin',
     label: 'Platform — Admin',
-    description: 'Platform operations: health and metrics. Cannot read the audit log — that needs the auditor.',
+    description:
+      'Platform operations: health and metrics. Cannot read the audit log — that needs the auditor.',
     clientId: 'knowledge-ui-admin',
     clientSecret: 'dev-secret',
     entitlements: [grant(TENANT_SLUG, 'ADMIN')],
@@ -98,5 +99,7 @@ export async function mintToken(persona) {
 export function decodeJwtPayload(token) {
   const part = token.split('.')[1];
   if (!part) throw new Error('token is not a JWT');
-  return JSON.parse(Buffer.from(part.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
+  return JSON.parse(
+    Buffer.from(part.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'),
+  );
 }

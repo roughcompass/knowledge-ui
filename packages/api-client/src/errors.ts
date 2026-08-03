@@ -107,7 +107,11 @@ export function toRegistryError(status: number, body: unknown, headers?: Headers
 
   const detail = (body as { detail?: unknown } | null)?.detail;
   if (typeof detail === 'string') {
-    return new RegistryError(status, [{ path: null, code: defaultCodeFor(status), message: detail }], retryAfterSeconds);
+    return new RegistryError(
+      status,
+      [{ path: null, code: defaultCodeFor(status), message: detail }],
+      retryAfterSeconds,
+    );
   }
 
   return new RegistryError(

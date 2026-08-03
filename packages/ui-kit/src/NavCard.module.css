@@ -1,0 +1,38 @@
+/*
+ * Fills a Salt gap: a card-shaped destination that reads as a surface at rest.
+ *
+ * Salt's `LinkCard` carries three things this app does not use, and publishes a
+ * variable for none of them: `box-shadow: var(--salt-overlayable-shadow)` at rest,
+ * a 9px radius, and a 0.3-alpha border — the heaviest hairline in the app, against
+ * 0.1 everywhere else.
+ *
+ * The shadow is the substantive one. A border and a shadow together read as two
+ * competing edges, and the reference reserves elevation for things that genuinely
+ * float. Elevation on *hover* is kept, because that is the affordance telling a
+ * reader the card is a destination.
+ */
+
+.card {
+  box-shadow: none;
+
+  /* 6px, as everywhere else. `--salt-palette-corner` is 9px at this density. */
+  --saltCard-borderRadius: var(--salt-palette-corner-weak);
+
+  /*
+   * Matched to `SectionCard`'s hairline so a page mixing the two does not show two
+   * different border strengths. `Card` hard-wires its border colour to
+   * `--salt-container-{variant}-borderColor` and publishes no
+   * `--saltCard-borderColor`, so this sets the property directly.
+   */
+  border-color: var(--salt-palette-alpha-contrast-lower);
+}
+
+/*
+ * On hover the card lifts and its border firms up. Salt's own hover shadow token,
+ * not a hand-rolled one, so it stays consistent with every other overlayable
+ * surface and inverts correctly in dark mode.
+ */
+.card:hover {
+  box-shadow: var(--salt-overlayable-shadow-hover);
+  border-color: var(--salt-palette-alpha-contrast-low);
+}

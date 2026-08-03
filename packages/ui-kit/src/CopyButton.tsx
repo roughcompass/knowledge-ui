@@ -1,4 +1,5 @@
 import { Button, Tooltip } from '@salt-ds/core';
+import { CopyIcon, SuccessTickIcon } from '@salt-ds/icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
@@ -18,6 +19,14 @@ export function CopyButton({
   'aria-label': ariaLabel,
 }: {
   value: string;
+  /**
+   * The verb, used for the tooltip and the accessible name.
+   *
+   * Not rendered as visible text any more. It used to be, and the label swapped
+   * to "Copied" on success — which changed the button's width and reflowed the
+   * table column it lives in, every time someone copied a request id. An icon
+   * that swaps to a tick keeps the geometry fixed.
+   */
   label?: string;
   'aria-label'?: string;
 }) {
@@ -40,7 +49,11 @@ export function CopyButton({
   }, [value]);
 
   const tooltip =
-    state === 'copied' ? 'Copied' : state === 'failed' ? 'Clipboard unavailable' : `Copy ${value}`;
+    state === 'copied'
+      ? 'Copied'
+      : state === 'failed'
+        ? 'Clipboard unavailable'
+        : `${label} ${value}`;
 
   return (
     <Tooltip content={tooltip}>
@@ -48,9 +61,9 @@ export function CopyButton({
         appearance="transparent"
         sentiment={state === 'failed' ? 'caution' : 'neutral'}
         onClick={copy}
-        aria-label={ariaLabel ?? `Copy ${value}`}
+        aria-label={ariaLabel ?? `${label} ${value}`}
       >
-        {state === 'copied' ? 'Copied' : label}
+        {state === 'copied' ? <SuccessTickIcon aria-hidden /> : <CopyIcon aria-hidden />}
       </Button>
     </Tooltip>
   );
