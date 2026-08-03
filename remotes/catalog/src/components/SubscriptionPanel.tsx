@@ -1,4 +1,4 @@
-import { Button, Checkbox, CheckboxGroup, FlexLayout, StackLayout, Text } from '@salt-ds/core';
+import { Button, Checkbox, CheckboxGroup, FlexLayout } from '@salt-ds/core';
 import {
   EVENT_KINDS,
   useCreateSubscription,
@@ -61,83 +61,87 @@ export function SubscriptionPanel({ handle }: { handle: string }) {
     delivery: s.webhook_url ? 'Webhook' : 'Inbox',
   }));
 
+  /*
+   * The footer band is the card's own slot for "a hint on the left, its action on
+   * the right", so the subscribe control lives there rather than stacked under the
+   * table. Putting it in the body would give the card two competing action zones.
+   */
+  const footer = (
+    <FlexLayout gap={2} align="center" justify="space-between" wrap>
+      <CheckboxGroup
+        direction="horizontal"
+        checkedValues={selected}
+        onChange={(event) => {
+          const value = event.target.value as EventKind;
+          setSelected((prev) =>
+            prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
+          );
+        }}
+      >
+        {EVENT_KINDS.map((kind) => (
+          <Checkbox key={kind} value={kind} label={kind.replace(/_/g, ' ')} />
+        ))}
+      </CheckboxGroup>
+
+      <Button
+        appearance="solid"
+        sentiment="accented"
+        disabled={create.isPending || selected.length === 0}
+        onClick={() => create.mutate({ capabilityHandle: handle, event_kinds: selected })}
+      >
+        {create.isPending ? 'Subscribing…' : 'Subscribe'}
+      </Button>
+    </FlexLayout>
+  );
+
   return (
-    <SectionCard title="Notifications" banded flush>
-      <StackLayout gap={2}>
-        {rows.length === 0 ? (
-          <EmptyState
-            title="Not subscribed"
-            description="You will not be told when this capability changes."
-          />
-        ) : (
-          <>
-            <DataTable
-              caption="Subscriptions"
-              columns={[
-                { key: 'kinds', header: 'Events' },
-                { key: 'delivery', header: 'Delivery' },
-                { key: 'enabled', header: 'State' },
-                {
-                  key: 'id',
-                  header: 'Action',
-                  render: (row) => (
-                    <Button
-                      appearance="bordered"
-                      sentiment="caution"
-                      disabled={remove.isPending}
-                      onClick={() =>
-                        remove.mutate({ subscriptionId: row.id, capabilityHandle: handle })
-                      }
-                    >
-                      Cancel
-                    </Button>
-                  ),
-                },
-              ]}
-              rows={rows}
-              getRowId={(row) => row.id}
-            />
-            {/*
-              Not a caveat in a tooltip. A reader who never pressed Subscribe and
-              finds a row here will otherwise assume they forgot doing it.
-            */}
-            <Text color="secondary" styleAs="notation">
-              Adopting this capability creates an inbox subscription automatically, and
-              unadopting does not remove it. A row here may have come from an adoption
-              rather than from this panel.
-            </Text>
-          </>
-        )}
+    <SectionCard
+      title="Notifications"
+      // The disclosure belongs in the header's description, not as a note beneath
+      // the table: it explains what the rows *are*, so it has to be readable
+      // before them rather than after.
+      description="Adopting this capability creates an inbox subscription automatically, and unadopting does not remove it. A row here may have come from an adoption rather than from this panel."
+      banded
+      flush
+      footer={footer}
+      headingLevel="h3"
+    >
+      {rows.length === 0 ? (
+        <EmptyState
+          title="Not subscribed"
+          description="You will not be told when this capability changes."
+        />
+      ) : (
+        <DataTable
+          zebra
+          caption="Subscriptions"
+          hideCaption
+          columns={[
+            { key: 'kinds', header: 'Events' },
+            { key: 'delivery', header: 'Delivery' },
+            { key: 'enabled', header: 'State' },
+            {
+              key: 'id',
+              header: 'Action',
+              render: (row) => (
+                <Button
+                  appearance="transparent"
+                  sentiment="caution"
+                  disabled={remove.isPending}
+                  onClick={() => remove.mutate({ subscriptionId: row.id, capabilityHandle: handle })}
+                >
+                  Cancel
+                </Button>
+              ),
+            },
+          ]}
+          rows={rows}
+          getRowId={(row) => row.id}
+        />
+      )}
 
-        <FlexLayout gap={1} align="center" wrap>
-          <CheckboxGroup
-            direction="horizontal"
-            checkedValues={selected}
-            onChange={(event) => {
-              const value = event.target.value as EventKind;
-              setSelected((prev) =>
-                prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value],
-              );
-            }}
-          >
-            {EVENT_KINDS.map((kind) => (
-              <Checkbox key={kind} value={kind} label={kind.replace(/_/g, ' ')} />
-            ))}
-          </CheckboxGroup>
-
-          <Button
-            appearance="solid"
-            sentiment="accented"
-            disabled={create.isPending || selected.length === 0}
-            onClick={() => create.mutate({ capabilityHandle: handle, event_kinds: selected })}
-          >
-            {create.isPending ? 'Subscribing…' : 'Subscribe'}
-          </Button>
-        </FlexLayout>
-
-        <ActionResult error={create.error} errorTitle="Could not subscribe" />
-        <ActionResult error={remove.error} errorTitle="Could not cancel" />
-      </StackLayout>
+      <ActionResult error={create.error} errorTitle="Could not subscribe" />
+      <ActionResult error={remove.error} errorTitle="Could not cancel" />
     </SectionCard>
   );
 }

@@ -1,4 +1,4 @@
-import { Button, StackLayout, Tag, Text } from '@salt-ds/core';
+import { Button, Dropdown, Option, StackLayout, Tag, Text } from '@salt-ds/core';
 import {
   NOTIFICATION_STATUSES,
   useMarkNotificationRead,
@@ -15,6 +15,7 @@ import {
   FilterField,
   LoadingPanel,
   PageHeader,
+  popoverOverlayProps,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -52,18 +53,22 @@ export function NotificationsPage() {
   );
 
   const filters = (
-    <FilterBar label="Notification filters">
-      <FilterField label="Show" basis="20rem">
-        {NOTIFICATION_STATUSES.map((value) => (
-          <Button
-            key={value}
-            appearance={status === value ? 'solid' : 'bordered'}
-            sentiment="neutral"
-            onClick={() => setStatus(value)}
-          >
-            {value}
-          </Button>
-        ))}
+    <FilterBar label="Filter notifications">
+      <FilterField label="Show" basis="11rem">
+        <Dropdown
+          bordered
+          value={status}
+          onSelectionChange={(_e, selected) =>
+            setStatus((selected?.[0] as NotificationStatus) ?? 'unread')
+          }
+          OverlayProps={popoverOverlayProps}
+        >
+          {NOTIFICATION_STATUSES.map((value) => (
+            <Option key={value} value={value}>
+              {value}
+            </Option>
+          ))}
+        </Dropdown>
       </FilterField>
     </FilterBar>
   );
@@ -125,6 +130,7 @@ export function NotificationsPage() {
       {filters}
 
       <DataTable
+        zebra
         caption="Notifications"
         columns={[
           {

@@ -91,7 +91,8 @@ describe('the read filter', () => {
 
     // Read state is a filter, not a deletion. If the mark-read invalidation had
     // only covered the active filter, this view would still be stale.
-    await user.click(screen.getByRole('button', { name: 'all' }));
+    await user.click(screen.getByRole('combobox'));
+    await user.click(await screen.findByRole('option', { name: 'all' }));
     expect(await screen.findByText('salt-ds')).toBeInTheDocument();
   });
 });

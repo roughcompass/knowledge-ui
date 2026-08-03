@@ -1,4 +1,4 @@
-import { Button, FlexLayout, Tag, Text } from '@salt-ds/core';
+import { Button, FlexLayout, Tag, Text, Tooltip } from '@salt-ds/core';
 import {
   useAdopt,
   useAdoption,
@@ -134,11 +134,18 @@ export function AdoptionControl({ handle }: { handle: string }) {
 
   if (!canChange) {
     /*
-     * Not an error and not an empty state: the reader is entitled to know their
-     * tenant has not adopted this, they are simply not the principal who can
-     * change it. Saying which role can turns a dead end into a next step.
+     * A disabled control, not a sentence. The header's action slot holds controls
+     * in this app, and prose there sits at a different weight and baseline from
+     * the buttons beside it. Disabled-with-a-tooltip keeps the row reading as a
+     * row of actions while still saying who can act.
      */
-    return <Text color="secondary">Not adopted · a producer or admin can adopt</Text>;
+    return (
+      <Tooltip content="Adopting is limited to producer and admin roles.">
+        <Button appearance="bordered" sentiment="neutral" disabled>
+          Adopt
+        </Button>
+      </Tooltip>
+    );
   }
 
   return (

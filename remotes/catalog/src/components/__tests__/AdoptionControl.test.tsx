@@ -53,8 +53,10 @@ describe('the role gate', () => {
     // Every role may read adoption state; only producer and admin may change it.
     // Offering a button that is guaranteed to 403 is worse than not showing one.
     renderControl('salt-ds', 'consumer');
-    expect(await screen.findByText(/a producer or admin can adopt/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Adopt' })).not.toBeInTheDocument();
+    // A disabled control rather than a sentence: the header's action slot holds
+    // controls, and prose there sits at a different weight from the buttons
+    // beside it. The affordance is still visibly refused.
+    expect(await screen.findByRole('button', { name: 'Adopt' })).toBeDisabled();
   });
 
   it('shows a consumer an existing adoption without an Unadopt button', async () => {
