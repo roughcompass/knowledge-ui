@@ -6,6 +6,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import { CapabilityDetailPage } from '../pages/CapabilityDetailPage';
 import { CapabilityListPage } from '../pages/CapabilityListPage';
+import { NotificationsPage } from '../pages/NotificationsPage';
 
 /**
  * The federated entry point.
@@ -31,6 +32,11 @@ export default function CatalogApp(props: RemoteMountProps<Session, RegistryClie
     >
       <Routes>
         <Route index element={<CapabilityListPage />} />
+        {/*
+          Before the `:handle` route, or a visit to /notifications would match it
+          as a capability slug and 404 against the detail endpoint.
+        */}
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route path=":handle" element={<CapabilityDetailPage />} />
       </Routes>
     </SessionProvider>

@@ -57,6 +57,13 @@ export const REMOTES: readonly RemoteDescriptor[] = [
     label: 'Capabilities',
     need: 'catalog:browse',
     description: 'Browse and search the capability catalog.',
+    children: [
+      { path: '', label: 'Browse' },
+      // The first consumer destination in the app. It reads a tenant-scoped
+      // endpoint every role may call, so it needs no capability beyond the
+      // section's own.
+      { path: 'notifications', label: 'Notifications' },
+    ],
   },
   {
     name: 'operations',
