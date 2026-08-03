@@ -11,6 +11,8 @@ import {
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { AdoptionControl } from '../components/AdoptionControl';
+
 /**
  * One capability in full.
  *
@@ -82,7 +84,14 @@ export function CapabilityDetailPage() {
         )
       }
       actions={
-        <FlexLayout gap={1}>
+        <FlexLayout gap={1} align="center">
+          {/*
+            First action, because declaring a dependency is the reason a consumer
+            came here. It renders its own pending and error states rather than
+            being hidden behind the page's, since the page has already loaded by
+            the time this matters.
+          */}
+          {handle ? <AdoptionControl handle={handle} /> : null}
           <Button
             appearance={auditView ? 'solid' : 'bordered'}
             sentiment="neutral"

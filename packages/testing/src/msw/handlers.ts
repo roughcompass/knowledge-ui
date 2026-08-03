@@ -1,6 +1,7 @@
 import { HttpResponse, http } from 'msw';
 
 import { adminSyncHandlers } from './adminSync';
+import { consumerHandlers } from './consumer';
 import { roleFor, subjectOf } from './role';
 
 import {
@@ -215,6 +216,7 @@ export const defaultHandlers = [
   ...searchHandlers,
   ...auditHandlers,
   ...adminSyncHandlers,
+  ...consumerHandlers,
   ...opsHandlers,
   ...idpHandlers,
 ];

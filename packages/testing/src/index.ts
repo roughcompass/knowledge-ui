@@ -28,6 +28,7 @@ export {
  * clear it.
  */
 export { adminSyncHandlers, resetAdminStore } from './msw/adminSync';
+export { consumerHandlers, resetConsumerStore, seedAdoption } from './msw/consumer';
 export {
   makeSession,
   makeTestQueryClient,
