@@ -32,6 +32,14 @@ export interface RequestOptions {
   headers?: Record<string, string>;
   /** JSON-encoded when present. Absent and `null` are different: `null` is a body. */
   body?: unknown;
+  /**
+   * Override the client's deadline for this one request.
+   *
+   * For the rare call that is legitimately slow — a create whose server-side
+   * validation makes its own outbound round trip. Raising the client default instead
+   * would make every read wait for the slowest write before reporting a stall.
+   */
+  timeoutMs?: number;
 }
 
 export interface RegistryClientOptions {
@@ -55,9 +63,17 @@ export interface RegistryClientOptions {
    * How long to wait before treating a request as failed, in milliseconds.
    *
    * `fetch` imposes none, so without this a stalled connection hangs forever and the
-   * UI has no failure to render. 20 seconds is chosen against the slowest thing this
-   * client legitimately does — creating a sync source runs `connector.validate()`
-   * server-side, which is a round trip to whatever the credential points at.
+   * UI has no failure to render.
+   *
+   * 10 seconds, and the number was measured rather than picked. It has to beat the
+   * dev proxy, which gives up on a dead upstream at about 15s and answers 500 — and
+   * `internal_error · HTTP 500` tells a reader nothing they can act on, where the
+   * timeout message names the likely cause. Losing that race meant the useless error
+   * won, after fifteen seconds of blank spinner.
+   *
+   * Reads are far quicker than this; the one slow call is creating a sync source,
+   * which runs `connector.validate()` server-side. That one raises its own deadline
+   * per request rather than making every read wait for the worst case.
    */
   timeoutMs?: number;
 }
@@ -141,8 +157,23 @@ function isAbort(cause: unknown, signal: AbortSignal | undefined): boolean {
   return cause instanceof Error && cause.name === 'AbortError';
 }
 
+/**
+ * The default request deadline.
+ *
+ * Exported so a test can assert the actual value rather than a duplicate of it — the
+ * number is load-bearing (it has to beat the dev proxy's ~15s 500) and a copy in a
+ * test would drift silently.
+ */
+export const DEFAULT_TIMEOUT_MS = 10_000;
+
 export function createRegistryClient(options: RegistryClientOptions): RegistryClient {
-  const { baseUrl = '', getToken, getTenantSlug, onUnauthenticated, timeoutMs = 20_000 } = options;
+  const {
+    baseUrl = '',
+    getToken,
+    getTenantSlug,
+    onUnauthenticated,
+    timeoutMs: defaultTimeoutMs = DEFAULT_TIMEOUT_MS,
+  } = options;
 
   /**
    * Latched so a burst of parallel 401s produces one notification.
@@ -196,7 +227,14 @@ export function createRegistryClient(options: RegistryClientOptions): RegistryCl
   }
 
   async function request<T>(path: string, requestOptions: RequestOptions = {}): Promise<T> {
-    const { method = 'GET', query, signal, headers: extraHeaders, body } = requestOptions;
+    const {
+      method = 'GET',
+      query,
+      signal,
+      headers: extraHeaders,
+      body,
+      timeoutMs = defaultTimeoutMs,
+    } = requestOptions;
     const hasBody = body !== undefined;
     const headers = await buildHeaders(extraHeaders, hasBody);
 

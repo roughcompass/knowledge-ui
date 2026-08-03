@@ -63,7 +63,13 @@ export function makeCapabilityDetail(overrides: Partial<Record<string, unknown>>
   return {
     entity: makeEntityRef(),
     lifecycle: 'ga' satisfies Lifecycle,
-    attributes: { owner: 'payments-platform', tier: '1' },
+    /*
+     * Attribute values are `unknown`, not strings. The real server returns
+     * `lifecycle: {"state": "beta"}` for a bitemporal attribute, and a fixture with
+     * only string values let a page get away with `String(value)` — which renders a
+     * dict as "[object Object]". The object entry is here so that cannot regress.
+     */
+    attributes: { owner: 'payments-platform', tier: '1', lifecycle: { state: 'beta' } },
     facts: [
       {
         fact_id: uuid('fact'),

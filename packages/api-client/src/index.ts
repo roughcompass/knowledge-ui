@@ -1,4 +1,5 @@
 export {
+  DEFAULT_TIMEOUT_MS,
   createRegistryClient,
   type QueryParams,
   type QueryValue,

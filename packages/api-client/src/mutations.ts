@@ -99,6 +99,14 @@ export function useCreateSyncSource(
         // which the server would treat as a value.
         body: compact(body as unknown as Record<string, unknown>),
         headers: { [IDEMPOTENCY_HEADER]: newIdempotencyKey() },
+        /*
+         * The one call that legitimately outlives the client's default deadline.
+         * `admin_sync.py` runs `connector.validate()` inside this request, so its
+         * latency includes an outbound round trip to whatever `credentials_ref`
+         * points at. Raising the default instead would make every read wait ten
+         * extra seconds before reporting a stall.
+         */
+        timeoutMs: 30_000,
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.syncSources(scope) });

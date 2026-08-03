@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createRegistryClient } from '../client';
+import { DEFAULT_TIMEOUT_MS, createRegistryClient } from '../client';
 import { RegistryError } from '../errors';
 
 /**
@@ -206,5 +206,37 @@ describe('a request that never answers', () => {
     const error = await pending.catch((e: unknown) => e);
     expect(error).not.toBeInstanceOf(RegistryError);
     expect((error as DOMException).name).toBe('AbortError');
+  });
+});
+
+describe('the deadline', () => {
+  it('defaults low enough to beat the dev proxy, which answers 500 at ~15s', () => {
+    /*
+     * Measured, not assumed. With the API forward wedged, the proxy gave up at 15.33s
+     * and answered 500 — so a 20s client deadline lost the race and the reader got
+     * `internal_error · HTTP 500`, which names nothing actionable, after fifteen
+     * seconds of blank spinner. The default has to come in under that.
+     */
+    expect(DEFAULT_TIMEOUT_MS).toBeLessThan(15_000);
+  });
+
+  it('lets a single request ask for longer', async () => {
+    // Create runs `connector.validate()` server-side, an outbound round trip. It
+    // raises its own deadline rather than every read waiting for the worst case.
+    hangingFetch();
+    const client = createRegistryClient({
+      baseUrl: '',
+      getToken: () => undefined,
+      timeoutMs: 20,
+    });
+
+    const started = Date.now();
+    const error = await client
+      .request('/v1/admin/sync-sources', { method: 'POST', body: {}, timeoutMs: 120 })
+      .catch((e: unknown) => e);
+
+    expect((error as RegistryError).code).toBe('timeout');
+    // Held past the client default, so the per-request value won.
+    expect(Date.now() - started).toBeGreaterThanOrEqual(100);
   });
 });

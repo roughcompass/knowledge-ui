@@ -20,6 +20,26 @@ import { useNavigate, useParams } from 'react-router-dom';
  * requested, so the audit tab only renders when it is asked for: a row of
  * em-dashes would imply a null the response never contained.
  */
+/**
+ * Render an attribute value of unknown shape.
+ *
+ * `attributes` is `Record<string, unknown>` and the server means it: alongside plain
+ * strings it returns objects for bitemporal attributes — `lifecycle: {"state": "beta"}`
+ * on real data. `String(value)` turns that into the literal text "[object Object]",
+ * which is what this page shipped until it was run against a real registry rather than
+ * a fixture of only-strings.
+ *
+ * Objects and arrays are shown as compact JSON in the mono face, because at that point
+ * the value *is* data and pretending otherwise loses it entirely.
+ */
+function AttributeValue({ value }: { value: unknown }) {
+  if (value === null || value === undefined) return <Text color="secondary">—</Text>;
+  if (typeof value === 'object') {
+    return <Text styleAs="code">{JSON.stringify(value)}</Text>;
+  }
+  return <Text>{String(value)}</Text>;
+}
+
 export function CapabilityDetailPage() {
   const { handle } = useParams<{ handle: string }>();
   const { session, client } = useSession<RegistryClient>();
@@ -105,7 +125,7 @@ export function CapabilityDetailPage() {
           hideCaption
           columns={[
             { key: 'key', header: 'Key' },
-            { key: 'value', header: 'Value', render: (row) => <Text>{String(row.value)}</Text> },
+            { key: 'value', header: 'Value', render: (row) => <AttributeValue value={row.value} /> },
           ]}
           rows={attributeRows}
           getRowId={(row) => row.key}
@@ -147,7 +167,11 @@ export function CapabilityDetailPage() {
             hideCaption
             columns={[
               { key: 'key', header: 'Field' },
-              { key: 'value', header: 'Value', render: (row) => <Text>{String(row.value)}</Text> },
+              {
+                key: 'value',
+                header: 'Value',
+                render: (row) => <AttributeValue value={row.value} />,
+              },
             ]}
             rows={['t_valid_from', 't_valid_to', 't_ingested_at', 't_invalidated_at']
               .filter((key) => key in data)
