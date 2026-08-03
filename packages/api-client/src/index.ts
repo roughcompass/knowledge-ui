@@ -13,6 +13,7 @@ export {
   formErrors,
   toNetworkError,
   toRegistryError,
+  toTimeoutError,
   type ErrorEnvelope,
   type ErrorItem,
   type KnownErrorCode,

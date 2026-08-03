@@ -77,3 +77,28 @@ h5.saltText,
 h6.saltText {
   margin-block: 0;
 }
+
+/*
+ * Button typography.
+ *
+ * Salt sets `--salt-text-action-textTransform: uppercase` with 0.6px tracking at
+ * weight 600, so every action rendered "SHOW BITEMPORAL FIELDS". Uppercase,
+ * letter-spaced buttons are the strongest single signal that this is an enterprise
+ * design-system default rather than the product being modelled, which sets actions in
+ * sentence case at medium weight.
+ *
+ * These are `--saltButton-*`, the variables `Button` publishes for exactly this, so
+ * this is Salt's own API rather than a token override. All three properties are
+ * density-independent, so `density` still decides height and padding.
+ *
+ * On the theme root rather than on the app shell, which is where this started. The
+ * shell was the wrong scope and a real screen proved it: the session bootstrap — the
+ * tenant picker, and the "could not resolve your session" retry — renders *before*
+ * `AppShell` exists, so its buttons stayed uppercase while every button inside the
+ * frame was sentence case. Portalled content has the same problem.
+ */
+.salt-theme {
+  --saltButton-textTransform: none;
+  --saltButton-letterSpacing: normal;
+  --saltButton-fontWeight: var(--salt-typography-fontWeight-medium);
+}

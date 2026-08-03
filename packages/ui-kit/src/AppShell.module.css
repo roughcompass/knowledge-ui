@@ -34,25 +34,6 @@
    * ancestor, and read by `AppSidebar`'s header zone through inheritance.
    */
   --chromeHeight: calc(var(--salt-size-base) + var(--salt-spacing-150));
-
-  /*
-   * Button typography, frame-wide.
-   *
-   * Salt sets `--salt-text-action-textTransform: uppercase` with 0.6px tracking at
-   * weight 600, so every action rendered "SHOW BITEMPORAL FIELDS". Uppercase,
-   * letter-spaced buttons are the strongest remaining signal that this is an
-   * enterprise design-system default rather than the product being modelled, which
-   * sets actions in sentence case at medium weight.
-   *
-   * Neither a global token layer nor a `:global()` override: `--saltButton-*` are
-   * variables `Button` publishes for exactly this purpose, so this is Salt's own
-   * API, applied once at the frame that owns every button in the app. All three
-   * properties are density-independent, so `density` still decides height and
-   * padding.
-   */
-  --saltButton-textTransform: none;
-  --saltButton-letterSpacing: normal;
-  --saltButton-fontWeight: var(--salt-typography-fontWeight-medium);
 }
 
 .railSlot {

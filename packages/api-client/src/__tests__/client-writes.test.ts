@@ -136,3 +136,75 @@ describe('a failed write', () => {
     expect((error as RegistryError).message).toMatch(/inactive/);
   });
 });
+
+/**
+ * A fetch that never answers on its own.
+ *
+ * It settles only when the signal aborts, which is the behaviour under test. Note the
+ * `signal.aborted` check first: `abort` does not re-fire for a signal that is *already*
+ * aborted, and a caller can cancel before `fetch` is reached at all because
+ * `buildHeaders` awaits a token first. Real `fetch` rejects immediately in that case; a
+ * stub that only listens would hang, which would be a bug in the stub rather than in
+ * the code under test.
+ */
+const hangingFetch = () =>
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      (_url: string, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          const fail = () => reject(new DOMException('aborted', 'AbortError'));
+          if (init?.signal?.aborted) {
+            fail();
+            return;
+          }
+          init?.signal?.addEventListener('abort', fail);
+        }),
+    ),
+  );
+
+describe('a request that never answers', () => {
+  it('fails on its deadline instead of hanging forever', async () => {
+    /*
+     * The defect this closes: `fetch` has no default timeout, so a connection that is
+     * accepted and then never answered leaves the promise pending. React Query holds
+     * such a query `isPending`, and the session bootstrap renders its spinner off
+     * exactly that — so the whole app sat on "Resolving your session" with no error and
+     * no way for the reader to learn why.
+     *
+     * The stub never resolves *on its own*; it resolves only when the composed signal
+     * aborts, which is precisely the behaviour under test.
+     */
+    hangingFetch();
+
+    const client = createRegistryClient({
+      baseUrl: '',
+      getToken: () => undefined,
+      timeoutMs: 40,
+    });
+
+    const error = await client.request('/v1/whoami').catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(RegistryError);
+    expect((error as RegistryError).code).toBe('timeout');
+    // Status 0, like a network error: nothing came back, so there is no HTTP status to
+    // report. The code is what tells the two apart.
+    expect((error as RegistryError).status).toBe(0);
+    expect((error as RegistryError).message).toMatch(/no response within/);
+  });
+
+  it("still reports a caller's own cancellation as an abort, not a timeout", async () => {
+    // React Query aborts on unmount. That must stay distinguishable, or every
+    // navigation away from a slow page would surface a spurious error.
+    hangingFetch();
+
+    const client = createRegistryClient({ baseUrl: '', getToken: () => undefined });
+    const controller = new AbortController();
+    const pending = client.request('/v1/whoami', { signal: controller.signal });
+    controller.abort();
+
+    const error = await pending.catch((e: unknown) => e);
+    expect(error).not.toBeInstanceOf(RegistryError);
+    expect((error as DOMException).name).toBe('AbortError');
+  });
+});

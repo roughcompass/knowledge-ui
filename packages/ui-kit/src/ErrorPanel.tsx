@@ -72,13 +72,16 @@ export function ErrorPanel({
         <StackLayout gap={1}>
           <Text styleAs="label">{title ?? 'Request failed'}</Text>
           <Text>{message}</Text>
-          {code || status !== undefined ? (
+          {code || status ? (
             // Surfaced because the code is what makes a support conversation
             // short — it is the same identifier the server logs.
+            //
+            // Status 0 is deliberately not printed. It is what a timeout and a
+            // network failure carry, and it means "no HTTP response arrived" —
+            // rendering it as "HTTP 0" invites a reader to look up a status code
+            // that does not exist. The `code` already says which it was.
             <Text color="secondary" styleAs="notation">
-              {[code, status !== undefined ? `HTTP ${status}` : undefined]
-                .filter(Boolean)
-                .join(' · ')}
+              {[code, status ? `HTTP ${status}` : undefined].filter(Boolean).join(' · ')}
             </Text>
           ) : null}
           {retryAfterSeconds !== undefined ? (

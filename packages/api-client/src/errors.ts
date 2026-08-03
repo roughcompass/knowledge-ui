@@ -121,6 +121,26 @@ export function toRegistryError(status: number, body: unknown, headers?: Headers
   );
 }
 
+/**
+ * A request that exceeded its deadline.
+ *
+ * Distinct from `network_error`, and the distinction is the useful part: a refused
+ * connection means nothing is listening, while a timeout means something accepted the
+ * connection and then went quiet. On this stack the second has a specific and common
+ * cause worth naming, because "it spins forever" is otherwise unattributable.
+ */
+export function toTimeoutError(timeoutMs: number): RegistryError {
+  return new RegistryError(0, [
+    {
+      path: null,
+      code: 'timeout',
+      message:
+        `the server accepted the connection but sent no response within ${Math.round(timeoutMs / 1000)}s. ` +
+        'It may be starting up, or a port forward between here and it may have stopped passing traffic.',
+    },
+  ]);
+}
+
 /** A fetch that threw — DNS failure, connection refused, offline, CORS. */
 export function toNetworkError(cause: unknown): RegistryError {
   const detail = cause instanceof Error ? cause.message : String(cause);

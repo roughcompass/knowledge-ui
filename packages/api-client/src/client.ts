@@ -11,7 +11,7 @@
  * Nothing here knows about React, routing or storage. A 401 is reported, never
  * acted upon — see `onUnauthenticated`.
  */
-import { RegistryError, toNetworkError, toRegistryError } from './errors';
+import { RegistryError, toNetworkError, toRegistryError, toTimeoutError } from './errors';
 
 /** Values a query parameter may hold. An array repeats the key. */
 export type QueryValue =
@@ -51,6 +51,15 @@ export interface RegistryClientOptions {
   getTenantSlug?: () => string | null | undefined;
   /** Notified on a 401. Must not navigate — see `notifyUnauthenticated`. */
   onUnauthenticated?: () => void;
+  /**
+   * How long to wait before treating a request as failed, in milliseconds.
+   *
+   * `fetch` imposes none, so without this a stalled connection hangs forever and the
+   * UI has no failure to render. 20 seconds is chosen against the slowest thing this
+   * client legitimately does — creating a sync source runs `connector.validate()`
+   * server-side, which is a round trip to whatever the credential points at.
+   */
+  timeoutMs?: number;
 }
 
 export interface RegistryClient {
@@ -100,6 +109,32 @@ function buildUrl(baseUrl: string, path: string, query: QueryParams | undefined)
   return `${baseUrl}${path}${qs ? `?${qs}` : ''}`;
 }
 
+/**
+ * Decide what a thrown fetch actually was.
+ *
+ * Order matters, and getting it wrong is subtle. `isAbort` treats *any* `AbortError`
+ * as a cancellation — which was right when the only signal was the caller's, and
+ * became wrong the moment a deadline was added: the timeout aborts the same way, so
+ * checking `isAbort` first rethrew every timeout as a cancellation, React Query
+ * swallowed it as a cancelled query, and the spinner stayed exactly where it was.
+ *
+ * So the caller's own signal is asked first, then ours, then anything else.
+ */
+function classify(
+  cause: unknown,
+  signal: AbortSignal | undefined,
+  timeout: AbortSignal,
+  timeoutMs: number,
+): unknown {
+  // The caller cancelled — an unmount, a superseded query. Not a failure.
+  if (signal?.aborted) return cause;
+  // Our deadline expired.
+  if (timeout.aborted) return toTimeoutError(timeoutMs);
+  // An abort from somewhere else entirely; still not ours to relabel.
+  if (isAbort(cause, signal)) return cause;
+  return toNetworkError(cause);
+}
+
 /** An abort is the caller's own doing, so it must not be dressed up as a failure. */
 function isAbort(cause: unknown, signal: AbortSignal | undefined): boolean {
   if (signal?.aborted) return true;
@@ -107,7 +142,7 @@ function isAbort(cause: unknown, signal: AbortSignal | undefined): boolean {
 }
 
 export function createRegistryClient(options: RegistryClientOptions): RegistryClient {
-  const { baseUrl = '', getToken, getTenantSlug, onUnauthenticated } = options;
+  const { baseUrl = '', getToken, getTenantSlug, onUnauthenticated, timeoutMs = 20_000 } = options;
 
   /**
    * Latched so a burst of parallel 401s produces one notification.
@@ -165,17 +200,34 @@ export function createRegistryClient(options: RegistryClientOptions): RegistryCl
     const hasBody = body !== undefined;
     const headers = await buildHeaders(extraHeaders, hasBody);
 
+    /*
+     * A deadline, because a request that never settles is worse than one that fails.
+     *
+     * `fetch` has no default timeout: a connection that is accepted and then never
+     * answered leaves the promise pending forever. React Query keeps such a query
+     * `isPending`, and the session bootstrap renders its spinner off exactly that —
+     * so the whole application sat on "Resolving your session" indefinitely with no
+     * error, no retry and nothing on screen to explain it. That is not hypothetical;
+     * it is what a wedged Docker port forward looks like from the browser, and the
+     * app already had good copy for the failure it could not reach.
+     *
+     * Composed with the caller's signal rather than replacing it, so React Query can
+     * still cancel on unmount and `isAbort` can still tell a cancellation from a
+     * failure — a timeout must read as a network error, an unmount must not.
+     */
+    const timeout = AbortSignal.timeout(timeoutMs);
+    const composed = signal ? AbortSignal.any([signal, timeout]) : timeout;
+
     let res: Response;
     try {
       res = await fetch(buildUrl(baseUrl, path, query), {
         method,
         headers,
-        signal,
+        signal: composed,
         body: hasBody ? JSON.stringify(body) : undefined,
       });
     } catch (cause) {
-      if (isAbort(cause, signal)) throw cause;
-      throw toNetworkError(cause);
+      throw classify(cause, signal, timeout, timeoutMs);
     }
 
     // The body may fail to arrive even after the headers did — a dropped
@@ -184,8 +236,7 @@ export function createRegistryClient(options: RegistryClientOptions): RegistryCl
     try {
       text = await res.text();
     } catch (cause) {
-      if (isAbort(cause, signal)) throw cause;
-      throw toNetworkError(cause);
+      throw classify(cause, signal, timeout, timeoutMs);
     }
 
     if (!res.ok) {
