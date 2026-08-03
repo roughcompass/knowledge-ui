@@ -15,6 +15,7 @@ import {
   FilterField,
   LoadingPanel,
   PageHeader,
+  UnavailableNotice,
   popoverOverlayProps,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
@@ -186,6 +187,17 @@ export function NotificationsPage() {
       {markRead.error ? (
         <ErrorPanel error={markRead.error} title="Could not mark that read" />
       ) : null}
+
+      {/*
+        Placed here rather than on a page of its own because this is the only
+        cross-capability consumer surface, so it is where a reader asks "what
+        have I adopted" and needs an answer to why there is no list.
+      */}
+      <UnavailableNotice
+        title="There is no list of everything you have adopted"
+        reason="Adoption is read one capability at a time — the consumer graph projection returns which capabilities your tenant is connected to, but carries no version pin and no indication of whether you are behind. Assembling a list here would mean asserting a status the server never did."
+        tracking="Adoption state is shown on each capability's own page. A cross-capability view needs a catalog requirement filed first."
+      />
     </StackLayout>
   );
 }

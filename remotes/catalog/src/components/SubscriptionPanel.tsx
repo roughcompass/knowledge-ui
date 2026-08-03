@@ -8,7 +8,14 @@ import {
   type RegistryClient,
 } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
-import { ActionResult, DataTable, EmptyState, LoadingPanel, SectionCard } from '@knowledge-ui/ui-kit';
+import {
+  ActionResult,
+  DataTable,
+  EmptyState,
+  LoadingPanel,
+  SectionCard,
+  UnavailableNotice,
+} from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 
 /**
@@ -139,6 +146,14 @@ export function SubscriptionPanel({ handle }: { handle: string }) {
           getRowId={(row) => row.id}
         />
       )}
+
+      {rows.length > 0 ? (
+        <UnavailableNotice
+          title="Delivery health is not shown"
+          reason="Whether a webhook subscription is actually delivering is recorded per attempt on the server, and no endpoint reads it back. There is nothing to render, so this panel does not guess from the subscription's enabled flag — an enabled subscription that has failed every delivery looks identical to one that has succeeded."
+          tracking="A catalog requirement has to be filed before this can exist."
+        />
+      ) : null}
 
       <ActionResult error={create.error} errorTitle="Could not subscribe" />
       <ActionResult error={remove.error} errorTitle="Could not cancel" />

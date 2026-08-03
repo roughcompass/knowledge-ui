@@ -89,3 +89,19 @@ describe('cancelling', () => {
     });
   });
 });
+
+describe('the named absence', () => {
+  it('explains that delivery health is unmeasured rather than healthy', async () => {
+    const user = userEvent.setup();
+    renderPanel();
+    await user.click(await screen.findByRole('button', { name: 'Subscribe' }));
+
+    // The distinction that matters: an enabled subscription which has failed
+    // every delivery looks identical to one that has succeeded, so the panel
+    // must not imply health from the enabled flag.
+    await waitFor(async () => {
+      expect(await screen.findByText(/Delivery health is not shown/)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/no endpoint reads it back/)).toBeInTheDocument();
+  });
+});

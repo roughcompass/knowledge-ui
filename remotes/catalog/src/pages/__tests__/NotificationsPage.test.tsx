@@ -96,3 +96,15 @@ describe('the read filter', () => {
     expect(await screen.findByText('salt-ds')).toBeInTheDocument();
   });
 });
+
+describe('the named absence', () => {
+  it('says why there is no cross-capability adoption list, not merely that there is none', async () => {
+    renderPage();
+    // An empty panel would imply a list that will fill. The endpoint to fill it
+    // does not exist, so the notice has to say that rather than render nothing.
+    expect(
+      await screen.findByText(/no list of everything you have adopted/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/carries no version pin/)).toBeInTheDocument();
+  });
+});

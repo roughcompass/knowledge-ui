@@ -20,6 +20,7 @@ export { FormRow } from './FormRow';
 export { ActionResult } from './ActionResult';
 export { ConfirmDialog } from './ConfirmDialog';
 export { EmptyState } from './EmptyState';
+export { UnavailableNotice } from './UnavailableNotice';
 export { LoadingPanel } from './LoadingPanel';
 export { ErrorPanel } from './ErrorPanel';
 export { DataTable, type Column, type DataTableProps } from './DataTable';
