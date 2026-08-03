@@ -137,6 +137,42 @@ describe('the confirm dialog', () => {
   });
 });
 
+describe('deactivation stays reversible', () => {
+  it('keeps a deactivated source on screen, offering Reactivate', async () => {
+    /*
+     * The regression that shipped and was caught only against the live registry.
+     *
+     * `GET /v1/admin/sync-sources` is `active_only: bool = Query(True)` — it hides
+     * inactive sources unless asked. The page omitted the parameter, so deactivating
+     * a source removed it from the table, the Reactivate control became unreachable,
+     * and the confirm dialog's "reversible from this table" was untrue.
+     *
+     * Every test passed at the time, because the mock defaulted the other way. Both
+     * sides are now aligned to the server, and this pins the behaviour.
+     */
+    const user = userEvent.setup();
+    renderPage();
+
+    // The seeded roster includes one already-inactive source. Its presence is the
+    // assertion: with the server's default it would not be here at all.
+    expect(await screen.findByText('retired-adr-import')).toBeInTheDocument();
+    const inactiveRow = screen.getByText('retired-adr-import').closest('tr') as HTMLElement;
+    expect(within(inactiveRow).getByRole('button', { name: 'Reactivate' })).toBeVisible();
+    expect(within(inactiveRow).getByRole('button', { name: 'Run now' })).toBeDisabled();
+
+    // And a source deactivated during this session stays visible too.
+    const activeRow = screen.getByText('docs-corpus').closest('tr') as HTMLElement;
+    await user.click(within(activeRow).getByRole('button', { name: 'Deactivate' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByText('docs-corpus')).toBeInTheDocument();
+    const afterRow = screen.getByText('docs-corpus').closest('tr') as HTMLElement;
+    expect(within(afterRow).getByRole('button', { name: 'Reactivate' })).toBeVisible();
+  });
+});
+
 describe('the capability gate', () => {
   it('refuses a producer and names the role that would work', async () => {
     // The page itself is unguarded — `GuardedAdmin` wraps it at the route. This

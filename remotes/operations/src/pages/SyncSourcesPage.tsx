@@ -78,7 +78,13 @@ export function SyncSourcesPage() {
   const { session, client } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
 
-  const sources = useSyncSources(client, scope);
+  /*
+   * `activeOnly: false` is load-bearing, not a default being restated. The endpoint
+   * is `active_only: bool = Query(True)`, so omitting it hides every deactivated
+   * source — which would make the Reactivate control below unreachable and turn the
+   * confirm dialog's "reversible from this table" into a lie.
+   */
+  const sources = useSyncSources(client, scope, { activeOnly: false });
   const trigger = useTriggerSync(client, scope);
   const create = useCreateSyncSource(client, scope);
   const patch = usePatchSyncSource(client, scope);

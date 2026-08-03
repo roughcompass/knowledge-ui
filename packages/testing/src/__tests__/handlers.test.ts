@@ -23,6 +23,14 @@ const IDP = 'http://api.test/__idp/default/token';
 const WHOAMI = 'http://api.test/v1/whoami';
 const AUDIT = 'http://api.test/v1/admin/audit';
 const SOURCES = 'http://api.test/v1/admin/sync-sources';
+/*
+ * `active_only` defaults to **true** — `active_only: bool = Query(True)` in
+ * `admin_sync.py`. Anything that needs the deactivated source has to ask for it, and
+ * having to spell that here is the point: the default is what made a real bug
+ * invisible, where a page that omitted the parameter silently lost every source it
+ * deactivated.
+ */
+const ALL_SOURCES = `${SOURCES}?active_only=false`;
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {
@@ -162,7 +170,7 @@ describe('the sync endpoints require admin exactly', () => {
   );
 
   it('serves the admin a bare array, not a paged envelope', async () => {
-    const res = await fetch(SOURCES, {
+    const res = await fetch(ALL_SOURCES, {
       headers: { authorization: `Bearer ${await mint('knowledge-ui-admin')}` },
     });
     expect(res.status).toBe(200);
@@ -172,6 +180,17 @@ describe('the sync endpoints require admin exactly', () => {
     // written against an envelope would render nothing and look like an empty tenant.
     expect(Array.isArray(body)).toBe(true);
     expect(body).toHaveLength(3);
+  });
+
+  it('hides deactivated sources unless asked, as the server does', async () => {
+    const auth = { authorization: `Bearer ${await mint('knowledge-ui-admin')}` };
+    const dflt = (await (await fetch(SOURCES, { headers: auth })).json()) as unknown[];
+    const all = (await (await fetch(ALL_SOURCES, { headers: auth })).json()) as unknown[];
+
+    // Two of the three seeded sources are active. A mock that returned all three by
+    // default would let a page omit the parameter and still look correct.
+    expect(dflt).toHaveLength(2);
+    expect(all).toHaveLength(3);
   });
 });
 
@@ -185,7 +204,7 @@ describe('the sync store is stateful, and reset between tests', () => {
     });
     expect(created.status).toBe(201);
 
-    const after = (await (await fetch(SOURCES, { headers: auth })).json()) as Array<{
+    const after = (await (await fetch(ALL_SOURCES, { headers: auth })).json()) as Array<{
       display_name: string;
     }>;
     expect(after.map((s) => s.display_name)).toContain('new-thing');
@@ -194,13 +213,13 @@ describe('the sync store is stateful, and reset between tests', () => {
   it('does not leak that source into this test', async () => {
     // The assertion that proves `resetAdminStore` is wired. Without it this reads 4.
     const auth = { authorization: `Bearer ${await mint('knowledge-ui-admin')}` };
-    const body = (await (await fetch(SOURCES, { headers: auth })).json()) as unknown[];
+    const body = (await (await fetch(ALL_SOURCES, { headers: auth })).json()) as unknown[];
     expect(body).toHaveLength(3);
   });
 
   it('answers 202 for a trigger, with an id that matches no run', async () => {
     const auth = { authorization: `Bearer ${await mint('knowledge-ui-admin')}` };
-    const sources = (await (await fetch(SOURCES, { headers: auth })).json()) as Array<{
+    const sources = (await (await fetch(ALL_SOURCES, { headers: auth })).json()) as Array<{
       source_id: string;
       is_active: boolean;
     }>;
@@ -229,7 +248,7 @@ describe('the sync store is stateful, and reset between tests', () => {
 
   it('refuses a trigger on an inactive source with the 409 the server sends', async () => {
     const auth = { authorization: `Bearer ${await mint('knowledge-ui-admin')}` };
-    const sources = (await (await fetch(SOURCES, { headers: auth })).json()) as Array<{
+    const sources = (await (await fetch(ALL_SOURCES, { headers: auth })).json()) as Array<{
       source_id: string;
       is_active: boolean;
     }>;

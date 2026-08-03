@@ -156,7 +156,18 @@ export const adminSyncHandlers = [
     const refused = refuseNonAdmin(request);
     if (refused) return refused;
 
-    const activeOnly = new URL(request.url).searchParams.get('active_only') === 'true';
+    /*
+     * `active_only` defaults to **true** on the server —
+     * `active_only: bool = Query(True)` in `admin_sync.py`. This mock defaulted to
+     * showing everything, and that difference hid a real bug: a page that does not
+     * ask for inactive sources loses them the moment they are deactivated, so the
+     * Reactivate control became unreachable and the confirm dialog's promise that
+     * deactivation is reversible "from this table" was false.
+     *
+     * Every test passed. The default is the whole reason it passed.
+     */
+    const param = new URL(request.url).searchParams.get('active_only');
+    const activeOnly = param === null ? true : param !== 'false';
     const visible = activeOnly ? sources.filter((s) => s.is_active) : sources;
     // A bare array. No envelope, no cursor.
     return HttpResponse.json(visible);
