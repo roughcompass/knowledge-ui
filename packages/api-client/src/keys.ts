@@ -78,6 +78,26 @@ export const queryKeys = {
    * would survive `queryClient.clear()` on a persona switch and show a reading
    * from before the switch, which reads as a stale UI for no benefit.
    */
+  /**
+   * Adoption is keyed per capability because the endpoint is: it returns the
+   * caller's own adoption for one capability, so there is no list to key.
+   */
+  adoption: (scope: KeyScope, handle: string) =>
+    [...root(scope), 'consumer', 'adoption', handle] as const,
+
+  subscriptions: (scope: KeyScope, handle: string) =>
+    [...root(scope), 'consumer', 'subscriptions', handle] as const,
+
+  /**
+   * The root exists so mark-read can invalidate every status filter at once.
+   * Invalidating only the active filter would leave the `all` view still showing
+   * an item as unread after the user marked it read in the default view.
+   */
+  notificationsRoot: (scope: KeyScope) => [...root(scope), 'consumer', 'notifications'] as const,
+
+  notifications: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'consumer', 'notifications', params] as const,
+
   liveness: (scope: KeyScope) => [...root(scope), 'ops', 'healthz'] as const,
   readiness: (scope: KeyScope) => [...root(scope), 'ops', 'readyz'] as const,
   metrics: (scope: KeyScope) => [...root(scope), 'ops', 'metrics'] as const,

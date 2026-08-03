@@ -97,4 +97,29 @@ export {
 
 export { useCreateSyncSource, usePatchSyncSource, useTriggerSync } from './mutations';
 
+export {
+  EVENT_KINDS,
+  NOTIFICATION_STATUSES,
+  useAdopt,
+  useAdoption,
+  useCreateSubscription,
+  useDeleteSubscription,
+  useMarkNotificationRead,
+  useNotifications,
+  usePatchSubscription,
+  useSubscriptions,
+  useUnadopt,
+  type Adoption,
+  type AdoptInput,
+  type AdoptionListResponse,
+  type EventKind,
+  type NotificationItem,
+  type NotificationListResponse,
+  type NotificationParams,
+  type NotificationStatus,
+  type Subscription,
+  type SubscriptionCreate,
+  type SubscriptionPatch,
+} from './consumer';
+
 export type { components, paths } from './generated/registry';

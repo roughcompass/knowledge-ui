@@ -25,6 +25,8 @@ export const PAGE_LIMITS = {
   audit: { min: 1, max: 500, default: 50 },
   /** Search calls this `top_k`, and its ceiling is lower than the list endpoints'. */
   search: { min: 1, max: 100, default: 10 },
+  /** Matches `GET /v1/notifications`'s own `page_size` default of 50. */
+  notifications: { min: 1, max: 200, default: 50 },
 } as const;
 
 export type PagedEndpoint = keyof typeof PAGE_LIMITS;
