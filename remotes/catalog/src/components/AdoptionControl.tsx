@@ -27,10 +27,26 @@ import { useState } from 'react';
  * tenant, with team attribution carried as free text in `intent`. So the copy
  * says "your tenant", never "your team" — implying per-team adoption would
  * describe a distinction the server does not make.
+ *
+ * **Reading and writing have different role gates, and they are not symmetric.**
+ * `list_adoptions` admits producer, admin, consumer and auditor; adopt and
+ * unadopt are `require_roles([ROLE_PRODUCER, ROLE_ADMIN])` and exclude consumer
+ * outright. So every role can see whether their tenant has adopted, and only a
+ * producer or admin can change it. The control renders the state to everyone and
+ * offers the action only to principals the API would accept — offering a button
+ * that is guaranteed to 403 is worse than not showing it, and the registry
+ * collapses a principal to exactly one role, so a consumer cannot escalate by
+ * also holding producer.
  */
 export function AdoptionControl({ handle }: { handle: string }) {
   const { session, client } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
+
+  /*
+   * Mirrors `_adopt_required` in `adoptions.py`, which is producer-or-admin and
+   * excludes consumer. Read stays open to every role via `_list_adoptions_required`.
+   */
+  const canChange = session.role === 'producer' || session.role === 'admin';
 
   const adoption = useAdoption(client, scope, handle);
   const adopt = useAdopt(client, scope);
@@ -69,6 +85,7 @@ export function AdoptionControl({ handle }: { handle: string }) {
       <>
         <FlexLayout gap={1} align="center">
           <Tag>Adopted{current.version_pin ? ` · pinned ${current.version_pin}` : ''}</Tag>
+          {!canChange ? null : (
           <Button
             appearance="bordered"
             sentiment="caution"
@@ -77,6 +94,7 @@ export function AdoptionControl({ handle }: { handle: string }) {
           >
             Unadopt
           </Button>
+          )}
         </FlexLayout>
 
         <ConfirmDialog
@@ -98,9 +116,29 @@ export function AdoptionControl({ handle }: { handle: string }) {
             in its provider projection. The adoption record itself is preserved in the audit
             log — this is reversible, and it is not a deletion.
           </Text>
+          <Text>
+            {/*
+              Adopting creates an inbox subscription automatically, and unadopting does
+              not remove it: `unadopt` soft-deletes the adoption row and nothing else.
+              Saying so here is the difference between a reversible action and one that
+              quietly leaves something behind.
+            */}
+            You will keep receiving notifications for it. Adopting created an inbox
+            subscription, and unadopting does not remove one — cancel it from
+            Subscriptions if you no longer want the updates.
+          </Text>
         </ConfirmDialog>
       </>
     );
+  }
+
+  if (!canChange) {
+    /*
+     * Not an error and not an empty state: the reader is entitled to know their
+     * tenant has not adopted this, they are simply not the principal who can
+     * change it. Saying which role can turns a dead end into a next step.
+     */
+    return <Text color="secondary">Not adopted · a producer or admin can adopt</Text>;
   }
 
   return (
