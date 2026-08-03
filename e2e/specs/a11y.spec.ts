@@ -34,6 +34,11 @@ const ROUTES = [
   // rendered surface with a Banner and a persona-switch Button, not an empty page.
   // The page itself is covered in `admin.spec.ts`, after a switch.
   { path: '/ops/sync', name: 'sync connectors (gated for a consumer)' },
+  // The consumer surfaces. The detail page carries the adopt control and the
+  // subscriptions card; the inbox carries a filter, a table of row actions, a
+  // bulk action and two unavailability notices.
+  { path: '/catalog/notifications', name: 'notifications inbox' },
+  { path: '/catalog/salt-design-system', name: 'capability detail (adopt + subscriptions)' },
 ];
 
 /** The session bootstrap has to finish before the page means anything. */
