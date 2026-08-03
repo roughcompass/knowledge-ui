@@ -9,6 +9,8 @@ export {
 
 export {
   RegistryError,
+  fieldErrors,
+  formErrors,
   toNetworkError,
   toRegistryError,
   type ErrorEnvelope,
@@ -39,7 +41,15 @@ export {
 
 export { queryKeys, type KeyScope } from './keys';
 
-export { PAGE_LIMITS, clampPageSize, compact, toApiTimestamp, type PagedEndpoint } from './params';
+export {
+  IDEMPOTENCY_HEADER,
+  PAGE_LIMITS,
+  clampPageSize,
+  compact,
+  newIdempotencyKey,
+  toApiTimestamp,
+  type PagedEndpoint,
+} from './params';
 
 export { CursorStack, filterSignature } from './cursor';
 
@@ -65,5 +75,24 @@ export {
   type SearchResponse,
   type WhoAmI,
 } from './hooks';
+
+export {
+  SYNC_RUN_STATUSES,
+  SYNC_SOURCE_TYPES,
+  useSyncRuns,
+  useSyncSource,
+  useSyncSources,
+  type SupersededFact,
+  type SyncRun,
+  type SyncRunParams,
+  type SyncRunStatus,
+  type SyncSource,
+  type SyncSourceCreate,
+  type SyncSourcePatch,
+  type SyncSourceType,
+  type TriggerReceipt,
+} from './admin';
+
+export { useCreateSyncSource, usePatchSyncSource, useTriggerSync } from './mutations';
 
 export type { components, paths } from './generated/registry';

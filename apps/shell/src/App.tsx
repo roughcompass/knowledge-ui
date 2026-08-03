@@ -20,7 +20,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { SessionDebugPage } from './pages/SessionDebugPage';
 import { CatalogRemote, OperationsRemote } from './remotes/lazy';
 import { RemoteBoundary } from './remotes/RemoteBoundary';
-import { REMOTES } from './remotes/registry';
+import { remoteFor } from './remotes/registry';
 import { SessionBootstrap } from './session/SessionBootstrap';
 import { AppProviders } from './app/providers';
 import { resolveBasename } from './app/basename';
@@ -223,8 +223,15 @@ function ShellRoutes({
     onSwitchPersona,
   });
 
-  const catalog = REMOTES.find((r) => r.name === 'catalog');
-  const operations = REMOTES.find((r) => r.name === 'operations');
+  /*
+   * `remoteFor` rather than a `find` that can miss. Both the mount path and the
+   * capability come from the descriptor, so the two are declared once. They used
+   * to be re-stated here — a literal `need="ops:view"` beside a
+   * `?? 'ops'` fallback path — which meant the descriptor and the route could
+   * disagree, and a new section-level capability would silently not be enforced.
+   */
+  const catalog = remoteFor('catalog');
+  const operations = remoteFor('operations');
 
   return (
     <Routes>
@@ -255,32 +262,32 @@ function ShellRoutes({
           what lets the same bundle mount at a different path without a rebuild.
         */}
         <Route
-          path={`${catalog?.mountPath.slice(1) ?? 'catalog'}/*`}
+          path={`${catalog.mountPath.slice(1)}/*`}
           element={
             <RequireCapability
-              need="catalog:browse"
+              need={catalog.need}
               session={session}
               personas={personas}
               onSwitchPersona={onSwitchPersona}
             >
               <RemoteBoundary name="catalog">
-                <CatalogRemote {...mountProps(catalog?.mountPath ?? '/catalog')} />
+                <CatalogRemote {...mountProps(catalog.mountPath)} />
               </RemoteBoundary>
             </RequireCapability>
           }
         />
 
         <Route
-          path={`${operations?.mountPath.slice(1) ?? 'ops'}/*`}
+          path={`${operations.mountPath.slice(1)}/*`}
           element={
             <RequireCapability
-              need="ops:view"
+              need={operations.need}
               session={session}
               personas={personas}
               onSwitchPersona={onSwitchPersona}
             >
               <RemoteBoundary name="operations">
-                <OperationsRemote {...mountProps(operations?.mountPath ?? '/ops')} />
+                <OperationsRemote {...mountProps(operations.mountPath)} />
               </RemoteBoundary>
             </RequireCapability>
           }

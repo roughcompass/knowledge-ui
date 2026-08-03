@@ -6,7 +6,7 @@
     "incremental": false,
     "declaration": false,
     "declarationMap": false,
-    "types": ["vite/client", "node"],
+    "types": ["vite/client", "node", "@testing-library/jest-dom"],
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src/**/*"]

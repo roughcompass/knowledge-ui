@@ -173,3 +173,82 @@ function defaultMessageFor(status: number): string {
       return `request failed with status ${status}`;
   }
 }
+
+/**
+ * Read the error envelope's items off anything that carries them.
+ *
+ * **Duck-typed, and it has to be.** `error instanceof RegistryError` is wrong here
+ * and fails silently. `@knowledge-ui/api-client` is not a Module Federation share —
+ * it is bundled into the shell *and* into each remote — so the client that throws
+ * lives in the shell's copy while a page that catches lives in the remote's. The two
+ * `RegistryError` classes are different objects, `instanceof` is false, and the
+ * caller sees an error with no items at all.
+ *
+ * That cost real debugging time: the first version of `fieldErrors` used
+ * `instanceof`, so a 422 whose items were all `$.`-pathed field errors came out as
+ * zero field errors and one form-level message — the *opposite* of the truth, and
+ * plausible enough to look like a server problem.
+ *
+ * `ErrorPanel` already learned this and says so in its own header comment. Same
+ * boundary, same answer.
+ */
+function itemsOf(error: unknown): ErrorItem[] {
+  if (typeof error !== 'object' || error === null) return [];
+  const items = (error as { items?: unknown }).items;
+  if (!Array.isArray(items)) return [];
+  return items.filter(
+    (i): i is ErrorItem => typeof i === 'object' && i !== null && 'message' in i,
+  );
+}
+
+/**
+ * Split a validation failure into per-field and form-level messages.
+ *
+ * The server's envelope carries `path` on each item — `"$.display_name"` for a
+ * Pydantic body error, JSON-Path style with a `$.` root. That is what lets a 422
+ * land on the control that caused it instead of in a banner above the form.
+ *
+ * Two shapes have to be handled, and the second is the one that gets forgotten:
+ *
+ *   `path: "$.display_name"`  a field error, from Pydantic's own validation
+ *   `path: null`              a *form-level* error, from a hand-raised refusal
+ *
+ * `admin_sync.py` raises the second kind for an unknown connector type, and
+ * `connector.validate()` runs inside the create request — so a credential the
+ * connector cannot reach also arrives this way. A form that only ever renders
+ * field errors would swallow both and show nothing at all.
+ *
+ * Note `code` is the Pydantic error *type* — `missing`, `string_too_short` — not a
+ * registry error code. Do not switch on it expecting `validation_error`.
+ */
+export function fieldErrors(error: unknown): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+
+  for (const item of itemsOf(error)) {
+    if (typeof item.path !== 'string' || item.path === '') continue;
+    // `$.display_name` → `display_name`; `$.config.url` → `config.url`.
+    const field = item.path.replace(/^\$\.?/, '');
+    if (field === '') continue;
+    (out[field] ??= []).push(item.message);
+  }
+  return out;
+}
+
+/**
+ * The messages that belong to no particular field.
+ *
+ * Everything with a null or empty `path`. Render these together above the controls;
+ * they are the half of a 422 that has nowhere else to go.
+ */
+export function formErrors(error: unknown): string[] {
+  const items = itemsOf(error);
+
+  if (items.length === 0) {
+    // Nothing envelope-shaped. A thrown Error still has to say something, or a
+    // failed submit renders as silence.
+    if (error instanceof Error) return [error.message];
+    return error === null || error === undefined ? [] : [String(error)];
+  }
+
+  return items.filter((i) => typeof i.path !== 'string' || i.path === '').map((i) => i.message);
+}

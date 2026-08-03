@@ -30,6 +30,10 @@ const ROUTES = [
   { path: '/ops', name: 'health' },
   { path: '/ops/metrics', name: 'metrics' },
   { path: '/ops/audit', name: 'audit log (gated for a consumer)' },
+  // The lane boots as `consumer`, so this axe-checks the *refusal* — which is a real
+  // rendered surface with a Banner and a persona-switch Button, not an empty page.
+  // The page itself is covered in `admin.spec.ts`, after a switch.
+  { path: '/ops/sync', name: 'sync connectors (gated for a consumer)' },
 ];
 
 /** The session bootstrap has to finish before the page means anything. */

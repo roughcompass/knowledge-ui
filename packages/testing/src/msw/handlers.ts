@@ -1,5 +1,8 @@
 import { HttpResponse, http } from 'msw';
 
+import { adminSyncHandlers } from './adminSync';
+import { roleFor, subjectOf } from './role';
+
 import {
   METRICS_TEXT,
   makeAuditRow,
@@ -36,55 +39,6 @@ const decodeCursor = (cursor: string | null): number => {
     return -1; // signals an unusable cursor
   }
 };
-
-/**
- * client_id -> role, mirroring the entitlements the seeder installs.
- *
- * This exists so the mocked lane can exercise every persona. Under
- * `client_credentials` the real token's `sub` *is* the `client_id`, and the
- * entitlement service is keyed by `sub` — so the client_id chooses the identity
- * and the seeded entitlement chooses the role. Reproducing that chain here is
- * what makes a persona switch observable without a backend.
- *
- * A flat `makeWhoami()` for every token would quietly make the mocked lane blind
- * to the most important permission rule in the system: the audit log requires
- * `auditor` specifically, so a mock that always answers `consumer` can never show
- * that endpoint working, and can never catch a regression in the gate that hides
- * it.
- *
- * Mirrors the seeder rather than importing the persona roster: the roster is a
- * dev-only module behind a guarded dynamic import, and the server's behaviour is
- * what these handlers are imitating.
- */
-const ROLE_BY_CLIENT_ID: Record<string, string> = {
-  'knowledge-ui-consumer': 'consumer',
-  'knowledge-ui-producer': 'producer',
-  'knowledge-ui-admin': 'admin',
-  'knowledge-ui-auditor': 'auditor',
-  // Two tenant grants, one role. The interesting thing about this identity is the
-  // tenant choice, not its permissions.
-  'knowledge-ui-multi': 'consumer',
-};
-
-/** The `sub` claim of the bearer token, or null when there is no usable one. */
-function subjectOf(request: Request): string | null {
-  const header = request.headers.get('authorization');
-  if (!header?.startsWith('Bearer ')) return null;
-  const payload = header.slice('Bearer '.length).split('.')[1];
-  if (!payload) return null;
-  try {
-    const claims = JSON.parse(atob(payload)) as { sub?: unknown };
-    return typeof claims.sub === 'string' ? claims.sub : null;
-  } catch {
-    return null;
-  }
-}
-
-/** The role the server would resolve for this request's bearer token. */
-export function roleFor(request: Request): string {
-  const sub = subjectOf(request);
-  return (sub && ROLE_BY_CLIENT_ID[sub]) || 'consumer';
-}
 
 export const whoamiHandlers = [
   http.get('*/v1/whoami', ({ request }) => {
@@ -247,11 +201,20 @@ export const idpHandlers = [
   }),
 ];
 
+/*
+ * `adminSyncHandlers` is imported lazily-ish — at the bottom, after `roleFor` is
+ * defined — because that group needs the role resolver and putting it in its own
+ * module keeps this one from growing a stateful store.
+ */
+/** Re-exported so existing importers of `./handlers` keep working. */
+export { roleFor } from './role';
+
 export const defaultHandlers = [
   ...whoamiHandlers,
   ...capabilityHandlers,
   ...searchHandlers,
   ...auditHandlers,
+  ...adminSyncHandlers,
   ...opsHandlers,
   ...idpHandlers,
 ];

@@ -4,7 +4,7 @@ import { render, type RenderOptions, type RenderResult } from '@testing-library/
 import type { ReactElement, ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-import type { Session } from '@knowledge-ui/auth';
+import { SessionProvider, type Persona, type Session } from '@knowledge-ui/auth';
 
 /**
  * Render a component inside the same provider stack the app uses.
@@ -17,6 +17,11 @@ import type { Session } from '@knowledge-ui/auth';
  *
  * A fresh QueryClient per call, with retries off: a retry in a test turns an
  * assertion failure into a timeout, which hides which request actually failed.
+ *
+ * `SessionProvider` is included when a `session` is passed, because every page in the
+ * app calls `useSession()` and that hook throws rather than returning a default —
+ * deliberately, so a component rendered outside a session fails loudly. Without this
+ * option no page could be rendered here at all.
  */
 
 export function makeSession(overrides: Partial<Session> = {}): Session {
@@ -45,6 +50,16 @@ export function makeTestQueryClient(): QueryClient {
 export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper'> {
   route?: string;
   queryClient?: QueryClient;
+  /**
+   * Wraps the tree in `SessionProvider`. Required for anything calling
+   * `useSession()`, which is every page.
+   */
+  session?: Session;
+  /** The registry client the page will call. Duck-typed, so a stub is fine. */
+  client?: unknown;
+  /** Offered to a refused route so it can suggest a switch. */
+  personas?: readonly Persona[];
+  onSwitchPersona?: (key: string) => void;
 }
 
 export function renderWithProviders(
@@ -52,14 +67,36 @@ export function renderWithProviders(
   {
     route = '/',
     queryClient = makeTestQueryClient(),
+    session,
+    client,
+    personas = [],
+    onSwitchPersona,
     ...renderOptions
   }: RenderWithProvidersOptions = {},
 ): RenderResult & { queryClient: QueryClient } {
   function Wrapper({ children }: { children: ReactNode }) {
+    const inner =
+      session === undefined ? (
+        children
+      ) : (
+        <SessionProvider
+          value={{
+            session,
+            client,
+            mountPath: '/',
+            navigateAbsolute: () => undefined,
+            personas,
+            onSwitchPersona,
+          }}
+        >
+          {children}
+        </SessionProvider>
+      );
+
     return (
       <SaltProviderNext mode="light" density="low" accent="teal" corner="rounded">
         <QueryClientProvider client={queryClient}>
-          <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+          <MemoryRouter initialEntries={[route]}>{inner}</MemoryRouter>
         </QueryClientProvider>
       </SaltProviderNext>
     );

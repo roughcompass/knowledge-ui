@@ -145,3 +145,102 @@ catalog_outbox_pending_size 7.0
 # TYPE catalog_audit_write_failures_total counter
 catalog_audit_write_failures_total 0.0
 `;
+
+/*
+ * ADMIN: SYNC
+ *
+ * Every nullable-but-required field is present as `null` rather than omitted.
+ * The server declares `finished_at`, `duration_s`, `artifact_count`,
+ * `error_summary`, `credentials_ref`, `schedule` and `created_by` as required
+ * *and* nullable, so a fixture that leaves them out teaches the wrong shape —
+ * a page written against it would never handle the null.
+ */
+
+/** The connector types the server accepts. Keys of the CONNECTORS dict. */
+export const SYNC_SOURCE_TYPE = [
+  'openapi',
+  'release_notes',
+  'markdown_adr_rfc',
+  'package_json',
+  'docs_corpus',
+] as const;
+
+export function makeSyncSource(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    source_id: uuid('source'),
+    tenant_id: uuid('tenant'),
+    display_name: 'docs-corpus',
+    source_type: 'docs_corpus',
+    config: { root: 'docs/', glob: '**/*.md' },
+    schedule: '0 3 * * *',
+    credentials_ref: null,
+    is_active: true,
+    created_at: '2026-07-01T09:00:00Z',
+    created_by: uuid('actor'),
+    ...overrides,
+  };
+}
+
+export function makeSyncRun(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    sync_run_id: uuid('run'),
+    source_id: uuid('source'),
+    tenant_id: uuid('tenant'),
+    status: 'done',
+    trigger: 'schedule',
+    started_at: '2026-08-01T03:00:00Z',
+    finished_at: '2026-08-01T03:01:12Z',
+    duration_s: 72,
+    artifact_count: 1204,
+    error_summary: null,
+    ...overrides,
+  };
+}
+
+/**
+ * The trigger receipt.
+ *
+ * `sync_run_id` is minted here exactly as the server mints it — into the response
+ * only. It matches no row: the real run is written later by the scheduled job, so
+ * fetching this id 404s. The fixture reproduces that rather than hiding it, because
+ * a page that links the receipt to a detail route is the most likely mistake in
+ * this area and the mock should not make it look correct.
+ */
+export function makeTriggerReceipt(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    sync_run_id: uuid('receipt'),
+    source_id: uuid('source'),
+    status: 'queued',
+    trigger: 'manual',
+    started_at: '2026-08-02T10:15:00Z',
+    ...overrides,
+  };
+}
+
+export function makeSupersededFact(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    fact_id: uuid('fact'),
+    entity_id: uuid('entity'),
+    sync_run_id: uuid('run'),
+    category: 'api_doc',
+    body: 'Superseded by a newer authoritative fact.',
+    t_valid_from: '2026-07-01T09:00:00Z',
+    t_ingested_at: '2026-07-01T09:00:05Z',
+    ...overrides,
+  };
+}
+
+/** A Pydantic-shaped validation failure: `$.field` paths, plus a form-level item. */
+export function makeValidationEnvelope(
+  items: Array<{ path: string | null; code?: string; message: string }>,
+) {
+  return {
+    errors: items.map(({ path, code, message }) => ({
+      path,
+      // Pydantic's error *type*, not a registry error code — `missing`,
+      // `string_too_short`. Nothing should switch on it expecting the latter.
+      code: code ?? 'missing',
+      message,
+    })),
+  };
+}

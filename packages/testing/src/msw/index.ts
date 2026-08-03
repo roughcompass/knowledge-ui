@@ -1,3 +1,4 @@
+export { adminSyncHandlers, resetAdminStore } from './adminSync';
 export {
   auditHandlers,
   capabilityHandlers,

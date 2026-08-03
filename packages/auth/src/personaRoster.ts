@@ -75,7 +75,8 @@ export const PERSONA_ROSTER: readonly Persona[] = [
   {
     key: 'admin',
     label: 'Platform — Admin',
-    description: 'Health and metrics. Cannot read the audit log — that needs the auditor.',
+    description:
+      'Sync connectors and platform operations. Cannot read the audit log — that needs the auditor.',
     clientId: 'knowledge-ui-admin',
     clientSecret: CLIENT_SECRET,
     entitlements: [grant(TENANT, 'ADMIN')],

@@ -42,6 +42,35 @@ export function clampPageSize(endpoint: PagedEndpoint, requested: number | undef
   return Math.min(max, Math.max(min, Math.trunc(requested)));
 }
 
+/**
+ * The idempotency header, spelled once.
+ *
+ * `X-Idempotency-Key`, with the `X-` prefix. This constant exists because getting
+ * it wrong fails **silently**: the server's dependency returns an inert context
+ * when the header is absent, so a misspelled name means both `lookup` and
+ * `persist` become no-ops and a retried POST duplicates the write with no error
+ * anywhere.
+ *
+ * That is not a hypothetical. `registry/docs/04-guides/03-sync-connectors.md`
+ * documents the header as `Idempotency-Key`, without the prefix — so an operator
+ * following the docs gets no idempotency at all. A named constant plus the test
+ * asserting its value is what stops the same mistake being made here by hand.
+ */
+export const IDEMPOTENCY_HEADER = 'X-Idempotency-Key';
+
+/**
+ * A fresh idempotency key.
+ *
+ * `randomUUID` needs a secure context. Every browser this app runs in has one, but
+ * a jsdom test environment may not, so this falls back rather than throwing — a
+ * test asserting the *header* should not fail over the *value*.
+ */
+export function newIdempotencyKey(): string {
+  const c = globalThis.crypto;
+  if (c && typeof c.randomUUID === 'function') return c.randomUUID();
+  return `kui-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 /** Drop empty values so they never reach the query string as `?x=`. */
 export function compact<T extends Record<string, unknown>>(params: T): Partial<T> {
   const out: Record<string, unknown> = {};

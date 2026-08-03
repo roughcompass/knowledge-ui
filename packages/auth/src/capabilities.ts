@@ -41,6 +41,30 @@ export const CAPABILITIES = {
    * belong, not a permission the server checks.
    */
   'ops:view': ['admin', 'producer', 'consumer', 'auditor'],
+
+  /**
+   * The operator surfaces: sync connectors, and the configuration screens that
+   * follow them.
+   *
+   * One capability for the whole `/v1/admin/*` family rather than one per resource,
+   * because the server has exactly one gate for all of it —
+   * `require_roles([ROLE_ADMIN])` via `_admin_common.py`. Splitting it into
+   * `admin:sync`, `admin:vocab` and so on would be UI fiction: a distinction this
+   * table invented that the API does not enforce. `/v1/admin/audit` is the one
+   * exception and it has its own entry above.
+   *
+   * Not `catalog:edit`. That is admin *and* producer, and a producer following a
+   * nav entry here would meet a guaranteed 403 on every request — exactly the
+   * failure the `audit:read` note describes.
+   *
+   * Worth stating because the next reader will ask: this is safe from the
+   * `audit:read` trap **by construction**, and the asymmetry is the precedence
+   * order. Auditor sits at the bottom, so a principal holding admin and auditor
+   * collapses to admin and *loses* audit. Admin sits at the top, so any principal
+   * the UI shows this to is a principal the server also resolves to admin. There
+   * is no symmetric trap to guard against.
+   */
+  'admin:manage': ['admin'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Capability = keyof typeof CAPABILITIES;

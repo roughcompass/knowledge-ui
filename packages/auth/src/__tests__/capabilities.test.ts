@@ -43,6 +43,22 @@ describe('can()', () => {
     expect(can(sessionWith('admin'), 'audit:read')).toBe(false);
   });
 
+  it('grants admin:manage to the admin and to nobody else', () => {
+    expect(can(sessionWith('admin'), 'admin:manage')).toBe(true);
+    for (const role of ['producer', 'consumer', 'auditor'] as const) {
+      expect(can(sessionWith(role), 'admin:manage')).toBe(false);
+    }
+  });
+
+  it('keeps admin:manage narrower than catalog:edit', () => {
+    // The distinction that matters: every `/v1/admin/*` endpoint is
+    // `require_roles([ROLE_ADMIN])`, so reusing catalog:edit — which producer
+    // holds — would put a nav entry in front of a guaranteed 403.
+    expect(rolesGranting('admin:manage')).toEqual(['admin']);
+    expect(rolesGranting('catalog:edit')).toContain('producer');
+    expect(can(sessionWith('producer'), 'admin:manage')).toBe(false);
+  });
+
   it('is false for a missing session rather than throwing', () => {
     expect(can(null, 'catalog:browse')).toBe(false);
     expect(can(undefined, 'ops:view')).toBe(false);

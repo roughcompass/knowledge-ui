@@ -1,11 +1,5 @@
 import { FlowLayout, StackLayout, Text } from '@salt-ds/core';
-import {
-  can,
-  capabilitiesFor,
-  type Capability,
-  type Persona,
-  type Session,
-} from '@knowledge-ui/auth';
+import { can, capabilitiesFor, type Persona, type Session } from '@knowledge-ui/auth';
 import { NavCard, PageHeader, Prose } from '@knowledge-ui/ui-kit';
 import { useHref, useNavigate } from 'react-router-dom';
 
@@ -28,8 +22,8 @@ export function HomePage({
   personas: readonly Persona[];
 }) {
   const navigate = useNavigate();
-  const available = REMOTES.filter((r) => can(session, r.need as Capability));
-  const unavailable = REMOTES.filter((r) => !can(session, r.need as Capability));
+  const available = REMOTES.filter((r) => can(session, r.need));
+  const unavailable = REMOTES.filter((r) => !can(session, r.need));
   const auditorPersona = personas.find((p) => p.expectedRole === 'auditor');
 
   return (

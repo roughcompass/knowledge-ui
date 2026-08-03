@@ -13,6 +13,12 @@ export { NavCard } from './NavCard';
 
 export { PageHeader } from './PageHeader';
 export { FilterBar, FilterField, popoverOverlayProps } from './FilterBar';
+
+// The write path. Added with the first mutation in the app; see each file for why
+// it exists rather than being a Salt component used directly.
+export { FormRow } from './FormRow';
+export { ActionResult } from './ActionResult';
+export { ConfirmDialog } from './ConfirmDialog';
 export { EmptyState } from './EmptyState';
 export { LoadingPanel } from './LoadingPanel';
 export { ErrorPanel } from './ErrorPanel';

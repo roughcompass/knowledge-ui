@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { RegistryError, toNetworkError, toRegistryError } from '../errors';
+import {
+  RegistryError,
+  fieldErrors,
+  formErrors,
+  toNetworkError,
+  toRegistryError,
+} from '../errors';
 
 describe('toRegistryError', () => {
   it('reads the envelope the API actually sends', () => {
@@ -103,5 +109,78 @@ describe('RegistryError.is', () => {
     });
     expect(err.is('invalid_cursor')).toBe(true);
     expect(err.is('not_found')).toBe(false);
+  });
+});
+
+describe('fieldErrors() / formErrors()', () => {
+  /**
+   * The shape Pydantic actually produces through the app's exception handler:
+   * `path` is JSON-Path with a `$.` root, and `code` is the Pydantic error *type*
+   * rather than a registry error code.
+   */
+  const validation = toRegistryError(422, {
+    errors: [
+      { path: '$.display_name', code: 'missing', message: 'Field required' },
+      { path: '$.config.url', code: 'string_too_short', message: 'too short' },
+      { path: null, code: 'unprocessable_entity', message: 'unknown connector type "nope"' },
+    ],
+  });
+
+  it('strips the JSON-Path root so the key matches the field name', () => {
+    expect(fieldErrors(validation)).toEqual({
+      display_name: ['Field required'],
+      'config.url': ['too short'],
+    });
+  });
+
+  it('keeps a null-path item out of the field map and in the form list', () => {
+    // The half of a 422 that has nowhere else to go. `admin_sync.py` raises this
+    // for an unknown connector, and `connector.validate()` failing during create
+    // arrives the same way — a form rendering only field errors shows nothing.
+    expect(Object.keys(fieldErrors(validation))).toEqual(['display_name', 'config.url']);
+    expect(formErrors(validation)).toEqual(['unknown connector type "nope"']);
+  });
+
+  it('collects repeated errors on one field rather than keeping the last', () => {
+    const err = toRegistryError(422, {
+      errors: [
+        { path: '$.schedule', code: 'a', message: 'not a cron expression' },
+        { path: '$.schedule', code: 'b', message: 'five fields required' },
+      ],
+    });
+    expect(fieldErrors(err).schedule).toEqual(['not a cron expression', 'five fields required']);
+  });
+
+  it('reads an error thrown by a DIFFERENT copy of this module', () => {
+    /*
+     * The regression that cost real debugging time.
+     *
+     * `api-client` is not a federation share: the shell bundles one copy and each
+     * remote bundles another. The client that throws lives in the shell's copy, the
+     * page that catches lives in the remote's — so `instanceof RegistryError` is
+     * false across that boundary and an `instanceof` guard silently reported zero
+     * field errors and one form-level message, the exact opposite of the truth.
+     *
+     * This stand-in is envelope-shaped and deliberately NOT a RegistryError.
+     */
+    class ForeignRegistryError extends Error {
+      status = 422;
+      items = [
+        { path: '$.display_name', code: 'missing', message: 'Field required' },
+        { path: null, code: 'unprocessable_entity', message: 'unknown connector type' },
+      ];
+    }
+    const foreign = new ForeignRegistryError('Field required');
+
+    expect(foreign).not.toBeInstanceOf(RegistryError);
+    expect(fieldErrors(foreign)).toEqual({ display_name: ['Field required'] });
+    expect(formErrors(foreign)).toEqual(['unknown connector type']);
+  });
+
+  it('says something for a thrown non-RegistryError rather than nothing', () => {
+    // Otherwise a failed submit renders as silence.
+    expect(formErrors(new TypeError('boom'))).toEqual(['boom']);
+    expect(fieldErrors(new TypeError('boom'))).toEqual({});
+    expect(formErrors(undefined)).toEqual([]);
   });
 });

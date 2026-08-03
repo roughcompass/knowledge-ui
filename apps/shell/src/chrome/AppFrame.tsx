@@ -8,7 +8,7 @@ import {
   Tag,
   Text,
 } from '@salt-ds/core';
-import { can, type Capability, type Persona, type Session } from '@knowledge-ui/auth';
+import { can, type Persona, type Session } from '@knowledge-ui/auth';
 import {
   AppShell,
   AppSidebar,
@@ -76,7 +76,7 @@ export function AppFrame({
 }) {
   const location = useLocation();
 
-  const visible = REMOTES.filter((remote) => can(session, remote.need as Capability));
+  const visible = REMOTES.filter((remote) => can(session, remote.need));
 
   /*
    * Which section owns the current route, if any. This is what makes the drill
@@ -188,7 +188,7 @@ export function AppFrame({
                 </SidebarBack>
                 {drilled.children
                   ?.filter(
-                    (child) => child.need === undefined || can(session, child.need as Capability),
+                    (child) => child.need === undefined || can(session, child.need),
                   )
                   .map((child) => {
                     const href = childHref(drilled, child.path);

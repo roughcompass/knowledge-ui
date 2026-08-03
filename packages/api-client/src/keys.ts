@@ -38,6 +38,41 @@ export const queryKeys = {
     [...root(scope), 'audit', params] as const,
 
   /**
+   * ADMIN — everything under `/v1/admin/*`, behind a shared `'admin'` segment.
+   *
+   * The segment is the point. It makes `[...root(scope), 'admin']` a prefix that
+   * invalidates every operator read at once and *cannot* reach catalog, search or
+   * ops — so a write handler that is unsure what it affected has a blunt option
+   * that is still bounded. Per-resource prefixes below it stay available for the
+   * precise case.
+   *
+   * `audit` above is the one exception and stays where it is: it predates this and
+   * moving it would break the key for no gain. The asymmetry is deliberate rather
+   * than an oversight.
+   *
+   * None of these takes a cursor. The admin list endpoints return bare JSON arrays
+   * with no `next_cursor` and no `page_size` — verified against the spec and
+   * `admin_sync.py`, which has no LIMIT — so there is no `PAGE_LIMITS` entry and no
+   * `CursorStack` in the pages that read them.
+   */
+  adminRoot: (scope: KeyScope) => [...root(scope), 'admin'] as const,
+
+  syncSources: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'admin', 'sync-sources', 'list', params] as const,
+
+  syncSource: (scope: KeyScope, sourceId: string) =>
+    [...root(scope), 'admin', 'sync-sources', 'detail', sourceId] as const,
+
+  syncRuns: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'admin', 'sync-runs', 'list', params] as const,
+
+  syncRun: (scope: KeyScope, runId: string) =>
+    [...root(scope), 'admin', 'sync-runs', 'detail', runId] as const,
+
+  supersededFacts: (scope: KeyScope, runId: string) =>
+    [...root(scope), 'admin', 'sync-runs', 'detail', runId, 'superseded'] as const,
+
+  /**
    * The operational probes are unauthenticated, so their responses do not vary
    * by principal — but they stay inside the scope anyway. A key that escaped it
    * would survive `queryClient.clear()` on a persona switch and show a reading

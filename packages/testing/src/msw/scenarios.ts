@@ -1,6 +1,12 @@
-import { HttpResponse, http } from 'msw';
+import { HttpResponse, http, type HttpResponseResolver } from 'msw';
 
-import { METRICS_TEXT, makeErrorEnvelope, makeTenantRequired, makeWhoami } from '../fixtures';
+import {
+  METRICS_TEXT,
+  makeErrorEnvelope,
+  makeTenantRequired,
+  makeValidationEnvelope,
+  makeWhoami,
+} from '../fixtures';
 
 /**
  * Per-test overrides for the paths worth asserting on.
@@ -10,28 +16,45 @@ import { METRICS_TEXT, makeErrorEnvelope, makeTenantRequired, makeWhoami } from 
  * production.
  */
 
+/**
+ * The same resolver on every method.
+ *
+ * The blanket scenarios below — `forbidden`, `unauthenticated`, `rateLimited`,
+ * `networkError` — were `http.get` only. That was invisible while the app made no
+ * writes, and actively misleading the moment it did: a test asking for `forbidden()`
+ * got a 403 on reads while its POST fell through to the real network, where MSW
+ * reports it as unhandled and the request either hangs or hits a live server.
+ *
+ * A refusal is a property of the principal, not of the verb.
+ */
+const onEveryMethod = (path: string, resolver: HttpResponseResolver) => [
+  http.get(path, resolver),
+  http.post(path, resolver),
+  http.patch(path, resolver),
+  http.put(path, resolver),
+  http.delete(path, resolver),
+];
+
 export const scenarios = {
   /** Two grants and no tenant header: refused, with the choices in the item. */
   tenantRequired: (tenants = ['dev', 'acme']) => [
     http.get('*/v1/whoami', () => HttpResponse.json(makeTenantRequired(tenants), { status: 400 })),
   ],
 
-  unauthenticated: () => [
-    http.get('*/v1/*', () =>
+  unauthenticated: () =>
+    onEveryMethod('*/v1/*', () =>
       HttpResponse.json(makeErrorEnvelope('unauthenticated', 'not authenticated'), { status: 401 }),
     ),
-  ],
 
   /**
    * A bare 403 with no hint, which is what an unseeded entitlement produces.
    * The seed store is in-memory and empties on every container restart, so this
    * is the most common local failure and the app must name the likely cause.
    */
-  forbidden: (path = '*/v1/*') => [
-    http.get(path, () =>
+  forbidden: (path = '*/v1/*') =>
+    onEveryMethod(path, () =>
       HttpResponse.json(makeErrorEnvelope('forbidden', 'access denied'), { status: 403 }),
     ),
-  ],
 
   auditForbidden: () => [
     http.get('*/v1/admin/audit', () =>
@@ -39,14 +62,13 @@ export const scenarios = {
     ),
   ],
 
-  rateLimited: (retryAfter = 30) => [
-    http.get('*/v1/*', () =>
+  rateLimited: (retryAfter = 30) =>
+    onEveryMethod('*/v1/*', () =>
       HttpResponse.json(makeErrorEnvelope('rate_limited', 'rate limit exceeded'), {
         status: 429,
         headers: { 'Retry-After': String(retryAfter) },
       }),
     ),
-  ],
 
   /** The list endpoints answer 400; audit answers 422. Both are covered. */
   invalidCursor: () => [
@@ -90,7 +112,62 @@ export const scenarios = {
   ],
 
   /** A request that never reaches the server, which is also how CORS presents. */
-  networkError: (path = '*/v1/*') => [http.get(path, () => HttpResponse.error())],
+  networkError: (path = '*/v1/*') => onEveryMethod(path, () => HttpResponse.error()),
+
+  /** Every `/v1/admin/*` route refused, which is what any non-admin role gets. */
+  adminForbidden: () =>
+    onEveryMethod('*/v1/admin/*', () =>
+      HttpResponse.json(makeErrorEnvelope('forbidden', 'access denied'), { status: 403 }),
+    ),
+
+  /**
+   * Creating a sync source fails validation.
+   *
+   * Both halves of a real 422 at once: one `$.`-pathed field error, and one
+   * form-level item with `path: null` — the kind `admin_sync.py` raises for an
+   * unknown connector, and the kind a form rendering only field errors drops on the
+   * floor.
+   */
+  syncSourceValidationFailed: () => [
+    http.post('*/v1/admin/sync-sources', () =>
+      HttpResponse.json(
+        makeValidationEnvelope([
+          { path: '$.display_name', code: 'missing', message: 'Field required' },
+          { path: null, code: 'unprocessable_entity', message: 'unknown connector type "nope"' },
+        ]),
+        { status: 422 },
+      ),
+    ),
+  ],
+
+  /** Triggering a deactivated source. Reachable, with the server's own wording. */
+  syncTriggerOnInactive: () => [
+    http.post('*/v1/admin/sync-sources/*/trigger', () =>
+      HttpResponse.json(
+        makeErrorEnvelope('conflict', 'sync_source is inactive; re-activate before triggering'),
+        { status: 409 },
+      ),
+    ),
+  ],
+
+  /**
+   * The idempotency-key conflict.
+   *
+   * Unreachable through the app, because a key is minted per call inside
+   * `mutationFn` — so this exists to prove the UI renders it as an unexpected
+   * failure rather than crashing on a code it has no branch for.
+   */
+  idempotencyConflict: () => [
+    http.post('*/v1/admin/*', () =>
+      HttpResponse.json(
+        makeErrorEnvelope(
+          'idempotency_key_conflict',
+          'X-Idempotency-Key was reused with a different request body. Use a fresh key for a new request.',
+        ),
+        { status: 409 },
+      ),
+    ),
+  ],
 
   whoamiAs: (role: string) => [
     http.get('*/v1/whoami', () => HttpResponse.json(makeWhoami({ role }))),

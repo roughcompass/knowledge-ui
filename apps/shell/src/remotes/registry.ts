@@ -1,3 +1,4 @@
+import type { Capability } from '@knowledge-ui/auth';
 import type { RemoteName } from '@knowledge-ui/remote-contract';
 
 /**
@@ -23,8 +24,14 @@ import type { RemoteName } from '@knowledge-ui/remote-contract';
 export interface RemoteChild {
   path: string;
   label: string;
-  /** Capability required to see this entry. Omitted means the section's own. */
-  need?: string;
+  /**
+   * Capability required to see this entry. Omitted means the section's own.
+   *
+   * Typed as `Capability`, not `string`. It was `string`, which meant a typo in a
+   * capability name was not a compile error — it silently produced an entry that
+   * `can()` could never satisfy, so the nav item simply never appeared.
+   */
+  need?: Capability;
 }
 
 export interface RemoteDescriptor {
@@ -32,8 +39,8 @@ export interface RemoteDescriptor {
   /** Absolute path the remote is mounted at. Internal routes are relative to it. */
   mountPath: string;
   label: string;
-  /** Capability required to see the nav entry and enter the route. */
-  need: string;
+  /** Capability required to see the nav entry and enter the route. See `RemoteChild.need`. */
+  need: Capability;
   description: string;
   /**
    * Pages inside the section. A section with children gets a chevron in the
@@ -56,7 +63,7 @@ export const REMOTES: readonly RemoteDescriptor[] = [
     mountPath: '/ops',
     label: 'Operations',
     need: 'ops:view',
-    description: 'Service health, metrics, and the audit log.',
+    description: 'Service health, metrics, sync connectors, and the audit log.',
     children: [
       { path: '', label: 'Health' },
       { path: 'metrics', label: 'Metrics' },
@@ -64,6 +71,10 @@ export const REMOTES: readonly RemoteDescriptor[] = [
       // session to one role and guards that endpoint on `auditor` specifically,
       // so an administrator who can see Operations still cannot see this page.
       { path: 'audit', label: 'Audit log', need: 'audit:read' },
+      // Same pattern, other direction: every `/v1/admin/*` endpoint behind these
+      // two is admin-only, while the section itself is open to every role.
+      { path: 'sync', label: 'Sync connectors', need: 'admin:manage' },
+      { path: 'sync/runs', label: 'Sync runs', need: 'admin:manage' },
     ],
   },
 ] as const;

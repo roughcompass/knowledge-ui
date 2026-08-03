@@ -17,9 +17,17 @@ export {
   defaultHandlers,
   idpHandlers,
   opsHandlers,
+  roleFor,
   searchHandlers,
   whoamiHandlers,
 } from './msw/handlers';
+
+/**
+ * `resetAdminStore` belongs in test teardown. The sync handlers keep module state
+ * so a POST is visible to the next GET, and `server.resetHandlers()` does not
+ * clear it.
+ */
+export { adminSyncHandlers, resetAdminStore } from './msw/adminSync';
 export {
   makeSession,
   makeTestQueryClient,
