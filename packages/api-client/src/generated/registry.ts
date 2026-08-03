@@ -783,6 +783,419 @@ export interface paths {
     patch: operations['_triage_annotation_handler_v1_annotations__annotation_id__patch'];
     trace?: never;
   };
+  '/v1/arc/admin/approval-evidence/{evidence_id}/revoke': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Revoke Approval Evidence
+     * @description Withdraw one piece of approval evidence.
+     *
+     *     Narrower than revoking a verifier: the verifier stays trusted, but this
+     *     particular approval no longer counts -- an approval granted in error, or
+     *     one whose approver turned out to lack the authority.
+     */
+    post: operations['revoke_approval_evidence_v1_arc_admin_approval_evidence__evidence_id__revoke_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/approval-verifiers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Register Approval Verifier
+     * @description Admit an approval verifier, deployment-wide.
+     *
+     *     Operator identity regardless of the verifier's own scope, matching
+     *     revocation. Registering a verifier decides *who counts as an approver*,
+     *     and its blast radius is every activation and exception that verifier will
+     *     ever vouch for -- the same blast radius revocation has, and therefore the
+     *     same gate.
+     *
+     *     This is not a way to forge an approval. What is recorded is a public key or
+     *     a provider id; the private half stays with the approver, so the registrar
+     *     and the signer are different parties by construction. An operator who
+     *     registers a key they also hold is both, which no check at this layer can
+     *     prevent -- so registration audits the credential and allowlist
+     *     fingerprints instead, and an auditor can prove which configuration
+     *     admitted which verifier.
+     */
+    post: operations['register_approval_verifier_v1_arc_admin_approval_verifiers_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/approval-verifiers/{approval_verifier_id}/revoke': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Revoke Approval Verifier
+     * @description Withdraw trust in an approval verifier, deployment-wide.
+     *
+     *     Requires operator identity regardless of the verifier's own scope. A
+     *     tenant-scoped verifier is registrable by a tenant admin, but revoking
+     *     one is a trust decision whose blast radius includes every revision and
+     *     exception it ever vouched for -- so it is not a tenant-level action.
+     *
+     *     The cascade (revoking affected revisions and exceptions, advancing
+     *     obligation tombstones) is not implemented here; see the note in the
+     *     route body.
+     */
+    post: operations['revoke_approval_verifier_v1_arc_admin_approval_verifiers__approval_verifier_id__revoke_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/exceptions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Approve Context Exception
+     * @description Approve an exception narrowing a higher-scope directive.
+     *
+     *     Tenant-scoped rather than operator-gated: narrowing a rule *within* your
+     *     own tenant is a tenant decision. What stops that becoming an escape
+     *     hatch is the delegability check in the service -- a tenant cannot except
+     *     a global directive that does not permit it, or global governance would
+     *     be advisory.
+     *
+     *     The exception's tenant is taken from the authenticated context, never
+     *     from the body: one a caller could file against another tenant would be
+     *     a way to weaken somebody else's rules.
+     */
+    post: operations['approve_context_exception_v1_arc_admin_exceptions_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/exceptions/{exception_id}/revoke': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Revoke Context Exception
+     * @description Withdraw an exception, restoring the directive it narrowed.
+     */
+    post: operations['revoke_context_exception_v1_arc_admin_exceptions__exception_id__revoke_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/operator-identity': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Describe Operator Identity
+     * @description Whether the caller holds deployment operator identity, and what this
+     *     deployment is actually able to do.
+     *
+     *     Exists so an operator can find out *before* attempting a governance
+     *     write, rather than discovering it from a 403 in the middle of one. It
+     *     reports only a boolean and the allowlist fingerprint -- never the
+     *     allowlist, and never anyone else's membership.
+     *
+     *     The capability flags are here rather than annotated onto each record they
+     *     affect. What needs qualifying is a deployment-wide claim, read now; a
+     *     caveat carried inside individual receipts is read one record at a time, at
+     *     audit time, possibly years later. This is the one place an operator already
+     *     checks before use.
+     */
+    get: operations['describe_operator_identity_v1_arc_admin_operator_identity_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/revisions/{revision_id}/activate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Activate Revision
+     * @description Put a revision into force, superseding the incumbent.
+     */
+    post: operations['activate_revision_v1_arc_admin_revisions__revision_id__activate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/revisions/{revision_id}/approval-evidence': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Attach Approval Evidence
+     * @description Link a draft revision to the evidence approving it.
+     *
+     *     A separate step from registration because the ordering is forced:
+     *     activation evidence must name the revision it approves, and that id does
+     *     not exist until the revision has been registered.
+     */
+    post: operations['attach_approval_evidence_v1_arc_admin_revisions__revision_id__approval_evidence_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/revisions/{revision_id}/invalidate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Invalidate Revision
+     * @description Mark a revision's content no longer trustworthy.
+     *
+     *     Distinct from revocation: that says the rule no longer applies, this
+     *     says the content itself was wrong or its upstream source is gone. The
+     *     obligation tombstones differently so an auditor can tell them apart.
+     *
+     *     Operator-driven rather than automatic, because deciding registered
+     *     content is wrong is a judgement no worker should make.
+     */
+    post: operations['invalidate_revision_v1_arc_admin_revisions__revision_id__invalidate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/admin/revisions/{revision_id}/revoke': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Revoke Revision
+     * @description Withdraw a revision from force. Terminal.
+     *
+     *     Any mandatory obligation it satisfied becomes a tombstone rather than
+     *     disappearing, so matching resolutions keep blocking until an approved
+     *     successor satisfies it.
+     */
+    post: operations['revoke_revision_v1_arc_admin_revisions__revision_id__revoke_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/challenges': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Issue Context Challenge
+     * @description Issue a single-use challenge bound to this host and session.
+     *
+     *     `host_id` and the tenant come from the authenticated context, never
+     *     from the body -- a caller able to name its own host could bind a
+     *     challenge to somebody else's identity.
+     */
+    post: operations['issue_context_challenge_v1_arc_challenges_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/metadata': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Verification Metadata
+     * @description Published key history, so an external verifier can check a receipt.
+     *
+     *     Deliberately unauthenticated: it carries only public keys and profile
+     *     names, and a verifier holding a receipt may not be a registry caller at
+     *     all. Retired and compromised keys stay listed -- a receipt signed two
+     *     years ago must remain verifiable, and dropping a compromised key would
+     *     both break that and hide the compromise.
+     */
+    get: operations['get_verification_metadata_v1_arc_metadata_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/receipts/{receipt_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Get Context Resolution Receipt
+     * @description Return one receipt the caller is entitled to read.
+     *
+     *     A receipt in another tenant is reported as not-found rather than
+     *     forbidden. Distinguishing the two would confirm the receipt exists,
+     *     which is itself information the caller is not entitled to.
+     */
+    get: operations['get_context_resolution_receipt_v1_arc_receipts__receipt_id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/receipts/{receipt_id}/detail': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Retrieve Context Detail
+     * @description Return one authorized page of detail for a receipt.
+     */
+    post: operations['retrieve_context_detail_v1_arc_receipts__receipt_id__detail_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/receipts/{receipt_id}/explain': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Explain Context Resolution
+     * @description Why this resolution produced the status it did.
+     *
+     *     Answers "what applied to me, and what stopped me" from the receipt's own
+     *     record rather than by re-running selection -- a re-run could disagree
+     *     with what actually happened, which is the one thing an explanation must
+     *     never do.
+     */
+    get: operations['explain_context_resolution_v1_arc_receipts__receipt_id__explain_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/arc/resolve': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Resolve Context
+     * @description Resolve a manifest into a governed context bundle.
+     *
+     *     The two translation rules this module opens with both land here. A
+     *     `blocked` bundle returns 200 with its receipt, because it was
+     *     authenticated and the receipt explains itself. An unverified manifest
+     *     returns 403 with no receipt and one bounded reason code.
+     *
+     *     The corpus is assembled before the resolution transaction opens, which
+     *     is what lets selection stay a pure function of its input. The clock is
+     *     read once inside the service and applied to that input, so a candidate
+     *     is never selected under one instant and evaluated under another.
+     */
+    post: operations['resolve_context_v1_arc_resolve_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/v1/capabilities': {
     parameters: {
       query?: never;
@@ -1578,6 +1991,93 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/v1/memory/sessions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Sessions
+     * @description The caller's own sessions, most recently active first.
+     *
+     *     The entry point for resuming earlier work: an agent that has lost its
+     *     context asks what it was doing before deciding which session to replay.
+     */
+    get: operations['list_sessions_v1_memory_sessions_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/memory/sessions/{session_id}/events': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Session Events
+     * @description Replay a session in sequence order, forward or reverse.
+     *
+     *     `since`, `until` and `cursor` are sequence numbers rather than timestamps
+     *     or offsets. A timestamp cannot order a burst of events recorded in the same
+     *     microsecond, and an offset over an append-only log re-reads shifting
+     *     windows as new events arrive mid-page.
+     *
+     *     Reverse order with a small limit is how a resuming agent asks for "the last
+     *     few turns" without reading a whole conversation.
+     */
+    get: operations['list_session_events_v1_memory_sessions__session_id__events_get'];
+    put?: never;
+    /**
+     * Record Event
+     * @description Append one immutable event.
+     *
+     *     The session is not created here; it exists because its events do. There is
+     *     no update route: an event is write-once, removable only by the author, by
+     *     retention, or by an erasure request.
+     *
+     *     The body is scanned before storage and a blocking tenant policy refuses the
+     *     write. `metadata` is not scanned -- see the request model.
+     */
+    post: operations['record_event_v1_memory_sessions__session_id__events_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/memory/sessions/{session_id}/events/{event_id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Session Event */
+    get: operations['get_session_event_v1_memory_sessions__session_id__events__event_id__get'];
+    put?: never;
+    post?: never;
+    /**
+     * Delete Session Event
+     * @description Remove one of the caller's own events before retention elapses.
+     *
+     *     Soft-invalidation: the event leaves every read path but stays addressable
+     *     for audit. Physical erasure is a separate operation with a separate
+     *     justification.
+     */
+    delete: operations['delete_session_event_v1_memory_sessions__session_id__events__event_id__delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/v1/notifications': {
     parameters: {
       query?: never;
@@ -1680,6 +2180,85 @@ export interface paths {
      *     a stale precondition fails fast.
      */
     patch: operations['v1_operations_update'];
+    trace?: never;
+  };
+  '/v1/operator/claim-predicates': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * List Global Predicates
+     * @description Every organization-scope predicate, including deprecated ones.
+     *
+     *     Deprecated predicates are listed because claims still reference them and an
+     *     operator reconciling the ontology needs to see what a name used to mean.
+     */
+    get: operations['list_global_predicates_v1_operator_claim_predicates_get'];
+    put?: never;
+    /**
+     * Create Global Predicate
+     * @description Define a predicate for the whole deployment.
+     *
+     *     Refused with 409 if any tenant already uses the name locally. Promoting it
+     *     would silently retype every claim written against their meaning of the
+     *     term, so the local definition has to be reconciled first.
+     */
+    post: operations['create_global_predicate_v1_operator_claim_predicates_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/operator/claim-predicates/local-inventory': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Inventory Local Predicates
+     * @description Tenant-local predicates across the deployment, for ontology governance.
+     *
+     *     Names and owning tenants only, and only on this operator path. It exists so
+     *     divergence is observable — which terms tenants invented independently, and
+     *     therefore what should become shared. No tenant-facing route exposes another
+     *     tenant's local vocabulary.
+     */
+    get: operations['inventory_local_predicates_v1_operator_claim_predicates_local_inventory_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/v1/operator/claim-predicates/{value}/deprecate': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Deprecate Global Predicate
+     * @description Retire a predicate without removing it.
+     *
+     *     The row stays because claims reference it. Nothing new may be written
+     *     against a deprecated predicate, and no tenant may reuse the name.
+     */
+    post: operations['deprecate_global_predicate_v1_operator_claim_predicates__value__deprecate_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   '/v1/search': {
@@ -2010,6 +2589,11 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    /** ActivateRequest */
+    ActivateRequest: {
+      /** Supersedes */
+      supersedes?: string | null;
+    };
     /** AdoptionCreate */
     AdoptionCreate: {
       /** Intent */
@@ -2136,6 +2720,49 @@ export interface components {
        */
       version_target?: string | null;
     };
+    /** ApproveExceptionRequest */
+    ApproveExceptionRequest: {
+      approval: components['schemas']['ExceptionApprovalBody'];
+      /**
+       * Effective From
+       * Format: date-time
+       */
+      effective_from: string;
+      /** Effective Until */
+      effective_until?: string | null;
+      /** Exception Statement */
+      exception_statement: string;
+      /**
+       * Higher Scope Directive Id
+       * Format: uuid
+       */
+      higher_scope_directive_id: string;
+      /**
+       * Higher Scope Revision Id
+       * Format: uuid
+       */
+      higher_scope_revision_id: string;
+      /** Justification */
+      justification: string;
+      /** Lower Scope Action Class */
+      lower_scope_action_class?: string | null;
+      /** Lower Scope Capability Id */
+      lower_scope_capability_id?: string | null;
+      /** Lower Scope Data Sensitivity */
+      lower_scope_data_sensitivity?: string | null;
+      /** Lower Scope Domain Id */
+      lower_scope_domain_id?: string | null;
+      /** Lower Scope Environment */
+      lower_scope_environment?: string | null;
+      /** Lower Scope Kind */
+      lower_scope_kind: string;
+      /** Lower Scope Task Kind */
+      lower_scope_task_kind?: string | null;
+      /** Replacement Conflict Descriptor */
+      replacement_conflict_descriptor: {
+        [key: string]: unknown;
+      };
+    };
     /**
      * ArtifactListResponse
      * @description Paginated artifact list. Same envelope shape as CapabilityListResponse.
@@ -2196,6 +2823,46 @@ export interface components {
       valid_from?: string | null;
       /** Valid To */
       valid_to?: string | null;
+    };
+    /** AttachEvidenceRequest */
+    AttachEvidenceRequest: {
+      /**
+       * Evidence Id
+       * Format: uuid
+       */
+      evidence_id: string;
+    };
+    /**
+     * AttestationBody
+     * @description The host's signed envelope, passed through untouched.
+     *
+     *     `payload` stays an open string map rather than a typed model: it is the
+     *     object the host canonicalized and signed, and validating its shape here
+     *     would mean re-encoding it to check the signature.
+     */
+    AttestationBody: {
+      /** Attestation Id */
+      attestation_id: string;
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /**
+       * Issued At
+       * Format: date-time
+       */
+      issued_at: string;
+      /** Payload */
+      payload: {
+        [key: string]: string;
+      };
+      /** Profile */
+      profile: string;
+      /** Signature */
+      signature: string;
+      /** Signer Key Id */
+      signer_key_id: string;
     };
     /** AuditResponse */
     AuditResponse: {
@@ -2400,6 +3067,26 @@ export interface components {
       /** Type Name */
       type_name: string;
     };
+    /** ChallengeRequest */
+    ChallengeRequest: {
+      /** Idempotency Key */
+      idempotency_key: string;
+      /** Manifest Claims Digest */
+      manifest_claims_digest: string;
+      /** Session Id */
+      session_id: string;
+    };
+    /** ChallengeResponse */
+    ChallengeResponse: {
+      /** Arc Nonce */
+      arc_nonce: string;
+      /** Expires At */
+      expires_at: string;
+      /** Issued At */
+      issued_at: string;
+      /** Manifest Claims Digest */
+      manifest_claims_digest: string;
+    };
     /**
      * CreateArtifactRequest
      * @description Body for ``POST /v1/capabilities/{id}/artifacts``.
@@ -2486,6 +3173,17 @@ export interface components {
       /** Valid From */
       valid_from?: string | null;
     };
+    /** CreatePredicateRequest */
+    CreatePredicateRequest: {
+      /** Claim Category */
+      claim_category: string;
+      /** Definition */
+      definition: string;
+      /** Value */
+      value: string;
+      /** Value Type */
+      value_type: string;
+    };
     /** DependencyResponse */
     DependencyResponse: {
       /** As Of */
@@ -2499,6 +3197,52 @@ export interface components {
        * Format: uuid
        */
       root_entity_id: string;
+    };
+    /** DetailPageResponse */
+    DetailPageResponse: {
+      /** Complete */
+      complete: boolean;
+      /** Continuation Token */
+      continuation_token?: string | null;
+      /** Items */
+      items: {
+        [key: string]: unknown;
+      }[];
+      /** Page Number */
+      page_number: number;
+      /** Profile */
+      profile: string;
+      /** Reason Codes */
+      reason_codes?: string[];
+      /**
+       * Receipt Id
+       * Format: uuid
+       */
+      receipt_id: string;
+      /** Request Digest */
+      request_digest: string;
+      /** Returned Bytes */
+      returned_bytes: number;
+    };
+    /** DetailRequestBody */
+    DetailRequestBody: {
+      /** Context Handle */
+      context_handle: string;
+      /** Continuation Token */
+      continuation_token?: string | null;
+      /** Idempotency Key */
+      idempotency_key: string;
+      /**
+       * Max Response Bytes
+       * @default 16384
+       */
+      max_response_bytes: number;
+      /** Request Kind */
+      request_kind: string;
+      /** Selector */
+      selector?: {
+        [key: string]: unknown;
+      };
     };
     /**
      * EdgeRefItem
@@ -2697,6 +3441,75 @@ export interface components {
       references_jsonb?: {
         [key: string]: unknown;
       } | null;
+    };
+    /** EventResponse */
+    EventResponse: {
+      /** Body */
+      body: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Event Id
+       * Format: uuid
+       */
+      event_id: string;
+      /** Kind */
+      kind: string;
+      /** Metadata */
+      metadata: {
+        [key: string]: unknown;
+      };
+      /** Seq */
+      seq: number;
+      /** Session Id */
+      session_id: string;
+      /** Tool Name */
+      tool_name: string | null;
+    };
+    /**
+     * ExceptionApprovalBody
+     * @description The evidence that authorizes one exception.
+     *
+     *     Carried in full rather than as a bare evidence id. The service writes
+     *     the evidence row and the exception row in one transaction -- they
+     *     reference each other, which is why both foreign keys are deferrable --
+     *     so there is no pre-existing evidence for an id to point at. Accepting
+     *     one would mean either writing an exception with no approval or leaving
+     *     evidence pointing at an exception that never gets created.
+     */
+    ExceptionApprovalBody: {
+      /**
+       * Approval Timestamp
+       * Format: date-time
+       */
+      approval_timestamp: string;
+      /** Approval Verifier Id */
+      approval_verifier_id: string;
+      /** Approved Payload Digest */
+      approved_payload_digest: string;
+      /** Approving Principal */
+      approving_principal: string;
+      /** Approving Role */
+      approving_role: string;
+      /** Audit Log Reference */
+      audit_log_reference: string;
+      /**
+       * Evidence Id
+       * Format: uuid
+       */
+      evidence_id: string;
+      /** Verifier Attestation */
+      verifier_attestation?: {
+        [key: string]: unknown;
+      };
+      /**
+       * Verifier Identity
+       * @default
+       */
+      verifier_identity: string;
     };
     /** ExternalIdCreate */
     ExternalIdCreate: {
@@ -3000,6 +3813,47 @@ export interface components {
       /** Tenant */
       tenant?: string | null;
     };
+    /** LocalPredicateResponse */
+    LocalPredicateResponse: {
+      /**
+       * Tenant Id
+       * Format: uuid
+       */
+      tenant_id: string;
+      /** Value */
+      value: string;
+    };
+    /**
+     * ManifestBody
+     * @description The task manifest, in exactly the field set the host canonicalized.
+     *
+     *     Every field is a string or a list of strings because that is what was
+     *     signed. Re-typing one here would change the bytes the digest is computed
+     *     over, and the attestation would stop verifying against a manifest the
+     *     caller did in fact send.
+     */
+    ManifestBody: {
+      /** Capability Ids */
+      capability_ids?: string[];
+      /** Data Sensitivity */
+      data_sensitivity: string;
+      /** Domain Ids */
+      domain_ids?: string[];
+      /** Environment */
+      environment: string;
+      /** Repository Identity */
+      repository_identity: string;
+      /** Requested Action Classes */
+      requested_action_classes?: string[];
+      /** Session Id */
+      session_id: string;
+      /** Supported Context Bundle Content Profiles */
+      supported_context_bundle_content_profiles?: string[];
+      /** Task Kind */
+      task_kind: string;
+      /** Task Summary */
+      task_summary?: string | null;
+    };
     /** NotificationItem */
     NotificationItem: {
       /** Capability Id */
@@ -3125,6 +3979,21 @@ export interface components {
        * Format: uuid
        */
       tenant_id: string;
+    };
+    /** PredicateResponse */
+    PredicateResponse: {
+      /** Claim Category */
+      claim_category: string;
+      /** Definition */
+      definition: string;
+      /** Deprecated At */
+      deprecated_at: string | null;
+      /** Scope */
+      scope: string;
+      /** Value */
+      value: string;
+      /** Value Type */
+      value_type: string;
     };
     /** PreviewVersionRequest */
     PreviewVersionRequest: {
@@ -3297,12 +4166,132 @@ export interface components {
     /**
      * PurgeResultResponse
      * @description JSON shape returned by DELETE /v1/admin/actors/{actor_id}/personal-data.
+     *
+     *     `purged_entries` and `purged_workspaces` are the workspace subsystem's
+     *     counts and are kept at the top level for callers that predate erasure
+     *     reaching anything else.
+     *
+     *     `subsystems` is the complete picture: one entry per subsystem the request
+     *     reached, with that subsystem's own vocabulary for what it removed. A caller
+     *     confirming an erasure should read this rather than the two flat counts,
+     *     which describe one subsystem out of several.
      */
     PurgeResultResponse: {
       /** Purged Entries */
       purged_entries: number;
       /** Purged Workspaces */
       purged_workspaces: number;
+      /**
+       * Subsystems
+       * @default {}
+       */
+      subsystems: {
+        [key: string]: {
+          [key: string]: number;
+        };
+      };
+    };
+    /** RecordEventRequest */
+    RecordEventRequest: {
+      /** Body */
+      body: string;
+      /** Kind */
+      kind: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      };
+      /** Tool Name */
+      tool_name?: string | null;
+    };
+    /**
+     * RegisterVerifierRequest
+     * @description Admit an approval verifier as a trust root.
+     *
+     *     `public_key` is base64 on the wire and raw bytes in the service: the
+     *     encoding is a transport concern. Note what is *absent* -- no private key,
+     *     ever. Registration records the public half; the signing half stays with the
+     *     approver, which is what separates registrar from signer.
+     */
+    RegisterVerifierRequest: {
+      /** Algorithm */
+      algorithm?: string | null;
+      /** Allowed Evidence Types */
+      allowed_evidence_types: string[];
+      /** Approval Verifier Id */
+      approval_verifier_id: string;
+      /** Provider Id */
+      provider_id?: string | null;
+      /** Public Key */
+      public_key?: string | null;
+      /** Scope Kind */
+      scope_kind: string;
+      /** Scope Tenant Id */
+      scope_tenant_id?: string | null;
+      /** Valid From */
+      valid_from?: string | null;
+      /** Valid To */
+      valid_to?: string | null;
+      /** Verifier Kind */
+      verifier_kind: string;
+    };
+    /** ResolveContextRequest */
+    ResolveContextRequest: {
+      attestation: components['schemas']['AttestationBody'];
+      manifest: components['schemas']['ManifestBody'];
+      /**
+       * Max Context Bytes
+       * @default 12288
+       */
+      max_context_bytes: number;
+    };
+    /** ResolveContextResponse */
+    ResolveContextResponse: {
+      /** Blocked Reasons */
+      blocked_reasons?: string[];
+      /**
+       * Budget Limit Bytes
+       * @default 0
+       */
+      budget_limit_bytes: number;
+      /** Cap Facts */
+      cap_facts?: {
+        [key: string]: unknown;
+      }[];
+      /** Degraded Reasons */
+      degraded_reasons?: string[];
+      /** Directives */
+      directives?: {
+        [key: string]: unknown;
+      }[];
+      /** Omission Reasons */
+      omission_reasons?: string[];
+      /** Profile */
+      profile: string;
+      /**
+       * Receipt Id
+       * Format: uuid
+       */
+      receipt_id: string;
+      /**
+       * Rendered Content Bytes
+       * @default 0
+       */
+      rendered_content_bytes: number;
+      /** Replayed */
+      replayed: boolean;
+      /** Status */
+      status: string;
+    };
+    /** RevokeRequest */
+    RevokeRequest: {
+      /** Reason */
+      reason: string;
+    };
+    /** RevokeVerifierRequest */
+    RevokeVerifierRequest: {
+      /** Reason */
+      reason: string;
     };
     /** SearchResponse */
     SearchResponse: {
@@ -3337,6 +4326,23 @@ export interface components {
        * Format: uuid
        */
       tenant_id: string;
+    };
+    /** SessionResponse */
+    SessionResponse: {
+      /** Event Count */
+      event_count: number;
+      /**
+       * First Activity At
+       * Format: date-time
+       */
+      first_activity_at: string;
+      /**
+       * Last Activity At
+       * Format: date-time
+       */
+      last_activity_at: string;
+      /** Session Id */
+      session_id: string;
     };
     /**
      * SetVisibilityRequest
@@ -3751,6 +4757,19 @@ export interface components {
        */
       name?: string | null;
     };
+    /** _Accepted */
+    _Accepted: {
+      /** Approval Verifier Id */
+      approval_verifier_id?: string | null;
+      /** Evidence Id */
+      evidence_id?: string | null;
+      /** Exception Id */
+      exception_id?: string | null;
+      /** Revision Id */
+      revision_id?: string | null;
+      /** Status */
+      status: string;
+    };
   };
   responses: never;
   parameters: never;
@@ -3915,6 +4934,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path?: never;
@@ -4111,6 +5131,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path?: never;
@@ -4195,6 +5216,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path?: never;
@@ -4279,6 +5301,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path?: never;
@@ -4505,6 +5528,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path?: never;
@@ -4635,6 +5659,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path: {
@@ -4936,6 +5961,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path: {
@@ -5101,6 +6127,528 @@ export interface operations {
       };
     };
   };
+  revoke_approval_evidence_v1_arc_admin_approval_evidence__evidence_id__revoke_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        evidence_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RevokeVerifierRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  register_approval_verifier_v1_arc_admin_approval_verifiers_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RegisterVerifierRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  revoke_approval_verifier_v1_arc_admin_approval_verifiers__approval_verifier_id__revoke_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        approval_verifier_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RevokeVerifierRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  approve_context_exception_v1_arc_admin_exceptions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ApproveExceptionRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  revoke_context_exception_v1_arc_admin_exceptions__exception_id__revoke_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        exception_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RevokeRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  describe_operator_identity_v1_arc_admin_operator_identity_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
+        };
+      };
+    };
+  };
+  activate_revision_v1_arc_admin_revisions__revision_id__activate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        revision_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ActivateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  attach_approval_evidence_v1_arc_admin_revisions__revision_id__approval_evidence_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        revision_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['AttachEvidenceRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  invalidate_revision_v1_arc_admin_revisions__revision_id__invalidate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        revision_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RevokeRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  revoke_revision_v1_arc_admin_revisions__revision_id__revoke_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        revision_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RevokeRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['_Accepted'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  issue_context_challenge_v1_arc_challenges_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ChallengeRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChallengeResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_verification_metadata_v1_arc_metadata_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
+        };
+      };
+    };
+  };
+  get_context_resolution_receipt_v1_arc_receipts__receipt_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        receipt_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  retrieve_context_detail_v1_arc_receipts__receipt_id__detail_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        receipt_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['DetailRequestBody'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['DetailPageResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  explain_context_resolution_v1_arc_receipts__receipt_id__explain_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        receipt_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': {
+            [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  resolve_context_v1_arc_resolve_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResolveContextRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ResolveContextResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_capabilities_v1_capabilities_get: {
     parameters: {
       query?: {
@@ -5142,6 +6690,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path?: never;
@@ -5398,6 +6947,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path: {
@@ -5591,6 +7141,7 @@ export interface operations {
         view?: string;
       };
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path: {
@@ -5975,6 +7526,7 @@ export interface operations {
         view?: string;
       };
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path: {
@@ -6044,6 +7596,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path?: never;
@@ -6243,6 +7796,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path: {
@@ -6455,6 +8009,173 @@ export interface operations {
       };
     };
   };
+  list_sessions_v1_memory_sessions_get: {
+    parameters: {
+      query?: {
+        since?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['SessionResponse'][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_session_events_v1_memory_sessions__session_id__events_get: {
+    parameters: {
+      query?: {
+        since?: number | null;
+        until?: number | null;
+        kind?: string | null;
+        cursor?: number | null;
+        limit?: number;
+        order?: string;
+      };
+      header?: never;
+      path: {
+        session_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EventResponse'][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  record_event_v1_memory_sessions__session_id__events_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        session_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['RecordEventRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EventResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_session_event_v1_memory_sessions__session_id__events__event_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        session_id: string;
+        event_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['EventResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  delete_session_event_v1_memory_sessions__session_id__events__event_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        session_id: string;
+        event_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   list_notifications_v1_notifications_get: {
     parameters: {
       query?: {
@@ -6523,6 +8244,7 @@ export interface operations {
     parameters: {
       query?: never;
       header?: {
+        'Idempotency-Key'?: string | null;
         'X-Idempotency-Key'?: string | null;
       };
       path?: never;
@@ -6639,6 +8361,110 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['CapabilityResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_global_predicates_v1_operator_claim_predicates_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PredicateResponse'][];
+        };
+      };
+    };
+  };
+  create_global_predicate_v1_operator_claim_predicates_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreatePredicateRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PredicateResponse'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  inventory_local_predicates_v1_operator_claim_predicates_local_inventory_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['LocalPredicateResponse'][];
+        };
+      };
+    };
+  };
+  deprecate_global_predicate_v1_operator_claim_predicates__value__deprecate_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        value: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PredicateResponse'];
         };
       };
       /** @description Validation Error */
