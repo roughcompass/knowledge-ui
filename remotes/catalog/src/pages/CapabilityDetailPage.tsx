@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { AdoptionControl } from '../components/AdoptionControl';
+import { SubscriptionPanel } from '../components/SubscriptionPanel';
 
 /**
  * One capability in full.
@@ -127,6 +128,13 @@ export function CapabilityDetailPage() {
   return (
     <StackLayout gap={3}>
       {header}
+
+      {/*
+        Above Attributes because it is actionable and they are reference. A reader
+        who came to decide whether to depend on this capability acts here; a reader
+        who came to look something up scrolls past.
+      */}
+      {handle ? <SubscriptionPanel handle={handle} /> : null}
 
       <SectionCard title="Attributes" banded flush>
         <DataTable
