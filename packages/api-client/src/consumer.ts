@@ -279,6 +279,66 @@ export function useNotifications(
  * locally would desynchronise from a server that may have marked it read
  * through another surface.
  */
+/**
+ * Mark several notifications read, one call each.
+ *
+ * There is no bulk endpoint, so this is a fan-out and it does not pretend
+ * otherwise. Two consequences the caller has to surface rather than hide:
+ *
+ * It is **not atomic**. A failure partway through leaves the earlier items read
+ * and the later ones unread, which is a legitimate outcome — the ones that
+ * succeeded really are read — but it is not the outcome "mark all read" implies.
+ * So the result reports both halves rather than throwing on the first error.
+ *
+ * Concurrency is bounded. Firing an unbounded fan-out at a rate-limited API is
+ * how a convenience turns into a 429 storm that leaves *more* work undone than
+ * doing nothing would have.
+ */
+export function useMarkAllNotificationsRead(
+  client: RegistryClient,
+  scope: KeyScope,
+  { concurrency = 4 }: { concurrency?: number } = {},
+): UseMutationResult<
+  { succeeded: string[]; failed: Array<{ id: string; error: unknown }> },
+  RegistryError,
+  { notificationIds: string[] }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ notificationIds }) => {
+      const succeeded: string[] = [];
+      const failed: Array<{ id: string; error: unknown }> = [];
+      const queue = [...notificationIds];
+
+      const worker = async (): Promise<void> => {
+        for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
+          try {
+            await client.request<void>(
+              `/v1/notifications/${encodeURIComponent(id)}:mark-read`,
+              { method: 'POST', headers: { [IDEMPOTENCY_HEADER]: newIdempotencyKey() } },
+            );
+            succeeded.push(id);
+          } catch (error) {
+            // Collected, not rethrown. One failure must not abandon the rest:
+            // the caller asked for all of them, and the ones that can succeed
+            // should.
+            failed.push({ id, error });
+          }
+        }
+      };
+
+      await Promise.all(
+        Array.from({ length: Math.min(concurrency, queue.length || 1) }, worker),
+      );
+      return { succeeded, failed };
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.notificationsRoot(scope) });
+    },
+  });
+}
+
 export function useMarkNotificationRead(
   client: RegistryClient,
   scope: KeyScope,

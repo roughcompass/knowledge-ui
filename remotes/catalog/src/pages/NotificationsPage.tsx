@@ -1,6 +1,7 @@
 import { Button, Dropdown, Option, StackLayout, Tag, Text } from '@salt-ds/core';
 import {
   NOTIFICATION_STATUSES,
+  useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
   type NotificationStatus,
@@ -45,11 +46,26 @@ export function NotificationsPage() {
   const [status, setStatus] = useState<NotificationStatus>('unread');
   const query = useNotifications(client, scope, { status });
   const markRead = useMarkNotificationRead(client, scope);
+  const markAll = useMarkAllNotificationsRead(client, scope);
+
+  const unreadIds = (query.data?.items ?? []).map((n) => String(n.notification_id));
 
   const header = (
     <PageHeader
       title="Notifications"
       description="Changes to the capabilities your tenant subscribes to. Open the capability to see what changed — these entries carry the fact of a change, not its contents."
+      actions={
+        status === 'unread' && unreadIds.length > 0 ? (
+          <Button
+            appearance="bordered"
+            sentiment="neutral"
+            disabled={markAll.isPending}
+            onClick={() => markAll.mutate({ notificationIds: unreadIds })}
+          >
+            {markAll.isPending ? 'Marking…' : `Mark ${unreadIds.length} read`}
+          </Button>
+        ) : undefined
+      }
     />
   );
 
@@ -186,6 +202,20 @@ export function NotificationsPage() {
 
       {markRead.error ? (
         <ErrorPanel error={markRead.error} title="Could not mark that read" />
+      ) : null}
+
+      {/*
+        A fan-out is not atomic, so a partial result is a real outcome and gets
+        said out loud. Reporting only "done" would leave the reader believing
+        rows cleared that are still unread.
+      */}
+      {markAll.data && markAll.data.failed.length > 0 ? (
+        <UnavailableNotice
+          title={`${markAll.data.failed.length} of ${
+            markAll.data.succeeded.length + markAll.data.failed.length
+          } could not be marked read`}
+          reason="There is no bulk endpoint, so each one is a separate call and they do not succeed or fail together. The ones that worked are read; the rest are still listed."
+        />
       ) : null}
 
       {/*

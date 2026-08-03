@@ -108,3 +108,34 @@ describe('the named absence', () => {
     expect(screen.getByText(/carries no version pin/)).toBeInTheDocument();
   });
 });
+
+describe('bulk mark read', () => {
+  it('names how many it will act on, so the count is not a surprise', async () => {
+    renderPage();
+    expect(await screen.findByRole('button', { name: 'Mark 2 read' })).toBeInTheDocument();
+  });
+
+  it('clears every unread item and reaches the empty state', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Mark 2 read' }));
+
+    await waitFor(async () => {
+      expect(await screen.findByText(/up to date with every capability/)).toBeInTheDocument();
+    });
+  });
+
+  it('offers nothing to bulk-mark once the list is empty', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Mark 2 read' }));
+    await waitFor(async () => {
+      expect(await screen.findByText(/up to date with every capability/)).toBeInTheDocument();
+    });
+    // The action disappears rather than sitting there disabled at zero: a
+    // control that can never do anything is noise on the header row.
+    expect(screen.queryByRole('button', { name: /Mark \d+ read/ })).not.toBeInTheDocument();
+  });
+});

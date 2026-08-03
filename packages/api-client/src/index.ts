@@ -104,6 +104,7 @@ export {
   useAdoption,
   useCreateSubscription,
   useDeleteSubscription,
+  useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
   usePatchSubscription,
