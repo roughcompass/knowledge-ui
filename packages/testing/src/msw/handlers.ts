@@ -3,6 +3,7 @@ import { HttpResponse, http } from 'msw';
 import { adminSyncHandlers } from './adminSync';
 import { consumerHandlers } from './consumer';
 import { roleFor, subjectOf } from './role';
+import { impactHandlers, memoryHandlers } from './memoryAndImpact';
 
 import {
   METRICS_TEXT,
@@ -301,6 +302,8 @@ export const idpHandlers = [
 export { roleFor } from './role';
 
 export const defaultHandlers = [
+  ...memoryHandlers,
+  ...impactHandlers,
   ...whoamiHandlers,
   ...capabilityHandlers,
   ...searchHandlers,

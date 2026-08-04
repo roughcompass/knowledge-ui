@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { AdoptionControl } from '../components/AdoptionControl';
+import { ImpactPanel } from '../components/ImpactPanel';
 import { SubscriptionPanel } from '../components/SubscriptionPanel';
 
 /**
@@ -129,6 +130,14 @@ export function CapabilityDetailPage() {
         who came to look something up scrolls past.
       */}
       {handle ? <SubscriptionPanel handle={handle} /> : null}
+
+      {/*
+        Above the reference tables for the same reason the subscription panel is:
+        a reader deciding whether to depend on this capability, or whether changing
+        it is safe, acts on this. Attributes and facts are what they look up
+        afterwards.
+      */}
+      {handle ? <ImpactPanel handle={handle} /> : null}
 
       <SectionCard title="Attributes" banded flush>
         <DataTable
