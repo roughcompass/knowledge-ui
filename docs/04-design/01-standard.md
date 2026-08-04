@@ -1,0 +1,172 @@
+# The design standard
+
+**The reference is the current Vercel console. Salt is the implementation
+substrate, and its defaults are overridden wherever the two disagree.**
+
+Salt is an enterprise component library with opinionated defaults — uppercase
+letter-spaced buttons, a 9px corner radius, semibold interface text, cards
+carrying a shadow _and_ a border. The console being modelled differs from those on
+nearly every axis, and the distance between the two is most of what makes a screen
+read as a considered product rather than a design-system demo.
+
+## What this does not mean
+
+**Do not add the reference implementation's own packages or typefaces.** No
+component library from it, no icon set, no font. The look is built here from Salt
+components, Salt tokens and CSS modules, which is what keeps the accessibility,
+keyboard and theming work Salt already does — and what keeps `check-salt-tokens`
+able to verify that every value resolves.
+
+So this document is a translation, not an import: the properties of the reference,
+expressed in the vocabulary this repo can enforce.
+
+---
+
+## Colour: read the ramp by role, not by eye
+
+The reference system organises colour as scales of ten steps, and the step number
+carries the meaning. That is the part worth adopting, because it turns "which grey"
+into a question with an answer:
+
+| Steps    | Role                                           |
+| -------- | ---------------------------------------------- |
+| 100–300  | component backgrounds — default, hover, active |
+| 400–600  | borders — default, hover, active               |
+| 700–800  | high-contrast backgrounds                      |
+| 900–1000 | text and icons — secondary, then primary       |
+
+Beneath them sit two background steps: one default surface, one secondary surface
+used sparingly for differentiation.
+
+Two consequences for this repo:
+
+**A new component picks its step by role.** Reaching for a hairline means the
+border band, not "the light grey I saw somewhere else". The existing corrections
+are recorded as one-off measurements — a specific alpha for hairlines, a specific
+step for card borders — and re-expressing them by role is what stops the next
+component guessing.
+
+**A tint on the canvas, white surfaces on top.** The document itself is not the
+brightest thing on screen; cards are. Dark mode is a first-class target, not an
+afterthought — the reference's own identity is a near-black canvas, so a screen
+that only reads well in light mode is half-built.
+
+## Shape: a radius ladder, not a constant
+
+The reference distinguishes surfaces by radius, and floating surfaces get more
+than flat ones:
+
+| Surface class                          | Radius |
+| -------------------------------------- | ------ |
+| Base surfaces — cards, inputs, buttons | 6px    |
+| Large surfaces — panels, sheets        | 12px   |
+| Floating — tooltips, menus             | 6–12px |
+| Modal and fullscreen                   | 16px   |
+
+This repo currently flattens everything to 6px. That is correct for the base tier
+and wrong for the other two: a modal at card radius does not read as floating
+above the page.
+
+**Elevation is reserved for things that genuinely float.** A card gets a border
+_or_ a shadow, never both — Salt's default is both.
+
+## Type: a named scale, set as a unit
+
+The reference names each style by role and size — heading, copy, label — and each
+name presets size, line height, letter spacing and weight _together_.
+
+That is the part to adopt. This repo currently corrects tracking per component,
+which means the relationship between size and tracking is re-derived at each site
+and drifts. A named scale fixes the whole tuple once.
+
+Tighter tracking as size increases is the specific correction Salt needs: at
+display sizes its default of zero reads loose.
+
+## Buttons
+
+|             |                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Case        | **Title Case**, verb plus a specific noun — "Adopt Capability", "Rotate Key", "Mark Read"                                  |
+| Never       | "Submit", "OK", "Continue", "Get Started"                                                                                  |
+| Weight      | medium, not semibold                                                                                                       |
+| Tracking    | normal — Salt's letter-spaced uppercase default is the single strongest signal of an unstyled enterprise library           |
+| Variants    | default, secondary, tertiary, error, warning — mapped once onto Salt's appearance and sentiment, and not recombined ad hoc |
+| Disabled    | only when the action is impossible, and always with a tooltip saying why or who could                                      |
+| Destructive | pairs one-to-one with a confirmation, and reports its result                                                               |
+
+**Note this reverses an earlier reading of the reference**, which had buttons in
+sentence case. The current console uses Title Case with noun specificity, and the
+noun is the useful half: "Adopt Capability" tells a reader what will be adopted.
+
+## Tables
+
+- **One separation mechanism.** Striped or bordered, never both, and plain is a
+  legitimate default.
+- **Headers are Title Case nouns or noun phrases** — "Last Used", "Requests (7d)".
+  Never sentences.
+- **Numeric columns use tabular figures** so digits align down the column.
+- **Sortable headers are real buttons**, with the sort direction shown.
+- **Tables are for tabular data**: rows sharing a shape, with at least one column
+  comparable across rows. A single descriptive row with an action is an entity
+  row; a block of metadata is a description list, **not** a two-column table.
+
+That last rule is the one this repo breaks most: a two-column key/value table is
+the wrong shape for metadata, and it reads as data that can be compared when it
+cannot.
+
+## Empty states
+
+Anatomy: an icon around 32px, a Title Case title, a sentence-case description,
+and at most one primary plus one secondary action.
+
+- **The description adds information rather than restating the title.** "No Logs
+  Match Your Filter" followed by "there are no logs matching your filter" is a
+  wasted line.
+- **Quote the query back** when the emptiness is a search result.
+- **Actions are Title Case verb-plus-noun**, and are real buttons or links so they
+  stay keyboard-reachable.
+- **Asynchronously filtered regions announce politely**, so a screen-reader user
+  learns the result set changed.
+- **Not for persistent warnings.** Those are notes or page-level banners.
+
+## Notes, banners, toasts
+
+A note is **inline contextual feedback** beside the thing it describes. Variant by
+meaning: error for a problem the reader must fix, warning for a consequence to
+acknowledge, success for a passed check, neutral otherwise.
+
+- **A note is persistent.** No dismiss control — it stays until the underlying
+  state changes, because a dismissable note competes with its own message.
+- **One inline action at most.**
+- **Label is one or two Title Case words** naming the topic; the body is one
+  active-voice sentence about impact. No "Heads up", no "FYI".
+- Page-level messages are banners. Transient confirmations are toasts.
+
+Mapping for this repo: a named absence is a **note**, not an empty state. An
+error in a region is a note or an error panel. A mutation result is a toast — and
+the toast host belongs in the shell, because a provider inside a remote is
+invisible to the host.
+
+---
+
+## What is enforced, and what is only agreed
+
+Stating this precisely matters, because a rule that claims a gate it does not have
+is the same defect as a number claiming a strength it cannot bear.
+
+| Property                                                                               | Mechanism                                              | Kind            |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------ | --------------- |
+| Every design value is a Salt token that resolves                                       | stylelint allow-list plus `check-salt-tokens`          | **Enforced**    |
+| No CSS-in-JS, no utility CSS, no unscoped stylesheet outside the three theme entries   | lint, asserted per workspace by a resolved-config test | **Enforced**    |
+| No raw hex, no literal values in a style prop                                          | lint                                                   | **Enforced**    |
+| A chart only renders through the figure component that pairs it with a table           | restricted-import rule                                 | **Enforced**    |
+| No component names a role                                                              | lint                                                   | **Enforced**    |
+| Salt-covered elements are not used raw outside the ui-kit                              | lint                                                   | **Enforced**    |
+| Accessibility on every route, light and dark                                           | axe over the built artefacts                           | **Enforced**    |
+| Button and header case, one idiom per interaction, slot usage, radius by surface class | review                                                 | **Agreed only** |
+
+The bottom row is the honest gap. Three deviations once passed lint, typecheck, the
+token guard and the bundle budget, and were caught by a human reading the screen —
+because none of those checks can tell a dropdown from three toggle buttons. Some
+of it is narrowable to a path rule and some is not; where it is not, this document
+is the citation a reviewer points at.
