@@ -30,10 +30,19 @@ import { PERSONAS } from './personas.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Every artefact directory a reader could fetch. */
-const DIST_DIRS = ['apps/shell/dist', 'remotes/catalog/dist', 'remotes/operations/dist'].map((d) =>
-  join(ROOT, d),
-);
+/**
+ * Every artefact directory a reader could fetch.
+ *
+ * The shell is named separately rather than reached by index, because the
+ * mocked-build check below reads it and an index would make that a lookup that
+ * can return nothing.
+ */
+const SHELL_DIST = join(ROOT, 'apps/shell/dist');
+const DIST_DIRS = [
+  SHELL_DIST,
+  join(ROOT, 'remotes/catalog/dist'),
+  join(ROOT, 'remotes/operations/dist'),
+];
 
 /**
  * The development secret, read from the same file that supplies it to `vite dev`.
@@ -87,7 +96,7 @@ if (missing.length > 0) {
  * credentials there is correct and says nothing about what production ships.
  * Naming that case beats reporting a leak the reader then has to disprove.
  */
-const shellFiles = [...walk(DIST_DIRS[0])].map((p) => relative(DIST_DIRS[0], p));
+const shellFiles = [...walk(SHELL_DIST)].map((p) => relative(SHELL_DIST, p));
 if (shellFiles.some((f) => /assets\/browser-[^/]+\.js$/.test(f))) {
   console.error(
     'check-no-dev-secrets: FAIL\n\n  This looks like the mocked end-to-end build: it bundles the request\n  interceptor, and it bakes the persona roster in deliberately. Checking it\n  proves nothing about a production artefact.\n\n  Run `npm run build` and check that instead.',

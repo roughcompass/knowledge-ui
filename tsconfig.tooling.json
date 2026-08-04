@@ -1,0 +1,41 @@
+{
+  /*
+   * The TypeScript nobody was checking.
+   *
+   * Every other project in this repo includes `src/**` and nothing else, which
+   * left a whole tier unchecked: the end-to-end specs, all seven test configs,
+   * the three Vite configs, the shared test setup, and the two modules at the
+   * repo root that the build and the parity guard both read. A type error in any
+   * of them surfaced when the file ran, if it ran — and `mf.shared.ts` is parsed
+   * by a guard script with a regex rather than imported, so an error there
+   * surfaced nowhere at all.
+   *
+   * Separate from the workspace projects rather than folded into them because
+   * these files are not part of any package's published output: `noEmit`, no
+   * declarations, and no composite build. `npm run typecheck` runs it last.
+   */
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "incremental": false,
+    "declaration": false,
+    "declarationMap": false,
+    // Node for the config and script layer, vite/client for the `import.meta.env`
+    // reads inside the Vite configs, jest-dom for the shared test setup.
+    "types": ["node", "vite/client", "@testing-library/jest-dom"]
+  },
+  "include": [
+    "e2e/**/*.ts",
+    "tooling/**/*.ts",
+    "*.config.ts",
+    "vitest.setup.ts",
+    "mf.shared.ts",
+    "dev-proxy.ts",
+    "apps/*/vite.config.ts",
+    "apps/*/vitest.config.ts",
+    "remotes/*/vite.config.ts",
+    "remotes/*/vitest.config.ts",
+    "packages/*/vitest.config.ts"
+  ]
+}
