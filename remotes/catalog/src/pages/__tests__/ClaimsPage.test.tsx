@@ -217,15 +217,24 @@ describe('the claims page', () => {
     expect(search).toHaveValue('Dropdown');
   });
 
-  it('offers the retrieval depths the server accepts', async () => {
+  it('offers the retrieval personas the server accepts, under that name', async () => {
     /*
-     * The server validates against a closed set and refuses an unknown value, so
-     * an abbreviated spelling would produce a 422 rather than a degraded answer.
+     * Two assertions in one, and the label is the load-bearing half.
+     *
+     * The server validates the value against a closed set and refuses anything else,
+     * so an abbreviated spelling would produce a 422 rather than a degraded answer.
+     *
+     * And the control is found by the word "Persona" rather than "Depth", which is
+     * what it used to say. "Depth" named the effect instead of the values in the
+     * list, and the impact panel two clicks away has a control genuinely called
+     * Depth holding the traversal depths 1 to 5 — so one word covered two unrelated
+     * controls in one app. Asserted here because a label is the only part of a
+     * filter a reader has to go on.
      */
     renderPage();
     await screen.findByRole('table', { name: /claims/i });
 
-    await userEvent.click(screen.getByRole('combobox', { name: /depth/i }));
+    await userEvent.click(screen.getByRole('combobox', { name: /^persona$/i }));
     for (const persona of ['l1_responder', 'l3_engineer', 'architect', 'agent']) {
       expect(screen.getByRole('option', { name: persona })).toBeInTheDocument();
     }

@@ -1,4 +1,4 @@
-import { Dropdown, FlexLayout, Option, StackLayout, Tag, Text } from '@salt-ds/core';
+import { Dropdown, Option, StackLayout, Tag, Text } from '@salt-ds/core';
 import {
   WORST_DAILY_P95_CAVEAT,
   WORST_DAILY_P95_LABEL,
@@ -26,6 +26,7 @@ import {
   PageHeader,
   SectionCard,
   StatTile,
+  TileGrid,
   UnavailableNotice,
   popoverOverlayProps,
 } from '@knowledge-ui/ui-kit';
@@ -232,7 +233,7 @@ export function UsagePage() {
             ) : null}
             {summary.data ? (
               <StackLayout gap={2}>
-                <FlexLayout gap={2} wrap>
+                <TileGrid>
                   {summary.data.surfaces.map((surface) => (
                     <StatTile
                       key={surface.surface}
@@ -241,7 +242,7 @@ export function UsagePage() {
                       hint={`${surface.error_calls.toLocaleString()} failed`}
                     />
                   ))}
-                </FlexLayout>
+                </TileGrid>
 
                 <DataTable
                   caption="Usage by surface"

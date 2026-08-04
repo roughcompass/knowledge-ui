@@ -23,6 +23,7 @@ import {
   Note,
   SectionCard,
   UnavailableNotice,
+  isoDay,
   popoverOverlayProps,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
@@ -144,8 +145,12 @@ function EdgeGroups({ edges }: { edges: readonly EdgeRef[] }) {
               {
                 key: 'valid_from',
                 header: 'Valid From',
+                figures: 'tabular' as const,
                 render: (row) => (
-                  <Text color="secondary">{row.valid_from ? String(row.valid_from) : '—'}</Text>
+                  // The day, not the instant. This printed the whole
+                  // `2026-07-01T00:00:00Z` while every other date in the app showed
+                  // ten characters.
+                  <Text color="secondary">{isoDay(row.valid_from) ?? '—'}</Text>
                 ),
               },
             ]}
@@ -234,15 +239,28 @@ export function ImpactPanel({ handle }: { handle: string }) {
         </FilterBar>
 
         {caveats.length > 0 ? (
-          <StackLayout gap={1}>
-            {caveats.map((caveat) => (
-              // A warning: a partial closure is a consequence to acknowledge before
-              // deciding a change is safe, which is why anyone is reading this panel.
-              <Note label="Partial Answer" variant="warning" key={caveat}>
-                {caveat}
-              </Note>
-            ))}
-          </StackLayout>
+          /*
+           * One note, however many reasons.
+           *
+           * A warning, because a partial closure is a consequence to acknowledge
+           * before deciding a change is safe — which is why anyone is reading this
+           * panel at all.
+           *
+           * It used to render one note per reason, and with two reasons that is two
+           * identical amber boxes carrying the identical label, stacked. That is the
+           * shape a caveat must never reach: a repeated marker becomes chrome the eye
+           * stops seeing, and the second box makes the first one look like furniture
+           * rather than a finding.
+           *
+           * Joined rather than listed. Every caveat the client produces is already a
+           * complete sentence, and `Note`'s contract is one paragraph under one label
+           * — so two of them read as two sentences, which is what they are. A list
+           * would need markup and a stylesheet to suppress the bullets, for a
+           * structure that is never more than three items long.
+           */
+          <Note label="Partial Answer" variant="warning">
+            {caveats.join(' ')}
+          </Note>
         ) : null}
 
         {active.isPending ? <LoadingPanel label={`Walking ${LABELS[question]}`} /> : null}

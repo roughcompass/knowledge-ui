@@ -21,6 +21,7 @@ import {
   Note,
   PageHeader,
   UnavailableNotice,
+  isoDay,
   popoverOverlayProps,
 } from '@knowledge-ui/ui-kit';
 import { useEffect, useState, type ChangeEvent } from 'react';
@@ -89,11 +90,11 @@ function ValidityCell({ claim }: { claim: Claim }) {
   return (
     <StackLayout gap={0.5}>
       <Text color="secondary">
-        {String(claim.valid_from).slice(0, 10)} →{' '}
-        {claim.valid_to ? String(claim.valid_to).slice(0, 10) : 'still holds'}
+        {isoDay(claim.valid_from) ?? '—'} →{' '}
+        {claim.valid_to ? isoDay(claim.valid_to) : 'still holds'}
       </Text>
       <Text color="secondary" styleAs="label">
-        seen {String(claim.as_of).slice(0, 10)}
+        seen {isoDay(claim.as_of)}
       </Text>
     </StackLayout>
   );
@@ -256,11 +257,17 @@ export function ClaimsPage() {
           </Dropdown>
         </FilterField>
 
-        <FilterField label="Depth" basis="13rem">
+        <FilterField label="Persona" basis="13rem">
           {/*
             Persona is a retrieval choice rather than a different store: the same
             claim answered at the depth the asker needs. Offered here because an
             engineer and an agent want different amounts of the same fact.
+
+            Labelled for what it selects. It said "Depth", which named the effect
+            rather than the values in the list — and the impact panel two clicks away
+            has a control genuinely called Depth, holding the traversal depths 1 to 5.
+            Two unrelated controls under one word in one app is how a reader learns to
+            distrust both.
           */}
           <Dropdown
             bordered
@@ -308,6 +315,7 @@ export function ClaimsPage() {
 
       {active.data ? (
         <DataTable
+          card
           caption="Claims"
           hideCaption
           zebra

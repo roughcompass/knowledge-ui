@@ -307,6 +307,6 @@ export function surfaceReach(surface: SurfaceSummary): SurfaceReach {
  * Latency over time comes from the daily series, where each percentile is exact at
  * its own grain.
  */
-export const WORST_DAILY_P95_LABEL = 'Worst daily p95';
+export const WORST_DAILY_P95_LABEL = 'Worst Daily p95';
 export const WORST_DAILY_P95_CAVEAT =
   'The largest single day’s p95 in this window, not the window’s p95 — percentiles cannot be averaged. For latency over time, read the daily series.';

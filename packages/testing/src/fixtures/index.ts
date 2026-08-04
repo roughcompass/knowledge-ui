@@ -65,11 +65,20 @@ export function makeCapabilityDetail(overrides: Partial<Record<string, unknown>>
     lifecycle: 'ga' satisfies Lifecycle,
     /*
      * Attribute values are `unknown`, not strings. The real server returns
-     * `lifecycle: {"state": "beta"}` for a bitemporal attribute, and a fixture with
-     * only string values let a page get away with `String(value)` — which renders a
-     * dict as "[object Object]". The object entry is here so that cannot regress.
+     * `lifecycle: {"state": "ga"}` — an object, and a required attribute per the
+     * registry's own capability schema — and a fixture with only string values let a
+     * page get away with `String(value)`, which renders a dict as "[object Object]".
+     * The object entry is here so that cannot regress.
+     *
+     * The state deliberately matches the top-level `lifecycle` above. It said `beta`
+     * against a `ga` capability, which made the detail page contradict itself in two
+     * places a reader sees at once: a `ga` tag beside the title and a `beta` row in
+     * the attributes list. The real seeds keep the two in step — the top-level value
+     * is derived from this attribute — so a fixture that disagrees is not a harder
+     * case, it is a case the API cannot produce, and it teaches whoever reads the
+     * mocked app that the two fields are independent when they are not.
      */
-    attributes: { owner: 'payments-platform', tier: '1', lifecycle: { state: 'beta' } },
+    attributes: { owner: 'payments-platform', tier: '1', lifecycle: { state: 'ga' } },
     facts: [
       {
         fact_id: uuid('fact'),

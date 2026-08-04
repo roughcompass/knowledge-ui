@@ -56,14 +56,71 @@ export function App() {
   );
 }
 
-/** Mode lives above the provider, since the provider consumes it. */
+const MODE_STORAGE_KEY = 'kui:color-mode';
+
+/**
+ * The mode the reader gets before they have expressed a preference.
+ *
+ * Their operating system's, not light. A console that opens bright white on a
+ * machine configured for dark is not a neutral default — it is overriding a
+ * choice the reader already made once, for every application on the machine, and
+ * the reference console this one is built to resemble does not do that either.
+ *
+ * `matchMedia` is guarded because the standalone harnesses render this during a
+ * build-time SSR pass where there is no `window`. Light is the right fallback
+ * there: a static prerender has no reader to have a preference.
+ */
+function preferredMode(): 'light' | 'dark' {
+  try {
+    const stored = window.localStorage.getItem(MODE_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  } catch {
+    // Private browsing and some embedded webviews throw on storage access rather
+    // than returning null, and `matchMedia` is absent in a few test runtimes.
+    return 'light';
+  }
+}
+
+/**
+ * Mode lives above the provider, since the provider consumes it.
+ *
+ * Read once on mount and written back on every change, which is not a nicety.
+ * This used to be `useState('light')` with no persistence, so the toggle survived
+ * exactly as long as the SPA did: every hard navigation, every reload, every
+ * deep link opened in a new tab reverted to light. A reader who chose dark had to
+ * choose it again on arrival — and the same component tree already persists the
+ * navigation rail's width, so the app was inconsistent with itself about which
+ * preferences are worth keeping.
+ */
 function AppProvidersWithMode({
   children,
 }: {
   children: (mode: 'light' | 'dark', toggle: () => void) => React.ReactNode;
 }) {
+  /*
+   * Initialised light and corrected on mount rather than initialised from
+   * `preferredMode()` directly. Reading storage or `matchMedia` in a `useState`
+   * initialiser runs it during render on the server pass too, where neither
+   * exists — the same reason the rail reads its stored width in an effect.
+   */
   const [mode, setMode] = useState<'light' | 'dark'>('light');
-  const toggle = useCallback(() => setMode((m) => (m === 'light' ? 'dark' : 'light')), []);
+  useEffect(() => setMode(preferredMode()), []);
+
+  const toggle = useCallback(
+    () =>
+      setMode((current) => {
+        const next = current === 'light' ? 'dark' : 'light';
+        try {
+          window.localStorage.setItem(MODE_STORAGE_KEY, next);
+        } catch {
+          /* nothing to do — the choice simply will not outlive the tab */
+        }
+        return next;
+      }),
+    [],
+  );
+
   return <AppProviders mode={mode}>{children(mode, toggle)}</AppProviders>;
 }
 

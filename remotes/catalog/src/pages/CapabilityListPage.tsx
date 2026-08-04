@@ -30,6 +30,7 @@ import {
   PageHeader,
   RetrievalArmsBar,
   RetrievalArmsLegend,
+  isoDay,
   popoverOverlayProps,
   type Column,
 } from '@knowledge-ui/ui-kit';
@@ -121,9 +122,16 @@ export function CapabilityListPage() {
       {
         key: 'created_at',
         header: 'Created',
+        figures: 'tabular' as const,
         render: (row) => (
           <Text styleAs="notation" color="secondary">
-            {new Date(row.created_at).toLocaleDateString()}
+            {/*
+              Not `toLocaleDateString`. The served value is UTC, so parsing it and
+              rendering it locally lands on the previous day for every reader behind
+              Greenwich — a created-on date that disagrees with the API by one is
+              worse than one that is plainly UTC.
+            */}
+            {isoDay(row.created_at) ?? '—'}
           </Text>
         ),
       },

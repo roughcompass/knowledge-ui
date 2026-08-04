@@ -23,19 +23,12 @@
  * Tabular figures so digits occupy equal width and a column of numbers aligns on
  * its decimal point. Proportional digits make 0.900 and 0.111 different widths,
  * which is what makes an unaligned score column hard to scan.
- */
-.numeric {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-
-.center {
-  text-align: center;
-}
-
-/*
- * Tabular figures on their own, for a column whose digits should line up but whose
- * values should not be pushed right — a timestamp being the case that needs it.
+ *
+ * Figures only. Alignment used to live here as well and never took effect: Salt's
+ * `table.saltTable td { text-align: start }` carries an element and a class, so a
+ * lone hashed class is outranked and the declaration was dead while looking alive.
+ * Alignment is Salt's `textAlign` prop now; figures stay because Salt sets no
+ * `font-variant-numeric` anywhere in its table, so there is nothing to lose to.
  */
 .tabular {
   font-variant-numeric: tabular-nums;
@@ -63,6 +56,23 @@
  * with our hashed class carries two classes, so it wins on specificity rather
  * than on source order.
  */
+
+/*
+ * A visible caption aligns with the table it names.
+ *
+ * The browser's default stylesheet centres `<caption>` — `text-align: -webkit-center`
+ * in Chromium — so the two tables that show theirs, the data-quality counters and the
+ * table paired with every chart, put a centred line above a left-aligned grid. It read
+ * as a stray title rather than as the table's own name, and it was the only centred
+ * text on either page.
+ *
+ * Set on the inner element as well as the caption: Salt's `Text` renders a block
+ * `div` inside it, which inherits the centring rather than the correction.
+ */
+.table:global(.saltTable) > caption,
+.table:global(.saltTable) > caption > * {
+  text-align: start;
+}
 
 /* stylelint-disable selector-class-pattern -- Salt-owned class names. */
 

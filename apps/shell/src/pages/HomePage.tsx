@@ -1,6 +1,6 @@
-import { FlowLayout, StackLayout, Text } from '@salt-ds/core';
+import { StackLayout, Text } from '@salt-ds/core';
 import { can, capabilitiesFor, type Persona, type Session } from '@knowledge-ui/auth';
-import { NavCard, PageHeader, Prose } from '@knowledge-ui/ui-kit';
+import { NavCard, PageHeader, Prose, TileGrid } from '@knowledge-ui/ui-kit';
 import { useHref, useNavigate } from 'react-router-dom';
 
 import { REMOTES, type RemoteDescriptor } from '../remotes/registry';
@@ -42,11 +42,11 @@ export function HomePage({
         <Text styleAs="h4" as="h2">
           Available to you
         </Text>
-        <FlowLayout gap={2}>
+        <TileGrid columns={2}>
           {available.map((remote) => (
             <RemoteCard key={remote.name} remote={remote} onNavigate={navigate} />
           ))}
-        </FlowLayout>
+        </TileGrid>
       </StackLayout>
 
       {unavailable.length > 0 ? (
@@ -54,7 +54,7 @@ export function HomePage({
           <Text styleAs="h4" as="h2">
             Not available to this role
           </Text>
-          <FlowLayout gap={2}>
+          <TileGrid columns={2}>
             {unavailable.map((remote) => (
               <StackLayout key={remote.name} gap={1}>
                 <Text styleAs="label" color="secondary">
@@ -63,7 +63,7 @@ export function HomePage({
                 <Text color="secondary">{remote.description}</Text>
               </StackLayout>
             ))}
-          </FlowLayout>
+          </TileGrid>
         </StackLayout>
       ) : null}
 

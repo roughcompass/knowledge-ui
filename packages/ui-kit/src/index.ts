@@ -32,6 +32,8 @@ export { Note } from './Note';
 export { LoadingPanel } from './LoadingPanel';
 export { ErrorPanel } from './ErrorPanel';
 export { displayText } from './displayText';
+export { isoDay } from './isoDay';
+export { TileGrid } from './TileGrid';
 export { DataTable, type Column, type DataTableProps } from './DataTable';
 
 /**

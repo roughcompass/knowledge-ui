@@ -26,10 +26,20 @@ export interface Column<TRow> {
    * two want each other: right alignment is what makes a column of totals scannable,
    * and proportional digits undo it by giving each row a different width.
    *
-   * This was declared and then never read, so every numeric column in the app —
-   * scores, counts, totals — rendered left-aligned with proportional digits.
+   * Two rounds of this were wrong, and the second is the more interesting failure.
+   * It was first declared and never read, so every numeric column in the app —
+   * scores, counts, totals — rendered left-aligned with proportional digits. Wiring
+   * it to a CSS module class fixed the reading and not the rendering: Salt's own rule
+   * is `table.saltTable td`, which carries an element and a class and so outranks a
+   * lone hashed class. `text-align: right` was set and silently lost. Nothing failed;
+   * the columns simply stayed wrong, and this comment claimed a fix that never landed.
+   *
+   * Alignment goes through Salt's `textAlign` prop now, which is the mechanism that
+   * rule was written to serve. Only `right` is offered, because that is all Salt's
+   * table cells accept and `left` is already the default — a union member resolving
+   * to "do nothing" is an invitation to write it and expect something.
    */
-  align?: 'left' | 'right' | 'center';
+  align?: 'right';
   /**
    * Tabular figures without right alignment.
    *
@@ -42,6 +52,10 @@ export interface Column<TRow> {
    *
    * So: `align` decides where the column sits, this decides how its digits are cut.
    * A count wants both and says `align: 'right'`; a timestamp wants only this.
+   *
+   * This half stays a CSS module class, and safely: Salt takes no position on figures
+   * and sets no `font-variant-numeric` anywhere in its table, so unlike alignment
+   * there is no rule of its own to be outranked by.
    */
   figures?: 'tabular';
 }
@@ -119,16 +133,16 @@ export interface DataTableProps<TRow> {
  * over the row type and a parameter typed `Column<unknown>` will not accept one —
  * the row type is unrelated to how its digits are cut.
  */
-function alignClass({
-  align,
-  figures,
-}: Pick<Column<unknown>, 'align' | 'figures'>): string | undefined {
-  if (align === 'right') return styles.numeric;
-  if (align === 'center') return styles.center;
-  // Figures without alignment. Checked after the two alignment cases because
-  // `align: 'right'` already implies tabular and would otherwise win twice.
-  if (figures === 'tabular') return styles.tabular;
-  return undefined;
+function cellProps({ align, figures }: Pick<Column<unknown>, 'align' | 'figures'>) {
+  return {
+    // Salt's prop rather than a class of ours: it emits `saltTable-td-align-right`,
+    // which is the selector Salt's own `text-align` rule is keyed on. Anything else
+    // is outranked by `table.saltTable td` and loses without ever saying so.
+    ...(align === 'right' ? { textAlign: 'right' as const } : {}),
+    // `align: 'right'` implies tabular. A count wants both; a timestamp asks for
+    // figures alone and keeps its left edge.
+    className: align === 'right' || figures === 'tabular' ? styles.tabular : undefined,
+  };
 }
 
 export function DataTable<TRow>({
@@ -170,7 +184,9 @@ export function DataTable<TRow>({
             <TH
               key={column.key}
               scope="col"
-              className={alignClass({ align: column.align, figures: column.figures })}
+              // The header aligns with its column: a right-aligned column of totals
+              // under a left-aligned label reads as two columns that missed each other.
+              {...cellProps({ align: column.align, figures: column.figures })}
             >
               {column.header}
             </TH>
@@ -212,10 +228,7 @@ export function DataTable<TRow>({
               : {})}
           >
             {columns.map((column) => (
-              <TD
-                key={column.key}
-                className={alignClass({ align: column.align, figures: column.figures })}
-              >
+              <TD key={column.key} {...cellProps({ align: column.align, figures: column.figures })}>
                 {column.render
                   ? column.render(row)
                   : displayText((row as Record<string, unknown>)[column.key])}

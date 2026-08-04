@@ -1,4 +1,4 @@
-import { FlowLayout, StackLayout, Text } from '@salt-ds/core';
+import { StackLayout, Text } from '@salt-ds/core';
 import { can, useSession } from '@knowledge-ui/auth';
 import {
   describeScope,
@@ -14,6 +14,7 @@ import {
   PageHeader,
   SectionCard,
   StatTile,
+  TileGrid,
   UnavailableNotice,
 } from '@knowledge-ui/ui-kit';
 /**
@@ -109,7 +110,7 @@ export function MetricsPage() {
         title="Queues"
         description="Counted from the database at read time, so these are correct however many replicas are running."
       >
-        <FlowLayout gap={2}>
+        <TileGrid>
           {queues.map((reading) => (
             <StatTile
               key={reading.key}
@@ -126,7 +127,7 @@ export function MetricsPage() {
               }
             />
           ))}
-        </FlowLayout>
+        </TileGrid>
       </SectionCard>
 
       <SectionCard

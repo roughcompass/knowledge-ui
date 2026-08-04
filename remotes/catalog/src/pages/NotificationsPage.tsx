@@ -147,6 +147,7 @@ export function NotificationsPage() {
       {filters}
 
       <DataTable
+        card
         zebra
         caption="Notifications"
         columns={[
