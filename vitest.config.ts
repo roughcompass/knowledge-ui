@@ -48,7 +48,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json-summary'],
-      thresholds: { statements: 64, branches: 56, functions: 63, lines: 66 },
+      thresholds: { statements: 65, branches: 57, functions: 64, lines: 67 },
       exclude: [
         '**/generated/**',
         '**/dist/**',

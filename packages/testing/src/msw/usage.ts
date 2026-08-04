@@ -20,18 +20,26 @@ import { roleFor } from './role';
  * expressly "so a caller can render the reason rather than a zero". A panel showing
  * `0` there reports an unused platform.
  *
- * **A zero that is real.** Another surface reports `distinct_actors: 0` — nobody
- * called it. That must render as zero, not as unavailable, which is why both cases
- * appear: a client testing truthiness instead of null passes with one and fails
- * with the other.
+ * **A zero that is real.** A surface can report `distinct_actors: 0` — nobody called
+ * it — and that must render as zero, not as unavailable. A client testing truthiness
+ * instead of null passes the null case and fails this one, so both need covering.
+ *
+ * It is covered by a *scenario override* rather than by a third surface here, and
+ * that is a correction: an earlier version of this file invented a `webhook` surface
+ * to hold the case. The endpoint declares `Literal["rest", "mcp"]` and the vendored
+ * schema closes the enum to those two, so a third value is one the API can never
+ * emit — exactly the "a fixture must never be richer than the endpoint it stands
+ * for" trap this repo's conventions warn about. Nothing caught it: the handler passes
+ * a plain object literal to `HttpResponse.json`, so no generic ties it to the schema
+ * and the typecheck is clean either way.
  *
  * **`actor_days` far larger than the headcount.** Deliberately many times the
  * distinct count, because that is exactly the ratio the API warns about — an actor
  * active on ten days counts ten times. A panel labelling it "actors" is visibly
  * wrong against these numbers.
  *
- * **A null latency.** `worst_daily_p95_ms` is null on one surface, because a
- * surface with no timed calls has no percentile.
+ * **A null latency.** `worst_daily_p95_ms` is null on the surface with no timed
+ * calls, because a surface without them has no percentile — not a zero one.
  *
  * ## Role gating is real here
  *
@@ -57,6 +65,8 @@ function refuse(role: string, allowed: readonly string[]) {
     { status: 403 },
   );
 }
+
+export const USAGE_WINDOW = WINDOW;
 
 export const usageHandlers = [
   http.get('*/v1/admin/usage/summary', ({ request }) => {
@@ -93,20 +103,6 @@ export const usageHandlers = [
           payload_bytes: 141_900_000,
           payload_tokens: 6_640_000,
           worst_daily_p95_ms: 1180,
-        },
-        {
-          surface: 'webhook',
-          calls: 0,
-          ok_calls: 0,
-          error_calls: 0,
-          actor_days: 0,
-          // A real zero. Must not render as unavailable.
-          distinct_actors: 0,
-          distinct_actors_unavailable_reason: null,
-          payload_bytes: null,
-          payload_tokens: null,
-          // No timed calls, so no percentile exists.
-          worst_daily_p95_ms: null,
         },
       ],
     });

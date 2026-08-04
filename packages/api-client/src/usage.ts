@@ -72,10 +72,28 @@ export interface UsageWindow {
   to?: Date | string;
 }
 
-/** A date, as the usage endpoints take it: a calendar day, not an instant. */
+/**
+ * A date, as the usage endpoints take it: a calendar day, not an instant.
+ *
+ * Parsed and re-emitted rather than truncated. The first version sliced the first ten
+ * characters off a string, which is a no-op on anything shorter — so `2026-8-4`, the
+ * same calendar day spelled without zero padding, passed through unchanged and then
+ * compared unequal to the server's `2026-08-04`. That produced a false "this is not
+ * the window you asked for" warning on the one page whose whole purpose is not
+ * overstating anything, and would have been rejected outright by the endpoint, which
+ * binds these as real dates.
+ *
+ * Throws on an unparseable value, matching `toApiTimestamp` beside it: a window that
+ * cannot be expressed is a caller error, and silently sending something the server
+ * will refuse turns it into a confusing 422.
+ */
 function toDay(value: Date | string | undefined): string | undefined {
   if (value === undefined) return undefined;
-  return typeof value === 'string' ? value.slice(0, 10) : value.toISOString().slice(0, 10);
+  const date = typeof value === 'string' ? new Date(value) : value;
+  if (Number.isNaN(date.getTime())) {
+    throw new TypeError(`not a valid date: ${String(value)}`);
+  }
+  return date.toISOString().slice(0, 10);
 }
 
 function windowParams(window: UsageWindow) {

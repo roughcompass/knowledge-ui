@@ -169,6 +169,58 @@ export const scenarios = {
     ),
   ],
 
+  /**
+   * A usage summary where a surface genuinely had no callers.
+   *
+   * A scenario rather than a third surface in the default fixture, because the
+   * endpoint declares exactly two — `rest` and `mcp` — and both are spoken for there:
+   * one carries a real distinct count, the other the case where the count cannot be
+   * recovered. An earlier fixture invented a `webhook` surface to hold this, which is
+   * a value the API can never emit.
+   *
+   * The distinction being tested is the whole reason it needs covering: a real zero is
+   * a fact about a quiet surface, and `null` is the absence of a recoverable number.
+   * A component testing truthiness rather than null collapses the two, reports an
+   * unused platform, and passes every other assertion on the page.
+   */
+  usageSurfaceWithNoCallers: () => [
+    http.get('*/v1/admin/usage/summary', () =>
+      HttpResponse.json({
+        start: '2026-07-28',
+        end: '2026-08-03',
+        days: 7,
+        surfaces: [
+          {
+            surface: 'rest',
+            calls: 4120,
+            ok_calls: 4051,
+            error_calls: 69,
+            actor_days: 96,
+            distinct_actors: 14,
+            distinct_actors_unavailable_reason: null,
+            payload_bytes: 88_400_000,
+            payload_tokens: 2_110_000,
+            worst_daily_p95_ms: 412,
+          },
+          {
+            surface: 'mcp',
+            calls: 0,
+            ok_calls: 0,
+            error_calls: 0,
+            actor_days: 0,
+            // A real zero, not an absence.
+            distinct_actors: 0,
+            distinct_actors_unavailable_reason: null,
+            payload_bytes: null,
+            payload_tokens: null,
+            // No timed calls, so no percentile exists — not a latency of zero.
+            worst_daily_p95_ms: null,
+          },
+        ],
+      }),
+    ),
+  ],
+
   whoamiAs: (role: string) => [
     http.get('*/v1/whoami', () => HttpResponse.json(makeWhoami({ role }))),
   ],

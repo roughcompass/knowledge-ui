@@ -7,14 +7,18 @@ import { ErrorPanel } from './ErrorPanel';
  *
  * The write-side mirror of `ErrorPanel`, and deliberately **not** a toast.
  *
- * A toast is the obvious shape and it cannot be built here. `@knowledge-ui/ui-kit`
- * is not a federation share — it sits in each remote's `optimizeDeps.exclude` and is
- * bundled into the remote — so a React context created by a `ToastProvider` inside a
- * remote's bundle is a different object from the host's. A toast fired from a remote
- * page would mount into a region the host never sees. Doing it properly means
- * promoting ui-kit to a shared module, which is a large change to buy a notification
- * for two pages. (Salt 1.67 also ships no Toast, and `@salt-ds/lab` is banned, but
- * that is the smaller reason.)
+ * **Corrected:** an earlier version of this note said Salt ships no Toast, and gave
+ * the federation boundary as the main reason a toast was impossible. Both were wrong.
+ * Salt's core does export `Toast` and `ToastContent`, and they are *presentational* —
+ * no provider, no stacking manager — so the "a context created inside a remote's
+ * bundle is a different object from the host's" argument does not apply to them at
+ * all. That argument is real, and it is about a notification *system*, which Salt
+ * does not provide and this app does not have.
+ *
+ * The reason for a banner in place is the behavioural one below, which was always the
+ * strong half of the argument. Using Salt's floating Toast would also mean writing
+ * positioning CSS to place it, which this repo avoids where a Salt component already
+ * sits correctly in the flow.
  *
  * Two consequences of rendering in place, both deliberate:
  *

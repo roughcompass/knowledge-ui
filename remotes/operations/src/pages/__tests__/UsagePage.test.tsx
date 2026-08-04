@@ -1,5 +1,6 @@
 import { createRegistryClient } from '@knowledge-ui/api-client';
-import { makeSession, renderWithProviders } from '@knowledge-ui/testing';
+import { makeSession, renderWithProviders, scenarios } from '@knowledge-ui/testing';
+import { server } from '@knowledge-ui/testing/server';
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -44,19 +45,27 @@ describe('reach, which has three distinct outcomes', () => {
   it('renders a real zero as a zero', async () => {
     /*
      * The companion case, and the reason the check is against null rather than
-     * falsiness: one surface genuinely had no callers. A component testing
-     * truthiness passes the test above and fails this one.
+     * falsiness: a surface genuinely had no callers. A component testing truthiness
+     * passes the test above and fails this one.
+     *
+     * A scenario override rather than a third surface in the default fixture. The
+     * endpoint declares exactly two surfaces and both are spoken for there, and an
+     * earlier version of this test invented a `webhook` surface to make room — a
+     * value the API can never emit, and precisely the "never richer than the endpoint
+     * it stands for" trap.
      */
+    server.use(...scenarios.usageSurfaceWithNoCallers());
+
     renderPage();
     const table = await screen.findByRole('table', { name: /usage by surface/i });
-    const webhookRow = within(table).getByText('webhook').closest('tr') as HTMLElement;
-    expect(webhookRow).not.toBeNull();
+    const quietRow = within(table).getByText('mcp').closest('tr') as HTMLElement;
+    expect(quietRow).not.toBeNull();
 
     // The reach cell shows a count and its actor-days beneath. Asserted through the
     // actor-days label because the row is legitimately full of zeros — what matters
     // is that this cell renders the count rather than the unavailable branch.
-    expect(within(webhookRow).getByText('0 actor-days')).toBeInTheDocument();
-    expect(within(webhookRow).queryByText('Not available')).not.toBeInTheDocument();
+    expect(within(quietRow).getByText('0 actor-days')).toBeInTheDocument();
+    expect(within(quietRow).queryByText('Not available')).not.toBeInTheDocument();
   });
 
   it('never calls actor-days a headcount', async () => {
@@ -105,6 +114,10 @@ describe('percentiles', () => {
   });
 
   it('says a surface had no timed calls rather than showing zero latency', async () => {
+    // A surface with no timed calls has no percentile at all, which is a different
+    // statement from a latency of zero.
+    server.use(...scenarios.usageSurfaceWithNoCallers());
+
     renderPage();
     const table = await screen.findByRole('table', { name: /usage by surface/i });
     expect(within(table).getAllByText('No timed calls').length).toBeGreaterThan(0);
@@ -125,6 +138,20 @@ describe('the chart carries its table', () => {
     expect(
       within(figure).getByRole('columnheader', { name: /Actors That Day/i }),
     ).toBeInTheDocument();
+  });
+});
+
+describe('demand, as distinct from the catalogue', () => {
+  it('renders which capabilities callers actually asked about', async () => {
+    /*
+     * The fifth read. It was wired end to end — hook, key, export, cache-key test —
+     * and rendered nowhere, while the commit adding it claimed five endpoints were
+     * served. Caught by a defect hunt comparing the claim against the page.
+     */
+    renderPage();
+    const table = await screen.findByRole('table', { name: /usage by capability/i });
+    expect(within(table).getByText('salt-design-system')).toBeInTheDocument();
+    expect(within(table).getByRole('columnheader', { name: 'Actor-Days' })).toBeInTheDocument();
   });
 });
 

@@ -6,6 +6,7 @@ import {
   describeWindow,
   surfaceReach,
   useOwnedCapabilityUsage,
+  useUsageByCapability,
   useUsageByTool,
   useUsageSeries,
   useUsageSummary,
@@ -148,6 +149,7 @@ export function UsagePage() {
     { ...range, surface: 'rest' },
     { enabled: operatorScoped },
   );
+  const capabilities = useUsageByCapability(client, scope, range, { enabled: operatorScoped });
   const tools = useUsageByTool(client, scope, range, { enabled: operatorScoped });
   const owned = useOwnedCapabilityUsage(client, scope, range, { enabled: ownerScoped });
 
@@ -369,6 +371,46 @@ export function UsagePage() {
                   window figure, because percentiles cannot be averaged.
                 </Text>
               </StackLayout>
+            ) : null}
+          </SectionCard>
+
+          <SectionCard
+            title="Capabilities callers asked about"
+            description={
+              capabilities.data
+                ? `Which capabilities this tenant's callers looked up, ${describeWindow(capabilities.data)}.`
+                : undefined
+            }
+          >
+            {capabilities.isPending ? <LoadingPanel label="Reading capability usage" /> : null}
+            {capabilities.error ? (
+              <ErrorPanel error={capabilities.error} title="Could not read capability usage" />
+            ) : null}
+            {capabilities.data ? (
+              <DataTable
+                caption="Usage by capability"
+                hideCaption
+                zebra
+                columns={[
+                  { key: 'capability_id', header: 'Capability' },
+                  {
+                    key: 'calls',
+                    header: 'Calls',
+                    align: 'right',
+                    render: (row) => <Text>{row.calls.toLocaleString()}</Text>,
+                  },
+                  {
+                    key: 'actor_days',
+                    header: 'Actor-Days',
+                    align: 'right',
+                    render: (row) => <Text>{row.actor_days.toLocaleString()}</Text>,
+                  },
+                ]}
+                rows={capabilities.data.capabilities}
+                getRowId={(row) => row.capability_id}
+                emptyTitle="No Capability Lookups in This Window"
+                emptyDescription="Nobody asked about a capability by name. This reads what callers looked up, so an empty table is a finding about demand rather than about the catalogue."
+              />
             ) : null}
           </SectionCard>
 

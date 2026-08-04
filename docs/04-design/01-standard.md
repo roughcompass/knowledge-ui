@@ -184,9 +184,17 @@ one is how a console acquires a second idiom:
 | `UnavailableNotice` | the data does not exist to fetch  | no                     |
 | `EmptyState`        | the query ran and found nothing   | yes, when data arrives |
 
-A toast is still unbuilt. Its host belongs in the shell, because a provider inside
-a remote is invisible to the host — which is why the existing action-result
-component renders in place instead.
+**No toast, and the reason is behavioural rather than technical.** Salt's core does
+export a `Toast`, and it is presentational — no provider, so nothing about the
+federated boundary prevents it. What rules it out here is that in an operator console
+the result of a write is a receipt for a side effect somewhere else: a message that
+vanishes after a few seconds is unreadable while the reader is also watching a table
+refresh, and "did that work?" becomes unanswerable without doing it again. So a write
+result is a banner in place, persistent, naming the effect rather than the verb.
+
+An earlier version of this document and of the component's own docstring claimed Salt
+shipped no Toast. It does; the claim was wrong and the conclusion was right for a
+different reason, which is worth separating.
 
 ---
 

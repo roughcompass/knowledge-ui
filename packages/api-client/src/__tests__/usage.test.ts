@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { createRegistryClient } from '../client';
 import { queryKeys } from '../keys';
 import {
   daysWithoutTraffic,
@@ -172,6 +173,72 @@ describe('the window a response actually covered', () => {
 
   it('says nothing when nothing specific was requested', () => {
     expect(windowSubstituted({ start: '2026-07-01', end: '2026-07-07' }, {})).toBeNull();
+  });
+
+  it('does not report a substitution for the same day spelled without zero padding', () => {
+    /*
+     * The bug this closes. The date was truncated to ten characters rather than
+     * parsed, which is a no-op on anything shorter — so `2026-8-4` survived intact,
+     * compared unequal to the server's `2026-08-04`, and produced a false "this is
+     * not the window you asked for" on the one page whose purpose is not overstating
+     * anything.
+     */
+    expect(
+      windowSubstituted(
+        { start: '2026-08-04', end: '2026-08-04' },
+        { from: '2026-8-4', to: '2026-8-4' },
+      ),
+    ).toBeNull();
+  });
+
+  it('accepts a Date as readily as a string', () => {
+    expect(
+      windowSubstituted(
+        { start: '2026-07-01', end: '2026-07-07' },
+        { from: new Date('2026-07-01T00:00:00Z'), to: new Date('2026-07-07T23:59:59Z') },
+      ),
+    ).toBeNull();
+  });
+
+  it('refuses a window it cannot express rather than sending it', () => {
+    // A caller error, and silently sending something the endpoint will reject turns
+    // it into a confusing 422 far from its cause. Matches `toApiTimestamp` beside it.
+    expect(() =>
+      windowSubstituted({ start: '2026-07-01', end: '2026-07-07' }, { from: 'last Tuesday' }),
+    ).toThrow(TypeError);
+  });
+});
+
+describe('the parameters the window is actually sent as', () => {
+  /**
+   * Nothing checked these, and the response schema uses `start`/`end` while the query
+   * takes `from`/`to` — so renaming one to match the other is a very natural slip
+   * that every existing test would have survived, because the request mocks answer
+   * the same payload regardless of what they are asked for.
+   *
+   * The same discipline was added for the impact traversal after a parameter turned
+   * out to be wrong on the wire; it belongs here for the same reason.
+   */
+  it('sends from and to, not start and end', async () => {
+    let seen = '';
+    vi.stubGlobal('fetch', (url: string) => {
+      seen = String(url);
+      return Promise.resolve(
+        new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+      );
+    });
+
+    const client = createRegistryClient({ baseUrl: 'http://x', getToken: () => 't' });
+    await client.request('/v1/admin/usage/summary', {
+      query: { from: '2026-07-01', to: '2026-07-07' },
+    });
+
+    const params = new URL(seen).searchParams;
+    expect(params.get('from')).toBe('2026-07-01');
+    expect(params.get('to')).toBe('2026-07-07');
+    expect(params.get('start')).toBeNull();
+    expect(params.get('end')).toBeNull();
+    vi.unstubAllGlobals();
   });
 });
 
