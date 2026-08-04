@@ -147,3 +147,30 @@ test('an inactive source cannot be triggered', async ({ page }) => {
   await expect(inactive.getByRole('button', { name: 'Run now' })).toBeDisabled();
   await expect(inactive.getByRole('button', { name: 'Reactivate' })).toBeVisible();
 });
+
+test('the operational health page renders its data and passes axe as an admin', async ({
+  page,
+}) => {
+  /*
+   * The a11y sweep visits /ops/metrics as a consumer, which renders the
+   * role-refusal notice — a real surface, but not the one with the data in it.
+   * The populated state has a table, four stat tiles and a caveat, and none of
+   * that had ever been axe-checked.
+   */
+  await switchToAdmin(page);
+  await page.goto('/ops/metrics', { waitUntil: 'networkidle' });
+
+  await expect(page.getByText('Embedding outbox')).toBeVisible();
+  await expect(page.getByRole('table')).toBeVisible();
+
+  // The qualifier that stops a per-replica counter reading as a service total.
+  await expect(page.getByText(/does not prove zero everywhere/i)).toBeVisible();
+
+  const { violations } = await new AxeBuilder({ page })
+    .include('#root')
+    .withTags(['wcag2a', 'wcag2aa'])
+    .analyze();
+
+  const critical = violations.filter((v) => v.impact === 'critical');
+  expect(critical, critical.map((v) => `${v.id}: ${v.help}`).join('\n')).toEqual([]);
+});

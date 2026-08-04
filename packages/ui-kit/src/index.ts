@@ -34,3 +34,11 @@ export {
 } from './RetrievalArmsBar';
 export { JsonDiff, diffKeys, type DiffEntry, type DiffStatus } from './JsonDiff';
 export { Sparkline, buildPath } from './Sparkline';
+
+/**
+ * Charts are exported as a pair: `Figure` renders a mark beside the table it was
+ * drawn from, and the marks are only meaningful inside it. An eslint rule keeps
+ * a page from importing a mark directly and hand-rolling the pairing.
+ */
+export { Figure } from './Figure';
+export { BarSeries, shares, type Bar } from './BarSeries';

@@ -5,10 +5,20 @@ import styles from './Sparkline.module.css';
 /**
  * A minimal trend line for a bounded series.
  *
- * The metrics endpoint exposes cumulative counters and no history, so the only
- * series available is the one this tab has observed since it opened. That makes
- * a full charting library disproportionate — and it makes the gap handling below
- * load-bearing rather than defensive.
+ * A mark, to be passed to `Figure`, which pairs it with the table it was drawn
+ * from. An eslint rule stops a page importing it directly, because a trend line
+ * with no accompanying numbers is unreadable to anyone who cannot see it and
+ * uncheckable by anyone who can.
+ *
+ * **It has no caller today, and that is deliberate rather than an oversight.**
+ * It was built for a page that accumulated a series in component state across
+ * refetches — which measured how long a tab had been open, not anything about
+ * the service. That page is gone. The component survives because the shape is
+ * right for a real series once one exists behind an API that serves history;
+ * what was wrong was the data, not the drawing.
+ *
+ * The gap handling below is load-bearing rather than defensive, for the same
+ * reason it always was.
  */
 
 /**

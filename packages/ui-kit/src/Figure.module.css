@@ -1,0 +1,8 @@
+/*
+ * The mark's own box. Sizing lives here rather than on the SVG so a mark can be
+ * swapped without the figure's proportions changing underneath the page.
+ */
+.mark {
+  inline-size: 100%;
+  min-inline-size: 0;
+}

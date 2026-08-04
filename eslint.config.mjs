@@ -169,6 +169,39 @@ export default tseslint.config(
     },
   },
 
+  /*
+   * A chart may only be rendered through `Figure`, which pairs it with the table
+   * it was drawn from.
+   *
+   * `Figure` on its own is a convention, and a convention is what the next page
+   * under deadline quietly skips — it is one import away from rendering `BarSeries`
+   * with no table, and nothing would have failed. This rule is what makes the
+   * pairing a constraint: outside ui-kit the marks are unimportable, so the only
+   * route to a chart is the one that carries its data with it.
+   *
+   * Deliberately narrow. It names the two mark exports rather than banning `<svg>`
+   * wholesale, because a rule that fires on an icon or a logo would be turned off
+   * within a week and take the real constraint with it.
+   */
+  {
+    files: ['remotes/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@knowledge-ui/ui-kit',
+              importNames: ['BarSeries', 'Sparkline'],
+              message:
+                'Render a chart through <Figure>, which pairs the mark with its data table. Importing a mark directly makes the table optional, and a chart without one is unreadable to anyone who cannot see it — and uncheckable by anyone who can.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+
   // Theme and font CSS is global by nature and belongs to exactly these entries.
   {
     files: ['apps/shell/src/main.tsx', 'remotes/*/src/standalone.tsx'],

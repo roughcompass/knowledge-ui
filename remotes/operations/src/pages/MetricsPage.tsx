@@ -1,6 +1,8 @@
 import { FlowLayout, StackLayout, Text } from '@salt-ds/core';
 import { can, useSession } from '@knowledge-ui/auth';
 import {
+  describeScope,
+  processScopeCaveat,
   useOperationalHealth,
   type OperationalReading,
   type RegistryClient,
@@ -37,10 +39,6 @@ import {
  * only one of them is true for the whole deployment.
  */
 
-const SCOPE_NOTE: Record<OperationalReading['scope'], string> = {
-  cluster: 'Counted across the deployment, now.',
-  process: 'One replica, since it last restarted.',
-};
 
 export function MetricsPage() {
   const { session, client } = useSession<RegistryClient>();
@@ -125,7 +123,7 @@ export function MetricsPage() {
               hint={
                 (reading.value ?? 0) > 0 && reading.actionable
                   ? reading.actionable
-                  : SCOPE_NOTE[reading.scope]
+                  : describeScope(reading)
               }
             />
           ))}
@@ -161,7 +159,7 @@ export function MetricsPage() {
                       header: 'Reading',
                       render: (row: OperationalReading) => (
                         <Text color="secondary">
-                          {SCOPE_NOTE[row.scope]}
+                          {describeScope(row)}
                           {row.instance ? ` (${row.instance})` : ''}
                         </Text>
                       ),
@@ -181,9 +179,7 @@ export function MetricsPage() {
           />
 
           <Text styleAs="notation" color="secondary">
-            {scopesDiffer ? '' : `Read from ${instances.join(', ') || 'the replica that answered'}. `}
-            A request reaches one replica, so a zero here does not prove zero everywhere. These
-            counters reset when a process restarts.
+            {processScopeCaveat(instances.filter((i): i is string => i !== null))}
           </Text>
         </StackLayout>
       </SectionCard>

@@ -28,6 +28,8 @@ export {
   type Readiness,
 } from './ops';
 
+export { describeScope, processScopeCaveat } from './readings';
+
 export { queryKeys, type KeyScope } from './keys';
 
 export {

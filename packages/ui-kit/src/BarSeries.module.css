@@ -1,0 +1,46 @@
+/*
+ * A categorical comparison bar.
+ *
+ * One hue for every bar, not a categorical ramp. The bars compare the *same*
+ * measure across categories, so colouring them differently would encode a
+ * distinction that is not in the data — the length already carries the whole
+ * message, and a second channel saying nothing is noise a reader has to rule
+ * out.
+ *
+ * Every colour, size and radius is a Salt token with no fallback, for the reason
+ * `RetrievalArmsBar.module.css` spells out: a token and fallback that are both
+ * undefined make the declaration invalid at computed-value time, so the fill
+ * silently becomes transparent and the chart looks like an ordinary empty state.
+ * `scripts/check-salt-tokens.mjs` fails the build on any name theme-next does
+ * not define.
+ */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--salt-spacing-100);
+  min-inline-size: 0;
+}
+
+.track {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  block-size: var(--salt-size-bar);
+  border-radius: var(--salt-palette-corner);
+  background: var(--salt-container-secondary-background);
+  overflow: hidden;
+}
+
+.fill {
+  block-size: 100%;
+  background: var(--salt-category-1-dataviz);
+}
+
+/*
+ * A zero-valued bar still occupies its row and draws nothing. Collapsing the row
+ * would drop the category off the chart entirely, and "this tool was never
+ * called" is one of the most informative rows a surface-mix figure has.
+ */
+.empty {
+  background: transparent;
+}
