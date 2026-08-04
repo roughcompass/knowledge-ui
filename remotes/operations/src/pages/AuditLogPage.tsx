@@ -27,6 +27,7 @@ import {
   FilterField,
   JsonDiff,
   PageHeader,
+  instantText,
   type Column,
 } from '@knowledge-ui/ui-kit';
 import { useMemo, useRef, useState, type ChangeEvent } from 'react';
@@ -68,9 +69,7 @@ export function AuditLogPage() {
         key: 'ts',
         header: 'When',
         figures: 'tabular' as const,
-        render: (row) => (
-          <Text styleAs="notation">{new Date(String(row.ts)).toLocaleString()}</Text>
-        ),
+        render: (row) => <Text styleAs="notation">{instantText(row.ts) ?? '—'}</Text>,
       },
       { key: 'action', header: 'Action', render: (row) => <Tag>{String(row.action)}</Tag> },
       {

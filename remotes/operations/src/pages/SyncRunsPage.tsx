@@ -24,6 +24,7 @@ import {
   PageHeader,
   Prose,
   SectionCard,
+  instantText,
   popoverOverlayProps,
   type Column,
 } from '@knowledge-ui/ui-kit';
@@ -96,9 +97,7 @@ export function SyncRunsPage() {
         key: 'started_at',
         header: 'Started',
         figures: 'tabular' as const,
-        render: (row) => (
-          <Text styleAs="notation">{new Date(row.started_at).toLocaleString()}</Text>
-        ),
+        render: (row) => <Text styleAs="notation">{instantText(row.started_at) ?? '—'}</Text>,
       },
       {
         key: 'source_id',

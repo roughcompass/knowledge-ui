@@ -17,6 +17,7 @@ import {
   LoadingPanel,
   PageHeader,
   UnavailableNotice,
+  instantText,
   popoverOverlayProps,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
@@ -150,6 +151,9 @@ export function NotificationsPage() {
         card
         zebra
         caption="Notifications"
+        // The page heading already says this. A visible caption under it repeated
+        // the word once more, in a third size.
+        hideCaption
         columns={[
           {
             key: 'slug',
@@ -178,7 +182,15 @@ export function NotificationsPage() {
               ),
           },
           { key: 'version', header: 'Version' },
-          { key: 'occurred', header: 'When' },
+          {
+            key: 'occurred',
+            header: 'When',
+            figures: 'tabular' as const,
+            // This rendered the served `2026-08-01T10:00:00Z` verbatim, which a
+            // reader has to convert in their head before it answers the only
+            // question they are asking of the column.
+            render: (row) => <Text styleAs="notation">{instantText(row.occurred) ?? '—'}</Text>,
+          },
           {
             key: 'id',
             header: 'Action',
