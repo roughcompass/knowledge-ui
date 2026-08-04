@@ -319,22 +319,29 @@ export function ClaimsPage() {
               // are about. A list spanning entities without this is unreadable.
               render: (row) => <Text>{row.subject_entity_id}</Text>,
             },
-            { key: 'predicate', header: 'Predicate', render: (row) => <Tag>{row.predicate}</Tag> },
-            { key: 'value', header: 'Value', render: (row) => <Text>{String(row.value)}</Text> },
             {
-              key: 'claim_category',
-              header: 'Category',
-              render: (row) => <Text color="secondary">{row.claim_category}</Text>,
+              key: 'predicate',
+              header: 'Predicate',
+              /*
+               * Carries the category beneath it. Both classify the claim, and at nine
+               * columns the table broke `salt-design-system` across three lines — so
+               * the two low-variance classifiers share a cell rather than each taking
+               * width from the subject, which is the field a reader scans first.
+               */
+              render: (row) => (
+                <StackLayout gap={0.5}>
+                  <Tag>{row.predicate}</Tag>
+                  <Text color="secondary" styleAs="label">
+                    {row.claim_category}
+                  </Text>
+                </StackLayout>
+              ),
             },
+            { key: 'value', header: 'Value', render: (row) => <Text>{String(row.value)}</Text> },
             {
               key: 'confidence',
               header: 'Confidence',
               render: (row) => <ConfidenceCell claim={row} />,
-            },
-            {
-              key: 'authority',
-              header: 'Authority',
-              render: (row) => <Text color="secondary">{row.authority}</Text>,
             },
             {
               key: 'human_confirmed',
@@ -346,7 +353,21 @@ export function ClaimsPage() {
                 row.human_confirmed ? <Tag>confirmed</Tag> : <Text color="secondary">—</Text>,
             },
             { key: 'valid_from', header: 'Valid', render: (row) => <ValidityCell claim={row} /> },
-            { key: 'citations', header: 'Evidence', render: (row) => <Citations claim={row} /> },
+            {
+              key: 'citations',
+              header: 'Evidence',
+              // The authority sits with the citations because both answer "where did
+              // this come from", and separating them made two narrow columns out of
+              // one idea.
+              render: (row) => (
+                <StackLayout gap={0.5}>
+                  <Text color="secondary" styleAs="label">
+                    {row.authority}
+                  </Text>
+                  <Citations claim={row} />
+                </StackLayout>
+              ),
+            },
           ]}
           rows={claims}
           getRowId={(row) => row.claim_id}

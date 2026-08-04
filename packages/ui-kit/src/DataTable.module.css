@@ -34,6 +34,14 @@
 }
 
 /*
+ * Tabular figures on their own, for a column whose digits should line up but whose
+ * values should not be pushed right — a timestamp being the case that needs it.
+ */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
  * Header cells: the reference sets them at body size and medium weight, in the
  * secondary foreground. Salt's `thead` draws `--salt-text-label-fontSize` (12px)
  * at `-fontWeight-strong` (600), which reads as a different, louder register than

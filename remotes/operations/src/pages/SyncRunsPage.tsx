@@ -95,6 +95,7 @@ export function SyncRunsPage() {
       {
         key: 'started_at',
         header: 'Started',
+        figures: 'tabular' as const,
         render: (row) => (
           <Text styleAs="notation">{new Date(row.started_at).toLocaleString()}</Text>
         ),

@@ -130,7 +130,13 @@ noun is the useful half: "Adopt Capability" tells a reader what will be adopted.
   legitimate default.
 - **Headers are Title Case nouns or noun phrases** — "Last Used", "Requests (7d)".
   Never sentences.
-- **Numeric columns use tabular figures** so digits align down the column.
+- **Numeric columns use tabular figures** so digits align down the column. **Built,
+  and the two turned out to need separating.** Right alignment and tabular figures
+  want each other for a _count_, and the table's API coupled them on that basis — but a
+  timestamp column wants the digits to line up without being pushed right, since its
+  values are all the same length and right-aligning pulls them off the label beside
+  them. So `align` decides where a column sits and `figures` decides how its digits are
+  cut; a count asks for both, a timestamp for one.
 - **Sortable headers are real buttons**, with the sort direction shown.
 - **Tables are for tabular data**: rows sharing a shape, with at least one column
   comparable across rows. A single descriptive row with an action is an entity
@@ -183,6 +189,24 @@ one is how a console acquires a second idiom:
 | `Note`              | a caveat about data on this panel | n/a — it qualifies     |
 | `UnavailableNotice` | the data does not exist to fetch  | no                     |
 | `EmptyState`        | the query ran and found nothing   | yes, when data arrives |
+
+### The rest of the "missing primitives" were a mistake in this document
+
+An earlier revision listed `Toast`, `EntityRow`, `Skeleton` and `Tabs` as still to
+build. Checked against Salt, three of the four should not be built at all, and saying
+so is more useful than shipping them:
+
+| Wanted      | Reality                                                                                                                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Tabs`      | Salt ships the whole family — `Tabs`, `TabBar`, `TabList`, `TabPanel`, `TabTrigger`. Use it directly                                                   |
+| `EntityRow` | Salt's `LinkCard` and `InteractableCard` are a descriptive row with one action, which is the definition                                                |
+| `Skeleton`  | Not in Salt, and not worth custom CSS. Salt's `Spinner` through the existing loading panel is the answer; a shimmer is an animation, not a requirement |
+| `Toast`     | Salt ships it, and it is still the wrong choice here — see below                                                                                       |
+
+The general lesson, which is why this table stays rather than being deleted: a
+standard that lists components to build without checking the design system first will
+grow a parallel kit. The question is always "does Salt have this", and the answer was
+yes three times out of four.
 
 **No toast, and the reason is behavioural rather than technical.** Salt's core does
 export a `Toast`, and it is presentational — no provider, so nothing about the

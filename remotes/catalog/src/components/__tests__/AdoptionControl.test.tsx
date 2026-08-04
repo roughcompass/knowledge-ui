@@ -5,7 +5,7 @@ import {
   resetConsumerStore,
   seedAdoption,
 } from '@knowledge-ui/testing';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -53,28 +53,28 @@ describe('the role gate', () => {
     // A disabled control rather than a sentence: the header's action slot holds
     // controls, and prose there sits at a different weight from the buttons
     // beside it. The affordance is still visibly refused.
-    expect(await screen.findByRole('button', { name: 'Adopt' })).toBeDisabled();
+    expect(await screen.findByRole('button', { name: 'Adopt Capability' })).toBeDisabled();
   });
 
   it('shows a consumer an existing adoption without an Unadopt button', async () => {
     seedAdoption('salt-ds', '3.2.0');
     renderControl('salt-ds', 'consumer');
     expect(await screen.findByText(/pinned 3\.2\.0/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Unadopt' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Unadopt Capability' })).not.toBeInTheDocument();
   });
 });
 
 describe('adoption state', () => {
   it('offers Adopt when the server reports no adoption', async () => {
     renderControl();
-    expect(await screen.findByRole('button', { name: 'Adopt' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Adopt Capability' })).toBeInTheDocument();
   });
 
   it('offers Unadopt, and names the pin, when the server reports one', async () => {
     seedAdoption('salt-ds', '3.2.0');
     renderControl();
 
-    expect(await screen.findByRole('button', { name: 'Unadopt' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Unadopt Capability' })).toBeInTheDocument();
     // The pin is part of the state, not decoration: a reader needs to know which
     // version they are declaring a dependency on, not merely that they declared one.
     expect(screen.getByText(/pinned 3\.2\.0/)).toBeInTheDocument();
@@ -85,8 +85,8 @@ describe('adoption state', () => {
     // Rendering "Adopt" during the read would offer an action that may be wrong a
     // moment later, and the label flipping under the cursor is what makes a reader
     // stop trusting the page.
-    expect(screen.getByRole('button', { name: 'Checking adoption…' })).toBeDisabled();
-    await screen.findByRole('button', { name: 'Adopt' });
+    expect(screen.getByRole('button', { name: 'Checking Adoption…' })).toBeDisabled();
+    await screen.findByRole('button', { name: 'Adopt Capability' });
   });
 });
 
@@ -95,12 +95,12 @@ describe('adopting', () => {
     const user = userEvent.setup();
     renderControl();
 
-    await user.click(await screen.findByRole('button', { name: 'Adopt' }));
+    await user.click(await screen.findByRole('button', { name: 'Adopt Capability' }));
 
     // The control must arrive at Unadopt via a refetch of the adoption read. The
     // mutation response is deliberately not seeded into the cache, so this only
     // passes if the invalidation actually happened.
-    expect(await screen.findByRole('button', { name: 'Unadopt' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Unadopt Capability' })).toBeInTheDocument();
   });
 });
 
@@ -110,7 +110,7 @@ describe('unadopting', () => {
     seedAdoption('salt-ds');
     renderControl();
 
-    await user.click(await screen.findByRole('button', { name: 'Unadopt' }));
+    await user.click(await screen.findByRole('button', { name: 'Unadopt Capability' }));
 
     // The dialog has to say that the record survives in the audit log. Without
     // that, "Unadopt" reads as a deletion and a reader hesitates over a
@@ -133,11 +133,19 @@ describe('unadopting', () => {
     seedAdoption('salt-ds');
     renderControl();
 
-    await user.click(await screen.findByRole('button', { name: 'Unadopt' }));
-    await user.click(await screen.findByRole('button', { name: 'Unadopt', hidden: false }));
+    /*
+     * The trigger and the dialog's confirm now carry the same label, which is
+     * correct — a destructive action and its confirmation should name the same thing,
+     * and a confirm reading only "Unadopt" beside a heading that already asks the
+     * question is the bare-verb shape the copy rules reject. So the second click is
+     * scoped to the dialog rather than found by name alone.
+     */
+    await user.click(await screen.findByRole('button', { name: 'Unadopt Capability' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'Unadopt Capability' }));
 
     await waitFor(async () => {
-      expect(await screen.findByRole('button', { name: 'Adopt' })).toBeInTheDocument();
+      expect(await screen.findByRole('button', { name: 'Adopt Capability' })).toBeInTheDocument();
     });
   });
 });

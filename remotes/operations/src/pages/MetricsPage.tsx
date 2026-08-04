@@ -149,6 +149,7 @@ export function MetricsPage() {
               {
                 key: 'value',
                 header: 'Count',
+                align: 'right' as const,
                 render: (row: OperationalReading) => <Text>{formatValue(row.value)}</Text>,
               },
               ...(scopesDiffer
@@ -167,7 +168,7 @@ export function MetricsPage() {
                 : []),
               {
                 key: 'actionable',
-                header: 'Why it matters',
+                header: 'Why It Matters',
                 render: (row: OperationalReading) => (
                   <Text color="secondary">{row.actionable ?? '—'}</Text>
                 ),

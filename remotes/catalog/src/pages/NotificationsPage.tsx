@@ -62,7 +62,7 @@ export function NotificationsPage() {
             disabled={markAll.isPending}
             onClick={() => markAll.mutate({ notificationIds: unreadIds })}
           >
-            {markAll.isPending ? 'Marking…' : `Mark ${unreadIds.length} read`}
+            {markAll.isPending ? 'Marking…' : `Mark ${unreadIds.length} Read`}
           </Button>
         ) : undefined
       }
@@ -191,7 +191,7 @@ export function NotificationsPage() {
                   disabled={markRead.isPending}
                   onClick={() => markRead.mutate({ notificationId: row.id })}
                 >
-                  Mark read
+                  Mark Read
                 </Button>
               ),
           },

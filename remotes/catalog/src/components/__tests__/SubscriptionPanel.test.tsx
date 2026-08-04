@@ -39,7 +39,7 @@ describe('subscribing', () => {
     const user = userEvent.setup();
     renderPanel();
 
-    await user.click(await screen.findByRole('button', { name: 'Subscribe' }));
+    await user.click(await screen.findByRole('button', { name: 'Subscribe to Changes' }));
 
     await waitFor(async () => {
       expect(await screen.findByText('version_published')).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe('subscribing', () => {
     // would then never fire — the same silent-no-op this vocabulary exists to
     // prevent.
     await user.click(await screen.findByRole('checkbox', { name: /version published/i }));
-    expect(screen.getByRole('button', { name: 'Subscribe' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Subscribe to Changes' })).toBeDisabled();
   });
 });
 
@@ -63,7 +63,7 @@ describe('the auto-subscribe disclosure', () => {
   it('explains an unexplained row once one exists', async () => {
     const user = userEvent.setup();
     renderPanel();
-    await user.click(await screen.findByRole('button', { name: 'Subscribe' }));
+    await user.click(await screen.findByRole('button', { name: 'Subscribe to Changes' }));
 
     // Adopting creates a subscription and unadopting does not remove it, so a
     // reader can find a row here they never made. Without this line they would
@@ -81,7 +81,7 @@ describe('cancelling', () => {
     const user = userEvent.setup();
     renderPanel();
 
-    await user.click(await screen.findByRole('button', { name: 'Subscribe' }));
+    await user.click(await screen.findByRole('button', { name: 'Subscribe to Changes' }));
     await user.click(await screen.findByRole('button', { name: 'Cancel' }));
 
     await waitFor(async () => {
@@ -96,7 +96,7 @@ describe('the named absence', () => {
   it('explains that delivery health is unmeasured rather than healthy', async () => {
     const user = userEvent.setup();
     renderPanel();
-    await user.click(await screen.findByRole('button', { name: 'Subscribe' }));
+    await user.click(await screen.findByRole('button', { name: 'Subscribe to Changes' }));
 
     // The distinction that matters: an enabled subscription which has failed
     // every delivery looks identical to one that has succeeded, so the panel

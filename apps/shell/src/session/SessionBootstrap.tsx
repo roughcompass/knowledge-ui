@@ -115,7 +115,7 @@ export function SessionBootstrap({
         title="Could not resolve your session"
         action={
           <Button appearance="bordered" sentiment="neutral" onClick={() => void query.refetch()}>
-            Try again
+            Try Again
           </Button>
         }
       />

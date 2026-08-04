@@ -105,7 +105,7 @@ export function CapabilityListPage() {
       { key: 'entity_type', header: 'Type', render: (row) => <Tag>{row.entity_type}</Tag> },
       {
         key: 'external_id',
-        header: 'External id',
+        header: 'External ID',
         render: (row) => <Text color="secondary">{row.external_id ?? '—'}</Text>,
       },
       {
@@ -143,7 +143,7 @@ export function CapabilityListPage() {
       },
       {
         key: 'arms',
-        header: 'Retrieval arms',
+        header: 'Retrieval Arms',
         // The most interesting column on the page: which of the three arms
         // actually found this result. The legend is rendered once above the
         // table rather than repeated on all 47 rows.

@@ -46,7 +46,7 @@ describe('the create form', () => {
     renderPage();
 
     await user.click(await screen.findByRole('button', { name: 'Add a source' }));
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(screen.getByRole('button', { name: 'Save Connector' }));
 
     /*
      * Two assertions, because either alone would pass while the feature is broken.
@@ -79,7 +79,7 @@ describe('the create form', () => {
     renderPage();
 
     await user.click(await screen.findByRole('button', { name: 'Add a source' }));
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(screen.getByRole('button', { name: 'Save Connector' }));
 
     expect(await screen.findByText(/unknown connector type/i)).toBeInTheDocument();
     expect(screen.getByText('Could not save this source')).toBeInTheDocument();
@@ -96,7 +96,7 @@ describe('the create form', () => {
     await user.type(screen.getByRole('textbox', { name: /display name/i }), 'nightly-adrs');
     await user.click(screen.getByRole('combobox', { name: /connector/i }));
     await user.click(await screen.findByRole('option', { name: 'markdown_adr_rfc' }));
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(screen.getByRole('button', { name: 'Save Connector' }));
 
     /*
      * The row is what proves the invalidation ran. The banner alone would pass with
@@ -105,7 +105,7 @@ describe('the create form', () => {
      */
     expect(await screen.findByText('nightly-adrs')).toBeInTheDocument();
     expect(screen.getByText(/Added nightly-adrs/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save Connector' })).not.toBeInTheDocument();
   });
 });
 
@@ -124,14 +124,14 @@ describe('the confirm dialog', () => {
     // Fail the PATCH. The dialog must keep the message: closing and surfacing it
     // behind the reader is indistinguishable from the action having worked.
     server.use(...scenarios.forbidden('*/v1/admin/sync-sources/*'));
-    await user.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Deactivate Connector' }));
 
     expect(await within(dialog).findByText(/access denied/i)).toBeInTheDocument();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     // Now let it succeed, and only now does it close.
     server.resetHandlers();
-    await user.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Deactivate Connector' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByText(/Deactivated docs-corpus/)).toBeInTheDocument();
   });
@@ -164,7 +164,7 @@ describe('deactivation stays reversible', () => {
     const activeRow = screen.getByText('docs-corpus').closest('tr') as HTMLElement;
     await user.click(within(activeRow).getByRole('button', { name: 'Deactivate' }));
     const dialog = await screen.findByRole('dialog');
-    await user.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Deactivate Connector' }));
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByText('docs-corpus')).toBeInTheDocument();

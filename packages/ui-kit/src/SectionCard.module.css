@@ -40,8 +40,29 @@
   border-color: var(--salt-palette-alpha-contrast-lower);
 }
 
-/* Tighter than the body: a header strip is a label, not content. */
+/*
+ * Negative tracking on the card's heading, matching the page title.
+ *
+ * The reference tightens every heading — roughly -0.04em at display sizes and -0.02em
+ * around 20px — and Salt renders all of them at 0. Only the page title carried the
+ * correction, so a page heading and the card headings beneath it disagreed on a
+ * property the reference applies to both.
+ *
+ * Set as the *token* rather than the property, for the reason the page header's own
+ * sheet works out: `.saltText` reads `letter-spacing: var(--salt-text-letterSpacing)`,
+ * and custom properties inherit — so redefining it on an ancestor reaches the heading
+ * with no `:global()` and no coupling to a Salt class name. Setting `letter-spacing`
+ * on the wrapper would lose, because the child's own declaration beats an inherited
+ * value.
+ *
+ * Per-component by necessity rather than choice: Salt's next theme defines exactly
+ * two letter-spacing tokens and none per style, and `Text` publishes no
+ * `--saltText-letterSpacing`, so there is no scale-level place to put this.
+ */
 .header {
+  /* Tighter than the body: a header strip is a label, not content. */
+  --salt-text-letterSpacing: -0.02em;
+
   padding: var(--salt-spacing-150) var(--salt-spacing-200);
 }
 

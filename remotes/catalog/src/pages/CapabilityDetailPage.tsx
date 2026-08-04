@@ -101,10 +101,10 @@ export function CapabilityDetailPage() {
             disabled={query.isPending}
             onClick={() => setAuditView((v) => !v)}
           >
-            {auditView ? 'Hide bitemporal fields' : 'Show bitemporal fields'}
+            {auditView ? 'Hide Bitemporal Fields' : 'Show Bitemporal Fields'}
           </Button>
           <Button appearance="bordered" sentiment="neutral" onClick={() => navigate('..')}>
-            Back
+            Back to Catalog
           </Button>
         </FlexLayout>
       }

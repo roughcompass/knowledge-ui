@@ -21,14 +21,28 @@ export interface Column<TRow> {
   /** Rendered content. Defaults to the row's value at `key`, stringified. */
   render?: (row: TRow) => ReactNode;
   /**
-   * `right` also switches the column to tabular figures, because the two always
-   * want each other: right alignment is what makes a numeric column scannable,
+   * `right` also switches the column to tabular figures, because for a *count* the
+   * two want each other: right alignment is what makes a column of totals scannable,
    * and proportional digits undo it by giving each row a different width.
    *
    * This was declared and then never read, so every numeric column in the app —
    * scores, counts, totals — rendered left-aligned with proportional digits.
    */
   align?: 'left' | 'right' | 'center';
+  /**
+   * Tabular figures without right alignment.
+   *
+   * The coupling above is right for counts and wrong for timestamps, which is the
+   * case that forced this apart. A column of `2026-08-04 01:22:11` wants its digits
+   * to line up — proportional figures make two adjacent rows disagree by a pixel per
+   * digit, which is exactly what makes scanning for a time range harder than it
+   * should be — but right-aligning it would pull it away from the label beside it and
+   * ragged-left a column whose values are all the same length anyway.
+   *
+   * So: `align` decides where the column sits, this decides how its digits are cut.
+   * A count wants both and says `align: 'right'`; a timestamp wants only this.
+   */
+  figures?: 'tabular';
 }
 
 export interface DataTableProps<TRow> {
@@ -97,9 +111,22 @@ export interface DataTableProps<TRow> {
 }
 
 /** Left is the default and needs no class. */
-function alignClass(align: Column<unknown>['align']): string | undefined {
+/**
+ * The presentation half of a column, which is all this needs.
+ *
+ * Takes the two fields rather than the column, because `Column<TRow>` is generic
+ * over the row type and a parameter typed `Column<unknown>` will not accept one —
+ * the row type is unrelated to how its digits are cut.
+ */
+function alignClass({
+  align,
+  figures,
+}: Pick<Column<unknown>, 'align' | 'figures'>): string | undefined {
   if (align === 'right') return styles.numeric;
   if (align === 'center') return styles.center;
+  // Figures without alignment. Checked after the two alignment cases because
+  // `align: 'right'` already implies tabular and would otherwise win twice.
+  if (figures === 'tabular') return styles.tabular;
   return undefined;
 }
 
@@ -139,7 +166,11 @@ export function DataTable<TRow>({
       <THead>
         <TR>
           {columns.map((column) => (
-            <TH key={column.key} scope="col" className={alignClass(column.align)}>
+            <TH
+              key={column.key}
+              scope="col"
+              className={alignClass({ align: column.align, figures: column.figures })}
+            >
               {column.header}
             </TH>
           ))}
@@ -180,7 +211,10 @@ export function DataTable<TRow>({
               : {})}
           >
             {columns.map((column) => (
-              <TD key={column.key} className={alignClass(column.align)}>
+              <TD
+                key={column.key}
+                className={alignClass({ align: column.align, figures: column.figures })}
+              >
                 {column.render
                   ? column.render(row)
                   : String((row as Record<string, unknown>)[column.key] ?? '')}

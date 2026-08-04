@@ -96,7 +96,7 @@ export function SubscriptionPanel({ handle }: { handle: string }) {
         disabled={create.isPending || selected.length === 0}
         onClick={() => create.mutate({ capabilityHandle: handle, event_kinds: selected })}
       >
-        {create.isPending ? 'Subscribing…' : 'Subscribe'}
+        {create.isPending ? 'Subscribing…' : 'Subscribe to Changes'}
       </Button>
     </FlexLayout>
   );

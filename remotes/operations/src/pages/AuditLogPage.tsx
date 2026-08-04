@@ -67,6 +67,7 @@ export function AuditLogPage() {
       {
         key: 'ts',
         header: 'When',
+        figures: 'tabular' as const,
         render: (row) => (
           <Text styleAs="notation">{new Date(String(row.ts)).toLocaleString()}</Text>
         ),
@@ -93,7 +94,7 @@ export function AuditLogPage() {
       },
       {
         key: 'request_id',
-        header: 'Request id',
+        header: 'Request ID',
         render: (row) =>
           row.request_id ? (
             <FlexLayout gap={1} align="center">
@@ -184,7 +185,7 @@ export function AuditLogPage() {
         <Collapsible open>
           <CollapsibleTrigger>
             <Button appearance="transparent" sentiment="neutral">
-              Change detail
+              Change Detail
             </Button>
           </CollapsibleTrigger>
           <CollapsiblePanel>

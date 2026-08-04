@@ -51,7 +51,7 @@ describe('mark read', () => {
     renderPage();
 
     await screen.findByText('salt-ds');
-    const rows = screen.getAllByRole('button', { name: 'Mark read' });
+    const rows = screen.getAllByRole('button', { name: 'Mark Read' });
     await user.click(rows[0] as HTMLElement);
 
     // Nothing local removed it — the item carries no read flag. This passes only
@@ -70,7 +70,7 @@ describe('mark read', () => {
     renderPage();
 
     await screen.findByText('salt-ds');
-    for (const button of screen.getAllByRole('button', { name: 'Mark read' })) {
+    for (const button of screen.getAllByRole('button', { name: 'Mark Read' })) {
       await user.click(button);
     }
 
@@ -86,7 +86,7 @@ describe('the read filter', () => {
     renderPage();
 
     await screen.findByText('salt-ds');
-    await user.click(screen.getAllByRole('button', { name: 'Mark read' })[0] as HTMLElement);
+    await user.click(screen.getAllByRole('button', { name: 'Mark Read' })[0] as HTMLElement);
     await waitFor(() => expect(screen.queryByText('salt-ds')).not.toBeInTheDocument());
 
     // Read state is a filter, not a deletion. If the mark-read invalidation had
@@ -110,14 +110,14 @@ describe('the named absence', () => {
 describe('bulk mark read', () => {
   it('names how many it will act on, so the count is not a surprise', async () => {
     renderPage();
-    expect(await screen.findByRole('button', { name: 'Mark 2 read' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Mark 2 Read' })).toBeInTheDocument();
   });
 
   it('clears every unread item and reaches the empty state', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: 'Mark 2 read' }));
+    await user.click(await screen.findByRole('button', { name: 'Mark 2 Read' }));
 
     await waitFor(async () => {
       expect(await screen.findByText(/up to date with every capability/)).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe('bulk mark read', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: 'Mark 2 read' }));
+    await user.click(await screen.findByRole('button', { name: 'Mark 2 Read' }));
     await waitFor(async () => {
       expect(await screen.findByText(/up to date with every capability/)).toBeInTheDocument();
     });

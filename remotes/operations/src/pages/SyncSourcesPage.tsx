@@ -246,7 +246,7 @@ export function SyncSourcesPage() {
                 disabled={create.isPending}
                 onClick={submit}
               >
-                {create.isPending ? 'Saving…' : 'Save'}
+                {create.isPending ? 'Saving…' : 'Save Connector'}
               </Button>
             </>
           }
@@ -378,7 +378,7 @@ export function SyncSourcesPage() {
       <ConfirmDialog
         open={deactivating !== null}
         title={`Deactivate ${deactivating?.display_name ?? ''}?`}
-        confirmLabel="Deactivate"
+        confirmLabel="Deactivate Connector"
         busy={patch.isPending}
         error={patch.error}
         onCancel={() => {

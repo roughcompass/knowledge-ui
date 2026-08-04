@@ -54,21 +54,35 @@ describe('the claims page', () => {
      * once per view as the recall caveat rather than per row. Everything else the
      * response carries is a per-claim value and belongs in a column.
      */
-    const perClaimFields: Array<[string, string]> = [
+    const columnFields: Array<[string, string]> = [
       ['subject_entity_id', 'Subject'],
       ['predicate', 'Predicate'],
       ['value', 'Value'],
-      ['claim_category', 'Category'],
       ['confidence', 'Confidence'],
-      ['authority', 'Authority'],
       ['human_confirmed', 'Owner Confirmed'],
       ['valid_from', 'Valid'],
       ['citations', 'Evidence'],
     ];
 
-    for (const [field, header] of perClaimFields) {
+    for (const [field, header] of columnFields) {
       expect(headers, `${field} is served but has no column`).toContain(header);
     }
+
+    /*
+     * Two fields are rendered *inside* another cell rather than in a column of their
+     * own: the category sits with the predicate and the authority with the evidence,
+     * because each pair answers one question and nine columns broke the subject across
+     * three lines. Still asserted, by value — the requirement is that a served field
+     * reaches the screen, not that it gets a column.
+     */
+    expect(
+      within(table).getAllByText('interface').length,
+      'claim_category is served but not rendered',
+    ).toBeGreaterThan(0);
+    expect(
+      within(table).getAllByText('derived').length,
+      'authority is served but not rendered',
+    ).toBeGreaterThan(0);
   });
 
   it('shows the subject, so a claim says what it is about', async () => {

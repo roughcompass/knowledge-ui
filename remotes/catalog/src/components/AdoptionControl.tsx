@@ -62,7 +62,7 @@ export function AdoptionControl({ handle }: { handle: string }) {
   if (adoption.isPending) {
     return (
       <Button appearance="bordered" sentiment="neutral" disabled>
-        Checking adoption…
+        Checking Adoption…
       </Button>
     );
   }
@@ -90,7 +90,7 @@ export function AdoptionControl({ handle }: { handle: string }) {
               onClick={() => setConfirming(true)}
               disabled={unadopt.isPending}
             >
-              Unadopt
+              Unadopt Capability
             </Button>
           )}
         </FlexLayout>
@@ -98,7 +98,7 @@ export function AdoptionControl({ handle }: { handle: string }) {
         <ConfirmDialog
           open={confirming}
           title="Unadopt this capability?"
-          confirmLabel="Unadopt"
+          confirmLabel="Unadopt Capability"
           busy={unadopt.isPending}
           error={unadopt.error}
           onCancel={() => setConfirming(false)}
@@ -120,10 +120,17 @@ export function AdoptionControl({ handle }: { handle: string }) {
               not remove it: `unadopt` soft-deletes the adoption row and nothing else.
               Saying so here is the difference between a reversible action and one that
               quietly leaves something behind.
+
+              It used to send the reader to "Subscriptions", which is nowhere: there is
+              no such destination, and there cannot easily be one — subscriptions are
+              readable per capability and there is no endpoint listing a tenant's own
+              across all of them. So an instruction that named a place the app does not
+              have has become one that names the panel further down this same page,
+              which is where the subscription can actually be cancelled.
             */}
             You will keep receiving notifications for it. Adopting created an inbox subscription,
-            and unadopting does not remove one — cancel it from Subscriptions if you no longer want
-            the updates.
+            and unadopting does not remove one — cancel it in the Subscriptions panel further down
+            this page if you no longer want the updates.
           </Text>
         </ConfirmDialog>
       </>
@@ -140,7 +147,7 @@ export function AdoptionControl({ handle }: { handle: string }) {
     return (
       <Tooltip content="Adopting is limited to producer and admin roles.">
         <Button appearance="bordered" sentiment="neutral" disabled>
-          Adopt
+          Adopt Capability
         </Button>
       </Tooltip>
     );
@@ -154,7 +161,7 @@ export function AdoptionControl({ handle }: { handle: string }) {
         onClick={() => adopt.mutate({ capabilityHandle: handle })}
         disabled={adopt.isPending}
       >
-        {adopt.isPending ? 'Adopting…' : 'Adopt'}
+        {adopt.isPending ? 'Adopting…' : 'Adopt Capability'}
       </Button>
       {adopt.error ? <ActionResult error={adopt.error} errorTitle="Could not adopt" /> : null}
     </FlexLayout>

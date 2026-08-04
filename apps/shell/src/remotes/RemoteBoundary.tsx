@@ -58,7 +58,7 @@ class RemoteErrorBoundary extends Component<Props, State> {
               failed for the lifetime of the page.
             </Text>
             <Button sentiment="accented" onClick={() => window.location.reload()}>
-              Reload
+              Reload Page
             </Button>
           </StackLayout>
         </BannerContent>
