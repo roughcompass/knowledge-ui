@@ -110,6 +110,21 @@ describe('no-restricted-imports, as resolved per file', () => {
   );
 
   it.each(['shellEntry', 'remoteEntry'] as SampleName[])(
+    'still confines chart marks in %s, which the stylesheet exemption used to drop',
+    async (sample) => {
+      /*
+       * These two entries match both the feature-code block and the theme-entry
+       * block, and the later one wins — so lifting the stylesheet ban here silently
+       * dropped the chart-mark ban with it, leaving exactly three files in the app
+       * free to import a mark directly. A narrower instance of the same
+       * replace-not-merge bug this file exists to catch, found by review rather
+       * than by this test, which is why the assertion now exists.
+       */
+      expect(restrictedImportPaths(await rulesFor(sample))).toContain('@knowledge-ui/ui-kit');
+    },
+  );
+
+  it.each(['shellEntry', 'remoteEntry'] as SampleName[])(
     'lifts the stylesheet ban for %s without lifting the package bans',
     async (sample) => {
       /*

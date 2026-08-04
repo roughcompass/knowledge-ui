@@ -31,9 +31,10 @@ const SPEC_PATHS: string[] = Object.keys(
  * /v1/capabilities` would otherwise yield `/PATCH`. Found by this test failing on
  * exactly that the first time it ran.
  */
-function pathFromEndpoint(endpoint: string): string {
-  const match = /(\/(?:v1|healthz|readyz|metrics)[^\s,]*)/.exec(endpoint);
-  return match?.[1] ?? '';
+function pathsFromEndpoint(endpoint: string): string[] {
+  return [...endpoint.matchAll(/(\/(?:v1|healthz|readyz|metrics)[^\s,]*)/g)].map(
+    (m) => m[1] as string,
+  );
 }
 
 /**
@@ -172,17 +173,36 @@ describe('the capability table against the API', () => {
      */
     for (const capability of ALL_CAPABILITIES) {
       const gate = GATES[capability];
-      const claimed = gate.serverPath ?? pathFromEndpoint(gate.endpoint);
-      expect(claimed, `${capability} names no path`).toBeTruthy();
+      const claimedPaths = gate.serverPath ? [gate.serverPath] : pathsFromEndpoint(gate.endpoint);
+      expect(claimedPaths.length, `${capability} names no path`).toBeGreaterThan(0);
 
-      if (claimed.endsWith('*')) {
-        const prefix = claimed.slice(0, -1);
-        expect(
-          SPEC_PATHS.filter((p) => p.startsWith(prefix)).length,
-          `${capability} claims the family ${claimed}, which matches no path in the API document`,
-        ).toBeGreaterThan(0);
-      } else {
-        expect(SPEC_PATHS, `${capability} claims ${claimed}`).toContain(claimed);
+      /*
+       * Every path, not the first. One gate names two routes — the two probes —
+       * and a single-match extraction verified one of them while reporting the
+       * whole entry as checked, which is precisely the "reads as verified coverage
+       * while gating nothing" failure this test exists to prevent.
+       */
+      for (const claimed of claimedPaths) {
+        if (claimed.endsWith('*')) {
+          const prefix = claimed.slice(0, -1);
+          const family = SPEC_PATHS.filter((p) => p.startsWith(prefix));
+
+          /*
+           * A family gate carved out by its note has to still cover something
+           * *other* than the carve-out. Counting the whole prefix would pass even
+           * if every route but the excluded one disappeared.
+           */
+          const excluded = gate.note?.match(/except (\S+)/)?.[1];
+          const covered = excluded
+            ? family.filter((p) => !p.includes(excluded.replace(/[^a-z-]/g, '')))
+            : family;
+          expect(
+            covered.length,
+            `${capability} claims the family ${claimed}, which covers no path beyond its own exclusion`,
+          ).toBeGreaterThan(0);
+        } else {
+          expect(SPEC_PATHS, `${capability} claims ${claimed}`).toContain(claimed);
+        }
       }
     }
   });

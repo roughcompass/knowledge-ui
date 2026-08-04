@@ -24,7 +24,7 @@ import {
   UnavailableNotice,
   popoverOverlayProps,
 } from '@knowledge-ui/ui-kit';
-import type { ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 /**
@@ -77,6 +77,29 @@ function ConfidenceCell({ claim }: { claim: Claim }) {
   );
 }
 
+function ValidityCell({ claim }: { claim: Claim }) {
+  /*
+   * When the claim was true, which is not the same as when it was recorded.
+   *
+   * An open interval is the common case and reads as "still holds" rather than as
+   * missing data, so the end is rendered as a word rather than a dash. `as_of` is
+   * the observation instant and is shown alongside, because a claim that was true
+   * and has not been re-observed since is a different thing from one confirmed
+   * this morning.
+   */
+  return (
+    <StackLayout gap={0.5}>
+      <Text color="secondary">
+        {String(claim.valid_from).slice(0, 10)} →{' '}
+        {claim.valid_to ? String(claim.valid_to).slice(0, 10) : 'still holds'}
+      </Text>
+      <Text color="secondary" styleAs="label">
+        seen {String(claim.as_of).slice(0, 10)}
+      </Text>
+    </StackLayout>
+  );
+}
+
 function Citations({ claim }: { claim: Claim }) {
   /*
    * Always visible, never behind a disclosure. A citation the reader has to click
@@ -113,7 +136,36 @@ export function ClaimsPage() {
   };
 
   const allowed = can(session, 'memory:read');
-  const searching = q.trim().length > 0;
+
+  /*
+   * The request follows the typing, a beat behind.
+   *
+   * Ranked search is a real query per call, and firing one per keystroke means most
+   * of them are answers to a prefix nobody wanted — wasted work server-side, and a
+   * result list that flickers through partial matches on the way to the intended
+   * one. The URL still updates immediately, so the control stays responsive and a
+   * link copied mid-typing is still the view on screen.
+   */
+  const [debouncedQuery, setDebouncedQuery] = useState(q);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(q), 250);
+    return () => clearTimeout(timer);
+  }, [q]);
+
+  /*
+   * Two notions of "searching", and the split is deliberate.
+   *
+   * `searchIntent` is what the reader has typed, and drives the controls — the
+   * predicate field disables the moment they start typing, not a beat later, because
+   * a control that stays live while its value is being ignored is worse than one
+   * that greys out.
+   *
+   * `searching` is what has actually been asked for, and drives which result set is
+   * rendered. It lags, which is what keeps the filtered list on screen until the
+   * ranked answer arrives instead of flashing an empty search state in between.
+   */
+  const searchIntent = q.trim().length > 0;
+  const searching = debouncedQuery.trim().length > 0;
 
   /*
    * Two endpoints, and only one is asked at a time. A structural filter and a
@@ -131,7 +183,7 @@ export function ClaimsPage() {
     { enabled: allowed && !searching },
   );
   const searched = useClaimSearch(client, scope, {
-    q: allowed && searching ? q : '',
+    q: allowed && searching ? debouncedQuery : '',
     ...(minConfidence > 0 ? { minConfidence } : {}),
     persona,
   });
@@ -181,8 +233,9 @@ export function ClaimsPage() {
             placeholder="Any"
             // Disabled while searching, because the search endpoint takes no
             // predicate — offering a control the request would drop is worse than
-            // not offering it.
-            disabled={searching}
+            // not offering it. Keyed to the typed value rather than the debounced
+            // one so it responds to the keystroke, not to the request.
+            disabled={searchIntent}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
               set('predicate', event.target.value)
             }
@@ -255,8 +308,20 @@ export function ClaimsPage() {
           hideCaption
           zebra
           columns={[
+            {
+              key: 'subject_entity_id',
+              header: 'Subject',
+              // First column, because a predicate and a value do not say what they
+              // are about. A list spanning entities without this is unreadable.
+              render: (row) => <Text>{row.subject_entity_id}</Text>,
+            },
             { key: 'predicate', header: 'Predicate', render: (row) => <Tag>{row.predicate}</Tag> },
             { key: 'value', header: 'Value', render: (row) => <Text>{String(row.value)}</Text> },
+            {
+              key: 'claim_category',
+              header: 'Category',
+              render: (row) => <Text color="secondary">{row.claim_category}</Text>,
+            },
             {
               key: 'confidence',
               header: 'Confidence',
@@ -276,6 +341,7 @@ export function ClaimsPage() {
               render: (row) =>
                 row.human_confirmed ? <Tag>confirmed</Tag> : <Text color="secondary">—</Text>,
             },
+            { key: 'valid_from', header: 'Valid', render: (row) => <ValidityCell claim={row} /> },
             { key: 'citations', header: 'Evidence', render: (row) => <Citations claim={row} /> },
           ]}
           rows={claims}

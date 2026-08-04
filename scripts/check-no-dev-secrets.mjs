@@ -61,7 +61,22 @@ function devSecretFromEnvFile() {
 
 const needles = [];
 const secret = devSecretFromEnvFile();
-if (secret) needles.push({ text: secret, what: 'the development client secret' });
+if (secret) {
+  needles.push({ text: secret, what: 'the development client secret' });
+} else {
+  /*
+   * A missing needle is a failure, not a smaller search.
+   *
+   * The persona-roster branch below already fails loudly on this reasoning, and
+   * this one used to just omit the needle — so renaming the key in the env file
+   * silently dropped the secret from the search and the script still reported PASS
+   * with a quietly reduced count.
+   */
+  console.error(
+    'check-no-dev-secrets: FAIL\n\n  No VITE_PERSONA_SECRET line in .env.development, so the credential this\n  check exists to look for was never assembled. A guard that passes because\n  its needle went stale is worse than no guard.',
+  );
+  process.exit(1);
+}
 for (const persona of PERSONAS) {
   needles.push({ text: persona.clientId, what: `the ${persona.key} persona's client id` });
 }
@@ -81,7 +96,17 @@ function* walk(dir) {
   }
 }
 
-const missing = DIST_DIRS.filter((d) => !existsSync(d));
+/*
+ * Empty counts as missing.
+ *
+ * `existsSync` is true for an empty directory, so one sailed past this check and
+ * then produced zero hits over zero files — reported as PASS, indistinguishable
+ * from a real credential-free build. That state is reachable: the bundler clears
+ * the output directory at the *start* of a build, so a build that fails right
+ * after leaves exactly this. It is the same false negative this script was written
+ * to remove, one layer in.
+ */
+const missing = DIST_DIRS.filter((d) => !existsSync(d) || readdirSync(d).length === 0);
 if (missing.length > 0) {
   console.error('check-no-dev-secrets: FAIL\n');
   for (const d of missing) console.error(`  no build output at ${relative(ROOT, d)}`);

@@ -137,7 +137,7 @@ export const impactHandlers = [
     return HttpResponse.json({
       root_entity_id: 'salt-design-system',
       depth,
-      direction: 'upstream',
+      direction: 'reverse',
       as_of: null,
       nodes: [{ entity_id: 'checkout-web', name: 'Checkout Web' }],
       edges:
@@ -165,7 +165,7 @@ export const impactHandlers = [
     HttpResponse.json({
       root_entity_id: 'salt-design-system',
       depth: Number(new URL(request.url).searchParams.get('depth') ?? '1'),
-      direction: 'downstream',
+      direction: 'forward',
       as_of: null,
       nodes: [],
       edges: [],

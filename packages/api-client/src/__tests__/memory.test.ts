@@ -88,6 +88,21 @@ describe('the recall caveat', () => {
   });
 });
 
+describe('the recall-note invariant', () => {
+  it('refuses to speak for a set whose claims disagree', () => {
+    /*
+     * The note is shown once for the whole set, which is only honest if every claim
+     * in it carries the same note. This used to take the first one on faith — while
+     * its neighbour re-verified the citation invariant for exactly the reason that
+     * applies here too: the guarantee lives in another repository and a response is a
+     * runtime value. A caveat that is stale for part of what is on screen is the
+     * failure this surface exists to prevent.
+     */
+    const claims = [makeClaim(), makeClaim({ claim_id: 'c2', trust_note: 'something else' })];
+    expect(recallCaveat(claims)).toBeNull();
+  });
+});
+
 describe('the citation invariant', () => {
   it('finds nothing when every claim is cited, which is the server guarantee', () => {
     expect(uncitedClaims([makeClaim(), makeClaim({ claim_id: 'c2' })])).toEqual([]);

@@ -64,8 +64,9 @@ than flat ones:
 | Modal and fullscreen                   | 16px   |
 
 This repo currently flattens everything to 6px. That is correct for the base tier
-and wrong for the other two: a modal at card radius does not read as floating
-above the page.
+and wrong for the rest: a modal at card radius does not read as floating above the
+page. Modal and fullscreen are separate steps — 12px and 16px — not one value; an
+earlier draft of this table collapsed them and gave modals the fullscreen radius.
 
 **Elevation is reserved for things that genuinely float.** A card gets a border
 _or_ a shadow, never both — Salt's default is both.
@@ -124,7 +125,8 @@ and at most one primary plus one secondary action.
   wasted line.
 - **Quote the query back** when the emptiness is a search result.
 - **Actions are Title Case verb-plus-noun**, and are real buttons or links so they
-  stay keyboard-reachable.
+  stay keyboard-reachable. This is where "Get Started" and "Continue" are called
+  out as too vague — a call to action names what happens next.
 - **Asynchronously filtered regions announce politely**, so a screen-reader user
   learns the result set changed.
 - **Not for persistent warnings.** Those are notes or page-level banners.

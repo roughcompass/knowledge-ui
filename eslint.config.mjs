@@ -132,6 +132,19 @@ const restrictedImports = ({ paths = [], globalCss = 'banned' } = {}) => [
 ];
 
 /**
+ * Chart marks are only reachable through the figure that pairs them with a table.
+ *
+ * Hoisted so the two blocks that need it share one definition rather than one
+ * having it and the other silently not.
+ */
+const CHART_MARKS_ONLY_VIA_FIGURE = {
+  name: '@knowledge-ui/ui-kit',
+  importNames: ['BarSeries', 'Sparkline'],
+  message:
+    'Render a chart through <Figure>, which pairs the mark with its data table. Importing a mark directly makes the table optional, and a chart without one is unreadable to anyone who cannot see it — and uncheckable by anyone who can.',
+};
+
+/**
  * Comparing a session's role to a literal, outside the package that owns roles.
  *
  * The capability table exists so a screen asks `can(session, 'adoption:write')`
@@ -147,13 +160,40 @@ const restrictedImports = ({ paths = [], globalCss = 'banned' } = {}) => [
  * Narrow on purpose — it matches a comparison against `.role`, not the word
  * "role" anywhere. `packages/auth` is exempt because that is where the table and
  * its own tests live.
+ *
+ * ## What it does not catch, stated rather than implied
+ *
+ * These are syntactic selectors with no scope analysis, so a role that has been
+ * moved into a variable first is invisible to them:
+ *
+ *     const { role } = session;  if (role === 'admin')     // not caught
+ *     const r = session.role;    if (r === 'admin')         // not caught
+ *
+ * Catching those needs type or scope information this rule does not have, and a
+ * version that matched any comparison against a variable *named* `role` would fire
+ * on legitimate code inside the package that owns roles. Both forms are unusual
+ * enough in this codebase to be worth a review catch rather than a rule that gets
+ * disabled. Recorded here so the gap is a known limit and not a false sense of
+ * coverage — which is the failure this whole family of rules keeps producing.
  */
-const NO_ROLE_LITERALS = {
-  selector:
-    'BinaryExpression[operator=/^[!=]==?$/]:has(MemberExpression[property.name="role"]):has(Literal[value=/^(admin|producer|consumer|auditor)$/])',
-  message:
-    "Do not compare a role to a literal. Ask the capability table instead: can(session, '<capability>'). It mirrors what the API enforces and is tested against the API document; a role name here is a second copy of that rule with no test.",
-};
+const NO_ROLE_LITERALS = [
+  {
+    selector:
+      'BinaryExpression[operator=/^[!=]==?$/]:has(MemberExpression[property.name="role"]):has(Literal[value=/^(admin|producer|consumer|auditor)$/])',
+    message:
+      "Do not compare a role to a literal. Ask the capability table instead: can(session, '<capability>'). It mirrors what the API enforces and is tested against the API document; a role name here is a second copy of that rule with no test.",
+  },
+  {
+    /*
+     * A switch over the role is the same rule written a different way, and it was
+     * not caught by the comparison selector — found by an adversarial review that
+     * ran the rule against a fixture rather than reading it.
+     */
+    selector: 'SwitchStatement > MemberExpression[property.name="role"]',
+    message:
+      "Do not switch on a role. Ask the capability table instead: can(session, '<capability>') per branch. A switch here is the same duplicated rule as a comparison, with the same absence of a test.",
+  },
+];
 
 /** Builds a complete `no-restricted-syntax` value, universal selectors included. */
 const restrictedSyntax = (...additional) => [
@@ -224,7 +264,7 @@ export default tseslint.config(
           selector: `JSXOpeningElement[name.name="${el.name}"]`,
           message: `<${el.name}> is covered by Salt. ${el.message}`,
         })),
-        NO_ROLE_LITERALS,
+        ...NO_ROLE_LITERALS,
       ),
     },
   },
@@ -236,7 +276,7 @@ export default tseslint.config(
    */
   {
     files: ['apps/**/*.ts', 'remotes/**/*.ts'],
-    rules: { 'no-restricted-syntax': restrictedSyntax(NO_ROLE_LITERALS) },
+    rules: { 'no-restricted-syntax': restrictedSyntax(...NO_ROLE_LITERALS) },
   },
 
   /*
@@ -256,16 +296,7 @@ export default tseslint.config(
   {
     files: ['remotes/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': restrictedImports({
-        paths: [
-          {
-            name: '@knowledge-ui/ui-kit',
-            importNames: ['BarSeries', 'Sparkline'],
-            message:
-              'Render a chart through <Figure>, which pairs the mark with its data table. Importing a mark directly makes the table optional, and a chart without one is unreadable to anyone who cannot see it — and uncheckable by anyone who can.',
-          },
-        ],
-      }),
+      'no-restricted-imports': restrictedImports({ paths: [CHART_MARKS_ONLY_VIA_FIGURE] }),
     },
   },
 
@@ -278,7 +309,17 @@ export default tseslint.config(
    */
   {
     files: ['apps/shell/src/main.tsx', 'remotes/*/src/standalone.tsx'],
-    rules: { 'no-restricted-imports': restrictedImports({ globalCss: 'allowed' }) },
+    rules: {
+      'no-restricted-imports': restrictedImports({
+        // The chart ban has to be restated here, because this block matches files
+        // the feature-code block also matches and the later one wins. Without it
+        // these three entries were the only files in apps/ and remotes/ free to
+        // import a mark directly — a narrower version of the very bug this
+        // composition exists to prevent.
+        paths: [CHART_MARKS_ONLY_VIA_FIGURE],
+        globalCss: 'allowed',
+      }),
+    },
   },
 
   // Node-side tooling.

@@ -29,25 +29,66 @@ function renderPage(role: 'consumer' | 'producer' | 'admin' | 'auditor' = 'consu
 }
 
 describe('the claims page', () => {
-  it('renders the whole trust envelope, not just the triple', async () => {
+  it('renders every field of the envelope the API serves', async () => {
     /*
-     * The point of the surface. A claim shown as subject-predicate-value is
-     * indistinguishable from an assertion; what makes it actionable is the
-     * confidence, the authority, whether an owner confirmed it, and the evidence.
+     * The point of the surface, and asserted exhaustively rather than by listing
+     * the columns that happen to exist.
+     *
+     * An earlier version of this test named six headers and passed, while the page
+     * silently dropped four served fields — including the subject, without which a
+     * predicate and a value do not say what they are about. The test was shaped to
+     * the code instead of to the contract, so it endorsed the gap it existed to
+     * catch. Driving it from the response keys is what makes that impossible: a
+     * field the API adds and the page ignores now fails here.
      */
     renderPage();
     const table = await screen.findByRole('table', { name: /claims/i });
 
-    for (const header of [
-      'Predicate',
-      'Value',
-      'Confidence',
-      'Authority',
-      'Owner Confirmed',
-      'Evidence',
-    ]) {
-      expect(within(table).getByRole('columnheader', { name: header })).toBeInTheDocument();
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((h) => h.textContent?.trim());
+
+    /*
+     * `label`, `trust` and `trust_note` are deliberately absent from this list:
+     * they are structurally invariant across every served claim, and they render
+     * once per view as the recall caveat rather than per row. Everything else the
+     * response carries is a per-claim value and belongs in a column.
+     */
+    const perClaimFields: Array<[string, string]> = [
+      ['subject_entity_id', 'Subject'],
+      ['predicate', 'Predicate'],
+      ['value', 'Value'],
+      ['claim_category', 'Category'],
+      ['confidence', 'Confidence'],
+      ['authority', 'Authority'],
+      ['human_confirmed', 'Owner Confirmed'],
+      ['valid_from', 'Valid'],
+      ['citations', 'Evidence'],
+    ];
+
+    for (const [field, header] of perClaimFields) {
+      expect(headers, `${field} is served but has no column`).toContain(header);
     }
+  });
+
+  it('shows the subject, so a claim says what it is about', async () => {
+    // A list spanning entities with no subject column is a list of assertions
+    // about nothing in particular.
+    renderPage();
+    const table = await screen.findByRole('table', { name: /claims/i });
+    expect(within(table).getAllByText('salt-design-system').length).toBeGreaterThan(0);
+  });
+
+  it('shows the interval a claim was true for, and when it was last seen', async () => {
+    /*
+     * Bi-temporality is not decoration here: a claim that was true and has not
+     * been re-observed since is a different thing from one confirmed this morning,
+     * and an open interval reads as "still holds" rather than as missing data.
+     */
+    renderPage();
+    const table = await screen.findByRole('table', { name: /claims/i });
+    expect(within(table).getAllByText(/still holds/).length).toBeGreaterThan(0);
+    expect(within(table).getAllByText(/^seen 2026-08-04$/).length).toBeGreaterThan(0);
   });
 
   it('states the recall caveat once, not on every row', async () => {

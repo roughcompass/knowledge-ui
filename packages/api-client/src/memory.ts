@@ -210,7 +210,23 @@ export function confidenceBand(confidence: number): ConfidenceBand {
  */
 export function recallCaveat(claims: readonly Claim[]): string | null {
   const note = claims[0]?.trust_note;
-  return claims.length > 0 && note ? note : null;
+  if (claims.length === 0 || !note) return null;
+
+  /*
+   * The uniformity is checked, not assumed.
+   *
+   * Its neighbour below re-verifies the citation invariant for a stated reason —
+   * the guarantee lives in another repository and a response is a runtime value —
+   * and this function was trusting an invariant of exactly the same kind without
+   * the same check. If a claim were ever served through a path carrying a stronger
+   * caveat, showing the first note for the whole set would present a warning that
+   * is stale for part of it, on the one surface whose purpose is not doing that.
+   *
+   * Returning null rather than a guess: a caveat that might not apply to what is on
+   * screen is worse than the empty-state path, which at least renders nothing
+   * misleading.
+   */
+  return claims.every((claim) => claim.trust_note === note) ? note : null;
 }
 
 /**

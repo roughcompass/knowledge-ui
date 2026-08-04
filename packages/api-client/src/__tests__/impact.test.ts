@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { edgesByRelationship, traversalCaveats, type EdgeRef, type Traversal } from '../impact';
+import { createRegistryClient } from '../client';
+import {
+  TRAVERSAL_DEPTHS,
+  edgesByRelationship,
+  traversalCaveats,
+  type EdgeRef,
+  type Traversal,
+} from '../impact';
 import { queryKeys } from '../keys';
 
 const scope = { personaKey: 'producer', tenantSlug: 'dev' };
@@ -19,7 +26,7 @@ function traversal(overrides: Partial<Traversal> = {}): Traversal {
   return {
     root_entity_id: 'root',
     depth: 2,
-    direction: 'downstream',
+    direction: 'reverse',
     as_of: null,
     nodes: [],
     edges: [],
@@ -28,6 +35,45 @@ function traversal(overrides: Partial<Traversal> = {}): Traversal {
     ...overrides,
   } as Traversal;
 }
+
+describe('the shape the API actually declares', () => {
+  /**
+   * Two parameters were wrong in a way only the wire could show, and both were
+   * wrong in the same direction: the client invented a spelling that read better
+   * than the one the API documents.
+   */
+  it('sends edge types as one comma-separated value, not a repeated parameter', async () => {
+    /*
+     * The document declares `edge_types` as a nullable *string* described as
+     * "comma-separated edge_rel vocab values". Passing an array made the client
+     * serialise it as `?edge_types=calls&edge_types=deploys`, and a server binding a
+     * single string reads only the first — so selecting three relationship types
+     * silently filtered on one, with no error and nothing on screen to suggest it.
+     */
+    let seen = '';
+    vi.stubGlobal('fetch', (url: string) => {
+      seen = String(url);
+      return Promise.resolve(
+        new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } }),
+      );
+    });
+    const client = createRegistryClient({ baseUrl: 'http://x', getToken: () => 't' });
+    await client.request('/v1/capabilities/a/dependents', {
+      query: { edge_types: ['calls', 'deploys'].join(',') },
+    });
+
+    const params = new URL(seen).searchParams;
+    expect(params.getAll('edge_types')).toEqual(['calls,deploys']);
+    expect(params.get('edge_types')).toBe('calls,deploys');
+    vi.unstubAllGlobals();
+  });
+
+  it('offers the depths the server accepts, and no others', () => {
+    // Capped at five server-side. Offering more would be refused; offering fewer
+    // hid reach that was available.
+    expect([...TRAVERSAL_DEPTHS]).toEqual([1, 2, 3, 4, 5]);
+  });
+});
 
 describe('grouping edges for reading', () => {
   it('groups by relationship so a long list becomes scannable', () => {

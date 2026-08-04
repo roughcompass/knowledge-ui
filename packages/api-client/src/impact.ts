@@ -48,29 +48,72 @@ export type EdgeRef = Schemas['EdgeRefItem'];
 /**
  * How deep to walk.
  *
- * Offered as a small closed set rather than a free number because the useful
- * answers are "direct", "one hop out" and "everything reachable" — and an
- * arbitrary depth on a dense graph is a slow query whose result nobody reads.
+ * One to five, because that is the range the server accepts and caps at — offering
+ * more would be refused, and offering fewer would hide reach that is available.
+ * A closed set rather than a free number because an arbitrary depth on a dense
+ * graph is a slow query whose result nobody reads.
  */
-export const TRAVERSAL_DEPTHS = [1, 2, 3] as const;
+export const TRAVERSAL_DEPTHS = [1, 2, 3, 4, 5] as const;
 export type TraversalDepth = (typeof TRAVERSAL_DEPTHS)[number];
 
 export interface TraversalQuery {
   depth?: TraversalDepth;
-  /** Relationship types to follow. Omitted means every type the tenant can see. */
+  /**
+   * Relationship types to follow. Omitted means every dependency relationship.
+   *
+   * Note this is accepted by the two traversal endpoints and **not** by
+   * `dependencies`, which declares no such parameter — so it is not part of that
+   * hook's query.
+   */
   edgeTypes?: readonly string[];
   /** The instant to traverse as of. Omitted means now. */
   asOf?: Date | string;
 }
 
+/**
+ * Which way to walk, in the server's words.
+ *
+ * `forward` is dependencies, `reverse` is dependents, and the server's default is
+ * `reverse`. Spelled exactly as the API spells it rather than as `upstream` and
+ * `downstream`, which read more naturally and are values the API does not define:
+ * an unrecognised string here would fall back to the server's default, so asking
+ * for one direction could silently return the other. A friendlier vocabulary
+ * translated at the boundary was the alternative, and it is one more place for the
+ * mapping to be wrong.
+ */
+export type TraversalDirection = 'forward' | 'reverse';
+
+/** Parameters both traversal endpoints accept. */
 function traversalParams(query: TraversalQuery) {
   return compact({
     depth: query.depth,
-    // Passed as an array, which the client serializes as a repeated parameter —
-    // `?edge_types=calls&edge_types=deploys` — matching how the API declares it.
-    // An empty selection is omitted rather than sent empty, because "no types" and
-    // "every type" are different questions and the second is the default.
-    edge_types: query.edgeTypes && query.edgeTypes.length > 0 ? [...query.edgeTypes] : undefined,
+    /*
+     * One comma-joined string, because that is what the parameter is: the document
+     * declares `edge_types` as a nullable string described as "comma-separated
+     * edge_rel vocab values".
+     *
+     * Passing an array made the client serialize it as a repeated parameter, and a
+     * server binding a single string reads only the first occurrence — so
+     * selecting three relationship types silently filtered on one, with no error
+     * and nothing on screen to suggest it. Confirmed on the wire.
+     */
+    edge_types:
+      query.edgeTypes && query.edgeTypes.length > 0 ? query.edgeTypes.join(',') : undefined,
+    as_of: query.asOf ? toApiTimestamp(query.asOf) : undefined,
+  });
+}
+
+/**
+ * Parameters `dependencies` accepts, which is a smaller set.
+ *
+ * That endpoint declares only `depth` and `as_of`. Sending `edge_types` there was a
+ * no-op on the server *and* varied the cache key, so two identical answers were
+ * cached separately — a wasted entry rather than a wrong one, and still worth not
+ * doing.
+ */
+function dependencyParams(query: TraversalQuery) {
+  return compact({
+    depth: query.depth,
     as_of: query.asOf ? toApiTimestamp(query.asOf) : undefined,
   });
 }
@@ -82,7 +125,7 @@ export function useDependencies(
   handle: string | undefined,
   query: TraversalQuery = {},
 ): UseQueryResult<Dependencies, RegistryError> {
-  const params = traversalParams(query);
+  const params = dependencyParams(query);
   return useQuery({
     queryKey: queryKeys.dependencies(scope, handle ?? '', params),
     queryFn: ({ signal }) =>
@@ -118,7 +161,7 @@ export function useBlastRadius(
   client: RegistryClient,
   scope: KeyScope,
   handle: string | undefined,
-  query: TraversalQuery & { direction?: 'upstream' | 'downstream' } = {},
+  query: TraversalQuery & { direction?: TraversalDirection } = {},
 ): UseQueryResult<Traversal, RegistryError> {
   const params = compact({ ...traversalParams(query), direction: query.direction });
   return useQuery({
