@@ -10,9 +10,6 @@
   "scripts": {
     "codegen": "openapi-typescript ./openapi/registry.openapi.json -o ./src/generated/registry.ts"
   },
-  "dependencies": {
-    "openapi-fetch": "0.14.0"
-  },
   "peerDependencies": {
     "@tanstack/react-query": "5.90.2",
     "react": "18.3.1"

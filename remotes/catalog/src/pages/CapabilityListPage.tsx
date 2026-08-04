@@ -20,7 +20,7 @@ import {
   type RegistryClient,
   type SearchHit,
 } from '@knowledge-ui/api-client';
-import { useSession, type Session } from '@knowledge-ui/auth';
+import { useSession } from '@knowledge-ui/auth';
 import {
   CursorPager,
   DataTable,
@@ -273,5 +273,3 @@ export function CapabilityListPage() {
     </StackLayout>
   );
 }
-
-export type { Session };
