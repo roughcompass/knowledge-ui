@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
@@ -22,11 +24,40 @@ import { defineConfig } from 'vitest/config';
  * looking complete.
  *
  * Deliberately not the app's `vite.config.ts`: a component test wants React's JSX
- * transform and nothing else. Federation is a build concern, and the boundary it
- * creates is covered by the Playwright lane against the real artefacts.
+ * transform and nothing else. Federation is a *build* concern, and the runtime half
+ * of the boundary — fetching a remote entry from another origin — is covered by the
+ * Playwright lane against real artefacts.
+ *
+ * ## The alias, which two comments claimed existed and nothing provided
+ *
+ * `lazy.ts` and the root test config both said the boundary was aliased away in
+ * tests so the host mounted a remote's real source. It was not: no alias existed
+ * anywhere, so the claim described a test nobody had written and the only coverage
+ * of the boundary was the built lane.
+ *
+ * It exists now, and it buys the half Playwright cannot reach cheaply: whether the
+ * props the host passes are the props a remote accepts, checked by actually mounting
+ * one. That is a different question from "does the remote entry load", and it is the
+ * question the contract package exists to answer.
  */
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    /*
+     * The federated specifiers, pointed at the remotes' real sources. In a build the
+     * plugin rewrites these to fetch a remote entry over the network; here they
+     * resolve to the module that entry would have served, so a mount test exercises
+     * the same component the shell would have received.
+     */
+    alias: {
+      'catalog/App': fileURLToPath(
+        new URL('../../remotes/catalog/src/expose/App.tsx', import.meta.url),
+      ),
+      'operations/App': fileURLToPath(
+        new URL('../../remotes/operations/src/expose/App.tsx', import.meta.url),
+      ),
+    },
+  },
   test: {
     name: 'shell',
     environment: 'jsdom',

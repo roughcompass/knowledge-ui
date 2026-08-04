@@ -6,7 +6,9 @@ import { defineConfig } from 'vitest/config';
  * Deliberately has no federation plugin: a project that resolves against its own
  * `vite.config.ts` picks the plugin up and fails inside federation machinery for
  * reasons that name nothing about the test. Each workspace that renders into a DOM
- * therefore carries its own config.
+ * therefore carries its own config — and the host's is where the federated
+ * specifiers are aliased to the remotes' sources, so the boundary is mounted for
+ * real rather than mocked.
  *
  * The `tooling` project is declared inline rather than given a config file of its
  * own because it is not a workspace. It holds the build and lint wiring, which has
@@ -26,7 +28,17 @@ export default defineConfig({
      * unambitious. A number set where the code actually is cannot be argued with
      * and cannot be skipped; a number set where the code ought to be gets raised
      * to the ceiling by the first person it blocks. The point of headroom is so an
-     * unrelated change does not fail on rounding noise. Raised once already, when the host workspace went from no tests to covered.
+     * unrelated change does not fail on rounding noise. Raised once when the host workspace went from no tests to covered, then lowered
+     * slightly — which needs explaining, because a falling threshold usually means
+     * something got worse and here it means the opposite.
+     *
+     * Aliasing the federation boundary made the host mount the remotes' real sources,
+     * so their whole route tree is now *loaded* during the host's tests. The coverage
+     * tool reports files it saw, so roughly two hundred statements that were
+     * previously invisible to the report entered the denominator — mostly pages the
+     * mount reaches through a router without exercising. Nothing became less covered;
+     * the measurement stopped flattering itself by only counting what it happened to
+     * import. These numbers are set from the wider, more honest denominator.
      *
      * Excludes are things nobody hand-writes or that another lane covers: the
      * generated client, build output, config, the standalone development harnesses,
@@ -36,7 +48,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json-summary'],
-      thresholds: { statements: 65, branches: 59, functions: 66, lines: 67 },
+      thresholds: { statements: 64, branches: 56, functions: 63, lines: 66 },
       exclude: [
         '**/generated/**',
         '**/dist/**',
