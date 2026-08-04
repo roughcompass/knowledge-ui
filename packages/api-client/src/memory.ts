@@ -94,6 +94,15 @@ export function useClaims(
   client: RegistryClient,
   scope: KeyScope,
   query: ClaimQuery = {},
+  /**
+   * Off when the caller is asking a different question.
+   *
+   * The filtered list and the ranked search are alternatives, and a page cannot
+   * call a hook conditionally — so the one not being asked has to be switched off
+   * explicitly. Bounding it with `limit: 0` instead would still issue a request,
+   * which is a wasted round trip and a misleading entry in the network log.
+   */
+  options: { enabled?: boolean } = {},
 ): UseQueryResult<Claim[], RegistryError> {
   const params = compact({
     subject_entity_id: query.subjectEntityId,
@@ -110,6 +119,7 @@ export function useClaims(
     queryKey: queryKeys.claims(scope, params),
     queryFn: ({ signal }) =>
       client.request<Claim[]>('/v1/memory/claims', { query: params, signal }),
+    enabled: options.enabled ?? true,
     ...LIST_OPTIONS,
   });
 }

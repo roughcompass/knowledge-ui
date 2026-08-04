@@ -38,6 +38,7 @@ const ROUTES = [
   // subscriptions card; the inbox carries a filter, a table of row actions, a
   // bulk action and two unavailability notices.
   { path: '/catalog/notifications', name: 'notifications inbox' },
+  { path: '/catalog/claims', name: 'claims browser' },
   { path: '/catalog/salt-design-system', name: 'capability detail (adopt + subscriptions)' },
 ];
 

@@ -63,6 +63,11 @@ export const REMOTES: readonly RemoteDescriptor[] = [
       // endpoint every role may call, so it needs no capability beyond the
       // section's own.
       { path: 'notifications', label: 'Notifications' },
+      // The memory of record, with the trust signals on every statement. Needs
+      // its own capability: the notification and catalog reads are tenant-scoped
+      // over the caller's own rows, while this reads claims about entities whose
+      // visibility is decided per entity.
+      { path: 'claims', label: 'Claims', need: 'memory:read' },
     ],
   },
   {
