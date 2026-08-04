@@ -1999,6 +1999,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/memory/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query Claims
+         * @description What the system believes, by exact structural match.
+         *
+         *     An indexed lookup rather than ranked retrieval: the caller names the subject
+         *     and the predicate and gets the claims that match, not the claims that resemble
+         *     the question. `as_of` reads the history, so "what did we believe last month" is
+         *     answerable from the same route.
+         */
+        get: operations["query_claims_v1_memory_claims_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/claims/{claim_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Claim
+         * @description One claim, or 404.
+         *
+         *     A claim the caller may not see is absent rather than forbidden. Telling them it
+         *     exists but is not theirs is an existence oracle over every claim in the
+         *     deployment, and the subject of a claim is often the sensitive part.
+         */
+        get: operations["get_claim_v1_memory_claims__claim_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/memory/sessions": {
         parameters: {
             query?: never;
@@ -3049,6 +3098,70 @@ export interface components {
             manifest_claims_digest: string;
         };
         /**
+         * CitationResponse
+         * @description A resolvable handle to the evidence behind a claim.
+         */
+        CitationResponse: {
+            /** Excerpt */
+            excerpt?: string | null;
+            /** Kind */
+            kind: string;
+            /** Ref */
+            ref: string;
+        };
+        /**
+         * ClaimResponse
+         * @description A claim with everything needed to check it.
+         *
+         *     Every field below the value is part of the citation payload, and none is
+         *     optional. A response type with optional citations would let a serving path
+         *     return an unverifiable answer that still validated.
+         */
+        ClaimResponse: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            /** Authority */
+            authority: string;
+            /** Citations */
+            citations: components["schemas"]["CitationResponse"][];
+            /** Claim Category */
+            claim_category: string;
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Confidence */
+            confidence: number;
+            /** Human Confirmed */
+            human_confirmed: boolean;
+            /** Label */
+            label: string;
+            /** Predicate */
+            predicate: string;
+            /**
+             * Subject Entity Id
+             * Format: uuid
+             */
+            subject_entity_id: string;
+            /** Trust */
+            trust: string;
+            /** Trust Note */
+            trust_note: string;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+            /** Value */
+            value: unknown;
+        };
+        /**
          * ConformancePolicyView
          * @description The rule by which a strategy is judged defective.
          */
@@ -3376,7 +3489,7 @@ export interface components {
             expires_at?: string | null;
             /**
              * Kind
-             * @description Entry kind. Must be one of: note, decision, open_question, saved_query, saved_view, private_annotation.
+             * @description Entry kind. Must be one of: note, decision, open_question, saved_query, saved_view.
              */
             kind: string;
             /**
@@ -8039,6 +8152,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IntegrationListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    query_claims_v1_memory_claims_get: {
+        parameters: {
+            query?: {
+                subject_entity_id?: string | null;
+                predicate?: string | null;
+                category?: string | null;
+                namespace_prefix?: string | null;
+                min_confidence?: number | null;
+                as_of?: string | null;
+                persona?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_claim_v1_memory_claims__claim_id__get: {
+        parameters: {
+            query?: {
+                persona?: string;
+            };
+            header?: never;
+            path: {
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"];
                 };
             };
             /** @description Validation Error */
