@@ -26,7 +26,7 @@ export default defineConfig({
      * unambitious. A number set where the code actually is cannot be argued with
      * and cannot be skipped; a number set where the code ought to be gets raised
      * to the ceiling by the first person it blocks. The point of headroom is so an
-     * unrelated change does not fail on rounding noise. Raise these as coverage rises.
+     * unrelated change does not fail on rounding noise. Raised once already, when the host workspace went from no tests to covered.
      *
      * Excludes are things nobody hand-writes or that another lane covers: the
      * generated client, build output, config, the standalone development harnesses,
@@ -36,7 +36,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'json-summary'],
-      thresholds: { statements: 62, branches: 56, functions: 62, lines: 64 },
+      thresholds: { statements: 65, branches: 59, functions: 66, lines: 67 },
       exclude: [
         '**/generated/**',
         '**/dist/**',
