@@ -77,12 +77,3 @@ export async function probeReadiness({
   return { state: 'unknown', status: res.status, detail: body };
 }
 
-/** `GET /metrics` — Prometheus text exposition. Returned raw for the parser. */
-export async function fetchMetricsText({
-  baseUrl = '',
-  signal,
-}: ProbeOptions = {}): Promise<string> {
-  const res = await fetch(`${baseUrl}/metrics`, { signal, headers: { Accept: 'text/plain' } });
-  if (!res.ok) throw new Error(`metrics endpoint returned ${res.status}`);
-  return res.text();
-}

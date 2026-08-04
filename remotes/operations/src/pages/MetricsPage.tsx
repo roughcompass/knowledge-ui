@@ -1,292 +1,207 @@
+import { FlowLayout, StackLayout, Text } from '@salt-ds/core';
+import { can, useSession } from '@knowledge-ui/auth';
 import {
-  Accordion,
-  AccordionHeader,
-  AccordionPanel,
-  Banner,
-  BannerContent,
-  FlowLayout,
-  StackLayout,
-  Text,
-} from '@salt-ds/core';
-import { gaugeValue, histogramQuantile, sumByLabel, useMetrics } from '@knowledge-ui/api-client';
-import { apiBaseUrl, useSession } from '@knowledge-ui/auth';
+  useOperationalHealth,
+  type OperationalReading,
+  type RegistryClient,
+} from '@knowledge-ui/api-client';
 import {
   DataTable,
   ErrorPanel,
   LoadingPanel,
   PageHeader,
-  Sparkline,
+  SectionCard,
   StatTile,
+  UnavailableNotice,
 } from '@knowledge-ui/ui-kit';
-import { useEffect, useRef, useState } from 'react';
-
 /**
- * What the registry actually exposes, and nothing more.
+ * Operational state, read from the service itself.
  *
- * The endpoint publishes fourteen application metrics and the default Python
- * runtime collectors. It publishes no request rate, no per-route latency and no
- * per-route error rate, because the service instruments tracing but installs no
- * meter provider. Those are the three numbers anyone opening a metrics page
- * expects, so this page names their absence rather than deriving something
- * plausible from what is available — a chart built from the wrong series is
- * worse than no chart, because it will be believed.
+ * Two earlier shapes of this page were wrong, and both failures are worth
+ * keeping written down because each looked reasonable at the time.
  *
- * Counters are cumulative since process start, so a single scrape gives totals
- * rather than rates. The sparkline is built from samples this tab has observed,
- * and is labelled as such.
+ * It first fetched `/metrics` and parsed the Prometheus exposition in the
+ * browser. That exposition is per-process and cumulative since that process
+ * started, so behind more than one replica the page rendered whichever pod the
+ * load balancer happened to pick while presenting it as the service. Nothing on
+ * screen distinguished that from a total, and nothing could.
+ *
+ * It was then rebuilt around deep links into a dashboard tool. That is worse in
+ * a different direction: the tool is optional deployment infrastructure, so the
+ * page became a blank set of links wherever it was not installed — a console
+ * that only works next to something it does not ship.
+ *
+ * So the service answers for itself. Every number here arrives with its own
+ * provenance, and the page renders that provenance rather than hiding it,
+ * because the two kinds of reading look identical once they are on screen and
+ * only one of them is true for the whole deployment.
  */
 
-const SAMPLE_LIMIT = 40;
+const SCOPE_NOTE: Record<OperationalReading['scope'], string> = {
+  cluster: 'Counted across the deployment, now.',
+  process: 'One replica, since it last restarted.',
+};
 
 export function MetricsPage() {
-  const { session } = useSession();
+  const { session, client } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
-  const query = useMetrics(scope, apiBaseUrl());
 
-  const [series, setSeries] = useState<Array<number | undefined>>([]);
-  const previous = useRef<number | undefined>(undefined);
+  // Gated before the request, not after: this endpoint is admin-only on the
+  // server, so asking as anyone else produces a 403 the reader can do nothing
+  // about, rendered as an error where an explanation belongs.
+  const permitted = can(session, 'ops:operate');
+  const query = useOperationalHealth(client, scope, { enabled: permitted });
 
-  useEffect(() => {
-    if (!query.data) return;
-    const total = sumByLabel(query.data, 'registry_entitlement_calls_total', 'status_class').reduce(
-      (acc, row) => acc + row.value,
-      0,
-    );
-    setSeries((current) => {
-      const last = previous.current;
-      previous.current = total;
-      // A decrease can only mean the process restarted, so the delta across that
-      // boundary is meaningless. An undefined entry breaks the line rather than
-      // drawing a plunge that never happened.
-      const delta = last === undefined ? undefined : total < last ? undefined : total - last;
-      return [...current, delta].slice(-SAMPLE_LIMIT);
-    });
-  }, [query.data]);
-
-  const snapshot = query.data;
-
-  /*
-   * The header renders in every state. Returning `LoadingPanel` in place of the
-   * whole page took the title with it, so the page appeared to navigate somewhere
-   * blank and then back — and on an error the reader lost every clue about where
-   * they were.
-   */
   const header = (
     <PageHeader
-      title="Metrics"
-      description="Scraped every fifteen seconds. Counters are cumulative since the process started."
+      title="Operational health"
+      description="Conditions worth meeting here rather than going looking for."
     />
   );
 
-  if (query.isPending)
+  if (!permitted) {
     return (
       <StackLayout gap={3}>
         {header}
-        <LoadingPanel label="Reading metrics" />
+        <UnavailableNotice
+          title="This summary needs the admin role"
+          reason="It reports the shared deployment's queue depths and identity data-quality counters rather than anything scoped to one tenant, so the service restricts it to administrators."
+          tracking="Health and readiness on the previous page are open to every role."
+        />
       </StackLayout>
     );
+  }
 
-  if (query.error || snapshot === undefined)
+  if (query.isPending) {
     return (
       <StackLayout gap={3}>
         {header}
-        <ErrorPanel error={query.error} title="Could not read metrics" />
+        <LoadingPanel label="Reading operational health" />
       </StackLayout>
     );
+  }
+
+  if (query.error || query.data === undefined) {
+    return (
+      <StackLayout gap={3}>
+        {header}
+        <ErrorPanel error={query.error} title="Could not read operational health" />
+      </StackLayout>
+    );
+  }
+
+  const { queues, data_quality: dataQuality } = query.data;
+  const actionable = dataQuality.filter((r) => (r.value ?? 0) > 0);
+
+  /*
+   * A per-row provenance column is worth a column only when the rows disagree.
+   * Every reading in this table is process-scoped today, so the column repeated
+   * one identical sentence four times and wrapped each to three lines — noise
+   * that pushes the two columns a reader actually scans off to the right. Stated
+   * once below instead, and the column reappears by itself the moment a
+   * cluster-scoped reading joins the table.
+   */
+  const scopesDiffer = new Set(dataQuality.map((r) => r.scope)).size > 1;
+  const instances = [...new Set(dataQuality.map((r) => r.instance).filter(Boolean))];
 
   return (
     <StackLayout gap={3}>
       {header}
 
-      <Banner status="info">
-        <BannerContent>
-          <StackLayout gap={1}>
-            <Text styleAs="label">Not exposed by this API</Text>
-            <Text>
-              Request rate, per-route latency and per-route error rate are not published — the
-              service instruments tracing but registers no metrics meter, so those series do not
-              exist. They are not shown here rather than being approximated from unrelated counters.
-            </Text>
-            <Text color="secondary">
-              For request-level data, use the Prometheus and Grafana instances in the registry
-              development stack.
-            </Text>
-          </StackLayout>
-        </BannerContent>
-      </Banner>
-
-      <FlowLayout gap={2}>
-        <GaugeCard
-          label="Embedding outbox backlog"
-          value={gaugeValue(snapshot, 'catalog_outbox_pending_size')}
-          hint="rows waiting to be embedded"
-        />
-        <GaugeCard
-          label="Audit partitions to archive"
-          value={gaugeValue(snapshot, 'catalog_audit_partitions_eligible_for_archival')}
-          hint="older than the retention window"
-        />
-        <GaugeCard
-          label="Audit write failures"
-          value={gaugeValue(snapshot, 'catalog_audit_write_failures_total')}
-          hint="cumulative since start"
-        />
-        <StatTile
-          label="Entitlement calls"
-          value={<Sparkline values={series} label="Entitlement calls per scrape" />}
-          hint="per-scrape change, since this tab opened"
-        />
-      </FlowLayout>
-
-      {/*
-        One group, not four sections. At the page's own `gap={3}` each accordion sat
-        36px from the next, so four collapsed rows read as four unrelated panels
-        instead of one expandable list — Salt's accordions are built to stack flush
-        and share their rules.
-      */}
-      <StackLayout gap={0}>
-        <Accordion value="entitlement">
-          <AccordionHeader>Entitlement resolution</AccordionHeader>
-          <AccordionPanel>
-            <StackLayout gap={2}>
-              <LabelledTable
-                caption="Calls by status class"
-                rows={sumByLabel(snapshot, 'registry_entitlement_calls_total', 'status_class')}
-              />
-              <LabelledTable
-                caption="Cache outcomes"
-                rows={sumByLabel(snapshot, 'registry_entitlement_cache_total', 'result')}
-              />
-              <Text styleAs="notation" color="secondary">
-                p50{' '}
-                {formatSeconds(
-                  histogramQuantile(snapshot, 'registry_entitlement_call_duration_seconds', 0.5),
-                )}{' '}
-                · p95{' '}
-                {formatSeconds(
-                  histogramQuantile(snapshot, 'registry_entitlement_call_duration_seconds', 0.95),
-                )}{' '}
-                — interpolated from cumulative buckets over the lifetime of the process
-              </Text>
-            </StackLayout>
-          </AccordionPanel>
-        </Accordion>
-
-        <Accordion value="quality">
-          <AccordionHeader>Identity and entitlement data quality</AccordionHeader>
-          <AccordionPanel>
-            <StackLayout gap={2}>
-              <Text color="secondary">
-                Any non-zero row here is actionable: it means entitlement strings arriving in a
-                shape the parser rejected.
-              </Text>
-              <LabelledTable
-                caption="Dropped entitlement entries"
-                rows={sumByLabel(snapshot, 'registry_entitlement_dropped_entries_total', 'reason')}
-              />
-              <LabelledTable
-                caption="Ignored during parse"
-                rows={sumByLabel(snapshot, 'registry_entitlement_parse_ignored_total', 'reason')}
-              />
-              <LabelledTable
-                caption="Authority parse failures"
-                rows={sumByLabel(snapshot, 'auth_authority_parse_failed_total', 'shape')}
-              />
-            </StackLayout>
-          </AccordionPanel>
-        </Accordion>
-
-        <Accordion value="embedding">
-          <AccordionHeader>Embedding provider</AccordionHeader>
-          <AccordionPanel>
-            <StackLayout gap={2}>
-              <LabelledTable
-                caption="Embedding calls by status class"
-                rows={sumByLabel(snapshot, 'registry_embedding_calls_total', 'status_class')}
-              />
-              <Text styleAs="notation" color="secondary">
-                p95{' '}
-                {formatSeconds(
-                  histogramQuantile(snapshot, 'registry_embedding_call_duration_seconds', 0.95),
-                )}
-              </Text>
-            </StackLayout>
-          </AccordionPanel>
-        </Accordion>
-
-        <Accordion value="runtime">
-          <AccordionHeader>Runtime internals</AccordionHeader>
-          <AccordionPanel>
-            <DataTable
-              caption="All families reported by the endpoint"
-              columns={[
-                { key: 'name', header: 'Family' },
-                { key: 'type', header: 'Type' },
-                { key: 'samples', header: 'Series' },
-              ]}
-              rows={[...snapshot.values()].map((family) => ({
-                name: family.name,
-                type: family.type,
-                samples: family.samples.length,
-              }))}
-              getRowId={(row) => row.name}
+      <SectionCard
+        title="Queues"
+        description="Counted from the database at read time, so these are correct however many replicas are running."
+      >
+        <FlowLayout gap={2}>
+          {queues.map((reading) => (
+            <StatTile
+              key={reading.key}
+              label={reading.label}
+              status={(reading.value ?? 0) > 0 && reading.actionable ? 'warning' : undefined}
+              value={<Text styleAs="h3">{formatValue(reading.value)}</Text>}
+              // The consequence text explains why a *non-zero* value is bad.
+              // Shown against a zero it reads as a live problem, so a healthy
+              // queue would permanently claim subscribers are missing events.
+              hint={
+                (reading.value ?? 0) > 0 && reading.actionable
+                  ? reading.actionable
+                  : SCOPE_NOTE[reading.scope]
+              }
             />
-          </AccordionPanel>
-        </Accordion>
-      </StackLayout>
+          ))}
+        </FlowLayout>
+      </SectionCard>
+
+      <SectionCard
+        title="Identity and entitlement data quality"
+        description="Cumulative counters from the replica that answered this request. Any non-zero value is actionable."
+      >
+        <StackLayout gap={2}>
+          {actionable.length > 0 ? (
+            <Text>
+              {actionable.length === 1
+                ? '1 counter is non-zero and needs attention.'
+                : `${actionable.length} counters are non-zero and need attention.`}
+            </Text>
+          ) : null}
+
+          <DataTable
+            caption="Data-quality counters"
+            columns={[
+              { key: 'label', header: 'Condition' },
+              {
+                key: 'value',
+                header: 'Count',
+                render: (row: OperationalReading) => <Text>{formatValue(row.value)}</Text>,
+              },
+              ...(scopesDiffer
+                ? [
+                    {
+                      key: 'scope',
+                      header: 'Reading',
+                      render: (row: OperationalReading) => (
+                        <Text color="secondary">
+                          {SCOPE_NOTE[row.scope]}
+                          {row.instance ? ` (${row.instance})` : ''}
+                        </Text>
+                      ),
+                    },
+                  ]
+                : []),
+              {
+                key: 'actionable',
+                header: 'Why it matters',
+                render: (row: OperationalReading) => (
+                  <Text color="secondary">{row.actionable ?? '—'}</Text>
+                ),
+              },
+            ]}
+            rows={dataQuality}
+            getRowId={(row: OperationalReading) => row.key}
+          />
+
+          <Text styleAs="notation" color="secondary">
+            {scopesDiffer ? '' : `Read from ${instances.join(', ') || 'the replica that answered'}. `}
+            A request reaches one replica, so a zero here does not prove zero everywhere. These
+            counters reset when a process restarts.
+          </Text>
+        </StackLayout>
+      </SectionCard>
+
+      <SectionCard title="Request rate, latency, and error rate">
+        <UnavailableNotice
+          title="Not available in this console"
+          reason="A rate or a percentile is computed over a window, which needs a time-series store. This console reads the service directly and holds no history, so it can show current state and cumulative totals but not a trend."
+          tracking="The service records these; querying them is a job for whatever time-series tooling a deployment runs, which this console does not require or assume."
+        />
+      </SectionCard>
     </StackLayout>
   );
 }
 
-function GaugeCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: number | undefined;
-  hint: string;
-}) {
-  return (
-    <StatTile
-      label={label}
-      // Undefined and zero are different facts: one means the metric is not
-      // published, the other that it is published and empty.
-      value={<Text styleAs="h3">{value === undefined ? 'n/a' : value.toLocaleString()}</Text>}
-      hint={value === undefined ? 'not reported by this build' : hint}
-    />
-  );
-}
-
-function LabelledTable({
-  caption,
-  rows,
-}: {
-  caption: string;
-  rows: Array<{ label: string; value: number }>;
-}) {
-  return (
-    <DataTable
-      caption={caption}
-      columns={[
-        { key: 'label', header: caption },
-        {
-          key: 'value',
-          header: 'Total',
-          render: (row) => <Text>{row.value.toLocaleString()}</Text>,
-        },
-      ]}
-      rows={rows}
-      getRowId={(row) => row.label}
-      emptyTitle="Not reported"
-      emptyDescription="This build publishes no series for that family."
-    />
-  );
-}
-
-function formatSeconds(value: number | undefined): string {
-  // No data is not the same as zero. A p95 of 0 ms reads as "very fast" when the
-  // truth is that nothing has been measured.
-  if (value === undefined) return 'no data';
-  return value < 1 ? `${(value * 1000).toFixed(1)} ms` : `${value.toFixed(2)} s`;
+function formatValue(value: number | null): string {
+  // Null and zero are different facts, and the gap between them matters most
+  // here: null means the table could not be read, which is not an empty queue.
+  if (value === null) return 'unavailable';
+  return value.toLocaleString();
 }

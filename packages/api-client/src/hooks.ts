@@ -4,13 +4,11 @@ import type { RegistryClient } from './client';
 import type { components } from './generated/registry';
 import { queryKeys, type KeyScope } from './keys';
 import {
-  fetchMetricsText,
   probeLiveness,
   probeReadiness,
   type Liveness,
   type Readiness,
 } from './ops';
-import { parsePrometheusText, type MetricsSnapshot } from './metrics/parse';
 import { clampPageSize, compact, toApiTimestamp } from './params';
 
 type Schemas = components['schemas'];
@@ -229,13 +227,48 @@ export function useReadiness(scope: KeyScope, baseUrl = ''): UseQueryResult<Read
   });
 }
 
-export function useMetrics(scope: KeyScope, baseUrl = ''): UseQueryResult<MetricsSnapshot> {
+/**
+ * One operational reading, with everything needed to read it correctly.
+ *
+ * `scope` and `kind` are required rather than optional, mirroring the server's
+ * response model. They are the difference between a number that is true for the
+ * deployment and one that is a single replica's tally since it last restarted,
+ * and the two are indistinguishable once rendered.
+ */
+export interface OperationalReading {
+  key: string;
+  label: string;
+  /** Null when the value could not be read. Deliberately not zero. */
+  value: number | null;
+  /** `cluster` is counted from the database; `process` is this replica's counter. */
+  scope: 'cluster' | 'process';
+  /** `gauge` is current state; `counter` is cumulative since process start. */
+  kind: 'gauge' | 'counter';
+  /** Which replica answered. Set only for process-scoped readings. */
+  instance: string | null;
+  /** Why a non-zero value matters. Present when it is actionable on sight. */
+  actionable: string | null;
+}
+
+export interface OperationalHealth {
+  observed_at: string;
+  queues: OperationalReading[];
+  data_quality: OperationalReading[];
+}
+
+export function useOperationalHealth(
+  client: RegistryClient,
+  scope: KeyScope,
+  options: { enabled?: boolean } = {},
+): UseQueryResult<OperationalHealth> {
   return useQuery({
-    queryKey: queryKeys.metrics(scope),
-    queryFn: async ({ signal }) => parsePrometheusText(await fetchMetricsText({ baseUrl, signal })),
+    queryKey: queryKeys.operationalHealth(scope),
+    queryFn: ({ signal }) =>
+      client.request<OperationalHealth>('/v1/admin/operational-health', { signal }),
+    enabled: options.enabled ?? true,
     refetchInterval: 15_000,
-    // Counters are cumulative since process start, so a stale snapshot is
-    // misleading in a way a stale list is not.
+    // Queue depths are current state, so a cached reading is misleading in a
+    // way a cached list is not: it reports a backlog that has since moved.
     staleTime: 0,
     retry: 1,
   });

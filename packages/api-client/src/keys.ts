@@ -100,5 +100,5 @@ export const queryKeys = {
 
   liveness: (scope: KeyScope) => [...root(scope), 'ops', 'healthz'] as const,
   readiness: (scope: KeyScope) => [...root(scope), 'ops', 'readyz'] as const,
-  metrics: (scope: KeyScope) => [...root(scope), 'ops', 'metrics'] as const,
+  operationalHealth: (scope: KeyScope) => [...root(scope), 'ops', 'operational-health'] as const,
 } as const;

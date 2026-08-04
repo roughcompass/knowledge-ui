@@ -178,7 +178,89 @@ export const opsHandlers = [
   // Plain text with no content type, which is what the server actually sends.
   http.get('*/readyz', () => new HttpResponse('ok', { status: 200 })),
   http.get('*/metrics', () => new HttpResponse(METRICS_TEXT, { status: 200 })),
+
+  /**
+   * The operator health summary.
+   *
+   * Admin-gated to mirror `require_roles([ROLE_ADMIN])`, so a page rendered as
+   * any other persona meets the same 403 it would in production rather than a
+   * cheerful mock. Every reading carries `scope` and `kind` because the server's
+   * response model requires them — a fixture that omitted them would let a page
+   * ship that renders bare numbers and passes its tests.
+   */
+  http.get('*/v1/admin/operational-health', ({ request }) => {
+    if (roleFor(request) !== 'admin') {
+      return HttpResponse.json(makeErrorEnvelope('forbidden', 'access denied'), { status: 403 });
+    }
+    return HttpResponse.json({
+      observed_at: '2026-08-03T18:00:00Z',
+      queues: [
+        reading('embedding_outbox', 'Embedding outbox', 12, 'cluster', 'gauge'),
+        reading('closure_outbox', 'Closure refresh backlog', 0, 'cluster', 'gauge'),
+        reading('webhook_pending', 'Webhook deliveries pending', 3, 'cluster', 'gauge'),
+        {
+          ...reading('webhook_failed', 'Webhook deliveries abandoned', 2, 'cluster', 'gauge'),
+          actionable:
+            'These deliveries exhausted their retries and will never arrive. A subscriber is missing change notifications and has no way to know.',
+        },
+      ],
+      data_quality: [
+        {
+          ...reading(
+            'entitlement_dropped_entries',
+            'Dropped entitlement entries',
+            1,
+            'process',
+            'counter',
+          ),
+          instance: 'registry-7d9f',
+          actionable:
+            'An entitlement arrived in a shape the parser rejected, so a principal silently resolved to fewer roles than it was granted.',
+        },
+        {
+          ...reading(
+            'entitlement_parse_ignored',
+            'Entitlement entries ignored during parse',
+            0,
+            'process',
+            'counter',
+          ),
+          instance: 'registry-7d9f',
+          actionable:
+            'Part of an entitlement string was unreadable and was skipped rather than failing the request.',
+        },
+        {
+          ...reading(
+            'authority_parse_failures',
+            'Authority parse failures',
+            0,
+            'process',
+            'counter',
+          ),
+          instance: 'registry-7d9f',
+          actionable:
+            'A token authority could not be parsed, which usually means an issuer is misconfigured.',
+        },
+        {
+          ...reading('audit_write_failures', 'Audit write failures', 0, 'process', 'counter'),
+          instance: 'registry-7d9f',
+          actionable:
+            'An audit row was lost. The compliance record has a hole in it, and the request that caused it still succeeded.',
+        },
+      ],
+    });
+  }),
 ];
+
+function reading(
+  key: string,
+  label: string,
+  value: number | null,
+  scope: 'cluster' | 'process',
+  kind: 'gauge' | 'counter',
+) {
+  return { key, label, value, scope, kind, instance: null, actionable: null };
+}
 
 export const idpHandlers = [
   http.post('*/__idp/default/token', async ({ request }) => {

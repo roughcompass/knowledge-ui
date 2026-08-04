@@ -16,7 +16,6 @@ describe('query keys', () => {
       queryKeys.audit(scope),
       queryKeys.liveness(scope),
       queryKeys.readiness(scope),
-      queryKeys.metrics(scope),
     ]) {
       expect(key.slice(0, 3)).toEqual(['kui', 'auditor', 'dev']);
     }

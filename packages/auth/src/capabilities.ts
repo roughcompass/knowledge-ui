@@ -43,6 +43,23 @@ export const CAPABILITIES = {
   'ops:view': ['admin', 'producer', 'consumer', 'auditor'],
 
   /**
+   * Operational health: queue depths, dead-letter counts, and the identity
+   * data-quality counters.
+   *
+   * Deliberately NOT `ops:view`. That capability is granted to every role
+   * because the endpoints behind it are unauthenticated probes; this one is
+   * gated `require_roles([ROLE_ADMIN])` on the server, and it reports the shared
+   * deployment's internals rather than one tenant's. Reusing `ops:view` would
+   * put a nav entry in front of three roles that would meet a 403.
+   *
+   * Admin-only mirrors the server exactly, and is safe from the `audit:read`
+   * trap for the same reason `admin:manage` is: admin sits at the top of the
+   * precedence order, so any principal the UI shows this to is one the server
+   * also resolves to admin.
+   */
+  'ops:operate': ['admin'],
+
+  /**
    * The operator surfaces: sync connectors, and the configuration screens that
    * follow them.
    *

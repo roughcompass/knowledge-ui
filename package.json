@@ -34,7 +34,7 @@
     "seed:personas": "node scripts/seed-personas.mjs",
     "verify:personas": "node scripts/verify-personas.mjs",
     "doctor": "npm run seed:personas && npm run verify:personas",
-    "guards": "node scripts/check-no-doc-refs.mjs && node scripts/check-shared-parity.mjs && node scripts/check-salt-tokens.mjs",
+    "guards": "node scripts/check-no-doc-refs.mjs && node scripts/check-shared-parity.mjs && node scripts/check-salt-tokens.mjs && node scripts/check-operational-data-sources.mjs",
     "ci": "npm run lint && npm run lint:css && npm run typecheck && npm run guards && npm run test && npm run build:e2e && node scripts/check-bundle-budget.mjs"
   },
   "devDependencies": {

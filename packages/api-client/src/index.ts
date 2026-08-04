@@ -21,25 +21,12 @@ export {
 } from './errors';
 
 export {
-  fetchMetricsText,
   probeLiveness,
   probeReadiness,
   type Liveness,
   type ProbeOptions,
   type Readiness,
 } from './ops';
-
-export {
-  gaugeValue,
-  histogramQuantile,
-  parsePrometheusText,
-  sumByLabel,
-  sumFamily,
-  type MetricFamily,
-  type MetricSample,
-  type MetricType,
-  type MetricsSnapshot,
-} from './metrics/parse';
 
 export { queryKeys, type KeyScope } from './keys';
 
@@ -61,7 +48,9 @@ export {
   useCapabilities,
   useCapability,
   useLiveness,
-  useMetrics,
+  useOperationalHealth,
+  type OperationalHealth,
+  type OperationalReading,
   useReadiness,
   useSearch,
   useWhoami,
