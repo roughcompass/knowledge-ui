@@ -323,6 +323,9 @@ function ShellRoutes({
           element={
             <RequireCapability
               need={catalog.need}
+              // The section's own name, from the same descriptor the rail reads, so
+              // a refused section is titled exactly as its nav entry.
+              screen={catalog.label}
               session={session}
               personas={personas}
               onSwitchPersona={onSwitchPersona}
@@ -339,6 +342,7 @@ function ShellRoutes({
           element={
             <RequireCapability
               need={operations.need}
+              screen={operations.label}
               session={session}
               personas={personas}
               onSwitchPersona={onSwitchPersona}

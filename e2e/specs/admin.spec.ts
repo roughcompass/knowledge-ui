@@ -42,7 +42,17 @@ test('an admin reaches the sync pages and a consumer does not', async ({ page })
   // As the default consumer: refused, and told which role would work rather than
   // being shown an empty table.
   await expect(page.getByText(/needs the admin role/i)).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Sync connectors' })).toHaveCount(0);
+  /*
+   * The page's *content* is absent, asserted through the table rather than through
+   * the heading.
+   *
+   * The heading was the proxy here, and it stopped being a valid one: a refusal is a
+   * page and now carries the heading its page would have had, because replacing the
+   * screen used to leave the document with no `h1` and no outline at all. So the
+   * title is present in both states by design, and the thing that actually separates
+   * them is whether the connector table rendered.
+   */
+  await expect(page.getByRole('table', { name: /sync connectors/i })).toHaveCount(0);
   // And the nav does not offer what it cannot deliver.
   await expect(page.locator('nav').getByRole('link', { name: 'Sync connectors' })).toHaveCount(0);
 

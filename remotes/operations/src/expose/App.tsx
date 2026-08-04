@@ -48,7 +48,7 @@ export default function OperationsApp(props: RemoteMountProps<Session, RegistryC
           <Route
             path="sync"
             element={
-              <GuardedAdmin>
+              <GuardedAdmin screen="Sync connectors">
                 <SyncSourcesPage />
               </GuardedAdmin>
             }
@@ -56,7 +56,7 @@ export default function OperationsApp(props: RemoteMountProps<Session, RegistryC
           <Route
             path="sync/runs"
             element={
-              <GuardedAdmin>
+              <GuardedAdmin screen="Sync runs">
                 <SyncRunsPage />
               </GuardedAdmin>
             }
@@ -84,6 +84,7 @@ function GuardedAuditLog() {
   return (
     <RequireCapability
       need="audit:read"
+      screen="Audit log"
       session={session}
       personas={personas}
       onSwitchPersona={onSwitchPersona}
@@ -102,13 +103,16 @@ function GuardedAuditLog() {
  * reach a page that renders its table frame and then fills it with 403s.
  *
  * Takes children rather than naming a page, because there are two of them and the
- * gate has nothing to say about which.
+ * gate has nothing to say about which. The screen's *name* still has to come from
+ * the route: a refusal is a page and needs the heading its page would have had, and
+ * the gate cannot infer which of the two it just replaced.
  */
-function GuardedAdmin({ children }: { children: ReactNode }) {
+function GuardedAdmin({ screen, children }: { screen: string; children: ReactNode }) {
   const { session, personas, onSwitchPersona } = useSession();
   return (
     <RequireCapability
       need="admin:manage"
+      screen={screen}
       session={session}
       personas={personas}
       onSwitchPersona={onSwitchPersona}

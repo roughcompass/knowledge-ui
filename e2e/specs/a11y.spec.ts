@@ -103,6 +103,25 @@ test('pages have a heading outline, not just styled text', async ({ page }) => {
   expect(await page.locator('h2').count()).toBeGreaterThan(0);
 });
 
+test('every route has exactly one h1, including the ones that refuse', async ({ page }) => {
+  /*
+   * Extended from the home route to all of them, because the gap was the whole
+   * defect. Two of these paths are refused for the lane's default persona, and a
+   * refusal replaces the page — including the `PageHeader` the page would have
+   * rendered. So `/ops/audit` and `/ops/sync` had no `h1`, no `h2`, and no document
+   * outline at all: a sighted reader could read the banner, and a screen-reader user
+   * landed on a heading-less document that never said which page had refused them.
+   *
+   * axe did not object, and it is right not to — a document with no headings breaks
+   * no WCAG success criterion it checks. The assertion that catches this has to be
+   * written, and it has to visit more than the one route that was already correct.
+   */
+  for (const route of ROUTES) {
+    await ready(page, route.path);
+    await expect(page.locator('h1'), `${route.name} has exactly one h1`).toHaveCount(1);
+  }
+});
+
 test('informational chips are not focusable controls', async ({ page }) => {
   await ready(page, '/catalog');
 
