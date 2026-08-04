@@ -4,6 +4,16 @@ coverage/
 .vite/
 *.tsbuildinfo
 
+# Declaration output for the two modules at the repo root. `dist/` and
+# `dist-types/` covered every other project's emit, so nothing stopped these four
+# files from being committed — and once committed, no build reproduced them and no
+# gate compared them against their sources.
+#
+# Root-anchored on purpose: the two hand-written declaration files that the build
+# genuinely needs live inside `src/` directories, so this pattern cannot reach them.
+/*.d.ts
+/*.d.ts.map
+
 # Playwright
 test-results/
 playwright-report/
