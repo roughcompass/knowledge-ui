@@ -16,7 +16,7 @@
         "inherit"
       ],
       "/^font-size$|^font-weight$|^font-family$|^line-height$/": ["/^var\\(--salt-/", "inherit"],
-      "/^border-radius/": ["/^var\\(--salt-/", "0", "50%", "inherit"]
+      "/^border-radius/": ["/^var\\(--salt-/", "/^var\\(--kui-radius-/", "0", "50%", "inherit"]
     },
     "custom-property-pattern": null,
     "selector-class-pattern": "^[a-z][a-zA-Z0-9]+$",

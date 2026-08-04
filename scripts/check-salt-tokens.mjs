@@ -23,6 +23,20 @@
  *   LEGACY-ONLY — defined in `theme.css` but not in `theme-next.css`. This is the
  *                 dangerous case: the name looks right, it is real, it is
  *                 documented, and it resolves to nothing in the theme we ship.
+ *
+ * ## The third check: the app's own named roles
+ *
+ * This app defines a small bridge of `--kui-*` properties that name a *role* — the
+ * radius of a modal, say — so a component picks by meaning rather than copying
+ * whatever value its neighbour used. Stylelint's allow-list permits them, which
+ * would otherwise be a hole straight through the token rule: `--kui-radius-modal:
+ * 13px` would satisfy every check while being exactly the magic value the rule
+ * exists to forbid.
+ *
+ * So each one must be *defined* as a single `var(--salt-*)` reference and nothing
+ * else. The bridge can rename a Salt token; it cannot invent a value.
+ *
+ *   BRIDGE      — a `--kui-*` property whose definition is not a lone Salt token.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -38,6 +52,27 @@ function definedIn(file) {
   for (const m of css.matchAll(/(--salt-[a-zA-Z0-9-]+)\s*:/g)) out.add(m[1]);
   return out;
 }
+
+/**
+ * The app's own named roles, with whatever each is defined as.
+ *
+ * Comments blanked first, for the reason `referencedIn` explains: a paragraph
+ * describing a past mistake must not be read as the mistake.
+ */
+function bridgeDefinitions(file) {
+  const out = [];
+  const css = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, (c) =>
+    c.replace(/[^\n]/g, ' '),
+  );
+  css.split('\n').forEach((line, i) => {
+    const m = /(--kui-[a-zA-Z0-9-]+)\s*:\s*([^;]+);/.exec(line);
+    if (m) out.push({ name: m[1], value: m[2].trim(), line: i + 1 });
+  });
+  return out;
+}
+
+/** A definition that renames exactly one Salt token, and does nothing else. */
+const RENAMES_ONE_SALT_TOKEN = /^var\(\s*--salt-[a-zA-Z0-9-]+\s*\)$/;
 
 /**
  * Custom properties a stylesheet *reads* (`var(--salt-foo)`), fallbacks included.
@@ -88,8 +123,20 @@ const sheets = walk(ROOT).sort();
 let failures = 0;
 let checked = 0;
 
+let bridged = 0;
+
 for (const sheet of sheets) {
   const rel = relative(ROOT, sheet);
+
+  for (const { name, value, line } of bridgeDefinitions(sheet)) {
+    bridged++;
+    if (RENAMES_ONE_SALT_TOKEN.test(value)) continue;
+    failures++;
+    console.error(
+      `  BRIDGE      — a named role must be one Salt token and nothing else\n    ${rel}:${line}  ${name}: ${value}`,
+    );
+  }
+
   for (const [token, line] of referencedIn(sheet)) {
     checked++;
     if (next.has(token)) continue;
@@ -110,5 +157,5 @@ if (failures > 0) {
 }
 
 console.log(
-  `check-salt-tokens: PASS (${checked} token references in ${sheets.length} stylesheets all resolve under theme-next)`,
+  `check-salt-tokens: PASS (${checked} token references and ${bridged} named roles in ${sheets.length} stylesheets all resolve under theme-next)`,
 );

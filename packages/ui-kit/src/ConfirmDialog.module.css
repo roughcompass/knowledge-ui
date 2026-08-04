@@ -1,0 +1,15 @@
+/*
+ * The modal's own radius, from the ladder rather than from Salt's default.
+ *
+ * Salt gives a dialog the same corner as a card. The reference distinguishes them:
+ * a surface lifted off the page reads as lifted partly *because* its corners are
+ * softer than the cards behind it, and matching them flattens the distinction that
+ * elevation is supposed to carry.
+ *
+ * `--saltDialog-borderRadius` is Salt's own published variable for this, so this is
+ * its API rather than an override reaching past it — the same reasoning as the
+ * button properties in the global sheet.
+ */
+.dialog {
+  --saltDialog-borderRadius: var(--kui-radius-modal);
+}

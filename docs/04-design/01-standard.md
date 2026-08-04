@@ -63,10 +63,22 @@ than flat ones:
 | Floating — tooltips, menus             | 6–12px |
 | Modal and fullscreen                   | 16px   |
 
-This repo currently flattens everything to 6px. That is correct for the base tier
-and wrong for the rest: a modal at card radius does not read as floating above the
-page. Modal and fullscreen are separate steps — 12px and 16px — not one value; an
-earlier draft of this table collapsed them and gave modals the fullscreen radius.
+**Built.** The ladder is a set of named roles in the global stylesheet —
+`--kui-radius-surface`, `-surface-large`, `-floating`, `-modal`, `-fullscreen` —
+each mapping to a real Salt curve step. A component picks `--kui-radius-modal`
+because it _is_ a modal, rather than picking 6px because 6px is what the last
+component used, which is how one constant ends up on everything.
+
+`check-salt-tokens` enforces the bridge: a named role must be defined as one Salt
+token and nothing else. Without that, `--kui-radius-modal: 13px` would satisfy
+every check while being exactly the magic value the token rule forbids.
+
+Two honest notes. The base tier was already correct at 6px; the modal was not, and
+now uses 12px through Salt's own `--saltDialog-borderRadius`. And **fullscreen is
+15px where the reference is 16px** — the curve scale has no 16 at this app's
+density, so it is the nearest step. The same trade was already made for hairline
+alpha, and it is recorded rather than rounded silently, because a value that is
+close is fine and a value that is close while claiming to be exact is not.
 
 **Elevation is reserved for things that genuinely float.** A card gets a border
 _or_ a shadow, never both — Salt's default is both.

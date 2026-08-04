@@ -101,4 +101,44 @@ h6.saltText {
   --saltButton-textTransform: none;
   --saltButton-letterSpacing: normal;
   --saltButton-fontWeight: var(--salt-typography-fontWeight-medium);
+
+  /*
+   * The radius ladder, named by surface class.
+   *
+   * Every corner in this app was one value — 6px, via `--salt-palette-corner-weak`.
+   * That is right for the base tier and wrong for everything above it: the
+   * reference distinguishes surfaces by radius, and a modal at card radius does not
+   * read as floating above the page.
+   *
+   * These are roles, not values, and that is the point. A component picks
+   * `--kui-radius-modal` because it *is* a modal, rather than picking 6px because
+   * 6px is what the last component used — which is how one constant ends up on
+   * everything. Each maps to a real Salt curve step, and `check-salt-tokens`
+   * enforces that: a named role must be one Salt token and nothing else, or the
+   * bridge becomes a hole straight through the token rule.
+   *
+   * Measured at this app's density, where the curve scale is 3 / 6 / 9 / 12 / 15px:
+   *
+   *   surface         6px   corner-weak       cards, inputs, buttons, tables
+   *   surface-large  12px   corner-strong     panels and sheets
+   *   floating        6px   corner-weak       tooltips and menus, which sit close in
+   *   modal          12px   corner-strong     lifted off the page
+   *   fullscreen     15px   corner-stronger   nearest step to the reference's 16px
+   *
+   * Fullscreen is 15px where the reference is 16px: the curve scale has no 16 at
+   * this density, so this is the nearest step rather than the exact value. The same
+   * trade was already made for hairline alpha, and it is recorded for the same
+   * reason — a value that is close is fine, and a value that is close while
+   * claiming to be exact is not.
+   *
+   * Declared in this block rather than its own because stylelint allows one block
+   * per selector, and on the theme root rather than the app shell for the reason
+   * the button properties above learned the hard way: the session bootstrap and any
+   * portalled content render outside the shell.
+   */
+  --kui-radius-surface: var(--salt-palette-corner-weak);
+  --kui-radius-surface-large: var(--salt-palette-corner-strong);
+  --kui-radius-floating: var(--salt-palette-corner-weak);
+  --kui-radius-modal: var(--salt-palette-corner-strong);
+  --kui-radius-fullscreen: var(--salt-palette-corner-stronger);
 }
