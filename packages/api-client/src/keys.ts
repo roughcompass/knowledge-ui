@@ -101,4 +101,39 @@ export const queryKeys = {
   liveness: (scope: KeyScope) => [...root(scope), 'ops', 'healthz'] as const,
   readiness: (scope: KeyScope) => [...root(scope), 'ops', 'readyz'] as const,
   operationalHealth: (scope: KeyScope) => [...root(scope), 'ops', 'operational-health'] as const,
+
+  /**
+   * MEMORY — claims and the session events behind them.
+   *
+   * Scoped like everything else, and the scoping matters more here than
+   * elsewhere: a claim's visibility is decided per entity, so two principals
+   * asking the same question legitimately get different answers. A key that
+   * escaped the principal prefix would serve one tenant's claims to another,
+   * which for this surface is the whole trust boundary rather than a stale row.
+   */
+  claims: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'memory', 'claims', 'list', params] as const,
+
+  claimSearch: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'memory', 'claims', 'search', params] as const,
+
+  claim: (scope: KeyScope, claimId: string) =>
+    [...root(scope), 'memory', 'claims', 'detail', claimId] as const,
+
+  /**
+   * IMPACT — traversals rooted at one capability.
+   *
+   * Keyed by the traversal's own parameters, not just the root, because depth,
+   * direction, edge types and the as-of instant each change the answer. Sharing a
+   * key across depths would show a depth-1 result under a depth-3 heading, which
+   * is the kind of wrong that looks right.
+   */
+  dependencies: (scope: KeyScope, handle: string, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'impact', 'dependencies', handle, params] as const,
+
+  dependents: (scope: KeyScope, handle: string, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'impact', 'dependents', handle, params] as const,
+
+  blastRadius: (scope: KeyScope, handle: string, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'impact', 'blast-radius', handle, params] as const,
 } as const;

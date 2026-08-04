@@ -776,6 +776,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/usage/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which capabilities this tenant's callers asked about */
+        get: operations["get_capability_rankings_v1_admin_usage_capabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Daily call volume, outcomes, and latency percentiles */
+        get: operations["get_usage_series_v1_admin_usage_series_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Call volume, outcomes, and reach per surface over a window */
+        get: operations["get_usage_summary_v1_admin_usage_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/usage/tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which MCP tools agents actually call */
+        get: operations["get_tool_rankings_v1_admin_usage_tools_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/vocabularies/{kind}": {
         parameters: {
             query?: never;
@@ -2024,6 +2092,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/memory/claims/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Claims
+         * @description Semantic search over remembered claims, for when the predicate is unknown.
+         *
+         *     The counterpart to the structural lookup above. That one needs the caller to name
+         *     what they are asking for; this one takes a question in prose and ranks claims by
+         *     how close they are to it, fusing a vector arm with a lexical one.
+         *
+         *     Declared before `/claims/{claim_id}`, and that ordering is load-bearing. FastAPI
+         *     matches in declaration order, so with the id route first a request for
+         *     `/claims/search` binds `search` to a UUID path parameter and fails validation --
+         *     it does not fall through to the next route.
+         */
+        get: operations["search_claims_v1_memory_claims_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/memory/claims/{claim_id}": {
         parameters: {
             query?: never;
@@ -2377,6 +2474,23 @@ export interface paths {
          *     Pass ``?view=audit`` to include bitemporal columns in the response.
          */
         patch: operations["_update_subscription_handler_v1_subscriptions__subscription_id__patch"];
+        trace?: never;
+    };
+    "/v1/usage/owned-capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** How the capabilities your tenant owns are being called */
+        get: operations["get_owned_capability_usage_v1_usage_owned_capabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/whoami": {
@@ -3001,6 +3115,21 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /** CapabilityRankingOut */
+        CapabilityRankingOut: {
+            /** Capabilities */
+            capabilities: components["schemas"]["CapabilityUsageOut"][];
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+        };
         /** CapabilityResponse */
         CapabilityResponse: {
             /** Attributes */
@@ -3080,6 +3209,18 @@ export interface components {
             t_valid_to: string | null;
             /** Type Name */
             type_name: string;
+        };
+        /** CapabilityUsageOut */
+        CapabilityUsageOut: {
+            /** Actor Days */
+            actor_days: number;
+            /** Calls */
+            calls: number;
+            /**
+             * Capability Id
+             * Format: uuid
+             */
+            capability_id: string;
         };
         /** ChallengeRequest */
         ChallengeRequest: {
@@ -3294,6 +3435,54 @@ export interface components {
             value: string;
             /** Value Type */
             value_type: string;
+        };
+        /** DailyPointOut */
+        DailyPointOut: {
+            /** Calls */
+            calls: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /**
+             * Distinct Actors
+             * @description Exact for this one day. Do not sum these across days — see actor_days on the summary.
+             */
+            distinct_actors: number;
+            /** Error Calls */
+            error_calls: number;
+            /** Ok Calls */
+            ok_calls: number;
+            /** P50 Ms */
+            p50_ms: number | null;
+            /** P95 Ms */
+            p95_ms: number | null;
+            /** P99 Ms */
+            p99_ms: number | null;
+            /**
+             * Surface
+             * @enum {string}
+             */
+            surface: "rest" | "mcp";
+        };
+        /** DailySeriesOut */
+        DailySeriesOut: {
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Points
+             * @description One point per day per surface. Days with no traffic are absent rather than zero, so a caller can tell an outage from a quiet weekend.
+             */
+            points: components["schemas"]["DailyPointOut"][];
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
         };
         /** DependencyResponse */
         DependencyResponse: {
@@ -4010,6 +4199,56 @@ export interface components {
             /** Queues */
             queues: components["schemas"]["ReadingOut"][];
         };
+        /** OwnedCapabilityUsageListOut */
+        OwnedCapabilityUsageListOut: {
+            /**
+             * Capabilities
+             * @description Owned capabilities with recorded usage, most-called first. A capability nobody has called is absent rather than present with zeros — this reads usage, not the catalog.
+             */
+            capabilities: components["schemas"]["OwnedCapabilityUsageOut"][];
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+        };
+        /** OwnedCapabilityUsageOut */
+        OwnedCapabilityUsageOut: {
+            /**
+             * Actor Days
+             * @description Sum of each calling tenant's daily distinct actors. Not a headcount, and further from one than elsewhere in this API, since it sums across tenants as well as days.
+             */
+            actor_days: number;
+            /**
+             * Calls
+             * @description Calls from every tenant, including your own.
+             */
+            calls: number;
+            /**
+             * Capability Id
+             * Format: uuid
+             */
+            capability_id: string;
+            /**
+             * Error Calls
+             * @description Calls that failed. Yours to act on rather than the caller's: a rising count here is a capability behaving badly, which the total alone hides.
+             */
+            error_calls: number;
+            /** Name */
+            name: string;
+            /** Ok Calls */
+            ok_calls: number;
+            /**
+             * Payload Bytes
+             * @description Bytes returned, summed. Null when nothing measured it — MCP calls and streaming responses record no size, so null is not zero.
+             */
+            payload_bytes: number | null;
+        };
         /** PiiFieldPolicyCreate */
         PiiFieldPolicyCreate: {
             /** Field Type */
@@ -4707,6 +4946,44 @@ export interface components {
              */
             t_valid_from: string;
         };
+        /** SurfaceSummaryOut */
+        SurfaceSummaryOut: {
+            /**
+             * Actor Days
+             * @description Sum of each day's distinct actors. An actor active on ten days counts ten times. This is not a headcount — read distinct_actors for that.
+             */
+            actor_days: number;
+            /** Calls */
+            calls: number;
+            /**
+             * Distinct Actors
+             * @description Actual distinct actors across the whole window, counted from raw rows. Null when the window reaches past the raw retention boundary, because it cannot be recovered from daily counts. Deliberately not the sum of actor_days, which for a month is up to thirty times too large.
+             */
+            distinct_actors: number | null;
+            /**
+             * Distinct Actors Unavailable Reason
+             * @description Why distinct_actors is null, so a caller can render the reason rather than a zero.
+             */
+            distinct_actors_unavailable_reason?: string | null;
+            /** Error Calls */
+            error_calls: number;
+            /** Ok Calls */
+            ok_calls: number;
+            /** Payload Bytes */
+            payload_bytes: number | null;
+            /** Payload Tokens */
+            payload_tokens: number | null;
+            /**
+             * Surface
+             * @enum {string}
+             */
+            surface: "rest" | "mcp";
+            /**
+             * Worst Daily P95 Ms
+             * @description The largest single-day p95 in the window. Not the p95 of the window: an average of percentiles has no definition. For latency over time, read the daily series, where each percentile is exact at its own grain.
+             */
+            worst_daily_p95_ms: number | null;
+        };
         /** SyncRunResponse */
         SyncRunResponse: {
             _links?: components["schemas"]["Links"] | null;
@@ -4808,6 +5085,36 @@ export interface components {
              */
             tenant_id: string;
         };
+        /** ToolRankingOut */
+        ToolRankingOut: {
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Tools */
+            tools: components["schemas"]["ToolUsageOut"][];
+        };
+        /** ToolUsageOut */
+        ToolUsageOut: {
+            /** Actor Days */
+            actor_days: number;
+            /** Calls */
+            calls: number;
+            /** Error Calls */
+            error_calls: number;
+            /** Ok Calls */
+            ok_calls: number;
+            /** Tool */
+            tool: string;
+            /** Worst Daily P95 Ms */
+            worst_daily_p95_ms: number | null;
+        };
         /**
          * TraversalResultResponse
          * @description HTTP response shape for graph traversal endpoints.
@@ -4871,6 +5178,23 @@ export interface components {
             };
             /** Valid From */
             valid_from?: string | null;
+        };
+        /** UsageSummaryOut */
+        UsageSummaryOut: {
+            /** Days */
+            days: number;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Surfaces */
+            surfaces: components["schemas"]["SurfaceSummaryOut"][];
         };
         /** ValidationError */
         ValidationError: {
@@ -6248,6 +6572,146 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_capability_rankings_v1_admin_usage_capabilities_get: {
+        parameters: {
+            query?: {
+                /** @description First day of the window, inclusive. */
+                from?: string | null;
+                /** @description Last day of the window, inclusive. */
+                to?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityRankingOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_usage_series_v1_admin_usage_series_get: {
+        parameters: {
+            query?: {
+                /** @description First day of the window, inclusive. */
+                from?: string | null;
+                /** @description Last day of the window, inclusive. */
+                to?: string | null;
+                /** @description One of ['mcp', 'rest']. Omit for all. */
+                surface?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DailySeriesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_usage_summary_v1_admin_usage_summary_get: {
+        parameters: {
+            query?: {
+                /** @description First day of the window, inclusive. */
+                from?: string | null;
+                /** @description Last day of the window, inclusive. */
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageSummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_tool_rankings_v1_admin_usage_tools_get: {
+        parameters: {
+            query?: {
+                /** @description First day of the window, inclusive. */
+                from?: string | null;
+                /** @description Last day of the window, inclusive. */
+                to?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToolRankingOut"];
+                };
             };
             /** @description Validation Error */
             422: {
@@ -8247,6 +8711,42 @@ export interface operations {
             };
         };
     };
+    search_claims_v1_memory_claims_search_get: {
+        parameters: {
+            query: {
+                q: string;
+                namespace_prefix?: string | null;
+                category?: string | null;
+                min_confidence?: number | null;
+                persona?: string;
+                top_k?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_claim_v1_memory_claims__claim_id__get: {
         parameters: {
             query?: {
@@ -8845,6 +9345,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubscriptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_owned_capability_usage_v1_usage_owned_capabilities_get: {
+        parameters: {
+            query?: {
+                /** @description First day of the window, inclusive. */
+                from?: string | null;
+                /** @description Last day of the window, inclusive. */
+                to?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnedCapabilityUsageListOut"];
                 };
             };
             /** @description Validation Error */

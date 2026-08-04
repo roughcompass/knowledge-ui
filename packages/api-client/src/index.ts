@@ -130,6 +130,37 @@ export {
 } from './notifications';
 
 export {
+  CLAIM_PERSONAS,
+  DEFAULT_CLAIM_PERSONA,
+  confidenceBand,
+  recallCaveat,
+  uncitedClaims,
+  useClaim,
+  useClaimSearch,
+  useClaims,
+  type Citation,
+  type Claim,
+  type ClaimPersona,
+  type ClaimQuery,
+  type ClaimSearchQuery,
+  type ConfidenceBand,
+} from './memory';
+
+export {
+  TRAVERSAL_DEPTHS,
+  edgesByRelationship,
+  traversalCaveats,
+  useBlastRadius,
+  useDependencies,
+  useDependents,
+  type Dependencies,
+  type EdgeRef,
+  type Traversal,
+  type TraversalDepth,
+  type TraversalQuery,
+} from './impact';
+
+export {
   SYNC_RUN_STATUSES,
   SYNC_SOURCE_TYPES,
   useSyncRuns,
