@@ -156,10 +156,24 @@ acknowledge, success for a passed check, neutral otherwise.
   active-voice sentence about impact. No "Heads up", no "FYI".
 - Page-level messages are banners. Transient confirmations are toasts.
 
-Mapping for this repo: a named absence is a **note**, not an empty state. An
-error in a region is a note or an error panel. A mutation result is a toast — and
-the toast host belongs in the shell, because a provider inside a remote is
-invisible to the host.
+**Built**, as `Note`. Four variants chosen by meaning, no dismiss prop — the
+absence is structural, because a reader who closes a caveat to clear the screen has
+removed it while it still applies — and a single `action` slot rather than children,
+since two buttons make a note a decision point and a decision does not belong in
+one.
+
+The three ways to tell a reader something are now distinct, and picking the wrong
+one is how a console acquires a second idiom:
+
+|                     | Means                             | Will it fill?          |
+| ------------------- | --------------------------------- | ---------------------- |
+| `Note`              | a caveat about data on this panel | n/a — it qualifies     |
+| `UnavailableNotice` | the data does not exist to fetch  | no                     |
+| `EmptyState`        | the query ran and found nothing   | yes, when data arrives |
+
+A toast is still unbuilt. Its host belongs in the shell, because a provider inside
+a remote is invisible to the host — which is why the existing action-result
+component renders in place instead.
 
 ---
 

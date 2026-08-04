@@ -21,8 +21,8 @@ import {
   FilterBar,
   FilterField,
   LoadingPanel,
+  Note,
   PageHeader,
-  Prose,
   SectionCard,
   StatTile,
   UnavailableNotice,
@@ -207,11 +207,11 @@ export function UsagePage() {
         silently reports a smaller number under the reader's own heading.
       */}
       {substitution ? (
-        <SectionCard title="This is not the window you asked for" banded>
-          <Prose>
-            <Text color="secondary">{substitution}</Text>
-          </Prose>
-        </SectionCard>
+        // A warning rather than neutral context: a narrowed window is a consequence
+        // the reader has to acknowledge before quoting anything on the page.
+        <Note label="Narrowed Window" variant="warning">
+          {substitution}
+        </Note>
       ) : null}
 
       {operatorScoped ? (
@@ -312,11 +312,11 @@ export function UsagePage() {
                   only signal that distinction had.
                 */}
                 {gaps.length > 0 ? (
-                  <Text color="secondary">
+                  <Note label="Days Omitted" variant="warning">
                     {gaps.length === 1
                       ? `No traffic was recorded on ${gaps[0]}. The service omits a day rather than reporting zero, so this is a real gap and not a missing measurement.`
                       : `No traffic was recorded on ${gaps.length} days in this window (${gaps.join(', ')}). The service omits a day rather than reporting zero, so these are real gaps and not missing measurements.`}
-                  </Text>
+                  </Note>
                 ) : null}
 
                 <BarFigure
@@ -430,15 +430,11 @@ export function UsagePage() {
           </SectionCard>
         </>
       ) : (
-        <SectionCard title="Deployment-wide usage needs the operator scope" banded>
-          <Prose>
-            <Text color="secondary">
-              The per-surface, daily and tool panels report the whole deployment and are gated on
-              the operator scope, which this identity does not hold. Usage of the capabilities your
-              tenant owns is below.
-            </Text>
-          </Prose>
-        </SectionCard>
+        <Note label="Operator Scope">
+          The per-surface, daily and tool panels report the whole deployment and are gated on the
+          operator scope, which this identity does not hold. Usage of the capabilities your tenant
+          owns is below.
+        </Note>
       )}
 
       {ownerScoped ? (
@@ -501,17 +497,17 @@ export function UsagePage() {
         </SectionCard>
       ) : null}
 
-      <SectionCard title="What these numbers do not say" banded>
-        <Prose>
-          <Text color="secondary">
-            Every figure here is a count over the window the service reported, and none is a rate —
-            a rate needs a denominator this console does not hold, and one derived in a browser
-            cannot be checked. The API also classifies none of these fields as measured or merely
-            correlated, so nothing is badged as a proxy: that absence is stated rather than filled
-            in with a guess.
-          </Text>
-        </Prose>
-      </SectionCard>
+      {/*
+        Neutral, not a warning. This is context about what the page deliberately does
+        not claim, and dressing it as a problem would train the reader to skip it —
+        which is the fate of every caveat that cries wolf.
+      */}
+      <Note label="Reading These Numbers">
+        Every figure here is a count over the window the service reported, and none is a rate — a
+        rate needs a denominator this console does not hold, and one derived in a browser cannot be
+        checked. The API also classifies none of these fields as measured or merely correlated, so
+        nothing is badged as a proxy: that absence is stated rather than filled in with a guess.
+      </Note>
     </StackLayout>
   );
 }

@@ -20,6 +20,7 @@ import {
   FilterBar,
   FilterField,
   LoadingPanel,
+  Note,
   SectionCard,
   UnavailableNotice,
   popoverOverlayProps,
@@ -235,9 +236,11 @@ export function ImpactPanel({ handle }: { handle: string }) {
         {caveats.length > 0 ? (
           <StackLayout gap={1}>
             {caveats.map((caveat) => (
-              <Text color="secondary" key={caveat}>
+              // A warning: a partial closure is a consequence to acknowledge before
+              // deciding a change is safe, which is why anyone is reading this panel.
+              <Note label="Partial Answer" variant="warning" key={caveat}>
                 {caveat}
-              </Text>
+              </Note>
             ))}
           </StackLayout>
         ) : null}

@@ -4,6 +4,7 @@
     "declaration-property-value-allowed-list": {
       "/^color$|^background|^border.*color|^outline-color|^fill$|^stroke$/": [
         "/^var\\(--salt-/",
+        "/^var\\(--kui-/",
         "transparent",
         "currentColor",
         "inherit",
@@ -11,12 +12,23 @@
       ],
       "/^padding|^margin|^gap$|^row-gap|^column-gap|^inset/": [
         "/^var\\(--salt-/",
+        "/^var\\(--kui-/",
         "0",
         "auto",
         "inherit"
       ],
-      "/^font-size$|^font-weight$|^font-family$|^line-height$/": ["/^var\\(--salt-/", "inherit"],
-      "/^border-radius/": ["/^var\\(--salt-/", "/^var\\(--kui-radius-/", "0", "50%", "inherit"]
+      "/^font-size$|^font-weight$|^font-family$|^line-height$/": [
+        "/^var\\(--salt-/",
+        "/^var\\(--kui-/",
+        "inherit"
+      ],
+      "/^border-radius|^border-start|^border-end/": [
+        "/^var\\(--salt-/",
+        "/^var\\(--kui-/",
+        "0",
+        "50%",
+        "inherit"
+      ]
     },
     "custom-property-pattern": null,
     "selector-class-pattern": "^[a-z][a-zA-Z0-9]+$",

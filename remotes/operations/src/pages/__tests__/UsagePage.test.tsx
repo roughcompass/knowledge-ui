@@ -148,7 +148,10 @@ describe('the two usage scopes are separate gates', () => {
     expect(
       await screen.findByRole('table', { name: /usage of owned capabilities/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/needs the operator scope/i)).toBeInTheDocument();
+    // Rendered as a note rather than a card, since it qualifies the panels around it
+    // rather than being a section of its own.
+    expect(screen.getByText('Operator Scope')).toBeInTheDocument();
+    expect(screen.getByText(/gated on\s+the operator scope/i)).toBeInTheDocument();
     expect(screen.queryByRole('table', { name: /usage by surface/i })).not.toBeInTheDocument();
   });
 

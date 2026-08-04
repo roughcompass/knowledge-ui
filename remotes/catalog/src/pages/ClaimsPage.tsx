@@ -18,9 +18,8 @@ import {
   FilterBar,
   FilterField,
   LoadingPanel,
+  Note,
   PageHeader,
-  Prose,
-  SectionCard,
   UnavailableNotice,
   popoverOverlayProps,
 } from '@knowledge-ui/ui-kit';
@@ -281,11 +280,16 @@ export function ClaimsPage() {
       </FilterBar>
 
       {caveat ? (
-        <SectionCard title="How to read these" banded>
-          <Prose>
-            <Text color="secondary">{caveat}</Text>
-          </Prose>
-        </SectionCard>
+        /*
+         * A warning, and once for the whole set rather than per row. Every served
+         * claim carries this same marker by construction, so a per-row badge would
+         * imply variance that does not exist — and an identical badge on every row
+         * becomes chrome the eye stops seeing, which is the one state a safety
+         * caveat must never reach.
+         */
+        <Note label="Recalled Content" variant="warning">
+          {caveat}
+        </Note>
       ) : null}
 
       {uncited.length > 0 ? (

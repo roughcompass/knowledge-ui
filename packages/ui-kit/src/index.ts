@@ -21,6 +21,14 @@ export { ActionResult } from './ActionResult';
 export { ConfirmDialog } from './ConfirmDialog';
 export { EmptyState } from './EmptyState';
 export { UnavailableNotice } from './UnavailableNotice';
+
+/**
+ * Inline contextual feedback. The third of three ways to tell a reader something,
+ * and its own docstring explains when to reach for it rather than for the two above:
+ * a note qualifies data on the panel, an unavailable notice says the data cannot be
+ * fetched, an empty state says the query found nothing and will fill later.
+ */
+export { Note } from './Note';
 export { LoadingPanel } from './LoadingPanel';
 export { ErrorPanel } from './ErrorPanel';
 export { DataTable, type Column, type DataTableProps } from './DataTable';
