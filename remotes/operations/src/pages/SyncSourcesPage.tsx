@@ -174,7 +174,7 @@ export function SyncSourcesPage() {
                 );
               }}
             >
-              Run now
+              Run Now
             </Button>
             {row.is_active ? (
               <Button
@@ -218,7 +218,7 @@ export function SyncSourcesPage() {
             sentiment="accented"
             onClick={() => setFormOpen((open) => !open)}
           >
-            {formOpen ? 'Cancel' : 'Add a source'}
+            {formOpen ? 'Cancel' : 'Add Source'}
           </Button>
         }
       />

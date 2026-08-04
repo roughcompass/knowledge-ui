@@ -118,7 +118,7 @@ test('a write survives the federation boundary and lands on its field', async ({
   await switchToAdmin(page);
   await page.goto('/ops/sync', { waitUntil: 'networkidle' });
 
-  await page.getByRole('button', { name: 'Add a source' }).click();
+  await page.getByRole('button', { name: 'Add Source' }).click();
   await page.getByRole('button', { name: 'Save' }).click();
 
   const displayName = page.getByRole('textbox', { name: /display name/i });
@@ -134,7 +134,7 @@ test('run now reports a receipt and does not link a run that does not exist', as
   await page.goto('/ops/sync', { waitUntil: 'networkidle' });
 
   const row = page.locator('tbody tr', { hasText: 'docs-corpus' });
-  await row.getByRole('button', { name: 'Run now' }).click();
+  await row.getByRole('button', { name: 'Run Now' }).click();
 
   await expect(page.getByText(/Queued a manual run of docs-corpus/)).toBeVisible();
 
@@ -154,7 +154,7 @@ test('an inactive source cannot be triggered', async ({ page }) => {
   await page.goto('/ops/sync', { waitUntil: 'networkidle' });
 
   const inactive = page.locator('tbody tr', { hasText: 'retired-adr-import' });
-  await expect(inactive.getByRole('button', { name: 'Run now' })).toBeDisabled();
+  await expect(inactive.getByRole('button', { name: 'Run Now' })).toBeDisabled();
   await expect(inactive.getByRole('button', { name: 'Reactivate' })).toBeVisible();
 });
 

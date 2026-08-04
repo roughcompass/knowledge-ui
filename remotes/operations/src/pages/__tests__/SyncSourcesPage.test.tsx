@@ -45,7 +45,7 @@ describe('the create form', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: 'Add a source' }));
+    await user.click(await screen.findByRole('button', { name: 'Add Source' }));
     await user.click(screen.getByRole('button', { name: 'Save Connector' }));
 
     /*
@@ -78,7 +78,7 @@ describe('the create form', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(await screen.findByRole('button', { name: 'Add a source' }));
+    await user.click(await screen.findByRole('button', { name: 'Add Source' }));
     await user.click(screen.getByRole('button', { name: 'Save Connector' }));
 
     expect(await screen.findByText(/unknown connector type/i)).toBeInTheDocument();
@@ -92,7 +92,7 @@ describe('the create form', () => {
     // Three seeded sources before the write.
     await waitFor(() => expect(screen.getByText('docs-corpus')).toBeInTheDocument());
 
-    await user.click(screen.getByRole('button', { name: 'Add a source' }));
+    await user.click(screen.getByRole('button', { name: 'Add Source' }));
     await user.type(screen.getByRole('textbox', { name: /display name/i }), 'nightly-adrs');
     await user.click(screen.getByRole('combobox', { name: /connector/i }));
     await user.click(await screen.findByRole('option', { name: 'markdown_adr_rfc' }));
@@ -158,7 +158,7 @@ describe('deactivation stays reversible', () => {
     expect(await screen.findByText('retired-adr-import')).toBeInTheDocument();
     const inactiveRow = screen.getByText('retired-adr-import').closest('tr') as HTMLElement;
     expect(within(inactiveRow).getByRole('button', { name: 'Reactivate' })).toBeVisible();
-    expect(within(inactiveRow).getByRole('button', { name: 'Run now' })).toBeDisabled();
+    expect(within(inactiveRow).getByRole('button', { name: 'Run Now' })).toBeDisabled();
 
     // And a source deactivated during this session stays visible too.
     const activeRow = screen.getByText('docs-corpus').closest('tr') as HTMLElement;
