@@ -40,6 +40,20 @@ const SALT_COVERED_ELEMENTS = [
  * `apps/**` + `remotes/**` block below listed the intrinsic-element selectors and
  * silently dropped the hex ban with them — so raw hex colours were unenforced in
  * every page and component, which is precisely where they would be written.
+ *
+ * Restating the universal entries by hand fixed that instance and left the trap
+ * armed: the same mistake then happened to `no-restricted-imports`, where a
+ * narrow block for `apps/**` and `remotes/**` replaced five library bans and the
+ * global-CSS ban with a single chart rule. Those bans were dead in every page and
+ * component for as long as the rule existed, enforced only in `packages/`, which
+ * is where they mattered least.
+ *
+ * So neither rule is written as a literal array anywhere below. Both are built by
+ * the composer functions further down, which always include the universal set.
+ * Adding a block cannot silently narrow either rule, because there is no longer a
+ * spelling of them that omits the base — and `resolved-config.test.ts` asserts the
+ * result per workspace, since a convention this file cannot enforce about itself
+ * is the thing that failed twice.
  */
 const NO_RAW_HEX = {
   // Salt tokens are the only sanctioned source of design values.
@@ -62,6 +76,68 @@ const NO_STYLE_PROP_LITERALS = {
   message:
     'No literal values in a style prop. Use a Salt layout component, or a colocated *.module.css using var(--salt-*) tokens.',
 };
+
+/** Packages that must never appear in an import, anywhere. */
+const BANNED_PACKAGES = [
+  {
+    name: 'styled-components',
+    message: 'CSS-in-JS is not used here. Use a *.module.css with Salt tokens.',
+  },
+  {
+    name: '@emotion/react',
+    message: 'CSS-in-JS is not used here. Use a *.module.css with Salt tokens.',
+  },
+  {
+    name: '@emotion/styled',
+    message: 'CSS-in-JS is not used here. Use a *.module.css with Salt tokens.',
+  },
+  {
+    name: 'tailwindcss',
+    message: 'Utility CSS is not used here. Use Salt components and tokens.',
+  },
+  {
+    name: '@salt-ds/lab',
+    message:
+      '@salt-ds/lab is alpha with no semver guarantee. Wrap it in packages/ui-kit and pin the exact version.',
+  },
+];
+
+/**
+ * Only scoped stylesheets may be imported.
+ *
+ * The three entry files that pull in global theme and font CSS pass
+ * `globalCss: 'allowed'` to the composer below. They are the only files that
+ * legitimately load a stylesheet nothing scopes, and they used to switch the whole
+ * rule off to get it — which took the package bans with them.
+ */
+const ONLY_CSS_MODULES = {
+  group: ['**/*.css', '!**/*.module.css'],
+  message:
+    'Only *.module.css may be imported. Global theme CSS is imported by the shell entry and each remote standalone entry, which are exempt.',
+};
+
+/**
+ * Builds a complete `no-restricted-imports` value.
+ *
+ * Every caller gets `BANNED_PACKAGES`; there is deliberately no way to ask for a
+ * value without them. `paths` adds block-specific bans on top, and
+ * `globalCss: 'allowed'` drops only the stylesheet pattern rather than the lot.
+ */
+const restrictedImports = ({ paths = [], globalCss = 'banned' } = {}) => [
+  'error',
+  {
+    paths: [...BANNED_PACKAGES, ...paths],
+    patterns: globalCss === 'allowed' ? [] : [ONLY_CSS_MODULES],
+  },
+];
+
+/** Builds a complete `no-restricted-syntax` value, universal selectors included. */
+const restrictedSyntax = (...additional) => [
+  'error',
+  NO_STYLE_PROP_LITERALS,
+  NO_RAW_HEX,
+  ...additional,
+];
 
 export default tseslint.config(
   // Kept in step with .gitignore. `dist-types/` in particular is declaration
@@ -107,43 +183,9 @@ export default tseslint.config(
       // A style prop holding literals is a stylesheet in disguise, outside the
       // reach of stylelint's token allow-list. Custom styling belongs in a
       // colocated *.module.css where the token rule applies.
-      'no-restricted-syntax': ['error', NO_STYLE_PROP_LITERALS, NO_RAW_HEX],
+      'no-restricted-syntax': restrictedSyntax(),
 
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: 'styled-components',
-              message: 'CSS-in-JS is not used here. Use a *.module.css with Salt tokens.',
-            },
-            {
-              name: '@emotion/react',
-              message: 'CSS-in-JS is not used here. Use a *.module.css with Salt tokens.',
-            },
-            {
-              name: '@emotion/styled',
-              message: 'CSS-in-JS is not used here. Use a *.module.css with Salt tokens.',
-            },
-            {
-              name: 'tailwindcss',
-              message: 'Utility CSS is not used here. Use Salt components and tokens.',
-            },
-            {
-              name: '@salt-ds/lab',
-              message:
-                '@salt-ds/lab is alpha with no semver guarantee. Wrap it in packages/ui-kit and pin the exact version.',
-            },
-          ],
-          patterns: [
-            {
-              group: ['**/*.css', '!**/*.module.css'],
-              message:
-                'Only *.module.css may be imported. Global theme CSS is imported by the shell entry and each remote standalone entry, which are exempt.',
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': restrictedImports(),
     },
   },
 
@@ -153,19 +195,12 @@ export default tseslint.config(
   {
     files: ['apps/**/*.tsx', 'remotes/**/*.tsx'],
     rules: {
-      'react/no-unknown-property': 'off',
-      // Re-states the two universal rules: this array replaces the base one
-      // rather than merging with it, and dropping them here is what left raw hex
-      // unenforced across every page and component.
-      'no-restricted-syntax': [
-        'error',
+      'no-restricted-syntax': restrictedSyntax(
         ...SALT_COVERED_ELEMENTS.map((el) => ({
           selector: `JSXOpeningElement[name.name="${el.name}"]`,
           message: `<${el.name}> is covered by Salt. ${el.message}`,
         })),
-        NO_STYLE_PROP_LITERALS,
-        NO_RAW_HEX,
-      ],
+      ),
     },
   },
 
@@ -186,26 +221,29 @@ export default tseslint.config(
   {
     files: ['remotes/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            {
-              name: '@knowledge-ui/ui-kit',
-              importNames: ['BarSeries', 'Sparkline'],
-              message:
-                'Render a chart through <Figure>, which pairs the mark with its data table. Importing a mark directly makes the table optional, and a chart without one is unreadable to anyone who cannot see it — and uncheckable by anyone who can.',
-            },
-          ],
-        },
-      ],
+      'no-restricted-imports': restrictedImports({
+        paths: [
+          {
+            name: '@knowledge-ui/ui-kit',
+            importNames: ['BarSeries', 'Sparkline'],
+            message:
+              'Render a chart through <Figure>, which pairs the mark with its data table. Importing a mark directly makes the table optional, and a chart without one is unreadable to anyone who cannot see it — and uncheckable by anyone who can.',
+          },
+        ],
+      }),
     },
   },
 
-  // Theme and font CSS is global by nature and belongs to exactly these entries.
+  /*
+   * Theme and font CSS is global by nature and belongs to exactly these entries.
+   *
+   * Only the stylesheet pattern is lifted. This block used to switch the whole
+   * rule off, which also un-banned CSS-in-JS and the alpha component package in
+   * the three files nothing else covers.
+   */
   {
     files: ['apps/shell/src/main.tsx', 'remotes/*/src/standalone.tsx'],
-    rules: { 'no-restricted-imports': 'off' },
+    rules: { 'no-restricted-imports': restrictedImports({ globalCss: 'allowed' }) },
   },
 
   // Node-side tooling.
