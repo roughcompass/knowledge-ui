@@ -66,8 +66,6 @@ function refuse(role: string, allowed: readonly string[]) {
   );
 }
 
-export const USAGE_WINDOW = WINDOW;
-
 export const usageHandlers = [
   http.get('*/v1/admin/usage/summary', ({ request }) => {
     const denied = refuse(roleFor(request), ['admin']);
