@@ -1,21 +1,33 @@
-import { StackLayout, Text } from '@salt-ds/core';
+import { Banner, BannerActions, BannerContent, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
-
-import styles from './Note.module.css';
 
 /**
  * Inline contextual feedback, beside the thing it describes.
  *
+ * ## Built on Salt's Banner, with no markup or stylesheet of its own
+ *
+ * The first version of this was a hand-rolled `div` with a CSS module — a left
+ * border, four colour variants, its own padding — to get the leading-rule look the
+ * reference uses for a margin note. That was the wrong trade. Salt already ships
+ * this component: `status` carries exactly the four states, `variant` carries
+ * emphasis, and `BannerActions` is the action slot. Reproducing it in custom CSS
+ * bought an appearance and gave up the accessibility, keyboard and theming work Salt
+ * maintains — and put a second idiom for "tell the reader something" into a repo
+ * whose whole design standard is about not having those.
+ *
+ * So this is composition, not construction. It contributes the *copy discipline* and
+ * the two structural constraints below; everything visual is Salt's.
+ *
  * ## When this and not one of the two neighbours
  *
- * There are now three ways to tell a reader something, and the difference between
- * them is the reason this is documented at length rather than just added. Reaching
- * for the wrong one is how a console acquires a second idiom for the same job.
+ * There are three ways to tell a reader something and the difference is
+ * load-bearing. Reaching for the wrong one is how a console acquires a second idiom.
  *
  * - **`Note`** — a caveat, a consequence, or a passed check *about the panel it sits
- *   in*. It qualifies data the reader is looking at.
- * - **`UnavailableNotice`** — the data does not exist to fetch. A banner, because it
- *   is a statement about the surface rather than about a value on it.
+ *   in*. It qualifies data the reader is looking at. Secondary emphasis, because it
+ *   annotates rather than interrupts.
+ * - **`UnavailableNotice`** — the data does not exist to fetch. Primary emphasis: it
+ *   is a statement about the surface, not about a value on it.
  * - **`EmptyState`** — the query ran and found nothing. It will fill when data
  *   arrives; the other two will not.
  *
@@ -31,8 +43,8 @@ import styles from './Note.module.css';
  * ## One action, at most
  *
  * `action` is a single slot rather than children. Two buttons in a note make it a
- * decision point, and a note is not where a decision belongs — that is a dialog or
- * a form. One inline route onward is the most it should offer.
+ * decision point, and a note is not where a decision belongs — that is a dialog or a
+ * form.
  *
  * ## Copy
  *
@@ -58,6 +70,9 @@ export function Note({
    * - `success` — a check that passed, worth confirming.
    * - `neutral` — context that is neither good nor bad. The default, and the right
    *   choice for "here is what this number does not say".
+   *
+   * Maps onto Salt's `status`, with `neutral` becoming `info` — Salt has no neutral
+   * state, and info is the one that does not imply something needs attention.
    */
   variant?: 'neutral' | 'success' | 'warning' | 'error';
   /** A single route onward. Deliberately not a list. */
@@ -66,14 +81,14 @@ export function Note({
   children: ReactNode;
 }) {
   return (
-    <div className={`${styles.note} ${styles[variant]}`} role="note">
-      <StackLayout gap={0.5}>
-        <Text styleAs="label" className={styles.label}>
-          {label}
-        </Text>
-        <Text>{children}</Text>
-        {action !== undefined ? <div className={styles.action}>{action}</div> : null}
-      </StackLayout>
-    </div>
+    <Banner status={variant === 'neutral' ? 'info' : variant} variant="secondary">
+      <BannerContent>
+        <StackLayout gap={0.5}>
+          <Text styleAs="label">{label}</Text>
+          <Text>{children}</Text>
+        </StackLayout>
+      </BannerContent>
+      {action !== undefined ? <BannerActions>{action}</BannerActions> : null}
+    </Banner>
   );
 }

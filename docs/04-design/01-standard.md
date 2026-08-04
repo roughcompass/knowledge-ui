@@ -12,10 +12,23 @@ read as a considered product rather than a design-system demo.
 ## What this does not mean
 
 **Do not add the reference implementation's own packages or typefaces.** No
-component library from it, no icon set, no font. The look is built here from Salt
-components, Salt tokens and CSS modules, which is what keeps the accessibility,
-keyboard and theming work Salt already does — and what keeps `check-salt-tokens`
-able to verify that every value resolves.
+component library from it, no icon set, no font.
+
+**And do not hand-roll what Salt already ships.** Salt components are the default;
+custom markup or a new stylesheet needs a reason better than "the reference looks
+slightly different". Reproducing a component in custom CSS buys an appearance and
+gives up the accessibility, keyboard and theming work Salt maintains — and it puts a
+second idiom into a repo whose standard is largely about not having those.
+
+Where the reference genuinely differs, the route is Salt's _own_ published variables
+— `--saltButton-textTransform`, `--saltDialog-borderRadius` — set in the one global
+stylesheet. That is Salt's API rather than an override reaching past it, and it
+means a component does not need a stylesheet to be the right shape.
+
+Two components in this kit were rebuilt on that basis after being written the other
+way: the note, which is now Salt's `Banner` with copy discipline on top, and the
+metadata block, which is now `FlexLayout` rather than a bespoke grid. Both lost a
+stylesheet and gained the behaviour Salt maintains.
 
 So this document is a translation, not an import: the properties of the reference,
 expressed in the vocabulary this repo can enforce.

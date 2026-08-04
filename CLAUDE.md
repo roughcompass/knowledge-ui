@@ -137,6 +137,14 @@ The measured values and the composition rules are in
 [`docs/04-design/01-standard.md`](docs/04-design/01-standard.md). The short
 version:
 
+0. **Salt components are the default, and custom markup or CSS needs a reason.**
+   Before writing a `div` and a stylesheet, check whether Salt ships the component —
+   it usually does, and reproducing it buys an appearance while giving up the
+   accessibility, keyboard and theming work Salt maintains. Where the reference look
+   differs from Salt's default, reach for Salt's _own_ published variables
+   (`--saltButton-*`, `--saltDialog-borderRadius`) in the one global stylesheet,
+   rather than a new module. A note built on `Banner` and a metadata block built from
+   `FlexLayout` both started as hand-rolled CSS and were rebuilt for this reason.
 1. **Compose from the ui-kit, not from Salt directly.** Reaching past
    `PageHeader`, `SectionCard`, `DataTable`, `FilterBar`/`FilterField`,
    `EmptyState`, `ErrorPanel`, `LoadingPanel`, `StatTile` and `CursorPager`

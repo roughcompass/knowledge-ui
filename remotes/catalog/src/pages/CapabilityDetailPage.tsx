@@ -1,7 +1,14 @@
 import { Button, FlexLayout, StackLayout, Tag, Text } from '@salt-ds/core';
 import { useCapability, type RegistryClient } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
-import { DataTable, ErrorPanel, LoadingPanel, PageHeader, SectionCard } from '@knowledge-ui/ui-kit';
+import {
+  DataTable,
+  DescriptionList,
+  ErrorPanel,
+  LoadingPanel,
+  PageHeader,
+  SectionCard,
+} from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -139,23 +146,25 @@ export function CapabilityDetailPage() {
       */}
       {handle ? <ImpactPanel handle={handle} /> : null}
 
-      <SectionCard title="Attributes" banded flush>
-        <DataTable
-          caption="Attributes"
-          hideCaption
-          columns={[
-            { key: 'key', header: 'Key' },
-            {
-              key: 'value',
-              header: 'Value',
-              render: (row) => <AttributeValue value={row.value} />,
-            },
-          ]}
-          rows={attributeRows}
-          getRowId={(row) => row.key}
-          emptyTitle="No attributes"
-          emptyHeadingLevel="h3"
-        />
+      {/*
+        A description list rather than a two-column table, which is what this was. A
+        table claims its rows are comparable, and these are one heterogeneous set of
+        fields about one capability — there is nothing to scan down a column of
+        values, and headers reading "Key" and "Value" invited a reader to try.
+      */}
+      <SectionCard title="Attributes" banded>
+        {attributeRows.length === 0 ? (
+          <Text color="secondary">No attributes recorded for this capability.</Text>
+        ) : (
+          <DescriptionList
+            caption="Attributes"
+            hideCaption
+            items={attributeRows.map((row) => ({
+              term: row.key,
+              detail: <AttributeValue value={row.value} />,
+            }))}
+          />
+        )}
       </SectionCard>
 
       <SectionCard title="Facts" banded flush>
@@ -186,23 +195,15 @@ export function CapabilityDetailPage() {
           title="Audit fields"
           description="Omitted from the response entirely unless requested, so an empty table here means the server sent nothing — not that the values are null. Valid-time intervals are not among them: those belong to individual facts and edges, which are the rows that assert something that can later stop being true. An entity has a creation time and an active flag, and both are shown here."
         >
-          <DataTable
+          <DescriptionList
             caption="Bitemporal fields"
             hideCaption
-            columns={[
-              { key: 'key', header: 'Field' },
-              {
-                key: 'value',
-                header: 'Value',
-                render: (row) => <AttributeValue value={row.value} />,
-              },
-            ]}
-            rows={['tenant_id', 'is_active', 'superseded_facts_count', 'as_of']
+            items={['tenant_id', 'is_active', 'superseded_facts_count', 'as_of']
               .filter((key) => key in data)
-              .map((key) => ({ key, value: data[key] ?? '\u2014' }))}
-            getRowId={(row) => row.key}
-            emptyTitle="No audit fields returned"
-            emptyHeadingLevel="h3"
+              .map((key) => ({
+                term: key,
+                detail: <AttributeValue value={data[key] ?? '\u2014'} />,
+              }))}
           />
         </SectionCard>
       ) : null}

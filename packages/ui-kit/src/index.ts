@@ -32,6 +32,16 @@ export { Note } from './Note';
 export { LoadingPanel } from './LoadingPanel';
 export { ErrorPanel } from './ErrorPanel';
 export { DataTable, type Column, type DataTableProps } from './DataTable';
+
+/**
+ * Metadata, which is not tabular data.
+ *
+ * A table claims its rows are comparable; a heterogeneous set of fields about one
+ * thing is not, and column headers called "Key" and "Value" invite a reader to scan
+ * a column that means nothing. See its docstring for the three-way split between
+ * this, a table, and an entity row.
+ */
+export { DescriptionList, type Description } from './DescriptionList';
 export { CursorPager } from './CursorPager';
 export { CopyButton } from './CopyButton';
 export {

@@ -136,9 +136,20 @@ h6.saltText {
    * the button properties above learned the hard way: the session bootstrap and any
    * portalled content render outside the shell.
    */
+
   --kui-radius-surface: var(--salt-palette-corner-weak);
   --kui-radius-surface-large: var(--salt-palette-corner-strong);
   --kui-radius-floating: var(--salt-palette-corner-weak);
   --kui-radius-modal: var(--salt-palette-corner-strong);
   --kui-radius-fullscreen: var(--salt-palette-corner-stronger);
+
+  /*
+   * The modal's own radius, applied here rather than from a component stylesheet.
+   *
+   * `--saltDialog-borderRadius` is Salt's published variable for exactly this, so
+   * setting it is Salt's API rather than an override reaching past it — the same
+   * reasoning as the button properties above. Doing it here means no component needs
+   * a stylesheet of its own to be the right shape.
+   */
+  --saltDialog-borderRadius: var(--kui-radius-modal);
 }

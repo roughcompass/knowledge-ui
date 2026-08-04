@@ -9,8 +9,6 @@ import {
 } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
-import styles from './ConfirmDialog.module.css';
-
 import { ActionResult } from './ActionResult';
 
 /**
@@ -57,7 +55,6 @@ export function ConfirmDialog({
 }) {
   return (
     <Dialog
-      className={styles.dialog}
       open={open}
       onOpenChange={(next) => {
         // Escape and click-away route through here. Both are a cancel, and neither
