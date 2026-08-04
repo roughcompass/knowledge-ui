@@ -22,7 +22,7 @@
  * the trade we want — the failure mode it replaces is genuinely hard to debug.
  */
 
-/** Versions every workspace must pin identically. Enforced by scripts/check-shared-parity.mjs. */
+/** Versions every workspace must pin identically. Enforced by scripts/check-shared-parity.mjs, which reads this file by path. */
 export const PINNED = {
   react: '18.3.1',
   'react-dom': '18.3.1',
@@ -33,7 +33,7 @@ export const PINNED = {
   '@salt-ds/icons': '1.18.0',
 } as const;
 
-export const shared = {
+export const sharedModules = {
   react: { singleton: true, strictVersion: true, requiredVersion: PINNED.react },
   // The automatic JSX runtime is a separate specifier and needs its own entry,
   // or every remote bundles a second copy of it.

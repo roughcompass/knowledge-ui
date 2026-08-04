@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
-import { devProxy } from '../../dev-proxy';
-import { shared } from '../../mf.shared';
+import { registryProxy } from '../../tooling/vite/registry-proxy';
+import { sharedModules } from '../../tooling/federation/shared-modules';
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -30,7 +30,7 @@ export default defineConfig({
         catalog: { type: 'module', name: 'catalog', entry: CATALOG },
         operations: { type: 'module', name: 'operations', entry: OPERATIONS },
       },
-      shared,
+      shared: sharedModules,
       // Keeps hot reload working across the boundary: editing a file inside a
       // remote refreshes that module inside the running shell.
       dev: { remoteHmr: true },
@@ -81,7 +81,7 @@ export default defineConfig({
   server: {
     port: 5170,
     strictPort: true,
-    proxy: devProxy(),
+    proxy: registryProxy(),
   },
 
   preview: {
@@ -89,7 +89,7 @@ export default defineConfig({
     strictPort: true,
     // The preview server carries the same proxy table so the relative-URL
     // contract still holds in the built-artefact end-to-end lane.
-    proxy: devProxy(),
+    proxy: registryProxy(),
   },
 
   build: {

@@ -6,6 +6,12 @@ const IDP = process.env.KUI_IDP_TARGET ?? 'http://localhost:8090';
 /**
  * Same-origin proxy for the registry API and the local identity provider.
  *
+ * Not dev-only, which is what its previous name claimed. All three `vite dev`
+ * servers use it, all three `preview` servers use it, and the built end-to-end
+ * lane runs entirely through the preview ones — so the proxy is in the path of
+ * every request the test suite makes against a real backend, not just the ones a
+ * developer makes by hand.
+ *
  * The registry ships no CORS middleware, so a browser cannot call it
  * cross-origin at all — not even a simple GET, because the response carries no
  * `Access-Control-Allow-Origin` for the reader to see. Every dev and preview
@@ -22,9 +28,9 @@ const IDP = process.env.KUI_IDP_TARGET ?? 'http://localhost:8090';
  * keeps the client-credentials round trip same-origin.
  *
  * Production has no proxy: deploy same-origin with the API, or put a reverse
- * proxy in front. See the deployment section of the README.
+ * proxy in front of both.
  */
-export function devProxy(): Record<string, ProxyOptions> {
+export function registryProxy(): Record<string, ProxyOptions> {
   return {
     '/v1': { target: API, changeOrigin: true },
     '/healthz': { target: API, changeOrigin: true },

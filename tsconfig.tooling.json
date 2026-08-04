@@ -6,7 +6,7 @@
    * left a whole tier unchecked: the end-to-end specs, all seven test configs,
    * the three Vite configs, the shared test setup, and the two modules at the
    * repo root that the build and the parity guard both read. A type error in any
-   * of them surfaced when the file ran, if it ran — and `mf.shared.ts` is parsed
+   * of them surfaced when the file ran, if it ran — and `shared-modules.ts` is parsed
    * by a guard script with a regex rather than imported, so an error there
    * surfaced nowhere at all.
    *
@@ -30,8 +30,6 @@
     "tooling/**/*.ts",
     "*.config.ts",
     "vitest.setup.ts",
-    "mf.shared.ts",
-    "dev-proxy.ts",
     "apps/*/vite.config.ts",
     "apps/*/vitest.config.ts",
     "remotes/*/vite.config.ts",

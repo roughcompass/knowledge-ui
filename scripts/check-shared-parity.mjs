@@ -18,11 +18,12 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Parse PINNED out of mf.shared.ts without needing a TypeScript loader. */
+/** Parse PINNED out of tooling/federation/shared-modules.ts without needing a TypeScript loader. */
 function readPinned() {
-  const src = readFileSync(join(ROOT, 'mf.shared.ts'), 'utf8');
+  const src = readFileSync(join(ROOT, 'tooling/federation/shared-modules.ts'), 'utf8');
   const block = src.match(/export const PINNED = \{([\s\S]*?)\} as const;/);
-  if (!block) throw new Error('could not locate the PINNED block in mf.shared.ts');
+  if (!block)
+    throw new Error('could not locate the PINNED block in tooling/federation/shared-modules.ts');
   const pinned = {};
   for (const line of block[1].split('\n')) {
     const m = line.match(/^\s*'?([@\w./-]+)'?\s*:\s*'([^']+)'/);
@@ -58,7 +59,9 @@ for (const { rel, json } of workspacePackageJsons()) {
     const got = deps[name];
     if (got === undefined) continue; // not every workspace uses every share
     if (got !== want) {
-      failures.push(`${rel}: ${name} is "${got}", must be exactly "${want}" (see mf.shared.ts)`);
+      failures.push(
+        `${rel}: ${name} is "${got}", must be exactly "${want}" (see tooling/federation/shared-modules.ts)`,
+      );
     }
   }
   for (const [name, range] of Object.entries(json.dependencies ?? {})) {

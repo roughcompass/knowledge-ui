@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
-import { devProxy } from '../../dev-proxy';
-import { shared } from '../../mf.shared';
+import { registryProxy } from '../../tooling/vite/registry-proxy';
+import { sharedModules } from '../../tooling/federation/shared-modules';
 
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -26,7 +26,7 @@ export default defineConfig({
         // The only public surface. Everything else stays private to the remote.
         './App': './src/expose/App.tsx',
       },
-      shared,
+      shared: sharedModules,
       dev: { remoteHmr: true },
       dts: false,
       // Emits mf-manifest.json and mf-stats.json. Worth having beyond
@@ -70,14 +70,14 @@ export default defineConfig({
     cors: { origin: ['http://localhost:5170'] },
     // Only reached when this remote runs standalone; federated code executes on
     // the shell's page and uses the shell's proxy.
-    proxy: devProxy(),
+    proxy: registryProxy(),
   },
 
   preview: {
     port: 4271,
     strictPort: true,
     cors: { origin: ['http://localhost:4270'] },
-    proxy: devProxy(),
+    proxy: registryProxy(),
   },
 
   build: {
