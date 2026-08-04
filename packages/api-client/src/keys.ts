@@ -136,4 +136,31 @@ export const queryKeys = {
 
   blastRadius: (scope: KeyScope, handle: string, params: Record<string, unknown> = {}) =>
     [...root(scope), 'impact', 'blast-radius', handle, params] as const,
+
+  /**
+   * USAGE — aggregate reads, keyed by the window they cover.
+   *
+   * The window is in the key because it is the whole identity of the answer: the
+   * same panel over two windows is two different numbers, and a key that omitted it
+   * would show last week's total under this week's heading.
+   *
+   * Under `'usage'` rather than `'admin'` even though four of the five endpoints
+   * live under the admin prefix, because the fifth — the owner-scoped read — does
+   * not, and a producer holding only that one should not have their cache
+   * invalidated by an operator write to something unrelated.
+   */
+  usageSummary: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'usage', 'summary', params] as const,
+
+  usageSeries: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'usage', 'series', params] as const,
+
+  usageCapabilities: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'usage', 'capabilities', params] as const,
+
+  usageTools: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'usage', 'tools', params] as const,
+
+  ownedCapabilityUsage: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'usage', 'owned', params] as const,
 } as const;

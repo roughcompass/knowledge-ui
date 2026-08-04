@@ -131,6 +131,27 @@ export const CAPABILITIES = {
    * audience as for the catalog.
    */
   'memory:read': ['admin', 'producer', 'consumer', 'auditor'],
+
+  /**
+   * Usage, as two capabilities because the server has two gates.
+   *
+   * The four aggregate reads are admin-only and describe the whole deployment. The
+   * owner-scoped read admits producer as well, and returns only what the caller's
+   * tenant owns. A producer is entitled to the second and not the first, so one
+   * entry could not serve both: at the wider grant it would offer an operator
+   * screen to a producer the API refuses, and at the narrower it would hide a
+   * producer's own usage from them.
+   *
+   * Deliberately **not** `ops:view`. That is granted to every role precisely
+   * because the endpoints behind it are unauthenticated probes; these are neither,
+   * so reusing it would put a nav entry in front of three roles that would meet a
+   * refusal.
+   *
+   * The API serves only these two scopes — there is no third, tenant-scoped gate,
+   * so no third capability is invented to mirror one.
+   */
+  'usage:read:operator': ['admin'],
+  'usage:read:owned': ['admin', 'producer'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Capability = keyof typeof CAPABILITIES;

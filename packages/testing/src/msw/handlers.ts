@@ -4,6 +4,7 @@ import { adminSyncHandlers } from './adminSync';
 import { consumerHandlers } from './consumer';
 import { roleFor, subjectOf } from './role';
 import { impactHandlers, memoryHandlers } from './memoryAndImpact';
+import { usageHandlers } from './usage';
 
 import {
   METRICS_TEXT,
@@ -304,6 +305,7 @@ export { roleFor } from './role';
 export const defaultHandlers = [
   ...memoryHandlers,
   ...impactHandlers,
+  ...usageHandlers,
   ...whoamiHandlers,
   ...capabilityHandlers,
   ...searchHandlers,

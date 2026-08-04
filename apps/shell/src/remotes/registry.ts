@@ -79,6 +79,11 @@ export const REMOTES: readonly RemoteDescriptor[] = [
     children: [
       { path: '', label: 'Health' },
       { path: 'metrics', label: 'Metrics' },
+      // Usage needs a scope of its own. The section is open to every role because
+      // the probes behind it are unauthenticated; the aggregate reads are not, so
+      // reusing the section's capability would offer three roles a refusal. The
+      // owner-scoped half is what lets a producer reach the page at all.
+      { path: 'usage', label: 'Usage', need: 'usage:read:owned' },
       // The audit log needs more than the section does: the registry resolves a
       // session to one role and guards that endpoint on `auditor` specifically,
       // so an administrator who can see Operations still cannot see this page.

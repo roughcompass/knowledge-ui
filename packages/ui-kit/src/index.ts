@@ -42,3 +42,13 @@ export { Sparkline, buildPath } from './Sparkline';
  */
 export { Figure } from './Figure';
 export { BarSeries, shares, type Bar } from './BarSeries';
+
+/**
+ * The usable form of the pairing, and the one a screen should reach for.
+ *
+ * `Figure` takes its mark as a prop while the marks are unimportable outside this
+ * package, so a screen cannot build one — which is most likely why the chart
+ * primitives had no consumers for as long as they did. This composite is the
+ * sanctioned route: same data twice, no prop that drops the table.
+ */
+export { BarFigure } from './BarFigure';

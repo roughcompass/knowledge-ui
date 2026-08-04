@@ -11,6 +11,7 @@ import { HealthPage } from '../pages/HealthPage';
 import { MetricsPage } from '../pages/MetricsPage';
 import { SyncRunsPage } from '../pages/SyncRunsPage';
 import { SyncSourcesPage } from '../pages/SyncSourcesPage';
+import { UsagePage } from '../pages/UsagePage';
 
 /**
  * The federated entry point for the platform screens.
@@ -37,6 +38,7 @@ export default function OperationsApp(props: RemoteMountProps<Session, RegistryC
         <Route element={<OperationsLayout />}>
           <Route index element={<HealthPage />} />
           <Route path="metrics" element={<MetricsPage />} />
+          <Route path="usage" element={<UsagePage />} />
           <Route path="audit" element={<GuardedAuditLog />} />
           {/*
             Relative paths, so the section can be remounted elsewhere without a

@@ -30,6 +30,7 @@ export {
 export { adminSyncHandlers, resetAdminStore } from './msw/adminSync';
 export { consumerHandlers, resetConsumerStore, seedAdoption } from './msw/consumer';
 export { CLAIMS, impactHandlers, memoryHandlers } from './msw/memoryAndImpact';
+export { usageHandlers } from './msw/usage';
 export {
   makeSession,
   makeTestQueryClient,

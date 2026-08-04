@@ -39,6 +39,7 @@ const ROUTES = [
   // bulk action and two unavailability notices.
   { path: '/catalog/notifications', name: 'notifications inbox' },
   { path: '/catalog/claims', name: 'claims browser' },
+  { path: '/ops/usage', name: 'usage console' },
   { path: '/catalog/salt-design-system', name: 'capability detail (adopt + subscriptions)' },
 ];
 

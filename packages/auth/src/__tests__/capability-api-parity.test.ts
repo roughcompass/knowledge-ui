@@ -138,6 +138,16 @@ const GATES: Record<Capability, Gate> = {
     serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
     note: 'get_tenant_context only, for every /v1/memory/* route.',
   },
+  'usage:read:operator': {
+    endpoint: 'GET /v1/admin/usage/summary',
+    serverRoles: ['admin'],
+    note: '_admin_required in admin_usage.py, for all four aggregate reads. Not ops:view, whose endpoints are unauthenticated probes.',
+  },
+  'usage:read:owned': {
+    endpoint: 'GET /v1/usage/owned-capabilities',
+    serverRoles: ['admin', 'producer'],
+    note: '_admin_or_producer_required in usage.py — a producer is entitled to usage of what their tenant owns, which is why this cannot share an entry with the operator-scoped reads.',
+  },
 };
 
 describe('the capability table against the API', () => {

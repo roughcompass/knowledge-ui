@@ -161,6 +161,29 @@ export {
 } from './impact';
 
 export {
+  WORST_DAILY_P95_CAVEAT,
+  WORST_DAILY_P95_LABEL,
+  daysWithoutTraffic,
+  describeWindow,
+  surfaceReach,
+  useOwnedCapabilityUsage,
+  useUsageByCapability,
+  useUsageByTool,
+  useUsageSeries,
+  useUsageSummary,
+  windowSubstituted,
+  type CapabilityRanking,
+  type DailyPoint,
+  type DailySeries,
+  type OwnedCapabilityUsage,
+  type SurfaceReach,
+  type SurfaceSummary,
+  type ToolRanking,
+  type UsageSummary,
+  type UsageWindow,
+} from './usage';
+
+export {
   SYNC_RUN_STATUSES,
   SYNC_SOURCE_TYPES,
   useSyncRuns,
