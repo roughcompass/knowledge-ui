@@ -74,9 +74,7 @@ export function SyncRunsPage() {
    * produce a different value on every pass, and it is part of the query key — so
    * the query would refetch continuously.
    */
-  const [from] = useState(
-    () => new Date(Date.now() - DEFAULT_WINDOW_DAYS * 24 * 60 * 60 * 1000),
-  );
+  const [from] = useState(() => new Date(Date.now() - DEFAULT_WINDOW_DAYS * 24 * 60 * 60 * 1000));
 
   // Feeds the source filter with names rather than making an operator paste a UUID.
   const sources = useSyncSources(client, scope);

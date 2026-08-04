@@ -28,7 +28,9 @@ describe('the empty state', () => {
     // "No subscriptions" states a row count. "You will not be told when this
     // capability changes" states the consequence, which is the thing a reader
     // is actually deciding about.
-    expect(await screen.findByText(/will not be told when this capability changes/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/will not be told when this capability changes/),
+    ).toBeInTheDocument();
   });
 });
 

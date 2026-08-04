@@ -3,12 +3,7 @@ import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react
 import type { RegistryClient } from './client';
 import type { components } from './generated/registry';
 import { queryKeys, type KeyScope } from './keys';
-import {
-  probeLiveness,
-  probeReadiness,
-  type Liveness,
-  type Readiness,
-} from './ops';
+import { probeLiveness, probeReadiness, type Liveness, type Readiness } from './ops';
 import { clampPageSize, compact, toApiTimestamp } from './params';
 
 type Schemas = components['schemas'];

@@ -135,7 +135,9 @@ export function SubscriptionPanel({ handle }: { handle: string }) {
                   appearance="transparent"
                   sentiment="caution"
                   disabled={remove.isPending}
-                  onClick={() => remove.mutate({ subscriptionId: row.id, capabilityHandle: handle })}
+                  onClick={() =>
+                    remove.mutate({ subscriptionId: row.id, capabilityHandle: handle })
+                  }
                 >
                   Cancel
                 </Button>

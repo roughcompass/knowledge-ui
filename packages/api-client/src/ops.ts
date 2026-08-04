@@ -76,4 +76,3 @@ export async function probeReadiness({
   if (res.status === 503) return { state: 'not-ready', detail: body || 'not ready' };
   return { state: 'unknown', status: res.status, detail: body };
 }
-

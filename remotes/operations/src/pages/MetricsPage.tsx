@@ -39,7 +39,6 @@ import {
  * only one of them is true for the whole deployment.
  */
 
-
 export function MetricsPage() {
   const { session, client } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };

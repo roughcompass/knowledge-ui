@@ -80,7 +80,8 @@ export function useSyncSources(
 
   return useQuery({
     queryKey: queryKeys.syncSources(scope, query),
-    queryFn: ({ signal }) => client.request<SyncSource[]>('/v1/admin/sync-sources', { query, signal }),
+    queryFn: ({ signal }) =>
+      client.request<SyncSource[]>('/v1/admin/sync-sources', { query, signal }),
     enabled: options.enabled ?? true,
     ...LIST_OPTIONS,
   });
@@ -94,9 +95,12 @@ export function useSyncSource(
   return useQuery({
     queryKey: queryKeys.syncSource(scope, sourceId ?? ''),
     queryFn: ({ signal }) =>
-      client.request<SyncSource>(`/v1/admin/sync-sources/${encodeURIComponent(sourceId as string)}`, {
-        signal,
-      }),
+      client.request<SyncSource>(
+        `/v1/admin/sync-sources/${encodeURIComponent(sourceId as string)}`,
+        {
+          signal,
+        },
+      ),
     enabled: Boolean(sourceId),
     staleTime: 30_000,
   });

@@ -314,10 +314,10 @@ export function useMarkAllNotificationsRead(
       const worker = async (): Promise<void> => {
         for (let id = queue.shift(); id !== undefined; id = queue.shift()) {
           try {
-            await client.request<void>(
-              `/v1/notifications/${encodeURIComponent(id)}:mark-read`,
-              { method: 'POST', headers: { [IDEMPOTENCY_HEADER]: newIdempotencyKey() } },
-            );
+            await client.request<void>(`/v1/notifications/${encodeURIComponent(id)}:mark-read`, {
+              method: 'POST',
+              headers: { [IDEMPOTENCY_HEADER]: newIdempotencyKey() },
+            });
             succeeded.push(id);
           } catch (error) {
             // Collected, not rethrown. One failure must not abandon the rest:
@@ -328,9 +328,7 @@ export function useMarkAllNotificationsRead(
         }
       };
 
-      await Promise.all(
-        Array.from({ length: Math.min(concurrency, queue.length || 1) }, worker),
-      );
+      await Promise.all(Array.from({ length: Math.min(concurrency, queue.length || 1) }, worker));
       return { succeeded, failed };
     },
     onSuccess: () => {

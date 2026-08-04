@@ -169,8 +169,7 @@ export function SyncSourcesPage() {
                 trigger.mutate(
                   { sourceId: row.source_id },
                   {
-                    onSuccess: () =>
-                      setTriggered(`Queued a manual run of ${row.display_name}.`),
+                    onSuccess: () => setTriggered(`Queued a manual run of ${row.display_name}.`),
                   },
                 );
               }}
@@ -238,8 +237,8 @@ export function SyncSourcesPage() {
           footer={
             <>
               <Text color="secondary" styleAs="notation">
-                The connector validates its credentials before the source is saved, so this can
-                take a moment.
+                The connector validates its credentials before the source is saved, so this can take
+                a moment.
               </Text>
               <Button
                 appearance="solid"

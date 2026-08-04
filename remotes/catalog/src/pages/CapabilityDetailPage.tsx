@@ -1,13 +1,7 @@
 import { Button, FlexLayout, StackLayout, Tag, Text } from '@salt-ds/core';
 import { useCapability, type RegistryClient } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
-import {
-  DataTable,
-  ErrorPanel,
-  LoadingPanel,
-  PageHeader,
-  SectionCard,
-} from '@knowledge-ui/ui-kit';
+import { DataTable, ErrorPanel, LoadingPanel, PageHeader, SectionCard } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -142,7 +136,11 @@ export function CapabilityDetailPage() {
           hideCaption
           columns={[
             { key: 'key', header: 'Key' },
-            { key: 'value', header: 'Value', render: (row) => <AttributeValue value={row.value} /> },
+            {
+              key: 'value',
+              header: 'Value',
+              render: (row) => <AttributeValue value={row.value} />,
+            },
           ]}
           rows={attributeRows}
           getRowId={(row) => row.key}

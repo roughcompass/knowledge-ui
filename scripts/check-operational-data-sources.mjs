@@ -53,7 +53,14 @@ const ROOT = new URL('..', import.meta.url).pathname;
 /** Product source. `scripts/` is excluded — this file has to name what it bans. */
 const SEARCH_ROOTS = ['packages', 'remotes', 'apps'];
 
-const SKIP_DIRS = new Set(['node_modules', 'dist', 'build', '.vite', 'coverage', 'playwright-report']);
+const SKIP_DIRS = new Set([
+  'node_modules',
+  'dist',
+  'build',
+  '.vite',
+  'coverage',
+  'playwright-report',
+]);
 
 /**
  * `@knowledge-ui/testing` is exempt for one narrow reason: its mock service

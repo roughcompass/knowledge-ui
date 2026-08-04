@@ -86,13 +86,28 @@ describe('bar widths', () => {
   it('renders every bar empty rather than dividing by zero', () => {
     // A surface nobody used at all is a real state, and the honest rendering is
     // a row of empty tracks.
-    expect(shares([{ label: 'a', value: 0 }, { label: 'b', value: 0 }])).toEqual([0, 0]);
+    expect(
+      shares([
+        { label: 'a', value: 0 },
+        { label: 'b', value: 0 },
+      ]),
+    ).toEqual([0, 0]);
   });
 
   it('treats a negative or non-finite value as zero', () => {
     // Neither is meaningful for a count, and both would otherwise produce a
     // negative width or NaN — which renders as a bar that silently vanishes.
-    expect(shares([{ label: 'a', value: -5 }, { label: 'b', value: 10 }])).toEqual([0, 100]);
-    expect(shares([{ label: 'a', value: Number.NaN }, { label: 'b', value: 4 }])).toEqual([0, 100]);
+    expect(
+      shares([
+        { label: 'a', value: -5 },
+        { label: 'b', value: 10 },
+      ]),
+    ).toEqual([0, 100]);
+    expect(
+      shares([
+        { label: 'a', value: Number.NaN },
+        { label: 'b', value: 4 },
+      ]),
+    ).toEqual([0, 100]);
   });
 });

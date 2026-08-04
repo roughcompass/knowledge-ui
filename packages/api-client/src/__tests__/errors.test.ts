@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  RegistryError,
-  fieldErrors,
-  formErrors,
-  toNetworkError,
-  toRegistryError,
-} from '../errors';
+import { RegistryError, fieldErrors, formErrors, toNetworkError, toRegistryError } from '../errors';
 
 describe('toRegistryError', () => {
   it('reads the envelope the API actually sends', () => {

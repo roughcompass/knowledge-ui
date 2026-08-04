@@ -1,0 +1,21 @@
+# Files nobody hand-edits, and one that must stay byte-for-byte reproducible.
+#
+# The generated client is the load-bearing entry. `ci:codegen` regenerates it and
+# fails on any diff, so formatting it here would make the two checks contradict
+# each other: prettier would rewrite what the generator then writes back.
+packages/api-client/src/generated/
+packages/api-client/openapi/
+
+# Build output. Also covered by .gitignore, listed because `prettier --check .`
+# reads the working tree rather than the index.
+**/dist/
+**/dist-types/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Vendored by the mock-request CLI, which owns its formatting.
+apps/shell/public/mockServiceWorker.js
+
+package-lock.json

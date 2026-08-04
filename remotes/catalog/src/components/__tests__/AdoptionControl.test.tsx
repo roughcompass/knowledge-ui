@@ -32,10 +32,7 @@ const tokenFor = (clientId: string) =>
  * Adopt button — it passed against MSW and would have 403'd against the real
  * service, which is a test certifying a broken thing.
  */
-const renderControl = (
-  handle = 'salt-ds',
-  role: 'producer' | 'admin' | 'consumer' = 'producer',
-) =>
+const renderControl = (handle = 'salt-ds', role: 'producer' | 'admin' | 'consumer' = 'producer') =>
   renderWithProviders(<AdoptionControl handle={handle} />, {
     session: makeSession({ role, personaKey: role }),
     client: createRegistryClient({

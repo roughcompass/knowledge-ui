@@ -1,7 +1,5 @@
 {
-  "extends": [
-    "stylelint-config-standard"
-  ],
+  "extends": ["stylelint-config-standard"],
   "rules": {
     "declaration-property-value-allowed-list": {
       "/^color$|^background|^border.*color|^outline-color|^fill$|^stroke$/": [
@@ -17,16 +15,8 @@
         "auto",
         "inherit"
       ],
-      "/^font-size$|^font-weight$|^font-family$|^line-height$/": [
-        "/^var\\(--salt-/",
-        "inherit"
-      ],
-      "/^border-radius/": [
-        "/^var\\(--salt-/",
-        "0",
-        "50%",
-        "inherit"
-      ]
+      "/^font-size$|^font-weight$|^font-family$|^line-height$/": ["/^var\\(--salt-/", "inherit"],
+      "/^border-radius/": ["/^var\\(--salt-/", "0", "50%", "inherit"]
     },
     "custom-property-pattern": null,
     "selector-class-pattern": "^[a-z][a-zA-Z0-9]+$",
@@ -34,17 +24,9 @@
     "selector-pseudo-class-no-unknown": [
       true,
       {
-        "ignorePseudoClasses": [
-          "global",
-          "local"
-        ]
+        "ignorePseudoClasses": ["global", "local"]
       }
     ]
   },
-  "ignoreFiles": [
-    "**/dist/**",
-    "**/dist-types/**",
-    "**/node_modules/**",
-    "**/playwright-report/**"
-  ]
+  "ignoreFiles": ["**/dist/**", "**/dist-types/**", "**/node_modules/**", "**/playwright-report/**"]
 }

@@ -187,9 +187,7 @@ export function AppFrame({
                   Overview
                 </SidebarBack>
                 {drilled.children
-                  ?.filter(
-                    (child) => child.need === undefined || can(session, child.need),
-                  )
+                  ?.filter((child) => child.need === undefined || can(session, child.need))
                   .map((child) => {
                     const href = childHref(drilled, child.path);
                     return (

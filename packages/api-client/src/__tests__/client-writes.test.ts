@@ -80,7 +80,9 @@ describe('an empty success response', () => {
     // Both soft deletes answer 204. Parsing an empty body as JSON throws, and the
     // caller would see a request that succeeded reported as a failure.
     stubFetch(new Response(null, { status: 204 }));
-    await expect(client().request('/v1/admin/sync-sources/s1', { method: 'DELETE' })).resolves.toBeUndefined();
+    await expect(
+      client().request('/v1/admin/sync-sources/s1', { method: 'DELETE' }),
+    ).resolves.toBeUndefined();
   });
 
   it('resolves on a 200 with an empty body', async () => {

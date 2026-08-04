@@ -1,10 +1,5 @@
 import { Button, FlexLayout, Tag, Text, Tooltip } from '@salt-ds/core';
-import {
-  useAdopt,
-  useAdoption,
-  useUnadopt,
-  type RegistryClient,
-} from '@knowledge-ui/api-client';
+import { useAdopt, useAdoption, useUnadopt, type RegistryClient } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
 import { ActionResult, ConfirmDialog } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
@@ -73,9 +68,7 @@ export function AdoptionControl({ handle }: { handle: string }) {
    * offering Adopt to someone who has already adopted.
    */
   if (adoption.error) {
-    return (
-      <ActionResult error={adoption.error} errorTitle="Could not read adoption state" />
-    );
+    return <ActionResult error={adoption.error} errorTitle="Could not read adoption state" />;
   }
 
   const current = adoption.data;
@@ -86,14 +79,14 @@ export function AdoptionControl({ handle }: { handle: string }) {
         <FlexLayout gap={1} align="center">
           <Tag>Adopted{current.version_pin ? ` · pinned ${current.version_pin}` : ''}</Tag>
           {!canChange ? null : (
-          <Button
-            appearance="bordered"
-            sentiment="caution"
-            onClick={() => setConfirming(true)}
-            disabled={unadopt.isPending}
-          >
-            Unadopt
-          </Button>
+            <Button
+              appearance="bordered"
+              sentiment="caution"
+              onClick={() => setConfirming(true)}
+              disabled={unadopt.isPending}
+            >
+              Unadopt
+            </Button>
           )}
         </FlexLayout>
 
@@ -112,9 +105,9 @@ export function AdoptionControl({ handle }: { handle: string }) {
           }
         >
           <Text>
-            Your tenant stops declaring a dependency on this capability, and stops appearing
-            in its provider projection. The adoption record itself is preserved in the audit
-            log — this is reversible, and it is not a deletion.
+            Your tenant stops declaring a dependency on this capability, and stops appearing in its
+            provider projection. The adoption record itself is preserved in the audit log — this is
+            reversible, and it is not a deletion.
           </Text>
           <Text>
             {/*
@@ -123,9 +116,9 @@ export function AdoptionControl({ handle }: { handle: string }) {
               Saying so here is the difference between a reversible action and one that
               quietly leaves something behind.
             */}
-            You will keep receiving notifications for it. Adopting created an inbox
-            subscription, and unadopting does not remove one — cancel it from
-            Subscriptions if you no longer want the updates.
+            You will keep receiving notifications for it. Adopting created an inbox subscription,
+            and unadopting does not remove one — cancel it from Subscriptions if you no longer want
+            the updates.
           </Text>
         </ConfirmDialog>
       </>

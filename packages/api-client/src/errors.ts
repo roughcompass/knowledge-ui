@@ -216,9 +216,7 @@ function itemsOf(error: unknown): ErrorItem[] {
   if (typeof error !== 'object' || error === null) return [];
   const items = (error as { items?: unknown }).items;
   if (!Array.isArray(items)) return [];
-  return items.filter(
-    (i): i is ErrorItem => typeof i === 'object' && i !== null && 'message' in i,
-  );
+  return items.filter((i): i is ErrorItem => typeof i === 'object' && i !== null && 'message' in i);
 }
 
 /**

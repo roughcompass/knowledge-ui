@@ -4,12 +4,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "noEmit": false,
-    "types": [
-      "node",
-      "@testing-library/jest-dom"
-    ]
+    "types": ["node", "@testing-library/jest-dom"]
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }

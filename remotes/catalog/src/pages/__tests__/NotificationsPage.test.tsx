@@ -102,9 +102,7 @@ describe('the named absence', () => {
     renderPage();
     // An empty panel would imply a list that will fill. The endpoint to fill it
     // does not exist, so the notice has to say that rather than render nothing.
-    expect(
-      await screen.findByText(/no list of everything you have adopted/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/no list of everything you have adopted/i)).toBeInTheDocument();
     expect(screen.getByText(/carries no version pin/)).toBeInTheDocument();
   });
 });

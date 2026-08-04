@@ -36,14 +36,7 @@ export const popoverOverlayProps = { className: styles.popover };
  */
 export function FilterBar({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <FlexLayout
-      className={styles.bar}
-      gap={2}
-      align="end"
-      wrap
-      role="group"
-      aria-label={label}
-    >
+    <FlexLayout className={styles.bar} gap={2} align="end" wrap role="group" aria-label={label}>
       {children}
     </FlexLayout>
   );
