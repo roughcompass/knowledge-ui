@@ -1,6 +1,6 @@
 import { Button, FlexLayout, Tag, Text, Tooltip } from '@salt-ds/core';
 import { useAdopt, useAdoption, useUnadopt, type RegistryClient } from '@knowledge-ui/api-client';
-import { useSession } from '@knowledge-ui/auth';
+import { can, useSession } from '@knowledge-ui/auth';
 import { ActionResult, ConfirmDialog } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 
@@ -38,10 +38,15 @@ export function AdoptionControl({ handle }: { handle: string }) {
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
 
   /*
-   * Mirrors `_adopt_required` in `adoptions.py`, which is producer-or-admin and
-   * excludes consumer. Read stays open to every role via `_list_adoptions_required`.
+   * Asked as a capability, not as a role.
+   *
+   * This read two role names directly, which is the one thing the capability
+   * table exists to prevent: the table is what lets a gate move without touching
+   * a component, and it is where the server's asymmetry is documented and tested
+   * against the API. A literal here meant the rule was recorded in two places and
+   * checked in one.
    */
-  const canChange = session.role === 'producer' || session.role === 'admin';
+  const canChange = can(session, 'adoption:write');
 
   const adoption = useAdoption(client, scope, handle);
   const adopt = useAdopt(client, scope);

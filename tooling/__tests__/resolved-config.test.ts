@@ -145,6 +145,20 @@ describe('no-restricted-syntax, as resolved per file', () => {
     },
   );
 
+  it.each(['shellComponent', 'shellModule', 'catalogPage', 'operationsPage'] as SampleName[])(
+    'bans comparing a role to a literal in %s',
+    async (sample) => {
+      /*
+       * Asserted per neighbourhood because the rule has to live in two blocks —
+       * one for components and one for the plain modules the component block's
+       * `.tsx` glob cannot reach — and a rule present in only one of them would
+       * leave hooks and route guards free to name a role.
+       */
+      const selectors = restrictedSyntaxSelectors(await rulesFor(sample));
+      expect(selectors.some((s) => s.includes('property.name="role"'))).toBe(true);
+    },
+  );
+
   it('leaves the ui-kit free to use raw intrinsics', async () => {
     /*
      * Not an omission. The kit is where the gaps in the design system get filled,

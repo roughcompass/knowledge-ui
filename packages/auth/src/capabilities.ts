@@ -82,6 +82,55 @@ export const CAPABILITIES = {
    * is no symmetric trap to guard against.
    */
   'admin:manage': ['admin'],
+
+  /**
+   * Adoption state, as two entries rather than one.
+   *
+   * The gates are asymmetric: listing a tenant's adoptions admits every role,
+   * while adopting and unadopting are producer-or-admin and exclude consumer
+   * outright. One entry could only be as permissive as its narrowest use, so it
+   * would either hide state from consumers who are allowed to see it, or offer
+   * them a button guaranteed to 403. Neither is acceptable, and the shape of the
+   * problem is general: a read and a write over the same resource are two
+   * capabilities whenever the server gates them differently.
+   *
+   * Safe from the `audit:read` trap in both directions. The read admits all four
+   * roles, so no principal can collapse out of it; the write admits admin and
+   * producer, both above consumer in the precedence order.
+   */
+  'adoption:read': ['admin', 'producer', 'consumer', 'auditor'],
+  'adoption:write': ['admin', 'producer'],
+
+  /**
+   * Subscribing to a capability's changes, and reading the inbox they arrive in.
+   *
+   * Both admit every role — these are tenant-scoped reads and writes over the
+   * caller's own subscriptions, not over the capability, so there is no producer
+   * boundary to respect.
+   */
+  'subscription:manage': ['admin', 'producer', 'consumer', 'auditor'],
+  'notification:read': ['admin', 'producer', 'consumer', 'auditor'],
+
+  /**
+   * Traversing dependencies, dependents, and blast radius.
+   *
+   * Every role, mirroring a server gate that requires only a tenant context.
+   * Worth stating because it looks like it should be narrower: knowing what
+   * depends on a capability is exactly what a consumer needs before building on
+   * it, and the visibility filter already decides which edges they can see.
+   */
+  'impact:read': ['admin', 'producer', 'consumer', 'auditor'],
+
+  /**
+   * Reading the memory of record: claims with their provenance and confidence,
+   * and the session events behind them.
+   *
+   * Every role, again mirroring a tenant-context-only gate. The interesting part
+   * is that this is not an operator surface — an agent's whole reason to query is
+   * to get facts it can check, so the audience for a confidence score is the same
+   * audience as for the catalog.
+   */
+  'memory:read': ['admin', 'producer', 'consumer', 'auditor'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Capability = keyof typeof CAPABILITIES;

@@ -67,7 +67,14 @@ export function HomePage({
         </StackLayout>
       ) : null}
 
-      {session.role !== 'auditor' && auditorPersona ? (
+      {/*
+        Asked as the missing capability rather than as "not the auditor role".
+        The two are equivalent today because that capability is auditor-only, but
+        the note exists *because* the reader cannot read the audit log — so that
+        is the condition worth writing, and it keeps the role list in the one
+        place that is tested against the API.
+      */}
+      {!can(session, 'audit:read') && auditorPersona ? (
         <StackLayout gap={1}>
           <Text styleAs="h4" as="h2">
             About the audit log

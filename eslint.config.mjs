@@ -131,6 +131,30 @@ const restrictedImports = ({ paths = [], globalCss = 'banned' } = {}) => [
   },
 ];
 
+/**
+ * Comparing a session's role to a literal, outside the package that owns roles.
+ *
+ * The capability table exists so a screen asks `can(session, 'adoption:write')`
+ * and never names a role — that indirection is what lets a gate move without
+ * touching a component, and the table is the only place the server's real gates
+ * are documented and tested against the API document. A literal in a component
+ * records the same rule in a second place and checks it in neither.
+ *
+ * It had happened twice: an adoption control comparing against producer and
+ * admin, and a page branching on "not the auditor role". Both were correct and
+ * both were unreachable by the parity test.
+ *
+ * Narrow on purpose — it matches a comparison against `.role`, not the word
+ * "role" anywhere. `packages/auth` is exempt because that is where the table and
+ * its own tests live.
+ */
+const NO_ROLE_LITERALS = {
+  selector:
+    'BinaryExpression[operator=/^[!=]==?$/]:has(MemberExpression[property.name="role"]):has(Literal[value=/^(admin|producer|consumer|auditor)$/])',
+  message:
+    "Do not compare a role to a literal. Ask the capability table instead: can(session, '<capability>'). It mirrors what the API enforces and is tested against the API document; a role name here is a second copy of that rule with no test.",
+};
+
 /** Builds a complete `no-restricted-syntax` value, universal selectors included. */
 const restrictedSyntax = (...additional) => [
   'error',
@@ -200,8 +224,19 @@ export default tseslint.config(
           selector: `JSXOpeningElement[name.name="${el.name}"]`,
           message: `<${el.name}> is covered by Salt. ${el.message}`,
         })),
+        NO_ROLE_LITERALS,
       ),
     },
+  },
+
+  /*
+   * The role rule again for non-component files under apps/ and remotes/, which
+   * the .tsx-only block above cannot reach. Hooks and route guards are exactly
+   * where a role comparison would otherwise hide.
+   */
+  {
+    files: ['apps/**/*.ts', 'remotes/**/*.ts'],
+    rules: { 'no-restricted-syntax': restrictedSyntax(NO_ROLE_LITERALS) },
   },
 
   /*

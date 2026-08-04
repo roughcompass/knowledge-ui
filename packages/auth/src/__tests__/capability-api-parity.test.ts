@@ -1,7 +1,40 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { ALL_CAPABILITIES, CAPABILITIES } from '../capabilities';
 import type { Capability, Role } from '../index';
+
+/**
+ * Every path the API publishes, read from the vendored OpenAPI document.
+ *
+ * Read as JSON rather than imported from the generated client, because the
+ * generated module exports types only — erased at build time, so there is nothing
+ * to enumerate at runtime. The document is the same input the client is generated
+ * from, and a drift between it and the live registry is caught by its own gate.
+ */
+const SPEC_PATHS: string[] = Object.keys(
+  (
+    JSON.parse(
+      readFileSync(
+        new URL('../../../api-client/openapi/registry.openapi.json', import.meta.url),
+        'utf8',
+      ),
+    ) as { paths: Record<string, unknown> }
+  ).paths,
+);
+
+/**
+ * Pull the path out of an endpoint description like `GET /v1/notifications`.
+ *
+ * Anchored on the roots the API actually serves rather than on "starts with a
+ * slash", because a description may name more than one method — `POST/PATCH
+ * /v1/capabilities` would otherwise yield `/PATCH`. Found by this test failing on
+ * exactly that the first time it ran.
+ */
+function pathFromEndpoint(endpoint: string): string {
+  const match = /(\/(?:v1|healthz|readyz|metrics)[^\s,]*)/.exec(endpoint);
+  return match?.[1] ?? '';
+}
 
 /**
  * Every capability mirrors a real server gate, and this is where that is checked.
@@ -21,6 +54,15 @@ import type { Capability, Role } from '../index';
 interface Gate {
   /** The endpoint or family this capability is the UI's mirror of. */
   endpoint: string;
+  /**
+   * The path as the OpenAPI document spells it, when `endpoint` does not.
+   *
+   * Only needed where `endpoint` names a family with a wildcard, or describes two
+   * routes at once. Where it is a single path, it is parsed out of `endpoint`
+   * directly — the point is that the claim gets checked, not that it gets
+   * restated.
+   */
+  serverPath?: string;
   /**
    * The roles the *server* admits. Read from the router, not from intuition:
    * `_auditor_required` in `admin_audit.py`, `require_roles([ROLE_PRODUCER,
@@ -65,6 +107,36 @@ const GATES: Record<Capability, Gate> = {
     serverRoles: ['admin'],
     note: 'One capability for the whole family because the server has one gate for all of it, via _admin_common.py.',
   },
+  'adoption:read': {
+    endpoint: 'GET /v1/capabilities/{provider_cap_id}/adoptions',
+    serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
+    note: '_list_adoptions_required admits all four. Split from the write because _adopt_required does not.',
+  },
+  'adoption:write': {
+    endpoint: 'POST /v1/capabilities/{provider_cap_id}/adoptions',
+    serverRoles: ['admin', 'producer'],
+    note: 'require_roles([ROLE_PRODUCER, ROLE_ADMIN]) in adoptions.py — consumer is excluded outright, which is why this cannot share an entry with the read.',
+  },
+  'subscription:manage': {
+    endpoint: 'GET/POST /v1/capabilities/{capability_id}/subscriptions',
+    serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
+    note: "Tenant-scoped over the caller's own subscriptions, so get_tenant_context is the whole gate.",
+  },
+  'notification:read': {
+    endpoint: 'GET /v1/notifications',
+    serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
+    note: 'get_tenant_context only. Read state is a filter on this list rather than a field, so there is no separate write gate to mirror.',
+  },
+  'impact:read': {
+    endpoint: 'GET /v1/capabilities/{entity_id}/blast-radius',
+    serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
+    note: 'get_tenant_context only; the visibility filter decides which edges are returned rather than the role.',
+  },
+  'memory:read': {
+    endpoint: 'GET /v1/memory/claims',
+    serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
+    note: 'get_tenant_context only, for every /v1/memory/* route.',
+  },
 };
 
 describe('the capability table against the API', () => {
@@ -86,11 +158,32 @@ describe('the capability table against the API', () => {
     expect(uiRoles).toEqual(serverRoles);
   });
 
-  it('names a real endpoint for each capability', () => {
-    // A gate whose endpoint is blank would satisfy the check above while
-    // documenting nothing.
+  it('names an endpoint that exists in the API document', () => {
+    /*
+     * This used to assert the endpoint string was non-empty, which is a check
+     * that any typo passes. The failure it could not see is the one that matters:
+     * a capability mirroring a route that was renamed, or never existed, reads as
+     * verified coverage while gating nothing. So the path is now resolved against
+     * the vendored OpenAPI document — the same document the client is generated
+     * from, so a drift between the two is already caught elsewhere.
+     *
+     * Wildcard families are checked by prefix, because `/v1/admin/*` is a real
+     * statement about a real set of routes even though it is not itself a path.
+     */
     for (const capability of ALL_CAPABILITIES) {
-      expect(GATES[capability].endpoint.length).toBeGreaterThan(0);
+      const gate = GATES[capability];
+      const claimed = gate.serverPath ?? pathFromEndpoint(gate.endpoint);
+      expect(claimed, `${capability} names no path`).toBeTruthy();
+
+      if (claimed.endsWith('*')) {
+        const prefix = claimed.slice(0, -1);
+        expect(
+          SPEC_PATHS.filter((p) => p.startsWith(prefix)).length,
+          `${capability} claims the family ${claimed}, which matches no path in the API document`,
+        ).toBeGreaterThan(0);
+      } else {
+        expect(SPEC_PATHS, `${capability} claims ${claimed}`).toContain(claimed);
+      }
     }
   });
 
