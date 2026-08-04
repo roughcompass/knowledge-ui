@@ -106,14 +106,22 @@ export const capabilityHandlers = [
   http.get('*/v1/capabilities/:handle', ({ params, request }) => {
     const url = new URL(request.url);
     const detail = makeCapabilityDetail();
-    // `view=audit` reveals the bitemporal fields; without it the keys are
-    // absent, not null, because the server excludes unset fields.
+    // `view=audit` adds the audit-only fields; without it the keys are absent,
+    // not null, because the server excludes unset fields.
+    //
+    // These are the fields the server actually adds at the entity level. This
+    // fixture used to return storage-prefixed bitemporal columns instead —
+    // names the capability response has never carried under any view — which is
+    // why the page's audit panel could read as working while rendering nothing
+    // against a real registry. Bitemporal intervals belong to facts and edges,
+    // and appear on those.
     if (url.searchParams.get('view') === 'audit') {
       return HttpResponse.json({
         ...detail,
-        t_valid_from: '2026-01-01T00:00:00Z',
-        t_valid_to: null,
-        t_ingested_at: '2026-01-01T00:00:00Z',
+        tenant_id: 'tenant-0000-0000-0000-000000000001',
+        is_active: true,
+        superseded_facts_count: 0,
+        as_of: '2026-01-01T00:00:00Z',
       });
     }
     return HttpResponse.json({

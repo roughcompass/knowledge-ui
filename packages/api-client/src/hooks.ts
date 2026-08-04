@@ -135,13 +135,25 @@ export function useCapability(
   });
 }
 
+/** A resolvable handle to one artifact that made a result match. */
+export interface SearchCitation {
+  fact_id: string;
+  category?: string | null;
+  title?: string | null;
+  created_at?: string | null;
+  _links?: { self?: string };
+}
+
 export interface SearchHit {
   entity_id: string;
-  tenant_id: string;
   name: string;
   entity_type: string;
   score: number;
   retrieval_arms?: { semantic?: number; lexical?: number; graph?: number };
+  /** Always present: a result names the evidence that made it match. */
+  citations: SearchCitation[];
+  /** Audit view only. Follow a citation's `_links.self` to read a body. */
+  tenant_id?: string;
   matching_facts?: unknown[];
 }
 

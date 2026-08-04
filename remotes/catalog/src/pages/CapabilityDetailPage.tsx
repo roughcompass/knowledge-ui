@@ -176,8 +176,8 @@ export function CapabilityDetailPage() {
 
       {auditView ? (
         <SectionCard
-          title="Bitemporal"
-          description="These fields are omitted from the response entirely unless requested, so an empty table here means the server sent nothing — not that the values are null."
+          title="Audit fields"
+          description="Omitted from the response entirely unless requested, so an empty table here means the server sent nothing — not that the values are null. Valid-time intervals are not among them: those belong to individual facts and edges, which are the rows that assert something that can later stop being true. An entity has a creation time and an active flag, and both are shown here."
         >
           <DataTable
             caption="Bitemporal fields"
@@ -190,11 +190,11 @@ export function CapabilityDetailPage() {
                 render: (row) => <AttributeValue value={row.value} />,
               },
             ]}
-            rows={['t_valid_from', 't_valid_to', 't_ingested_at', 't_invalidated_at']
+            rows={['tenant_id', 'is_active', 'superseded_facts_count', 'as_of']
               .filter((key) => key in data)
               .map((key) => ({ key, value: data[key] ?? '\u2014' }))}
             getRowId={(row) => row.key}
-            emptyTitle="No bitemporal fields returned"
+            emptyTitle="No audit fields returned"
             emptyHeadingLevel="h3"
           />
         </SectionCard>

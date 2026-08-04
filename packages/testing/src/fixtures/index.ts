@@ -85,15 +85,33 @@ export function makeCapabilityDetail(overrides: Partial<Record<string, unknown>>
   };
 }
 
+/**
+ * A search hit as the server now returns one: it cites the artifacts that made
+ * it match rather than embedding them, and carries no tenant by default.
+ *
+ * The previous shape had `tenant_id` and `matching_facts` — the latter holding
+ * whole document bodies — because the endpoint used to return both on every hit
+ * regardless of what was asked for. Pass `view: 'audit'` overrides if a test
+ * needs that shape.
+ */
 export function makeSearchHit(overrides: Partial<Record<string, unknown>> = {}) {
+  const factId = uuid('fact');
+  const entityId = uuid('entity');
   return {
-    entity_id: uuid('entity'),
-    tenant_id: uuid('tenant'),
+    entity_id: entityId,
     name: 'payments-service',
     entity_type: 'capability',
     score: 0.87,
     retrieval_arms: { semantic: 0.6, lexical: 0.25, graph: 0.02 },
-    matching_facts: [],
+    citations: [
+      {
+        fact_id: factId,
+        category: 'overview',
+        title: 'Overview',
+        created_at: '2026-07-01T09:00:05Z',
+        _links: { self: `/v1/capabilities/${entityId}/artifacts/${factId}` },
+      },
+    ],
     ...overrides,
   };
 }

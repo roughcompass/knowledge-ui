@@ -2328,6 +2328,10 @@ export interface paths {
         /**
          * Search
          * @description Hybrid search across capabilities, concepts, operations, and artifact bodies.
+         *
+         *     Each result cites the artifacts that made it match; follow a citation's
+         *     ``_links.self`` to read one. ``?view=audit`` additionally returns those
+         *     artifacts inline in their full audit shape.
          */
         get: operations["search_v1_search_get"];
         put?: never;
@@ -3098,6 +3102,27 @@ export interface components {
             manifest_claims_digest: string;
         };
         /**
+         * CitationItem
+         * @description A resolvable handle to the evidence behind a result, not the evidence itself.
+         *
+         *     Mirrors the citation shape the claim surface returns, so an agent reading
+         *     either one drills in the same way: identify the source, then fetch it.
+         */
+        CitationItem: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Category */
+            category?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /**
+             * Fact Id
+             * Format: uuid
+             */
+            fact_id: string;
+            /** Title */
+            title?: string | null;
+        };
+        /**
          * CitationResponse
          * @description A resolvable handle to the evidence behind a claim.
          */
@@ -3417,13 +3442,17 @@ export interface components {
             lifecycle: string;
             /** Name */
             name: string;
-            /**
-             * Tenant Id
-             * Format: uuid
-             */
-            tenant_id: string;
+            /** Tenant Id */
+            tenant_id?: string | null;
         };
-        /** EntityRefItem */
+        /**
+         * EntityRefItem
+         * @description An entity as it appears in a list or as a graph node.
+         *
+         *     ``tenant_id`` and ``is_active`` are audit-only. A caller reading its own
+         *     tenant's data learns nothing from being told whose data it is, and every
+         *     surface returning this shape has already filtered inactive rows out.
+         */
         EntityRefItem: {
             /**
              * Created At
@@ -3440,14 +3469,11 @@ export interface components {
             /** External Id */
             external_id: string | null;
             /** Is Active */
-            is_active: boolean;
+            is_active?: boolean | null;
             /** Name */
             name: string;
-            /**
-             * Tenant Id
-             * Format: uuid
-             */
-            tenant_id: string;
+            /** Tenant Id */
+            tenant_id?: string | null;
         };
         /** EntityRefResponse */
         EntityRefResponse: {
@@ -4442,8 +4468,20 @@ export interface components {
             /** Total */
             total: number;
         };
-        /** SearchResultItem */
+        /**
+         * SearchResultItem
+         * @description One search hit, with the evidence that made it match.
+         *
+         *     ``citations`` names the artifacts that matched rather than embedding them.
+         *     Bodies are documents; returning all of them inside a list response ships
+         *     content the caller did not ask for, and each citation carries the link to
+         *     read the one they want.
+         *
+         *     ``tenant_id`` is audit-only, like everywhere else this shape appears.
+         */
         SearchResultItem: {
+            /** Citations */
+            citations: components["schemas"]["CitationItem"][];
             /**
              * Entity Id
              * Format: uuid
@@ -4452,7 +4490,7 @@ export interface components {
             /** Entity Type */
             entity_type: string;
             /** Matching Facts */
-            matching_facts: components["schemas"]["ArtifactResponse"][];
+            matching_facts?: components["schemas"]["ArtifactResponse"][] | null;
             /** Name */
             name: string;
             /** Retrieval Arms */
@@ -4461,11 +4499,8 @@ export interface components {
             };
             /** Score */
             score: number;
-            /**
-             * Tenant Id
-             * Format: uuid
-             */
-            tenant_id: string;
+            /** Tenant Id */
+            tenant_id?: string | null;
         };
         /** SessionResponse */
         SessionResponse: {
@@ -6892,6 +6927,8 @@ export interface operations {
                 page_size?: number;
                 /** @description ISO-8601 UTC datetime for time-travel */
                 as_of?: string | null;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path?: never;
@@ -6960,8 +6997,8 @@ export interface operations {
             query?: {
                 /** @description ISO-8601 UTC for time-travel */
                 as_of?: string | null;
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` is accepted for API consistency but is currently a no-op here — the interface record is a composed view without individual bitemporal row metadata. Use ``?as_of=`` for time-travel instead. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path: {
@@ -7067,8 +7104,8 @@ export interface operations {
     list_subscriptions_for_capability_v1_capabilities__capability_id__subscriptions_get: {
         parameters: {
             query?: {
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path: {
@@ -7147,8 +7184,8 @@ export interface operations {
                 as_of?: string | null;
                 /** @description Comma-separated list of sub-resources to expand. Known values: components, depends_on, external_ids, interface. Each expansion is capped at 200 items — `truncated: true` + a `next` URL signal overflow. */
                 include?: string | null;
-                /** @description Response shape. `default` (UI-flavoured) is the standard minimal shape every endpoint returns. `audit` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at), tenant_id, and supersession metadata for audit / compliance consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
                 /** @description Comma-separated list of fact categories to include in the `facts` field (e.g. `release_note,overview`). Default: no filter — every category is returned. Use this to narrow a fat detail response, e.g. fetch Salt + just its release notes in one call. */
                 facts_categories?: string | null;
                 /** @description Cap the number of facts returned (applied after the category filter). Default: no cap. Useful when a capability has hundreds of facts and the UI only renders the top N. */
@@ -7250,8 +7287,8 @@ export interface operations {
     list_artifacts_v1_capabilities__entity_id__artifacts_get: {
         parameters: {
             query?: {
-                /** @description Response shape: 'default' or 'audit' */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
                 /** @description Comma-separated list of categories to filter by (e.g. 'overview,release_note'). Default: no filter. */
                 category?: string | null;
                 /** @description Sparse-field selection. Default for list: fact_id,category,title,body_format,created_at,created_by_display_name (body excluded). Add `body` explicitly to include it. Allowed: fact_id,category,title,body,body_format,created_at,created_by_display_name. */
@@ -7293,8 +7330,8 @@ export interface operations {
     create_artifact_v1_capabilities__entity_id__artifacts_post: {
         parameters: {
             query?: {
-                /** @description Response shape: 'default' or 'audit' */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: {
                 "Idempotency-Key"?: string | null;
@@ -7335,8 +7372,8 @@ export interface operations {
     get_artifact_v1_capabilities__entity_id__artifacts__fact_id__get: {
         parameters: {
             query?: {
-                /** @description Response shape: 'default' or 'audit' */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
                 /** @description Sparse-field selection. Default for get: all UI fields including body. Allowed: fact_id,category,title,body,body_format,created_at,created_by_display_name. */
                 fields?: string | null;
             };
@@ -7413,8 +7450,8 @@ export interface operations {
                 as_of?: string | null;
                 /** @description Semver string. When set, traversal only follows edges whose version predicates are satisfied by this version. Edges with no predicate are always included. */
                 as_of_version?: string | null;
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path: {
@@ -7451,6 +7488,8 @@ export interface operations {
                 depth?: number;
                 /** @description ISO-8601 UTC datetime for time-travel */
                 as_of?: string | null;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path: {
@@ -7492,8 +7531,8 @@ export interface operations {
                 as_of?: string | null;
                 /** @description Semver string. When set, traversal only follows edges whose version predicates are satisfied by this version. Edges with no predicate are always included. */
                 as_of_version?: string | null;
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path: {
@@ -7608,8 +7647,8 @@ export interface operations {
                 as_of?: string | null;
                 /** @description Semver string for version predicate filtering */
                 as_of_version?: string | null;
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path: {
@@ -7643,8 +7682,8 @@ export interface operations {
     list_adoptions_v1_capabilities__provider_cap_id__adoptions_get: {
         parameters: {
             query?: {
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path: {
@@ -7678,8 +7717,8 @@ export interface operations {
     adopt_capability_v1_capabilities__provider_cap_id__adoptions_post: {
         parameters: {
             query?: {
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: {
                 "Idempotency-Key"?: string | null;
@@ -7786,7 +7825,10 @@ export interface operations {
     };
     _get_v1_concepts__entity_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
+            };
             header?: never;
             path: {
                 /** @description Concept UUID or slug */
@@ -8064,8 +8106,8 @@ export interface operations {
                 page_size?: number;
                 /** @description ISO-8601 UTC datetime for time-travel queries */
                 as_of?: string | null;
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path?: never;
@@ -8102,8 +8144,8 @@ export interface operations {
                 page_size?: number;
                 /** @description ISO-8601 UTC datetime for time-travel queries */
                 as_of?: string | null;
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path?: never;
@@ -8138,6 +8180,8 @@ export interface operations {
                 connects: string;
                 /** @description capability_b_id */
                 and: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path?: never;
@@ -8409,8 +8453,8 @@ export interface operations {
                 status?: string;
                 cursor?: string | null;
                 page_size?: number;
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` is accepted for API consistency but is currently a no-op here — NotificationItem has no bitemporal columns to expose. This parameter is reserved for future use. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path?: never;
@@ -8505,7 +8549,10 @@ export interface operations {
     };
     _get_v1_operations__entity_id__get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
+            };
             header?: never;
             path: {
                 /** @description Operation UUID or slug */
@@ -8715,6 +8762,8 @@ export interface operations {
                 as_of?: string | null;
                 entity_type?: string | null;
                 lifecycle?: string | null;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path?: never;
@@ -8774,8 +8823,8 @@ export interface operations {
     _update_subscription_handler_v1_subscriptions__subscription_id__patch: {
         parameters: {
             query?: {
-                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
-                view?: string;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
             };
             header?: never;
             path: {
