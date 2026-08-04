@@ -4,9031 +4,9074 @@
  */
 
 export interface paths {
-  '/healthz': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Healthz */
-    get: operations['healthz_healthz_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/metrics': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Metrics */
-    get: operations['metrics_metrics_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/readyz': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Readyz */
-    get: operations['readyz_readyz_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/actors/{actor_id}/personal-data': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     * Purge all workspace personal data for an actor (RTBF).
-     * @description Physically delete all workspace content authored by actor_id.
-     *
-     *     This endpoint fulfills right-to-be-forgotten (RTBF) requests for workspace
-     *     data. It performs a hard DELETE (not a soft-delete) across:
-     *
-     *     - workspace_entries created by the actor
-     *     - actor-owned workspaces (cascading their entries) once the actor is gone
-     *
-     *     Workspaces never cross tenant boundaries — there is no separate share
-     *     revocation step; tenant-owned workspaces in tenants the actor was a
-     *     member of remain intact and are governed by their tenant's roster.
-     *
-     *     The operation is idempotent. A second call returns counts of 0.
-     *
-     *     Returns 200 with PurgeResult counts (not 204) so the admin caller can
-     *     confirm what was actually purged.
-     *
-     *     Raises 403 if the caller does not hold the admin role.
-     */
-    delete: operations['delete_actor_personal_data_v1_admin_actors__actor_id__personal_data_delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/audit': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Query Audit Log
-     * @description Query audit log with keyset pagination.
-     *
-     *     tenant_id is always injected from TenantContext — callers cannot query
-     *     another tenant's data.  Sorted DESC by (ts, audit_id).
-     */
-    get: operations['query_audit_log_v1_admin_audit_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/capability-types': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Capability Types
-     * @description List all capability type schemas (current rows only: t_invalidated_at IS NULL).
-     */
-    get: operations['list_capability_types_v1_admin_capability_types_get'];
-    put?: never;
-    /**
-     * Create Capability Type
-     * @description Create a new capability type schema.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['create_capability_type_v1_admin_capability_types_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/capability-types/{type_name}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Capability Type
-     * @description Get the current schema for a given type_name.
-     *
-     *     Emits an ``ETag`` header computed from the schema_id + t_ingested_at.
-     *     Clients can echo this value as ``If-Match`` on subsequent PATCH calls
-     *     for optimistic concurrency.
-     */
-    get: operations['get_capability_type_v1_admin_capability_types__type_name__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /**
-     * Patch Capability Type
-     * @description Update a capability type schema — currently supports flipping is_advisory.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and stale,
-     *     returns 412 Precondition Failed; if absent, logs a debug warning and
-     *     accepts the write.  ETag is computed from schema_id + t_ingested_at before
-     *     the write so a stale precondition fails fast.
-     *
-     *     Recommended flow: GET /v1/admin/capability-types/{name} → ETag header
-     *     → PATCH with If-Match.
-     */
-    patch: operations['patch_capability_type_v1_admin_capability_types__type_name__patch'];
-    trace?: never;
-  };
-  '/v1/admin/edge-property-schemas': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Edge Property Schemas
-     * @description List all active edge property schemas for the tenant.  Edge-property schema management is not yet implemented.
-     */
-    get: operations['list_edge_property_schemas_v1_admin_edge_property_schemas_get'];
-    put?: never;
-    /**
-     * Create Edge Property Schema
-     * @description Register a JSON Schema for an edge_rel.  Edge-property schema management is not yet implemented.
-     */
-    post: operations['create_edge_property_schema_v1_admin_edge_property_schemas_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/edge-property-schemas/{schema_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /**
-     *  Update Edge Property Schema
-     * @description Supersede an existing edge property schema (bi-temporal).
-     *
-     *     Full implementation is pending. Once wired, this endpoint will honour
-     *     ``If-Match`` (advisory) using the schema's ``t_ingested_at`` timestamp
-     *     as the ETag source, matching the pattern used by capability-type PATCH.
-     */
-    patch: operations['_update_edge_property_schema_v1_admin_edge_property_schemas__schema_id__patch'];
-    trace?: never;
-  };
-  '/v1/admin/external-systems': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List registered external systems (admin)
-     * @description Return all external systems registered for the tenant, ordered by slug.
-     */
-    get: operations['list_external_systems_v1_admin_external_systems_get'];
-    put?: never;
-    /**
-     * Register an external system (admin)
-     * @description Register a new external-system slug for the tenant.
-     *
-     *     ``slug`` must be unique per tenant.  Duplicate slug returns ``409 Conflict``.
-     *     ``url_template`` may contain ``{external_id}`` which is substituted when
-     *     external-ID mappings are created without an explicit ``url``.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['create_external_system_v1_admin_external_systems_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/external-systems/{slug}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     *  Delete External System
-     * @description Hard-delete an external system registration.
-     *
-     *     Returns ``204 No Content`` on success.  Returns ``404`` when the slug
-     *     does not exist or belongs to a different tenant (avoids leaking cross-tenant
-     *     registry contents).
-     *
-     *     Note: existing entity_external_ids rows that reference this slug are not
-     *     automatically removed by this call.  Callers should delete mappings first,
-     *     or re-registration of the same slug will be unblocked once orphans are cleared.
-     */
-    delete: operations['_delete_external_system_v1_admin_external_systems__slug__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/pii-field-policies': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Pii Field Policies
-     * @description List all per-field PII policy overrides for the tenant.
-     */
-    get: operations['list_pii_field_policies_v1_admin_pii_field_policies_get'];
-    put?: never;
-    /**
-     * Create Pii Field Policy
-     * @description Create a per-field (optionally per-pattern) PII policy override.
-     *
-     *     ``policy`` must be one of ``advisory | warn | block``; returns ``422`` on
-     *     invalid value.  The DB unique index ``uq_field_policy`` ensures at most one
-     *     NULL-pattern row per ``(tenant_id, field_type)``; duplicate insert returns
-     *     ``409 Conflict``.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['create_pii_field_policy_v1_admin_pii_field_policies_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/pii-field-policies/{policy_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     *  Delete Pii Field Policy
-     * @description Hard-delete a per-field PII policy override.  Returns 204 on success.
-     */
-    delete: operations['_delete_pii_field_policy_v1_admin_pii_field_policies__policy_id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/pii-patterns': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Pii Patterns
-     * @description List all PII patterns for the tenant, including system-seeded rows.
-     */
-    get: operations['list_pii_patterns_v1_admin_pii_patterns_get'];
-    put?: never;
-    /**
-     * Create Pii Pattern
-     * @description Register a custom tenant PII pattern.
-     *
-     *     ``is_system`` is always ``False`` for tenant-created patterns.
-     *     Validates that ``regex`` is a syntactically valid Python regex.
-     *     Validates ``policy_override`` is one of ``advisory | warn | block`` when
-     *     provided.  Returns ``422`` on validation failure.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['create_pii_pattern_v1_admin_pii_patterns_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/pii-patterns/{pattern_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     *  Delete Pii Pattern
-     * @description Hard-delete a tenant PII pattern.
-     *
-     *     ``is_system=True`` rows return ``403 Forbidden``.
-     *     Returns ``204 No Content`` on success or if the row is already absent
-     *     (idempotent).
-     */
-    delete: operations['_delete_pii_pattern_v1_admin_pii_patterns__pattern_id__delete'];
-    options?: never;
-    head?: never;
-    /**
-     *  Patch Pii Pattern
-     * @description Partial-update a tenant PII pattern.
-     *
-     *     ``is_system=True`` rows return ``403 Forbidden``.
-     *     ``policy_override`` is validated as ``advisory | warn | block`` when
-     *     provided; ``422`` on invalid value.
-     *     ``regex`` is validated as a syntactically valid Python regex; ``422`` on
-     *     invalid pattern.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and stale,
-     *     returns 412 Precondition Failed; if absent, logs a debug warning and
-     *     accepts the write.  ETag is computed from pattern_id + created_at before
-     *     the write so a stale precondition fails fast.
-     */
-    patch: operations['_patch_pii_pattern_v1_admin_pii_patterns__pattern_id__patch'];
-    trace?: never;
-  };
-  '/v1/admin/sync-runs': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Sync Runs */
-    get: operations['list_sync_runs_v1_admin_sync_runs_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/sync-runs/{sync_run_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Sync Run */
-    get: operations['get_sync_run_v1_admin_sync_runs__sync_run_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/sync-runs/{sync_run_id}/superseded': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Superseded Facts For Run
-     * @description Return all facts with ``is_authoritative_superseded=TRUE`` for this run.
-     */
-    get: operations['get_superseded_facts_for_run_v1_admin_sync_runs__sync_run_id__superseded_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/sync-sources': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Sync Sources */
-    get: operations['list_sync_sources_v1_admin_sync_sources_get'];
-    put?: never;
-    /**
-     * Create Sync Source
-     * @description Create a new sync source.
-     *
-     *     Validates the connector exists and calls ``connector.validate()`` before
-     *     persisting.  Upserts the sync-worker actor via the runner helper so that
-     *     actor_id is available for subsequent sync runs.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['create_sync_source_v1_admin_sync_sources_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/sync-sources/{source_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Sync Source
-     * @description Return a single sync-source record.
-     *
-     *     Emits an ``ETag`` header computed from the source identifier and its
-     *     ``created_at`` timestamp.  Clients can echo this value as ``If-Match``
-     *     on subsequent PATCH calls for optimistic concurrency.
-     */
-    get: operations['get_sync_source_v1_admin_sync_sources__source_id__get'];
-    put?: never;
-    post?: never;
-    /**
-     * Delete Sync Source
-     * @description Soft-delete: sets is_active=FALSE.
-     */
-    delete: operations['delete_sync_source_v1_admin_sync_sources__source_id__delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Patch Sync Source
-     * @description Partial-update a sync source configuration.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and stale,
-     *     returns 412 Precondition Failed; if absent, logs a debug warning and
-     *     accepts the write.  ETag is computed before the write so a stale
-     *     precondition fails fast.
-     *
-     *     Recommended flow: GET /v1/admin/sync-sources/{id} → ETag header → PATCH
-     *     with If-Match.
-     */
-    patch: operations['patch_sync_source_v1_admin_sync_sources__source_id__patch'];
-    trace?: never;
-  };
-  '/v1/admin/sync-sources/{source_id}/trigger': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Trigger Sync
-     * @description Enqueue an immediate manual sync run for *source_id*.
-     *
-     *     Creates a ``sync_runs`` row with ``trigger='manual'`` and schedules a
-     *     one-shot APScheduler job (date trigger = now).  Returns 202 immediately.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original 202 response, preventing duplicate trigger submissions on retry.
-     */
-    post: operations['trigger_sync_v1_admin_sync_sources__source_id__trigger_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/tenants/{tenant_id}/entities/{entity_id}/progression-overrides': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Progression Overrides
-     * @description List progression overrides for an entity with optional filters.
-     *
-     *     Query parameters:
-     *       consumed=true   — only overrides where consumed_at IS NOT NULL
-     *       consumed=false  — only overrides where consumed_at IS NULL
-     *       expired=true    — only overrides where t_valid_to < now()
-     *       expired=false   — only overrides where t_valid_to >= now()
-     *       from_state      — exact match on from_state
-     *       to_state        — exact match on to_state
-     */
-    get: operations['list_progression_overrides_v1_admin_tenants__tenant_id__entities__entity_id__progression_overrides_get'];
-    put?: never;
-    /**
-     * Create Progression Override
-     * @description Create a single-use progression gate override for a specific entity.
-     *
-     *     Follows audit-before-commit ordering: the audit_log row is written and
-     *     committed in its own transaction before the override row is inserted.
-     *     If the audit write fails the override is never created — a silently-created
-     *     override with no audit record is structurally impossible.
-     *
-     *     Default t_valid_to: now + 1 hour when the caller omits the field.
-     *     Default bypass_skip_rules: False — must be an explicit opt-in.
-     *     authorized_by is always set to the actor making the request.
-     */
-    post: operations['create_progression_override_v1_admin_tenants__tenant_id__entities__entity_id__progression_overrides_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/tenants/{tenant_id}/progression-definitions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Progression Definitions
-     * @description Return all currently-active progression definitions for the tenant.
-     *
-     *     Active means: t_valid_to IS NULL AND t_invalidated_at IS NULL.
-     */
-    get: operations['list_progression_definitions_v1_admin_tenants__tenant_id__progression_definitions_get'];
-    put?: never;
-    /**
-     * Create Progression Definition
-     * @description Create the first progression definition for a (tenant, entity_type) pair.
-     *
-     *     Validates the definition JSONB against the meta-schema before persisting.
-     *     Returns 422 with structured error paths on schema violations.
-     *     Returns 403 if the caller does not hold the admin role.
-     *
-     *     The tenant_id in the URL must match the caller's tenant — the admin role
-     *     dependency already resolves the tenant from the token; cross-tenant writes
-     *     are rejected because ctx.tenant_id will not match a different tenant_id path
-     *     parameter (enforced below).
-     */
-    post: operations['create_progression_definition_v1_admin_tenants__tenant_id__progression_definitions_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/tenants/{tenant_id}/progression-definitions/{progression_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Progression Definition
-     * @description Return a specific progression definition by progression_id.
-     *
-     *     Returns 404 if the row does not exist or belongs to a different tenant.
-     */
-    get: operations['get_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__get'];
-    /**
-     * Supersede Progression Definition
-     * @description Supersede a progression definition — inserts a new row and closes the active one.
-     *
-     *     The progression_id in the URL identifies which active definition to supersede.
-     *     A new row is inserted; the previously-active row for the same (tenant_id,
-     *     entity_type) has its t_valid_to set to now. Both writes happen in a single
-     *     transaction so there is never a gap or overlap in the validity window.
-     *
-     *     When the incoming body flips is_advisory from True to False, a pre-flight scan
-     *     runs before writing. The scan validates every entity of the same (tenant_id,
-     *     entity_type) against the proposed enforcing definition and collects offenders.
-     *     Four outcome paths:
-     *
-     *     - dry_run=True: return 200 with offender list; do NOT write.
-     *     - force=True + migration_plan: skip scan, write immediately; migration_plan is
-     *       recorded in the audit payload so the bypass is discoverable.
-     *     - force=True without migration_plan: return 400.
-     *     - Scan times out (force_timeout_seconds exceeded): return 409 with partial results.
-     *     - Offenders found with force=False: return 409 with offender list.
-     *     - Zero offenders: write normally.
-     *
-     *     Validates the new definition JSONB before writing.
-     *     Emits audit event progression.definition.published.
-     */
-    put: operations['supersede_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__put'];
-    post?: never;
-    /**
-     * Soft Delete Progression Definition
-     * @description Soft-delete a progression definition by setting t_valid_to = now.
-     *
-     *     No successor row is inserted. t_invalidated_at remains NULL.
-     *     Emits audit event progression.definition.soft_deleted.
-     *     Returns 404 if not found or not owned by this tenant.
-     */
-    delete: operations['soft_delete_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/vocabularies/{kind}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Vocabulary Values
-     * @description List all vocabulary values for the given kind (including deprecated).
-     */
-    get: operations['list_vocabulary_values_v1_admin_vocabularies__kind__get'];
-    put?: never;
-    /**
-     * Add Vocabulary Value
-     * @description Add a vocabulary value for the given kind. Idempotent on exact duplicate.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['add_vocabulary_value_v1_admin_vocabularies__kind__post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/admin/vocabularies/{kind}/{value}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     * Delete Vocabulary Value
-     * @description Soft-delete: sets deprecated_at = now().
-     */
-    delete: operations['delete_vocabulary_value_v1_admin_vocabularies__kind___value__delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Patch Vocabulary Value
-     * @description Update a vocabulary value, e.g. set deprecated_at.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and stale,
-     *     returns 412 Precondition Failed; if absent, logs a debug warning and
-     *     accepts the write.  ETag is computed from the vocab_id + created_at before
-     *     the write so a stale precondition fails fast.
-     *
-     *     There is no detail-GET for individual vocabulary values; the client can
-     *     derive the ETag from the list response or a prior PATCH response using
-     *     the same inputs (vocab_id + created_at).
-     */
-    patch: operations['patch_vocabulary_value_v1_admin_vocabularies__kind___value__patch'];
-    trace?: never;
-  };
-  '/v1/annotations/{annotation_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     * Soft-delete an annotation (idempotent)
-     * @description Soft-delete an annotation. Idempotent — second call returns 204 unchanged.
-     *
-     *     Authorization: the annotation's author OR a producer/admin in the capability's
-     *     owner tenant can delete. The service enforces this check and treats an already-
-     *     deleted annotation as a no-op rather than a 404.
-     */
-    delete: operations['_delete_annotation_handler_v1_annotations__annotation_id__delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Triage an annotation (update status / triage note)
-     * @description Triage an annotation — update its status and optionally set a triage note.
-     *
-     *     Authorization: the caller's tenant must own the capability the annotation
-     *     belongs to. The service enforces this check before applying any update.
-     *
-     *     Returns 200 with the updated AnnotationResponse. A warn-level PII hit on
-     *     triage_note populates the top-level ``warnings`` list in the response.
-     *
-     *     An invalid status value is rejected with 422 (service-layer vocabulary check).
-     */
-    patch: operations['_triage_annotation_handler_v1_annotations__annotation_id__patch'];
-    trace?: never;
-  };
-  '/v1/arc/admin/approval-evidence/{evidence_id}/revoke': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Revoke Approval Evidence
-     * @description Withdraw one piece of approval evidence.
-     *
-     *     Narrower than revoking a verifier: the verifier stays trusted, but this
-     *     particular approval no longer counts -- an approval granted in error, or
-     *     one whose approver turned out to lack the authority.
-     */
-    post: operations['revoke_approval_evidence_v1_arc_admin_approval_evidence__evidence_id__revoke_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/approval-verifiers': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Register Approval Verifier
-     * @description Admit an approval verifier, deployment-wide.
-     *
-     *     Operator identity regardless of the verifier's own scope, matching
-     *     revocation. Registering a verifier decides *who counts as an approver*,
-     *     and its blast radius is every activation and exception that verifier will
-     *     ever vouch for -- the same blast radius revocation has, and therefore the
-     *     same gate.
-     *
-     *     This is not a way to forge an approval. What is recorded is a public key or
-     *     a provider id; the private half stays with the approver, so the registrar
-     *     and the signer are different parties by construction. An operator who
-     *     registers a key they also hold is both, which no check at this layer can
-     *     prevent -- so registration audits the credential and allowlist
-     *     fingerprints instead, and an auditor can prove which configuration
-     *     admitted which verifier.
-     */
-    post: operations['register_approval_verifier_v1_arc_admin_approval_verifiers_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/approval-verifiers/{approval_verifier_id}/revoke': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Revoke Approval Verifier
-     * @description Withdraw trust in an approval verifier, deployment-wide.
-     *
-     *     Requires operator identity regardless of the verifier's own scope. A
-     *     tenant-scoped verifier is registrable by a tenant admin, but revoking
-     *     one is a trust decision whose blast radius includes every revision and
-     *     exception it ever vouched for -- so it is not a tenant-level action.
-     *
-     *     The cascade (revoking affected revisions and exceptions, advancing
-     *     obligation tombstones) is not implemented here; see the note in the
-     *     route body.
-     */
-    post: operations['revoke_approval_verifier_v1_arc_admin_approval_verifiers__approval_verifier_id__revoke_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/exceptions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Approve Context Exception
-     * @description Approve an exception narrowing a higher-scope directive.
-     *
-     *     Tenant-scoped rather than operator-gated: narrowing a rule *within* your
-     *     own tenant is a tenant decision. What stops that becoming an escape
-     *     hatch is the delegability check in the service -- a tenant cannot except
-     *     a global directive that does not permit it, or global governance would
-     *     be advisory.
-     *
-     *     The exception's tenant is taken from the authenticated context, never
-     *     from the body: one a caller could file against another tenant would be
-     *     a way to weaken somebody else's rules.
-     */
-    post: operations['approve_context_exception_v1_arc_admin_exceptions_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/exceptions/{exception_id}/revoke': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Revoke Context Exception
-     * @description Withdraw an exception, restoring the directive it narrowed.
-     */
-    post: operations['revoke_context_exception_v1_arc_admin_exceptions__exception_id__revoke_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/operator-identity': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Describe Operator Identity
-     * @description Whether the caller holds deployment operator identity, and what this
-     *     deployment is actually able to do.
-     *
-     *     Exists so an operator can find out *before* attempting a governance
-     *     write, rather than discovering it from a 403 in the middle of one. It
-     *     reports only a boolean and the allowlist fingerprint -- never the
-     *     allowlist, and never anyone else's membership.
-     *
-     *     The capability flags are here rather than annotated onto each record they
-     *     affect. What needs qualifying is a deployment-wide claim, read now; a
-     *     caveat carried inside individual receipts is read one record at a time, at
-     *     audit time, possibly years later. This is the one place an operator already
-     *     checks before use.
-     */
-    get: operations['describe_operator_identity_v1_arc_admin_operator_identity_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/revisions/{revision_id}/activate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Activate Revision
-     * @description Put a revision into force, superseding the incumbent.
-     */
-    post: operations['activate_revision_v1_arc_admin_revisions__revision_id__activate_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/revisions/{revision_id}/approval-evidence': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Attach Approval Evidence
-     * @description Link a draft revision to the evidence approving it.
-     *
-     *     A separate step from registration because the ordering is forced:
-     *     activation evidence must name the revision it approves, and that id does
-     *     not exist until the revision has been registered.
-     */
-    post: operations['attach_approval_evidence_v1_arc_admin_revisions__revision_id__approval_evidence_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/revisions/{revision_id}/invalidate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Invalidate Revision
-     * @description Mark a revision's content no longer trustworthy.
-     *
-     *     Distinct from revocation: that says the rule no longer applies, this
-     *     says the content itself was wrong or its upstream source is gone. The
-     *     obligation tombstones differently so an auditor can tell them apart.
-     *
-     *     Operator-driven rather than automatic, because deciding registered
-     *     content is wrong is a judgement no worker should make.
-     */
-    post: operations['invalidate_revision_v1_arc_admin_revisions__revision_id__invalidate_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/admin/revisions/{revision_id}/revoke': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Revoke Revision
-     * @description Withdraw a revision from force. Terminal.
-     *
-     *     Any mandatory obligation it satisfied becomes a tombstone rather than
-     *     disappearing, so matching resolutions keep blocking until an approved
-     *     successor satisfies it.
-     */
-    post: operations['revoke_revision_v1_arc_admin_revisions__revision_id__revoke_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/challenges': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Issue Context Challenge
-     * @description Issue a single-use challenge bound to this host and session.
-     *
-     *     `host_id` and the tenant come from the authenticated context, never
-     *     from the body -- a caller able to name its own host could bind a
-     *     challenge to somebody else's identity.
-     */
-    post: operations['issue_context_challenge_v1_arc_challenges_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/metadata': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Verification Metadata
-     * @description Published key history, so an external verifier can check a receipt.
-     *
-     *     Deliberately unauthenticated: it carries only public keys and profile
-     *     names, and a verifier holding a receipt may not be a registry caller at
-     *     all. Retired and compromised keys stay listed -- a receipt signed two
-     *     years ago must remain verifiable, and dropping a compromised key would
-     *     both break that and hide the compromise.
-     */
-    get: operations['get_verification_metadata_v1_arc_metadata_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/receipts/{receipt_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Context Resolution Receipt
-     * @description Return one receipt the caller is entitled to read.
-     *
-     *     A receipt in another tenant is reported as not-found rather than
-     *     forbidden. Distinguishing the two would confirm the receipt exists,
-     *     which is itself information the caller is not entitled to.
-     */
-    get: operations['get_context_resolution_receipt_v1_arc_receipts__receipt_id__get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/receipts/{receipt_id}/detail': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Retrieve Context Detail
-     * @description Return one authorized page of detail for a receipt.
-     */
-    post: operations['retrieve_context_detail_v1_arc_receipts__receipt_id__detail_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/receipts/{receipt_id}/explain': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Explain Context Resolution
-     * @description Why this resolution produced the status it did.
-     *
-     *     Answers "what applied to me, and what stopped me" from the receipt's own
-     *     record rather than by re-running selection -- a re-run could disagree
-     *     with what actually happened, which is the one thing an explanation must
-     *     never do.
-     */
-    get: operations['explain_context_resolution_v1_arc_receipts__receipt_id__explain_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/arc/resolve': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Resolve Context
-     * @description Resolve a manifest into a governed context bundle.
-     *
-     *     The two translation rules this module opens with both land here. A
-     *     `blocked` bundle returns 200 with its receipt, because it was
-     *     authenticated and the receipt explains itself. An unverified manifest
-     *     returns 403 with no receipt and one bounded reason code.
-     *
-     *     The corpus is assembled before the resolution transaction opens, which
-     *     is what lets selection stay a pure function of its input. The clock is
-     *     read once inside the service and applied to that input, so a candidate
-     *     is never selected under one instant and evaluated under another.
-     */
-    post: operations['resolve_context_v1_arc_resolve_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Capabilities
-     * @description Paginated list of capabilities visible to the caller's tenant.
-     *
-     *     Pagination is keyset-based: the response carries ``next_cursor`` (or null
-     *     when no further pages exist). Pass ``cursor=<value>`` on the next request
-     *     to retrieve the following page.
-     *
-     *     The legacy ``?page=N`` offset parameter is no longer accepted. Clients
-     *     that send it receive a 422 with code ``page_param_deprecated``.
-     */
-    get: operations['list_capabilities_v1_capabilities_get'];
-    put?: never;
-    /**
-     * Create Capability
-     * @description Create a new capability.
-     *
-     *     Honours ``X-Idempotency-Key`` (optional). Resend with the same key
-     *     + same body → returns the original response. Same key + different
-     *     body → 409 with ``code: "idempotency_key_conflict"``.
-     */
-    post: operations['create_capability_v1_capabilities_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{capability_id}/annotations': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List annotations on a capability
-     * @description List annotations on a capability.
-     *
-     *     Provider path: caller's tenant owns the capability → returns all active
-     *     annotations, optionally filtered by status.
-     *
-     *     Author path: caller's tenant does not own the capability → returns only
-     *     annotations where author_tenant_id == caller's tenant. Receiving an empty
-     *     list is not a 403 — it means the caller has no authored annotations on this
-     *     capability.
-     *
-     *     Cursor-paginated on (t_ingested_at ASC, annotation_id ASC).
-     */
-    get: operations['list_annotations_v1_capabilities__capability_id__annotations_get'];
-    put?: never;
-    /**
-     * Submit an annotation on a capability
-     * @description Submit a new annotation on a capability.
-     *
-     *     The caller must be able to see the capability — the service enforces this
-     *     via assert_visible before writing the row.
-     *
-     *     Returns 201 with the full AnnotationResponse. When the PII scanner fires a
-     *     warn-level policy on the annotation body, the response includes a top-level
-     *     ``warnings`` list; clients should surface this to the submitting actor.
-     *
-     *     Pydantic rejects empty body strings and unknown category values with 422
-     *     before the service is called. Category values outside the closed vocabulary
-     *     are also rejected by the service with 422 as a defense-in-depth check.
-     */
-    post: operations['create_annotation_v1_capabilities__capability_id__annotations_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{capability_id}/interface': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Read the capability's declared interface surface
-     * @description Return the active interface surface at ``as_of`` (or current truth).
-     *
-     *     The path segment accepts a UUID or slug-form name.
-     *
-     *     ``?view=audit`` is accepted for API consistency but is currently a no-op —
-     *     the interface service returns a composed record rather than raw attribute
-     *     rows, so no additional bitemporal metadata is available to surface.
-     */
-    get: operations['get_interface_v1_capabilities__capability_id__interface_get'];
-    /**
-     * Replace the capability's declared interface surface
-     * @description Normalize, soft-supersede prior versions, then write the new pair.
-     *
-     *     The path segment accepts a UUID or slug-form name.
-     */
-    put: operations['put_interface_v1_capabilities__capability_id__interface_put'];
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{capability_id}/preview-version': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Preview the impact of a proposed version + interface change
-     * @description Read-only advisory: normalize → semver → diff → blast-radius → filter.
-     *
-     *     The path segment accepts a UUID or slug-form name.
-     *
-     *     Returns the diff classification, the per-element changes, the
-     *     affected-consumer list (cross-tenant entries anonymised), and a
-     *     plain-text release-notes scaffold.
-     */
-    post: operations['preview_version_v1_capabilities__capability_id__preview_version_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{capability_id}/subscriptions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List the caller's subscriptions for a capability
-     * @description Active subscriptions owned by ``ctx.tenant_id`` for this capability.
-     *
-     *     The path segment accepts a UUID or slug-form name. Tenants only see
-     *     their own subscriptions through this endpoint.
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns in the response.
-     *
-     *     Pagination: ``next_cursor`` is always ``None`` — subscriptions per
-     *     capability per tenant are bounded (typically 1–5 rows), so keyset
-     *     pagination is not wired. The envelope exists for client shape consistency.
-     */
-    get: operations['list_subscriptions_for_capability_v1_capabilities__capability_id__subscriptions_get'];
-    put?: never;
-    /**
-     * Create a subscription for a capability
-     * @description Create an active subscription owned by the caller's tenant.
-     *
-     *     The path segment accepts a UUID or slug-form name. Visibility is enforced
-     *     before the row is written. Returns ``{"subscription_id": "<uuid>"}``; the
-     *     full record can be retrieved via the list endpoint.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['create_subscription_v1_capabilities__capability_id__subscriptions_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Capability
-     * @description Return the full capability record.
-     *
-     *     The path segment accepts either a UUID or a slug-form name — they
-     *     resolve to the same record. Slugs are case-insensitive against the
-     *     stored `name` column.
-     *
-     *     Optional `?as_of=` activates bi-temporal time-travel.
-     *
-     *     Optional `?include=` adds bounded sub-resources to the response. Use
-     *     this to collapse "fetch capability + components + facts + external
-     *     IDs" from four round-trips into one.
-     *
-     *     Optional `?view=audit` returns the full bitemporal + tenant-id +
-     *     supersession audit shape. Default `view=default` omits those fields.
-     */
-    get: operations['get_capability_v1_capabilities__entity_id__get'];
-    put?: never;
-    post?: never;
-    /**
-     * Delete Capability
-     * @description Soft-delete idempotency:
-     *     - Row exists (active or already-invalidated) → 204 No Content.
-     *     - Row never existed → 404 Not Found (service raises NotFoundError).
-     */
-    delete: operations['delete_capability_v1_capabilities__entity_id__delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Patch Capability
-     * @description Update mutable attributes on a capability.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and stale,
-     *     returns 412 Precondition Failed; if absent, logs a warning and accepts the
-     *     write.  ETag is computed from the entity row before the write so a stale
-     *     precondition fails fast without executing the mutation.
-     *
-     *     When there is no detail GET that a client can use to acquire the ETag,
-     *     the client may compute it from the list response or from a prior PATCH
-     *     response body — but that is uncommon.  The recommended flow is:
-     *     GET /v1/capabilities/{id} → ETag header → PATCH with If-Match.
-     */
-    patch: operations['patch_capability_v1_capabilities__entity_id__patch'];
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}/artifacts': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Artifacts
-     * @description List artifacts for a capability, ordered by ingestion time descending.
-     *
-     *     Pagination is keyset-based: the response carries ``next_cursor`` (or null
-     *     when no further pages exist). Pass ``cursor=<value>`` on the next request
-     *     to retrieve the following page.
-     *
-     *     The legacy ``?page=N`` offset parameter is no longer accepted. Clients
-     *     that send it receive a 422 with code ``page_param_deprecated``.
-     */
-    get: operations['list_artifacts_v1_capabilities__entity_id__artifacts_get'];
-    put?: never;
-    /** Create Artifact */
-    post: operations['create_artifact_v1_capabilities__entity_id__artifacts_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}/artifacts/{fact_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Artifact */
-    get: operations['get_artifact_v1_capabilities__entity_id__artifacts__fact_id__get'];
-    put?: never;
-    post?: never;
-    /**
-     * Delete Artifact
-     * @description Soft-delete idempotency: 204 on first or repeat delete; 404 on never-existing.
-     *
-     *     Path segment accepts UUID or slug-form name.
-     */
-    delete: operations['delete_artifact_v1_capabilities__entity_id__artifacts__fact_id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}/blast-radius': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Blast-radius — transitive closure (cache-first)
-     * @description Full transitive closure from a capability, served from ``closure_cache``.
-     *
-     *     The path segment accepts a UUID or slug-form name.
-     *
-     *     Falls back to the recursive CTE when:
-     *     - ``as_of`` is before the 90-day cache horizon, OR
-     *     - the cache has no rows for this root + direction (cold start).
-     *
-     *     ``cache_hit=True`` indicates the result was served from the materialized
-     *     cache; ``False`` indicates the live CTE was executed.
-     *
-     *     A POST-tunneled alias ``POST /v1/capabilities/{entity_id}:blast-radius``
-     *     accepts the same parameters via query string and returns an identical body.
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns on edge items.
-     */
-    get: operations['get_blast_radius_v1_capabilities__entity_id__blast_radius_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}/dependencies': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get Dependencies
-     * @description k-hop dependency traversal from entity_id.
-     *
-     *     Path segment accepts UUID or slug-form name. Depth capped at 5 by
-     *     the service layer.
-     */
-    get: operations['get_dependencies_v1_capabilities__entity_id__dependencies_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}/dependents': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Reverse traversal — who depends on this capability?
-     * @description Return all capabilities that (transitively) depend on ``entity_id``.
-     *
-     *     The path segment accepts a UUID or slug-form name.
-     *
-     *     Visibility: only nodes belonging to the caller's tenant are returned
-     *     (same-tenant only; cross-tenant visibility requires an adoption relationship).
-     *
-     *     ``cache_hit`` is always ``False`` when the closure cache is not yet populated.
-     *     ``version_satisfied[edge_id]`` reflects predicate evaluation against the
-     *     target entity's current version attribute.
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns on edge items.
-     */
-    get: operations['get_dependents_v1_capabilities__entity_id__dependents_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}/lifecycle': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /**
-     * Patch Capability Lifecycle
-     * @description Apply a lifecycle state transition to a capability.
-     *
-     *     The path segment accepts a UUID or slug-form name.
-     *
-     *     Requires ``admin`` or ``producer`` role.  When ``successor`` is a UUID the
-     *     service creates a ``replaced_by`` edge via ``CatalogService.create_edge``
-     *     after committing the attribute row.  When ``successor`` is ``"none"`` the
-     *     entity is deprecated without a replacement.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and stale,
-     *     returns 412 Precondition Failed; if absent, logs a debug warning and
-     *     accepts the write.  ETag is computed from the entity's current state before
-     *     the transition so a stale precondition fails fast.
-     *
-     *     Returns 422 on policy violation (invalid transition, invalid successor value),
-     *     404 if the entity does not exist.
-     */
-    patch: operations['patch_capability_lifecycle_v1_capabilities__entity_id__lifecycle_patch'];
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}/visibility': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /**
-     * Set Visibility Handler
-     * @description PATCH /v1/capabilities/{entity_id} — update visibility and shared_with_tenants.
-     *
-     *     Path segment accepts UUID or slug-form name.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and
-     *     stale, returns 412 Precondition Failed; if absent, logs a warning
-     *     and accepts the write.
-     *
-     *     Requires producer or admin role. Ownership is enforced by VisibilityService
-     *     (only the owning tenant may change visibility).
-     *
-     *     Errors:
-     *     - 403 if caller lacks producer/admin role.
-     *     - 403 if caller is not the owning tenant (PermissionError from service).
-     *     - 404 if entity not found for the calling tenant.
-     *     - 412 if `If-Match` was supplied and does not match the current ETag.
-     *     - 422 if visibility value is invalid or tenant-shared without shared_with_tenants.
-     */
-    patch: operations['set_visibility_handler_v1_capabilities__entity_id__visibility_patch'];
-    trace?: never;
-  };
-  '/v1/capabilities/{entity_id}:blast-radius': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Blast-radius — POST-tunneled alias (same handler as GET)
-     * @description POST-tunneled alias for blast-radius.
-     *
-     *     The path segment accepts a UUID or slug-form name. Accepts the same query
-     *     parameters as the GET form.  Returns an identical response body.  Useful
-     *     when intermediate proxies filter non-standard HTTP verbs or when clients
-     *     can only issue POST requests.
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns on edge items.
-     */
-    post: operations['post_blast_radius_v1_capabilities__entity_id__blast_radius_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{provider_cap_id}/adoptions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List active adoptions for a capability
-     * @description Return the calling tenant's active adoption for this capability,
-     *     if any.
-     *
-     *     Scoped to the caller's tenant — listing other tenants' adoptions for
-     *     the same capability is not supported through this endpoint (use the
-     *     projection endpoints for the provider-side view).
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns in the response.
-     *
-     *     Pagination: ``next_cursor`` is always ``None`` — adoptions per capability
-     *     per tenant are bounded (at most one active row), so keyset pagination is
-     *     not wired. The envelope exists for client shape consistency.
-     */
-    get: operations['list_adoptions_v1_capabilities__provider_cap_id__adoptions_get'];
-    put?: never;
-    /**
-     * Adopt a provider capability (cross-tenant)
-     * @description Record an adoption event + provides_to edge.
-     *
-     *     The path segment accepts a UUID or a slug-form name. The consumer
-     *     tenant is ``ctx.tenant_id``. Returns ``201`` with the newly-created
-     *     adoption row. ``409`` if an active adoption already exists for the
-     *     (consumer, capability) pair (uniqueness constraint).
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns in the response.
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['adopt_capability_v1_capabilities__provider_cap_id__adoptions_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/capabilities/{provider_cap_id}/adoptions/{adoption_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     * Soft-delete (unadopt) an adoption
-     * @description Soft-delete by setting t_invalidated_at. The provides_to edge is
-     *     retained so historical bi-temporal traversal still surfaces the
-     *     relationship.
-     *
-     *     Idempotent: calling on an already-invalidated adoption is a no-op
-     *     (returns 204).
-     */
-    delete: operations['_unadopt_capability_v1_capabilities__provider_cap_id__adoptions__adoption_id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/concepts': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**  Create */
-    post: operations['_create_v1_concepts_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/concepts/{entity_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     *  Get
-     * @description Return a single entity record.
-     *
-     *     Emits an ``ETag`` header computed from the entity identifier and the
-     *     most recent transaction timestamp.  Clients can echo this value back
-     *     as ``If-Match`` on subsequent PATCH calls for optimistic concurrency.
-     */
-    get: operations['_get_v1_concepts__entity_id__get'];
-    put?: never;
-    post?: never;
-    /**
-     *  Delete
-     * @description Soft-delete idempotency: 204 on first or repeat delete; 404 on never-existing.
-     */
-    delete: operations['v1_concepts_delete'];
-    options?: never;
-    head?: never;
-    /**
-     *  Patch
-     * @description Update mutable attributes on the entity.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and
-     *     stale, returns 412 Precondition Failed; if absent, logs a debug
-     *     warning and accepts the write.  ETag is computed before the write so
-     *     a stale precondition fails fast.
-     */
-    patch: operations['v1_concepts_update'];
-    trace?: never;
-  };
-  '/v1/entities': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Lookup entity by external system slug and external ID
-     * @description Return the entity mapped to ``(external_system, external_id)`` for the tenant.
-     *
-     *     Returns ``404 Not Found`` when no mapping exists.  The ``external_system``
-     *     and ``external_id`` query parameters are both required.
-     */
-    get: operations['lookup_entity_by_external_id_v1_entities_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/entities/{entity_id}/external-ids': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List external-ID mappings for an entity
-     * @description Return all external-ID mappings for ``entity_id``, ordered by creation time.
-     *
-     *     The path segment accepts a UUID or slug-form name.
-     *
-     *     Returns an empty ``items`` list when no mappings exist.  Returns ``404``
-     *     when the entity does not exist (service checks ownership via tenant_id).
-     *
-     *     Pagination: ``next_cursor`` is always ``None`` — external-ID mappings per
-     *     entity are bounded (typically 1–10 rows), so keyset pagination is not
-     *     wired. The envelope exists for client shape consistency.
-     */
-    get: operations['list_external_ids_v1_entities__entity_id__external_ids_get'];
-    put?: never;
-    /**
-     * Add an external-ID mapping for an entity
-     * @description Create a new external-ID mapping for ``entity_id``.
-     *
-     *     The path segment accepts a UUID or slug-form name.
-     *
-     *     URL resolution
-     *     --------------
-     *     1. If ``url`` is supplied in the request body it is stored as-is.
-     *     2. Else if the external system has a ``url_template``, the template is
-     *        expanded with ``{external_id}`` replaced by the provided external ID.
-     *     3. Otherwise ``url`` is stored as ``None``.
-     *
-     *     Returns ``409 Conflict`` when the
-     *     ``(tenant_id, external_system_slug, external_id)`` triple already exists;
-     *     the message includes the existing ``external_id_pk``.
-     *
-     *     Returns ``404`` when:
-     *     - ``entity_id`` does not exist.
-     *     - ``external_system_slug`` is not registered for this tenant.
-     *
-     *     Honours ``X-Idempotency-Key``: same key + same body replays the
-     *     original response; same key + different body returns 409.
-     */
-    post: operations['add_external_id_v1_entities__entity_id__external_ids_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/entities/{entity_id}/external-ids/{external_id_pk}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     *  Delete External Id
-     * @description Hard-delete an external-ID mapping by its primary key.
-     *
-     *     The path segment accepts a UUID or slug-form name for the entity.
-     *
-     *     There is no soft-history: the row is removed permanently.
-     *     Deletion is audit-logged to ``audit_log`` unconditionally.
-     *
-     *     Returns ``204 No Content`` on success.  Returns ``404`` when the mapping
-     *     does not exist or belongs to a different tenant (avoids leaking existence).
-     */
-    delete: operations['_delete_external_id_v1_entities__entity_id__external_ids__external_id_pk__delete'];
-    options?: never;
-    head?: never;
-    /**
-     *  Patch External Id
-     * @description Update the ``url`` or ``metadata_jsonb`` of an existing external-ID mapping.
-     *
-     *     The path segment accepts a UUID or slug-form name for the entity.
-     *
-     *     Returns ``404`` when the mapping does not exist or belongs to a different
-     *     entity/tenant.  Only fields present in the request body are updated.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and stale,
-     *     returns 412 Precondition Failed; if absent, logs a debug warning and
-     *     accepts the write.  ETag is computed from the mapping's primary key +
-     *     ``updated_at`` before the write so a stale precondition fails fast.
-     *
-     *     There is no detail-GET for an individual external-ID mapping; the client
-     *     can acquire the ETag from the list endpoint body (list does not emit an
-     *     ETag header) or from a prior PATCH response — the ETag for the updated
-     *     record is computed from the returned ``external_id_pk + updated_at`` values.
-     */
-    patch: operations['_patch_external_id_v1_entities__entity_id__external_ids__external_id_pk__patch'];
-    trace?: never;
-  };
-  '/v1/graph/consumer': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Consumer projection — what does my tenant consume?
-     * @description Return own entities + adopted provider capabilities (visibility-filtered).
-     *
-     *     Edges: own outgoing ``depends_on``/``requires``/``integrates_with`` +
-     *     ``provides_to`` edges of adopted provider capabilities.
-     *
-     *     Pagination uses keyset cursors; ``next_cursor`` in the response is null when
-     *     no further pages exist.
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns on edge items.
-     */
-    get: operations['get_consumer_projection_v1_graph_consumer_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/graph/provider': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Provider projection — what does my tenant ship?
-     * @description Return entities owned by the caller's tenant plus every outgoing
-     *     ``provides_to`` edge (the consumers that adopted my capabilities).
-     *
-     *     Visibility is enforced at the service layer. Pagination uses keyset cursors;
-     *     ``next_cursor`` in the response is null when no further pages exist.
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns on edge items.
-     */
-    get: operations['get_provider_projection_v1_graph_provider_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/integrations': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Find integrations that connect two capabilities
-     * @description List integrations whose member edges connect ``connects`` and ``and``.
-     *
-     *     Visibility-filtered: an integration is included only if it is
-     *     visible to the calling tenant.
-     *
-     *     Pagination: ``next_cursor`` is always ``None`` — integrations connecting
-     *     two specific capabilities are bounded (typically 1–3 rows), so keyset
-     *     pagination is not wired. The envelope exists for client shape consistency.
-     */
-    get: operations['find_integrations_v1_integrations_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/memory/sessions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Sessions
-     * @description The caller's own sessions, most recently active first.
-     *
-     *     The entry point for resuming earlier work: an agent that has lost its
-     *     context asks what it was doing before deciding which session to replay.
-     */
-    get: operations['list_sessions_v1_memory_sessions_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/memory/sessions/{session_id}/events': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Session Events
-     * @description Replay a session in sequence order, forward or reverse.
-     *
-     *     `since`, `until` and `cursor` are sequence numbers rather than timestamps
-     *     or offsets. A timestamp cannot order a burst of events recorded in the same
-     *     microsecond, and an offset over an append-only log re-reads shifting
-     *     windows as new events arrive mid-page.
-     *
-     *     Reverse order with a small limit is how a resuming agent asks for "the last
-     *     few turns" without reading a whole conversation.
-     */
-    get: operations['list_session_events_v1_memory_sessions__session_id__events_get'];
-    put?: never;
-    /**
-     * Record Event
-     * @description Append one immutable event.
-     *
-     *     The session is not created here; it exists because its events do. There is
-     *     no update route: an event is write-once, removable only by the author, by
-     *     retention, or by an erasure request.
-     *
-     *     The body is scanned before storage and a blocking tenant policy refuses the
-     *     write. `metadata` is not scanned -- see the request model.
-     */
-    post: operations['record_event_v1_memory_sessions__session_id__events_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/memory/sessions/{session_id}/events/{event_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Get Session Event */
-    get: operations['get_session_event_v1_memory_sessions__session_id__events__event_id__get'];
-    put?: never;
-    post?: never;
-    /**
-     * Delete Session Event
-     * @description Remove one of the caller's own events before retention elapses.
-     *
-     *     Soft-invalidation: the event leaves every read path but stays addressable
-     *     for audit. Physical erasure is a separate operation with a separate
-     *     justification.
-     */
-    delete: operations['delete_session_event_v1_memory_sessions__session_id__events__event_id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/notifications': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List notifications for the caller's tenant
-     * @description Cursor-paginated inbox view. Newest notifications first.
-     *
-     *     ``status`` ∈ {``unread``, ``read``, ``all``}; default is ``unread``.
-     *     ``next_cursor`` is non-null only when the page is full and there are
-     *     more rows to read; pass it back in as ``cursor`` for the next page.
-     *
-     *     ``view`` is accepted for API consistency but is currently a no-op —
-     *     notification items have no bitemporal columns to expose.
-     */
-    get: operations['list_notifications_v1_notifications_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/notifications/{notification_id}:mark-read': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Mark a notification as read
-     * @description Flip ``status`` from ``unread`` to ``read``.
-     *
-     *     Idempotent — repeated calls and unknown ids both succeed silently.
-     *     Tenant scoping is enforced by the service.
-     */
-    post: operations['mark_read_v1_notifications__notification_id__mark_read_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/operations': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**  Create */
-    post: operations['_create_v1_operations_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/operations/{entity_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     *  Get
-     * @description Return a single entity record.
-     *
-     *     Emits an ``ETag`` header computed from the entity identifier and the
-     *     most recent transaction timestamp.  Clients can echo this value back
-     *     as ``If-Match`` on subsequent PATCH calls for optimistic concurrency.
-     */
-    get: operations['_get_v1_operations__entity_id__get'];
-    put?: never;
-    post?: never;
-    /**
-     *  Delete
-     * @description Soft-delete idempotency: 204 on first or repeat delete; 404 on never-existing.
-     */
-    delete: operations['v1_operations_delete'];
-    options?: never;
-    head?: never;
-    /**
-     *  Patch
-     * @description Update mutable attributes on the entity.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and
-     *     stale, returns 412 Precondition Failed; if absent, logs a debug
-     *     warning and accepts the write.  ETag is computed before the write so
-     *     a stale precondition fails fast.
-     */
-    patch: operations['v1_operations_update'];
-    trace?: never;
-  };
-  '/v1/operator/claim-predicates': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List Global Predicates
-     * @description Every organization-scope predicate, including deprecated ones.
-     *
-     *     Deprecated predicates are listed because claims still reference them and an
-     *     operator reconciling the ontology needs to see what a name used to mean.
-     */
-    get: operations['list_global_predicates_v1_operator_claim_predicates_get'];
-    put?: never;
-    /**
-     * Create Global Predicate
-     * @description Define a predicate for the whole deployment.
-     *
-     *     Refused with 409 if any tenant already uses the name locally. Promoting it
-     *     would silently retype every claim written against their meaning of the
-     *     term, so the local definition has to be reconciled first.
-     */
-    post: operations['create_global_predicate_v1_operator_claim_predicates_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/operator/claim-predicates/local-inventory': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Inventory Local Predicates
-     * @description Tenant-local predicates across the deployment, for ontology governance.
-     *
-     *     Names and owning tenants only, and only on this operator path. It exists so
-     *     divergence is observable — which terms tenants invented independently, and
-     *     therefore what should become shared. No tenant-facing route exposes another
-     *     tenant's local vocabulary.
-     */
-    get: operations['inventory_local_predicates_v1_operator_claim_predicates_local_inventory_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/operator/claim-predicates/{value}/deprecate': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Deprecate Global Predicate
-     * @description Retire a predicate without removing it.
-     *
-     *     The row stays because claims reference it. Nothing new may be written
-     *     against a deprecated predicate, and no tenant may reuse the name.
-     */
-    post: operations['deprecate_global_predicate_v1_operator_claim_predicates__value__deprecate_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/search': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Search
-     * @description Hybrid search across capabilities, concepts, operations, and artifact bodies.
-     */
-    get: operations['search_v1_search_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/subscriptions/{subscription_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     * Soft-delete a subscription
-     * @description Soft-delete (sets t_invalidated_at). Idempotent.
-     */
-    delete: operations['_delete_subscription_handler_v1_subscriptions__subscription_id__delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Update a subscription
-     * @description Update mutable fields on an active subscription.
-     *
-     *     Honours the ``If-Match`` request header (advisory): if present and stale,
-     *     returns 412 Precondition Failed; if absent, logs a debug warning and
-     *     accepts the write.  ETag is computed from the subscription identifier +
-     *     its ``t_ingested_at`` timestamp before the write so a stale precondition
-     *     fails fast.
-     *
-     *     There is no detail-GET endpoint for subscriptions — clients that need an
-     *     ETag should parse it from the subscription create response or from the list
-     *     endpoint item (list items do not currently emit ETags, so the safest source
-     *     is a prior PATCH response).
-     *
-     *     Pass ``?view=audit`` to include bitemporal columns in the response.
-     */
-    patch: operations['_update_subscription_handler_v1_subscriptions__subscription_id__patch'];
-    trace?: never;
-  };
-  '/v1/whoami': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Whoami
-     * @description Return the actor + tenant + roles the current credential resolves to.
-     *
-     *     The roles list is the same set the tenant middleware attaches to
-     *     the TenantContext — derived from the entitlement service's grant
-     *     resolution for the validated JWT's `sub` claim, mapped through
-     *     `ENTITLEMENT_ROLE_MAPPING` to one of {admin, producer, consumer,
-     *     auditor}.
-     */
-    get: operations['whoami_v1_whoami_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/workspaces': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List workspaces visible to the caller
-     * @description List workspaces the calling actor can see.
-     *
-     *     Returns workspaces where the caller is the owning actor (for
-     *     ``owner_kind='actor'``) or any member of the owning tenant (for
-     *     ``owner_kind='tenant'``). Excludes soft-deleted rows. Excludes
-     *     archived rows unless ``include_archived=true``.
-     *
-     *     Cursor-paginated on workspace_id ascending.
-     */
-    get: operations['list_workspaces_v1_workspaces_get'];
-    put?: never;
-    /**
-     * Create a workspace
-     * @description Create a new workspace.
-     *
-     *     owner_kind='actor' creates a personal workspace tied to the calling actor.
-     *     owner_kind='tenant' creates a team workspace owned by the calling actor's tenant.
-     *
-     *     Regulated tenants (is_regulated=true) cannot create workspaces at encryption
-     *     tier 'none' — the service returns 422 with an actionable message explaining
-     *     that a higher encryption tier is required. This is a program constraint
-     *     (ENC phase dependency), not a bug.
-     *
-     *     Invalid owner_kind values are rejected with 422 by the service.
-     */
-    post: operations['create_workspace_v1_workspaces_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/workspaces/search': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Search workspace entries visible to the caller
-     * @description Search workspace entries visible to the calling actor.
-     *
-     *     Returns entries from workspaces visible to the caller — their
-     *     actor-owned workspaces plus every tenant-owned workspace in their
-     *     tenant. No entry from a workspace the caller cannot access is ever
-     *     included.
-     *
-     *     Filters are AND-combined:
-     *     - q: full-text search on body_md using the GIN index.
-     *     - kind: exact match on entry kind.
-     *     - owner_actor_id: restrict to workspaces owned by this actor (caller or admin only).
-     *     - reference_ids: comma-separated UUIDs; entry must contain ALL of them.
-     *
-     *     Cursor-paginated on entry_id ascending. total_count is null when the service
-     *     omits it for performance — use next_cursor as the canonical pagination signal.
-     */
-    get: operations['search_workspaces_v1_workspaces_search_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/workspaces/{workspace_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * Get a workspace by ID
-     * @description Return a single workspace by ID.
-     *
-     *     The service enforces visibility via role-based access control.
-     *     WorkspaceNotFound → 404; WorkspaceOperationDenied → 403.
-     */
-    get: operations['_get_workspace_handler_v1_workspaces__workspace_id__get'];
-    put?: never;
-    post?: never;
-    /**
-     * Soft-delete a workspace (idempotent)
-     * @description Soft-delete a workspace. Idempotent — a second call returns 204 unchanged.
-     *
-     *     Authorization is role-based: the write-gate checks owner_kind and
-     *     effective_roles. WorkspaceNotFound → 404; WorkspaceOperationDenied → 403.
-     *     Already-deleted workspaces are a no-op rather than an error.
-     */
-    delete: operations['_delete_workspace_handler_v1_workspaces__workspace_id__delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Update a workspace (name, description, archived_at)
-     * @description Update a workspace's name, description, or archived_at.
-     *
-     *     Authorization: the caller must be the owning actor or an admin in the
-     *     workspace's owning tenant. Share holders cannot update. The service enforces
-     *     this check before applying any change.
-     *
-     *     Pass archived_at=null to un-archive a workspace. Omit a field to leave it
-     *     unchanged (name and description are partial-update safe).
-     */
-    patch: operations['_update_workspace_handler_v1_workspaces__workspace_id__patch'];
-    trace?: never;
-  };
-  '/v1/workspaces/{workspace_id}/entries': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * List entries in a workspace
-     * @description List active entries in a workspace.
-     *
-     *     Access is gated by workspace visibility — the caller must be the
-     *     workspace owner (the calling actor for ``owner_kind='actor'``; any
-     *     actor in the owning tenant for ``owner_kind='tenant'``). The service
-     *     raises 403/404 before returning entries.
-     *
-     *     Excludes soft-deleted entries. Entries past their expires_at are still
-     *     returned; the expiry worker invalidates them in a background run.
-     *
-     *     Cursor-paginated on entry_id ascending.
-     */
-    get: operations['list_entries_v1_workspaces__workspace_id__entries_get'];
-    put?: never;
-    /**
-     * Create an entry in a workspace
-     * @description Create a new entry in a workspace.
-     *
-     *     The caller must be the workspace owner (the calling actor for
-     *     ``owner_kind='actor'`` workspaces; any actor in the owning tenant
-     *     for ``owner_kind='tenant'``). The service enforces access via
-     *     ``get_workspace`` before writing.
-     *
-     *     PII scanner runs on body_md and references_jsonb. A block-level hit raises
-     *     422 and the entry is NOT stored. A warn-level hit stores the entry and
-     *     returns a top-level ``warnings`` list in the response.
-     *
-     *     Regulated tenants cannot create entries (defense-in-depth against any path
-     *     that bypasses the workspace-create guard).
-     */
-    post: operations['create_entry_v1_workspaces__workspace_id__entries_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/v1/workspaces/{workspace_id}/entries/{entry_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     * Soft-delete a workspace entry (idempotent)
-     * @description Soft-delete a workspace entry. Idempotent — a second call returns 204 unchanged.
-     *
-     *     Authorization is role-based: the write-gate checks owner_kind and
-     *     effective_roles. WorkspaceNotFound → 404; WorkspaceOperationDenied → 403.
-     */
-    delete: operations['_delete_entry_handler_v1_workspaces__workspace_id__entries__entry_id__delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Update a workspace entry
-     * @description Update a workspace entry's body, reference_ids, or references_jsonb.
-     *
-     *     Authorization: the caller must be the workspace owner (the calling
-     *     actor for ``owner_kind='actor'`` workspaces; any actor in the owning
-     *     tenant for ``owner_kind='tenant'``). The service enforces this via
-     *     workspace visibility before writing.
-     *
-     *     PII scanner runs on any provided body_md or references_jsonb. A block hit
-     *     returns 422 and the entry is NOT updated. A warn hit updates the entry and
-     *     returns a ``warnings`` list in the response.
-     *
-     *     Only supplied fields are updated; omitted fields retain their current values.
-     */
-    patch: operations['_update_entry_handler_v1_workspaces__workspace_id__entries__entry_id__patch'];
-    trace?: never;
-  };
-  '/webhooks/github': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Github Webhook
-     * @description Receive a GitHub push (or any event) webhook delivery.
-     */
-    post: operations['github_webhook_webhooks_github_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/webhooks/gitlab': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * Gitlab Webhook
-     * @description Receive a GitLab push (or any event) webhook delivery.
-     */
-    post: operations['gitlab_webhook_webhooks_gitlab_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/healthz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Healthz */
+        get: operations["healthz_healthz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Metrics
+         * @description Prometheus exposition. Requires a bearer credential.
+         */
+        get: operations["metrics_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readyz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Readyz */
+        get: operations["readyz_readyz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/actors/{actor_id}/personal-data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Purge all workspace personal data for an actor (RTBF).
+         * @description Physically delete all workspace content authored by actor_id.
+         *
+         *     This endpoint fulfills right-to-be-forgotten (RTBF) requests for workspace
+         *     data. It performs a hard DELETE (not a soft-delete) across:
+         *
+         *     - workspace_entries created by the actor
+         *     - actor-owned workspaces (cascading their entries) once the actor is gone
+         *
+         *     Workspaces never cross tenant boundaries — there is no separate share
+         *     revocation step; tenant-owned workspaces in tenants the actor was a
+         *     member of remain intact and are governed by their tenant's roster.
+         *
+         *     The operation is idempotent. A second call returns counts of 0.
+         *
+         *     Returns 200 with PurgeResult counts (not 204) so the admin caller can
+         *     confirm what was actually purged.
+         *
+         *     Raises 403 if the caller does not hold the admin role.
+         */
+        delete: operations["delete_actor_personal_data_v1_admin_actors__actor_id__personal_data_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Query Audit Log
+         * @description Query audit log with keyset pagination.
+         *
+         *     tenant_id is always injected from TenantContext — callers cannot query
+         *     another tenant's data.  Sorted DESC by (ts, audit_id).
+         */
+        get: operations["query_audit_log_v1_admin_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/capability-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Capability Types
+         * @description List all capability type schemas (current rows only: t_invalidated_at IS NULL).
+         */
+        get: operations["list_capability_types_v1_admin_capability_types_get"];
+        put?: never;
+        /**
+         * Create Capability Type
+         * @description Create a new capability type schema.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["create_capability_type_v1_admin_capability_types_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/capability-types/{type_name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Capability Type
+         * @description Get the current schema for a given type_name.
+         *
+         *     Emits an ``ETag`` header computed from the schema_id + t_ingested_at.
+         *     Clients can echo this value as ``If-Match`` on subsequent PATCH calls
+         *     for optimistic concurrency.
+         */
+        get: operations["get_capability_type_v1_admin_capability_types__type_name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Capability Type
+         * @description Update a capability type schema — currently supports flipping is_advisory.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a debug warning and
+         *     accepts the write.  ETag is computed from schema_id + t_ingested_at before
+         *     the write so a stale precondition fails fast.
+         *
+         *     Recommended flow: GET /v1/admin/capability-types/{name} → ETag header
+         *     → PATCH with If-Match.
+         */
+        patch: operations["patch_capability_type_v1_admin_capability_types__type_name__patch"];
+        trace?: never;
+    };
+    "/v1/admin/edge-property-schemas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Edge Property Schemas
+         * @description List all active edge property schemas for the tenant.  Edge-property schema management is not yet implemented.
+         */
+        get: operations["list_edge_property_schemas_v1_admin_edge_property_schemas_get"];
+        put?: never;
+        /**
+         * Create Edge Property Schema
+         * @description Register a JSON Schema for an edge_rel.  Edge-property schema management is not yet implemented.
+         */
+        post: operations["create_edge_property_schema_v1_admin_edge_property_schemas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/edge-property-schemas/{schema_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         *  Update Edge Property Schema
+         * @description Supersede an existing edge property schema (bi-temporal).
+         *
+         *     Full implementation is pending. Once wired, this endpoint will honour
+         *     ``If-Match`` (advisory) using the schema's ``t_ingested_at`` timestamp
+         *     as the ETag source, matching the pattern used by capability-type PATCH.
+         */
+        patch: operations["_update_edge_property_schema_v1_admin_edge_property_schemas__schema_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/external-systems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List registered external systems (admin)
+         * @description Return all external systems registered for the tenant, ordered by slug.
+         */
+        get: operations["list_external_systems_v1_admin_external_systems_get"];
+        put?: never;
+        /**
+         * Register an external system (admin)
+         * @description Register a new external-system slug for the tenant.
+         *
+         *     ``slug`` must be unique per tenant.  Duplicate slug returns ``409 Conflict``.
+         *     ``url_template`` may contain ``{external_id}`` which is substituted when
+         *     external-ID mappings are created without an explicit ``url``.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["create_external_system_v1_admin_external_systems_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/external-systems/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         *  Delete External System
+         * @description Hard-delete an external system registration.
+         *
+         *     Returns ``204 No Content`` on success.  Returns ``404`` when the slug
+         *     does not exist or belongs to a different tenant (avoids leaking cross-tenant
+         *     registry contents).
+         *
+         *     Note: existing entity_external_ids rows that reference this slug are not
+         *     automatically removed by this call.  Callers should delete mappings first,
+         *     or re-registration of the same slug will be unblocked once orphans are cleared.
+         */
+        delete: operations["_delete_external_system_v1_admin_external_systems__slug__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/extraction-strategies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Extraction Strategies
+         * @description Every strategy as it will run for this tenant, enabled or not.
+         *
+         *     Disabled strategies are included: a caller that could not see them would be
+         *     unable to distinguish "switched off" from "does not exist in this build".
+         */
+        get: operations["list_extraction_strategies_v1_admin_extraction_strategies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/extraction-strategies/conformance-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Conformance Policy
+         * @description The threshold at which a strategy is reported as a defective prompt.
+         *
+         *     Exposed because the number decides when an operator gets told their prompt is
+         *     broken, and a threshold nobody can look up is one nobody trusts.
+         */
+        get: operations["get_conformance_policy_v1_admin_extraction_strategies_conformance_policy_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/extraction-strategies/{strategy_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Extraction Strategy
+         * @description Enable, disable, or tune one strategy for this tenant.
+         *
+         *     An override changes how well claims are found, never what they mean: the
+         *     schema, the predicate set, and the namespace are not editable here.
+         */
+        patch: operations["update_extraction_strategy_v1_admin_extraction_strategies__strategy_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/operational-health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Operational conditions an operator should meet rather than search for */
+        get: operations["get_operational_health_v1_admin_operational_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/pii-field-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Pii Field Policies
+         * @description List all per-field PII policy overrides for the tenant.
+         */
+        get: operations["list_pii_field_policies_v1_admin_pii_field_policies_get"];
+        put?: never;
+        /**
+         * Create Pii Field Policy
+         * @description Create a per-field (optionally per-pattern) PII policy override.
+         *
+         *     ``policy`` must be one of ``advisory | warn | block``; returns ``422`` on
+         *     invalid value.  The DB unique index ``uq_field_policy`` ensures at most one
+         *     NULL-pattern row per ``(tenant_id, field_type)``; duplicate insert returns
+         *     ``409 Conflict``.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["create_pii_field_policy_v1_admin_pii_field_policies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/pii-field-policies/{policy_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         *  Delete Pii Field Policy
+         * @description Hard-delete a per-field PII policy override.  Returns 204 on success.
+         */
+        delete: operations["_delete_pii_field_policy_v1_admin_pii_field_policies__policy_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/pii-patterns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Pii Patterns
+         * @description List all PII patterns for the tenant, including system-seeded rows.
+         */
+        get: operations["list_pii_patterns_v1_admin_pii_patterns_get"];
+        put?: never;
+        /**
+         * Create Pii Pattern
+         * @description Register a custom tenant PII pattern.
+         *
+         *     ``is_system`` is always ``False`` for tenant-created patterns.
+         *     Validates that ``regex`` is a syntactically valid Python regex.
+         *     Validates ``policy_override`` is one of ``advisory | warn | block`` when
+         *     provided.  Returns ``422`` on validation failure.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["create_pii_pattern_v1_admin_pii_patterns_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/pii-patterns/{pattern_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         *  Delete Pii Pattern
+         * @description Hard-delete a tenant PII pattern.
+         *
+         *     ``is_system=True`` rows return ``403 Forbidden``.
+         *     Returns ``204 No Content`` on success or if the row is already absent
+         *     (idempotent).
+         */
+        delete: operations["_delete_pii_pattern_v1_admin_pii_patterns__pattern_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         *  Patch Pii Pattern
+         * @description Partial-update a tenant PII pattern.
+         *
+         *     ``is_system=True`` rows return ``403 Forbidden``.
+         *     ``policy_override`` is validated as ``advisory | warn | block`` when
+         *     provided; ``422`` on invalid value.
+         *     ``regex`` is validated as a syntactically valid Python regex; ``422`` on
+         *     invalid pattern.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a debug warning and
+         *     accepts the write.  ETag is computed from pattern_id + created_at before
+         *     the write so a stale precondition fails fast.
+         */
+        patch: operations["_patch_pii_pattern_v1_admin_pii_patterns__pattern_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/sync-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sync Runs */
+        get: operations["list_sync_runs_v1_admin_sync_runs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sync-runs/{sync_run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Sync Run */
+        get: operations["get_sync_run_v1_admin_sync_runs__sync_run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sync-runs/{sync_run_id}/superseded": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Superseded Facts For Run
+         * @description Return all facts with ``is_authoritative_superseded=TRUE`` for this run.
+         */
+        get: operations["get_superseded_facts_for_run_v1_admin_sync_runs__sync_run_id__superseded_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sync-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sync Sources */
+        get: operations["list_sync_sources_v1_admin_sync_sources_get"];
+        put?: never;
+        /**
+         * Create Sync Source
+         * @description Create a new sync source.
+         *
+         *     Validates the connector exists and calls ``connector.validate()`` before
+         *     persisting.  Upserts the sync-worker actor via the runner helper so that
+         *     actor_id is available for subsequent sync runs.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["create_sync_source_v1_admin_sync_sources_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/sync-sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sync Source
+         * @description Return a single sync-source record.
+         *
+         *     Emits an ``ETag`` header computed from the source identifier and its
+         *     ``created_at`` timestamp.  Clients can echo this value as ``If-Match``
+         *     on subsequent PATCH calls for optimistic concurrency.
+         */
+        get: operations["get_sync_source_v1_admin_sync_sources__source_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Sync Source
+         * @description Soft-delete: sets is_active=FALSE.
+         */
+        delete: operations["delete_sync_source_v1_admin_sync_sources__source_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Patch Sync Source
+         * @description Partial-update a sync source configuration.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a debug warning and
+         *     accepts the write.  ETag is computed before the write so a stale
+         *     precondition fails fast.
+         *
+         *     Recommended flow: GET /v1/admin/sync-sources/{id} → ETag header → PATCH
+         *     with If-Match.
+         */
+        patch: operations["patch_sync_source_v1_admin_sync_sources__source_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/sync-sources/{source_id}/trigger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Trigger Sync
+         * @description Enqueue an immediate manual sync run for *source_id*.
+         *
+         *     Creates a ``sync_runs`` row with ``trigger='manual'`` and schedules a
+         *     one-shot APScheduler job (date trigger = now).  Returns 202 immediately.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original 202 response, preventing duplicate trigger submissions on retry.
+         */
+        post: operations["trigger_sync_v1_admin_sync_sources__source_id__trigger_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tenants/{tenant_id}/entities/{entity_id}/progression-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Progression Overrides
+         * @description List progression overrides for an entity with optional filters.
+         *
+         *     Query parameters:
+         *       consumed=true   — only overrides where consumed_at IS NOT NULL
+         *       consumed=false  — only overrides where consumed_at IS NULL
+         *       expired=true    — only overrides where t_valid_to < now()
+         *       expired=false   — only overrides where t_valid_to >= now()
+         *       from_state      — exact match on from_state
+         *       to_state        — exact match on to_state
+         */
+        get: operations["list_progression_overrides_v1_admin_tenants__tenant_id__entities__entity_id__progression_overrides_get"];
+        put?: never;
+        /**
+         * Create Progression Override
+         * @description Create a single-use progression gate override for a specific entity.
+         *
+         *     Follows audit-before-commit ordering: the audit_log row is written and
+         *     committed in its own transaction before the override row is inserted.
+         *     If the audit write fails the override is never created — a silently-created
+         *     override with no audit record is structurally impossible.
+         *
+         *     Default t_valid_to: now + 1 hour when the caller omits the field.
+         *     Default bypass_skip_rules: False — must be an explicit opt-in.
+         *     authorized_by is always set to the actor making the request.
+         */
+        post: operations["create_progression_override_v1_admin_tenants__tenant_id__entities__entity_id__progression_overrides_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tenants/{tenant_id}/progression-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Progression Definitions
+         * @description Return all currently-active progression definitions for the tenant.
+         *
+         *     Active means: t_valid_to IS NULL AND t_invalidated_at IS NULL.
+         */
+        get: operations["list_progression_definitions_v1_admin_tenants__tenant_id__progression_definitions_get"];
+        put?: never;
+        /**
+         * Create Progression Definition
+         * @description Create the first progression definition for a (tenant, entity_type) pair.
+         *
+         *     Validates the definition JSONB against the meta-schema before persisting.
+         *     Returns 422 with structured error paths on schema violations.
+         *     Returns 403 if the caller does not hold the admin role.
+         *
+         *     The tenant_id in the URL must match the caller's tenant — the admin role
+         *     dependency already resolves the tenant from the token; cross-tenant writes
+         *     are rejected because ctx.tenant_id will not match a different tenant_id path
+         *     parameter (enforced below).
+         */
+        post: operations["create_progression_definition_v1_admin_tenants__tenant_id__progression_definitions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/tenants/{tenant_id}/progression-definitions/{progression_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Progression Definition
+         * @description Return a specific progression definition by progression_id.
+         *
+         *     Returns 404 if the row does not exist or belongs to a different tenant.
+         */
+        get: operations["get_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__get"];
+        /**
+         * Supersede Progression Definition
+         * @description Supersede a progression definition — inserts a new row and closes the active one.
+         *
+         *     The progression_id in the URL identifies which active definition to supersede.
+         *     A new row is inserted; the previously-active row for the same (tenant_id,
+         *     entity_type) has its t_valid_to set to now. Both writes happen in a single
+         *     transaction so there is never a gap or overlap in the validity window.
+         *
+         *     When the incoming body flips is_advisory from True to False, a pre-flight scan
+         *     runs before writing. The scan validates every entity of the same (tenant_id,
+         *     entity_type) against the proposed enforcing definition and collects offenders.
+         *     Four outcome paths:
+         *
+         *     - dry_run=True: return 200 with offender list; do NOT write.
+         *     - force=True + migration_plan: skip scan, write immediately; migration_plan is
+         *       recorded in the audit payload so the bypass is discoverable.
+         *     - force=True without migration_plan: return 400.
+         *     - Scan times out (force_timeout_seconds exceeded): return 409 with partial results.
+         *     - Offenders found with force=False: return 409 with offender list.
+         *     - Zero offenders: write normally.
+         *
+         *     Validates the new definition JSONB before writing.
+         *     Emits audit event progression.definition.published.
+         */
+        put: operations["supersede_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__put"];
+        post?: never;
+        /**
+         * Soft Delete Progression Definition
+         * @description Soft-delete a progression definition by setting t_valid_to = now.
+         *
+         *     No successor row is inserted. t_invalidated_at remains NULL.
+         *     Emits audit event progression.definition.soft_deleted.
+         *     Returns 404 if not found or not owned by this tenant.
+         */
+        delete: operations["soft_delete_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vocabularies/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Vocabulary Values
+         * @description List all vocabulary values for the given kind (including deprecated).
+         */
+        get: operations["list_vocabulary_values_v1_admin_vocabularies__kind__get"];
+        put?: never;
+        /**
+         * Add Vocabulary Value
+         * @description Add a vocabulary value for the given kind. Idempotent on exact duplicate.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["add_vocabulary_value_v1_admin_vocabularies__kind__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/vocabularies/{kind}/{value}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Vocabulary Value
+         * @description Soft-delete: sets deprecated_at = now().
+         */
+        delete: operations["delete_vocabulary_value_v1_admin_vocabularies__kind___value__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Patch Vocabulary Value
+         * @description Update a vocabulary value, e.g. set deprecated_at.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a debug warning and
+         *     accepts the write.  ETag is computed from the vocab_id + created_at before
+         *     the write so a stale precondition fails fast.
+         *
+         *     There is no detail-GET for individual vocabulary values; the client can
+         *     derive the ETag from the list response or a prior PATCH response using
+         *     the same inputs (vocab_id + created_at).
+         */
+        patch: operations["patch_vocabulary_value_v1_admin_vocabularies__kind___value__patch"];
+        trace?: never;
+    };
+    "/v1/arc/admin/approval-evidence/{evidence_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Approval Evidence
+         * @description Withdraw one piece of approval evidence.
+         *
+         *     Narrower than revoking a verifier: the verifier stays trusted, but this
+         *     particular approval no longer counts -- an approval granted in error, or
+         *     one whose approver turned out to lack the authority.
+         */
+        post: operations["revoke_approval_evidence_v1_arc_admin_approval_evidence__evidence_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/approval-verifiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register Approval Verifier
+         * @description Admit an approval verifier, deployment-wide.
+         *
+         *     Operator identity regardless of the verifier's own scope, matching
+         *     revocation. Registering a verifier decides *who counts as an approver*,
+         *     and its blast radius is every activation and exception that verifier will
+         *     ever vouch for -- the same blast radius revocation has, and therefore the
+         *     same gate.
+         *
+         *     This is not a way to forge an approval. What is recorded is a public key or
+         *     a provider id; the private half stays with the approver, so the registrar
+         *     and the signer are different parties by construction. An operator who
+         *     registers a key they also hold is both, which no check at this layer can
+         *     prevent -- so registration audits the credential and allowlist
+         *     fingerprints instead, and an auditor can prove which configuration
+         *     admitted which verifier.
+         */
+        post: operations["register_approval_verifier_v1_arc_admin_approval_verifiers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/approval-verifiers/{approval_verifier_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Approval Verifier
+         * @description Withdraw trust in an approval verifier, deployment-wide.
+         *
+         *     Requires operator identity regardless of the verifier's own scope. A
+         *     tenant-scoped verifier is registrable by a tenant admin, but revoking
+         *     one is a trust decision whose blast radius includes every revision and
+         *     exception it ever vouched for -- so it is not a tenant-level action.
+         *
+         *     The cascade (revoking affected revisions and exceptions, advancing
+         *     obligation tombstones) is not implemented here; see the note in the
+         *     route body.
+         */
+        post: operations["revoke_approval_verifier_v1_arc_admin_approval_verifiers__approval_verifier_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/exceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve Context Exception
+         * @description Approve an exception narrowing a higher-scope directive.
+         *
+         *     Tenant-scoped rather than operator-gated: narrowing a rule *within* your
+         *     own tenant is a tenant decision. What stops that becoming an escape
+         *     hatch is the delegability check in the service -- a tenant cannot except
+         *     a global directive that does not permit it, or global governance would
+         *     be advisory.
+         *
+         *     The exception's tenant is taken from the authenticated context, never
+         *     from the body: one a caller could file against another tenant would be
+         *     a way to weaken somebody else's rules.
+         */
+        post: operations["approve_context_exception_v1_arc_admin_exceptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/exceptions/{exception_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Context Exception
+         * @description Withdraw an exception, restoring the directive it narrowed.
+         */
+        post: operations["revoke_context_exception_v1_arc_admin_exceptions__exception_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/operator-identity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Describe Operator Identity
+         * @description Whether the caller holds deployment operator identity, and what this
+         *     deployment is actually able to do.
+         *
+         *     Exists so an operator can find out *before* attempting a governance
+         *     write, rather than discovering it from a 403 in the middle of one. It
+         *     reports only a boolean and the allowlist fingerprint -- never the
+         *     allowlist, and never anyone else's membership.
+         *
+         *     The capability flags are here rather than annotated onto each record they
+         *     affect. What needs qualifying is a deployment-wide claim, read now; a
+         *     caveat carried inside individual receipts is read one record at a time, at
+         *     audit time, possibly years later. This is the one place an operator already
+         *     checks before use.
+         */
+        get: operations["describe_operator_identity_v1_arc_admin_operator_identity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/revisions/{revision_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Activate Revision
+         * @description Put a revision into force, superseding the incumbent.
+         */
+        post: operations["activate_revision_v1_arc_admin_revisions__revision_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/revisions/{revision_id}/approval-evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attach Approval Evidence
+         * @description Link a draft revision to the evidence approving it.
+         *
+         *     A separate step from registration because the ordering is forced:
+         *     activation evidence must name the revision it approves, and that id does
+         *     not exist until the revision has been registered.
+         */
+        post: operations["attach_approval_evidence_v1_arc_admin_revisions__revision_id__approval_evidence_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/revisions/{revision_id}/invalidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Invalidate Revision
+         * @description Mark a revision's content no longer trustworthy.
+         *
+         *     Distinct from revocation: that says the rule no longer applies, this
+         *     says the content itself was wrong or its upstream source is gone. The
+         *     obligation tombstones differently so an auditor can tell them apart.
+         *
+         *     Operator-driven rather than automatic, because deciding registered
+         *     content is wrong is a judgement no worker should make.
+         */
+        post: operations["invalidate_revision_v1_arc_admin_revisions__revision_id__invalidate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/revisions/{revision_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Revision
+         * @description Withdraw a revision from force. Terminal.
+         *
+         *     Any mandatory obligation it satisfied becomes a tombstone rather than
+         *     disappearing, so matching resolutions keep blocking until an approved
+         *     successor satisfies it.
+         */
+        post: operations["revoke_revision_v1_arc_admin_revisions__revision_id__revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Issue Context Challenge
+         * @description Issue a single-use challenge bound to this host and session.
+         *
+         *     `host_id` and the tenant come from the authenticated context, never
+         *     from the body -- a caller able to name its own host could bind a
+         *     challenge to somebody else's identity.
+         */
+        post: operations["issue_context_challenge_v1_arc_challenges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Verification Metadata
+         * @description Published key history, so an external verifier can check a receipt.
+         *
+         *     Deliberately unauthenticated: it carries only public keys and profile
+         *     names, and a verifier holding a receipt may not be a registry caller at
+         *     all. Retired and compromised keys stay listed -- a receipt signed two
+         *     years ago must remain verifiable, and dropping a compromised key would
+         *     both break that and hide the compromise.
+         */
+        get: operations["get_verification_metadata_v1_arc_metadata_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/receipts/{receipt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Context Resolution Receipt
+         * @description Return one receipt the caller is entitled to read.
+         *
+         *     A receipt in another tenant is reported as not-found rather than
+         *     forbidden. Distinguishing the two would confirm the receipt exists,
+         *     which is itself information the caller is not entitled to.
+         */
+        get: operations["get_context_resolution_receipt_v1_arc_receipts__receipt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/receipts/{receipt_id}/detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retrieve Context Detail
+         * @description Return one authorized page of detail for a receipt.
+         */
+        post: operations["retrieve_context_detail_v1_arc_receipts__receipt_id__detail_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/receipts/{receipt_id}/explain": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Explain Context Resolution
+         * @description Why this resolution produced the status it did.
+         *
+         *     Answers "what applied to me, and what stopped me" from the receipt's own
+         *     record rather than by re-running selection -- a re-run could disagree
+         *     with what actually happened, which is the one thing an explanation must
+         *     never do.
+         */
+        get: operations["explain_context_resolution_v1_arc_receipts__receipt_id__explain_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve Context
+         * @description Resolve a manifest into a governed context bundle.
+         *
+         *     The two translation rules this module opens with both land here. A
+         *     `blocked` bundle returns 200 with its receipt, because it was
+         *     authenticated and the receipt explains itself. An unverified manifest
+         *     returns 403 with no receipt and one bounded reason code.
+         *
+         *     The corpus is assembled before the resolution transaction opens, which
+         *     is what lets selection stay a pure function of its input. The clock is
+         *     read once inside the service and applied to that input, so a candidate
+         *     is never selected under one instant and evaluated under another.
+         */
+        post: operations["resolve_context_v1_arc_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Capabilities
+         * @description Paginated list of capabilities visible to the caller's tenant.
+         *
+         *     Pagination is keyset-based: the response carries ``next_cursor`` (or null
+         *     when no further pages exist). Pass ``cursor=<value>`` on the next request
+         *     to retrieve the following page.
+         *
+         *     The legacy ``?page=N`` offset parameter is no longer accepted. Clients
+         *     that send it receive a 422 with code ``page_param_deprecated``.
+         */
+        get: operations["list_capabilities_v1_capabilities_get"];
+        put?: never;
+        /**
+         * Create Capability
+         * @description Create a new capability.
+         *
+         *     Honours ``X-Idempotency-Key`` (optional). Resend with the same key
+         *     + same body → returns the original response. Same key + different
+         *     body → 409 with ``code: "idempotency_key_conflict"``.
+         */
+        post: operations["create_capability_v1_capabilities_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{capability_id}/interface": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the capability's declared interface surface
+         * @description Return the active interface surface at ``as_of`` (or current truth).
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     ``?view=audit`` is accepted for API consistency but is currently a no-op —
+         *     the interface service returns a composed record rather than raw attribute
+         *     rows, so no additional bitemporal metadata is available to surface.
+         */
+        get: operations["get_interface_v1_capabilities__capability_id__interface_get"];
+        /**
+         * Replace the capability's declared interface surface
+         * @description Normalize, soft-supersede prior versions, then write the new pair.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         */
+        put: operations["put_interface_v1_capabilities__capability_id__interface_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{capability_id}/preview-version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview the impact of a proposed version + interface change
+         * @description Read-only advisory: normalize → semver → diff → blast-radius → filter.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     Returns the diff classification, the per-element changes, the
+         *     affected-consumer list (cross-tenant entries anonymised), and a
+         *     plain-text release-notes scaffold.
+         */
+        post: operations["preview_version_v1_capabilities__capability_id__preview_version_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{capability_id}/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the caller's subscriptions for a capability
+         * @description Active subscriptions owned by ``ctx.tenant_id`` for this capability.
+         *
+         *     The path segment accepts a UUID or slug-form name. Tenants only see
+         *     their own subscriptions through this endpoint.
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns in the response.
+         *
+         *     Pagination: ``next_cursor`` is always ``None`` — subscriptions per
+         *     capability per tenant are bounded (typically 1–5 rows), so keyset
+         *     pagination is not wired. The envelope exists for client shape consistency.
+         */
+        get: operations["list_subscriptions_for_capability_v1_capabilities__capability_id__subscriptions_get"];
+        put?: never;
+        /**
+         * Create a subscription for a capability
+         * @description Create an active subscription owned by the caller's tenant.
+         *
+         *     The path segment accepts a UUID or slug-form name. Visibility is enforced
+         *     before the row is written. Returns ``{"subscription_id": "<uuid>"}``; the
+         *     full record can be retrieved via the list endpoint.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["create_subscription_v1_capabilities__capability_id__subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Capability
+         * @description Return the full capability record.
+         *
+         *     The path segment accepts either a UUID or a slug-form name — they
+         *     resolve to the same record. Slugs are case-insensitive against the
+         *     stored `name` column.
+         *
+         *     Optional `?as_of=` activates bi-temporal time-travel.
+         *
+         *     Optional `?include=` adds bounded sub-resources to the response. Use
+         *     this to collapse "fetch capability + components + facts + external
+         *     IDs" from four round-trips into one.
+         *
+         *     Optional `?view=audit` returns the full bitemporal + tenant-id +
+         *     supersession audit shape. Default `view=default` omits those fields.
+         */
+        get: operations["get_capability_v1_capabilities__entity_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Capability
+         * @description Soft-delete idempotency:
+         *     - Row exists (active or already-invalidated) → 204 No Content.
+         *     - Row never existed → 404 Not Found (service raises NotFoundError).
+         */
+        delete: operations["delete_capability_v1_capabilities__entity_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Patch Capability
+         * @description Update mutable attributes on a capability.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a warning and accepts the
+         *     write.  ETag is computed from the entity row before the write so a stale
+         *     precondition fails fast without executing the mutation.
+         *
+         *     When there is no detail GET that a client can use to acquire the ETag,
+         *     the client may compute it from the list response or from a prior PATCH
+         *     response body — but that is uncommon.  The recommended flow is:
+         *     GET /v1/capabilities/{id} → ETag header → PATCH with If-Match.
+         */
+        patch: operations["patch_capability_v1_capabilities__entity_id__patch"];
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Artifacts
+         * @description List artifacts for a capability, ordered by ingestion time descending.
+         *
+         *     Pagination is keyset-based: the response carries ``next_cursor`` (or null
+         *     when no further pages exist). Pass ``cursor=<value>`` on the next request
+         *     to retrieve the following page.
+         *
+         *     The legacy ``?page=N`` offset parameter is no longer accepted. Clients
+         *     that send it receive a 422 with code ``page_param_deprecated``.
+         */
+        get: operations["list_artifacts_v1_capabilities__entity_id__artifacts_get"];
+        put?: never;
+        /** Create Artifact */
+        post: operations["create_artifact_v1_capabilities__entity_id__artifacts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/artifacts/{fact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Artifact */
+        get: operations["get_artifact_v1_capabilities__entity_id__artifacts__fact_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Artifact
+         * @description Soft-delete idempotency: 204 on first or repeat delete; 404 on never-existing.
+         *
+         *     Path segment accepts UUID or slug-form name.
+         */
+        delete: operations["delete_artifact_v1_capabilities__entity_id__artifacts__fact_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/blast-radius": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Blast-radius — transitive closure (cache-first)
+         * @description Full transitive closure from a capability, served from ``closure_cache``.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     Falls back to the recursive CTE when:
+         *     - ``as_of`` is before the 90-day cache horizon, OR
+         *     - the cache has no rows for this root + direction (cold start).
+         *
+         *     ``cache_hit=True`` indicates the result was served from the materialized
+         *     cache; ``False`` indicates the live CTE was executed.
+         *
+         *     A POST-tunneled alias ``POST /v1/capabilities/{entity_id}:blast-radius``
+         *     accepts the same parameters via query string and returns an identical body.
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns on edge items.
+         */
+        get: operations["get_blast_radius_v1_capabilities__entity_id__blast_radius_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/dependencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Dependencies
+         * @description k-hop dependency traversal from entity_id.
+         *
+         *     Path segment accepts UUID or slug-form name. Depth capped at 5 by
+         *     the service layer.
+         */
+        get: operations["get_dependencies_v1_capabilities__entity_id__dependencies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/dependents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reverse traversal — who depends on this capability?
+         * @description Return all capabilities that (transitively) depend on ``entity_id``.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     Visibility: only nodes belonging to the caller's tenant are returned
+         *     (same-tenant only; cross-tenant visibility requires an adoption relationship).
+         *
+         *     ``cache_hit`` is always ``False`` when the closure cache is not yet populated.
+         *     ``version_satisfied[edge_id]`` reflects predicate evaluation against the
+         *     target entity's current version attribute.
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns on edge items.
+         */
+        get: operations["get_dependents_v1_capabilities__entity_id__dependents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/lifecycle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Capability Lifecycle
+         * @description Apply a lifecycle state transition to a capability.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     Requires ``admin`` or ``producer`` role.  When ``successor`` is a UUID the
+         *     service creates a ``replaced_by`` edge via ``CatalogService.create_edge``
+         *     after committing the attribute row.  When ``successor`` is ``"none"`` the
+         *     entity is deprecated without a replacement.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a debug warning and
+         *     accepts the write.  ETag is computed from the entity's current state before
+         *     the transition so a stale precondition fails fast.
+         *
+         *     Returns 422 on policy violation (invalid transition, invalid successor value),
+         *     404 if the entity does not exist.
+         */
+        patch: operations["patch_capability_lifecycle_v1_capabilities__entity_id__lifecycle_patch"];
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set Visibility Handler
+         * @description PATCH /v1/capabilities/{entity_id} — update visibility and shared_with_tenants.
+         *
+         *     Path segment accepts UUID or slug-form name.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and
+         *     stale, returns 412 Precondition Failed; if absent, logs a warning
+         *     and accepts the write.
+         *
+         *     Requires producer or admin role. Ownership is enforced by VisibilityService
+         *     (only the owning tenant may change visibility).
+         *
+         *     Errors:
+         *     - 403 if caller lacks producer/admin role.
+         *     - 403 if caller is not the owning tenant (PermissionError from service).
+         *     - 404 if entity not found for the calling tenant.
+         *     - 412 if `If-Match` was supplied and does not match the current ETag.
+         *     - 422 if visibility value is invalid or tenant-shared without shared_with_tenants.
+         */
+        patch: operations["set_visibility_handler_v1_capabilities__entity_id__visibility_patch"];
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}:blast-radius": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Blast-radius — POST-tunneled alias (same handler as GET)
+         * @description POST-tunneled alias for blast-radius.
+         *
+         *     The path segment accepts a UUID or slug-form name. Accepts the same query
+         *     parameters as the GET form.  Returns an identical response body.  Useful
+         *     when intermediate proxies filter non-standard HTTP verbs or when clients
+         *     can only issue POST requests.
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns on edge items.
+         */
+        post: operations["post_blast_radius_v1_capabilities__entity_id__blast_radius_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{provider_cap_id}/adoptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active adoptions for a capability
+         * @description Return the calling tenant's active adoption for this capability,
+         *     if any.
+         *
+         *     Scoped to the caller's tenant — listing other tenants' adoptions for
+         *     the same capability is not supported through this endpoint (use the
+         *     projection endpoints for the provider-side view).
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns in the response.
+         *
+         *     Pagination: ``next_cursor`` is always ``None`` — adoptions per capability
+         *     per tenant are bounded (at most one active row), so keyset pagination is
+         *     not wired. The envelope exists for client shape consistency.
+         */
+        get: operations["list_adoptions_v1_capabilities__provider_cap_id__adoptions_get"];
+        put?: never;
+        /**
+         * Adopt a provider capability (cross-tenant)
+         * @description Record an adoption event + provides_to edge.
+         *
+         *     The path segment accepts a UUID or a slug-form name. The consumer
+         *     tenant is ``ctx.tenant_id``. Returns ``201`` with the newly-created
+         *     adoption row. ``409`` if an active adoption already exists for the
+         *     (consumer, capability) pair (uniqueness constraint).
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns in the response.
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["adopt_capability_v1_capabilities__provider_cap_id__adoptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{provider_cap_id}/adoptions/{adoption_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Soft-delete (unadopt) an adoption
+         * @description Soft-delete by setting t_invalidated_at. The provides_to edge is
+         *     retained so historical bi-temporal traversal still surfaces the
+         *     relationship.
+         *
+         *     Idempotent: calling on an already-invalidated adoption is a no-op
+         *     (returns 204).
+         */
+        delete: operations["_unadopt_capability_v1_capabilities__provider_cap_id__adoptions__adoption_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/concepts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**  Create */
+        post: operations["_create_v1_concepts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/concepts/{entity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         *  Get
+         * @description Return a single entity record.
+         *
+         *     Emits an ``ETag`` header computed from the entity identifier and the
+         *     most recent transaction timestamp.  Clients can echo this value back
+         *     as ``If-Match`` on subsequent PATCH calls for optimistic concurrency.
+         */
+        get: operations["_get_v1_concepts__entity_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         *  Delete
+         * @description Soft-delete idempotency: 204 on first or repeat delete; 404 on never-existing.
+         */
+        delete: operations["v1_concepts_delete"];
+        options?: never;
+        head?: never;
+        /**
+         *  Patch
+         * @description Update mutable attributes on the entity.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and
+         *     stale, returns 412 Precondition Failed; if absent, logs a debug
+         *     warning and accepts the write.  ETag is computed before the write so
+         *     a stale precondition fails fast.
+         */
+        patch: operations["v1_concepts_update"];
+        trace?: never;
+    };
+    "/v1/entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lookup entity by external system slug and external ID
+         * @description Return the entity mapped to ``(external_system, external_id)`` for the tenant.
+         *
+         *     Returns ``404 Not Found`` when no mapping exists.  The ``external_system``
+         *     and ``external_id`` query parameters are both required.
+         */
+        get: operations["lookup_entity_by_external_id_v1_entities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/entities/{entity_id}/external-ids": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List external-ID mappings for an entity
+         * @description Return all external-ID mappings for ``entity_id``, ordered by creation time.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     Returns an empty ``items`` list when no mappings exist.  Returns ``404``
+         *     when the entity does not exist (service checks ownership via tenant_id).
+         *
+         *     Pagination: ``next_cursor`` is always ``None`` — external-ID mappings per
+         *     entity are bounded (typically 1–10 rows), so keyset pagination is not
+         *     wired. The envelope exists for client shape consistency.
+         */
+        get: operations["list_external_ids_v1_entities__entity_id__external_ids_get"];
+        put?: never;
+        /**
+         * Add an external-ID mapping for an entity
+         * @description Create a new external-ID mapping for ``entity_id``.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     URL resolution
+         *     --------------
+         *     1. If ``url`` is supplied in the request body it is stored as-is.
+         *     2. Else if the external system has a ``url_template``, the template is
+         *        expanded with ``{external_id}`` replaced by the provided external ID.
+         *     3. Otherwise ``url`` is stored as ``None``.
+         *
+         *     Returns ``409 Conflict`` when the
+         *     ``(tenant_id, external_system_slug, external_id)`` triple already exists;
+         *     the message includes the existing ``external_id_pk``.
+         *
+         *     Returns ``404`` when:
+         *     - ``entity_id`` does not exist.
+         *     - ``external_system_slug`` is not registered for this tenant.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["add_external_id_v1_entities__entity_id__external_ids_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/entities/{entity_id}/external-ids/{external_id_pk}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         *  Delete External Id
+         * @description Hard-delete an external-ID mapping by its primary key.
+         *
+         *     The path segment accepts a UUID or slug-form name for the entity.
+         *
+         *     There is no soft-history: the row is removed permanently.
+         *     Deletion is audit-logged to ``audit_log`` unconditionally.
+         *
+         *     Returns ``204 No Content`` on success.  Returns ``404`` when the mapping
+         *     does not exist or belongs to a different tenant (avoids leaking existence).
+         */
+        delete: operations["_delete_external_id_v1_entities__entity_id__external_ids__external_id_pk__delete"];
+        options?: never;
+        head?: never;
+        /**
+         *  Patch External Id
+         * @description Update the ``url`` or ``metadata_jsonb`` of an existing external-ID mapping.
+         *
+         *     The path segment accepts a UUID or slug-form name for the entity.
+         *
+         *     Returns ``404`` when the mapping does not exist or belongs to a different
+         *     entity/tenant.  Only fields present in the request body are updated.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a debug warning and
+         *     accepts the write.  ETag is computed from the mapping's primary key +
+         *     ``updated_at`` before the write so a stale precondition fails fast.
+         *
+         *     There is no detail-GET for an individual external-ID mapping; the client
+         *     can acquire the ETag from the list endpoint body (list does not emit an
+         *     ETag header) or from a prior PATCH response — the ETag for the updated
+         *     record is computed from the returned ``external_id_pk + updated_at`` values.
+         */
+        patch: operations["_patch_external_id_v1_entities__entity_id__external_ids__external_id_pk__patch"];
+        trace?: never;
+    };
+    "/v1/graph/consumer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consumer projection — what does my tenant consume?
+         * @description Return own entities + adopted provider capabilities (visibility-filtered).
+         *
+         *     Edges: own outgoing ``depends_on``/``requires``/``integrates_with`` +
+         *     ``provides_to`` edges of adopted provider capabilities.
+         *
+         *     Pagination uses keyset cursors; ``next_cursor`` in the response is null when
+         *     no further pages exist.
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns on edge items.
+         */
+        get: operations["get_consumer_projection_v1_graph_consumer_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/graph/provider": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Provider projection — what does my tenant ship?
+         * @description Return entities owned by the caller's tenant plus every outgoing
+         *     ``provides_to`` edge (the consumers that adopted my capabilities).
+         *
+         *     Visibility is enforced at the service layer. Pagination uses keyset cursors;
+         *     ``next_cursor`` in the response is null when no further pages exist.
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns on edge items.
+         */
+        get: operations["get_provider_projection_v1_graph_provider_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find integrations that connect two capabilities
+         * @description List integrations whose member edges connect ``connects`` and ``and``.
+         *
+         *     Visibility-filtered: an integration is included only if it is
+         *     visible to the calling tenant.
+         *
+         *     Pagination: ``next_cursor`` is always ``None`` — integrations connecting
+         *     two specific capabilities are bounded (typically 1–3 rows), so keyset
+         *     pagination is not wired. The envelope exists for client shape consistency.
+         */
+        get: operations["find_integrations_v1_integrations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Sessions
+         * @description The caller's own sessions, most recently active first.
+         *
+         *     The entry point for resuming earlier work: an agent that has lost its
+         *     context asks what it was doing before deciding which session to replay.
+         */
+        get: operations["list_sessions_v1_memory_sessions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/sessions/{session_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Session Events
+         * @description Replay a session in sequence order, forward or reverse.
+         *
+         *     `since`, `until` and `cursor` are sequence numbers rather than timestamps
+         *     or offsets. A timestamp cannot order a burst of events recorded in the same
+         *     microsecond, and an offset over an append-only log re-reads shifting
+         *     windows as new events arrive mid-page.
+         *
+         *     Reverse order with a small limit is how a resuming agent asks for "the last
+         *     few turns" without reading a whole conversation.
+         */
+        get: operations["list_session_events_v1_memory_sessions__session_id__events_get"];
+        put?: never;
+        /**
+         * Record Event
+         * @description Append one immutable event.
+         *
+         *     The session is not created here; it exists because its events do. There is
+         *     no update route: an event is write-once, removable only by the author, by
+         *     retention, or by an erasure request.
+         *
+         *     The body is scanned before storage and a blocking tenant policy refuses the
+         *     write. `metadata` is not scanned -- see the request model.
+         */
+        post: operations["record_event_v1_memory_sessions__session_id__events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/sessions/{session_id}/events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Session Event */
+        get: operations["get_session_event_v1_memory_sessions__session_id__events__event_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Session Event
+         * @description Remove one of the caller's own events before retention elapses.
+         *
+         *     Soft-invalidation: the event leaves every read path but stays addressable
+         *     for audit. Physical erasure is a separate operation with a separate
+         *     justification.
+         */
+        delete: operations["delete_session_event_v1_memory_sessions__session_id__events__event_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List notifications for the caller's tenant
+         * @description Cursor-paginated inbox view. Newest notifications first.
+         *
+         *     ``status`` ∈ {``unread``, ``read``, ``all``}; default is ``unread``.
+         *     ``next_cursor`` is non-null only when the page is full and there are
+         *     more rows to read; pass it back in as ``cursor`` for the next page.
+         *
+         *     ``view`` is accepted for API consistency but is currently a no-op —
+         *     notification items have no bitemporal columns to expose.
+         */
+        get: operations["list_notifications_v1_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/notifications/{notification_id}:mark-read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark a notification as read
+         * @description Flip ``status`` from ``unread`` to ``read``.
+         *
+         *     Idempotent — repeated calls and unknown ids both succeed silently.
+         *     Tenant scoping is enforced by the service.
+         */
+        post: operations["mark_read_v1_notifications__notification_id__mark_read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**  Create */
+        post: operations["_create_v1_operations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operations/{entity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         *  Get
+         * @description Return a single entity record.
+         *
+         *     Emits an ``ETag`` header computed from the entity identifier and the
+         *     most recent transaction timestamp.  Clients can echo this value back
+         *     as ``If-Match`` on subsequent PATCH calls for optimistic concurrency.
+         */
+        get: operations["_get_v1_operations__entity_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         *  Delete
+         * @description Soft-delete idempotency: 204 on first or repeat delete; 404 on never-existing.
+         */
+        delete: operations["v1_operations_delete"];
+        options?: never;
+        head?: never;
+        /**
+         *  Patch
+         * @description Update mutable attributes on the entity.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and
+         *     stale, returns 412 Precondition Failed; if absent, logs a debug
+         *     warning and accepts the write.  ETag is computed before the write so
+         *     a stale precondition fails fast.
+         */
+        patch: operations["v1_operations_update"];
+        trace?: never;
+    };
+    "/v1/operator/claim-predicates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Global Predicates
+         * @description Every organization-scope predicate, including deprecated ones.
+         *
+         *     Deprecated predicates are listed because claims still reference them and an
+         *     operator reconciling the ontology needs to see what a name used to mean.
+         */
+        get: operations["list_global_predicates_v1_operator_claim_predicates_get"];
+        put?: never;
+        /**
+         * Create Global Predicate
+         * @description Define a predicate for the whole deployment.
+         *
+         *     Refused with 409 if any tenant already uses the name locally. Promoting it
+         *     would silently retype every claim written against their meaning of the
+         *     term, so the local definition has to be reconciled first.
+         */
+        post: operations["create_global_predicate_v1_operator_claim_predicates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/claim-predicates/local-inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inventory Local Predicates
+         * @description Tenant-local predicates across the deployment, for ontology governance.
+         *
+         *     Names and owning tenants only, and only on this operator path. It exists so
+         *     divergence is observable — which terms tenants invented independently, and
+         *     therefore what should become shared. No tenant-facing route exposes another
+         *     tenant's local vocabulary.
+         */
+        get: operations["inventory_local_predicates_v1_operator_claim_predicates_local_inventory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/operator/claim-predicates/{value}/deprecate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deprecate Global Predicate
+         * @description Retire a predicate without removing it.
+         *
+         *     The row stays because claims reference it. Nothing new may be written
+         *     against a deprecated predicate, and no tenant may reuse the name.
+         */
+        post: operations["deprecate_global_predicate_v1_operator_claim_predicates__value__deprecate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search
+         * @description Hybrid search across capabilities, concepts, operations, and artifact bodies.
+         */
+        get: operations["search_v1_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/subscriptions/{subscription_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Soft-delete a subscription
+         * @description Soft-delete (sets t_invalidated_at). Idempotent.
+         */
+        delete: operations["_delete_subscription_handler_v1_subscriptions__subscription_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a subscription
+         * @description Update mutable fields on an active subscription.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a debug warning and
+         *     accepts the write.  ETag is computed from the subscription identifier +
+         *     its ``t_ingested_at`` timestamp before the write so a stale precondition
+         *     fails fast.
+         *
+         *     There is no detail-GET endpoint for subscriptions — clients that need an
+         *     ETag should parse it from the subscription create response or from the list
+         *     endpoint item (list items do not currently emit ETags, so the safest source
+         *     is a prior PATCH response).
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns in the response.
+         */
+        patch: operations["_update_subscription_handler_v1_subscriptions__subscription_id__patch"];
+        trace?: never;
+    };
+    "/v1/whoami": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Whoami
+         * @description Return the actor + tenant + roles the current credential resolves to.
+         *
+         *     The roles list is the same set the tenant middleware attaches to
+         *     the TenantContext — derived from the entitlement service's grant
+         *     resolution for the validated JWT's `sub` claim, mapped through
+         *     `ENTITLEMENT_ROLE_MAPPING` to one of {admin, producer, consumer,
+         *     auditor}.
+         */
+        get: operations["whoami_v1_whoami_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List workspaces visible to the caller
+         * @description List workspaces the calling actor can see.
+         *
+         *     Returns workspaces where the caller is the owning actor (for
+         *     ``owner_kind='actor'``) or any member of the owning tenant (for
+         *     ``owner_kind='tenant'``). Excludes soft-deleted rows. Excludes
+         *     archived rows unless ``include_archived=true``.
+         *
+         *     Cursor-paginated on workspace_id ascending.
+         */
+        get: operations["list_workspaces_v1_workspaces_get"];
+        put?: never;
+        /**
+         * Create a workspace
+         * @description Create a new workspace.
+         *
+         *     owner_kind='actor' creates a personal workspace tied to the calling actor.
+         *     owner_kind='tenant' creates a team workspace owned by the calling actor's tenant.
+         *
+         *     Regulated tenants (is_regulated=true) cannot create workspaces at encryption
+         *     tier 'none' — the service returns 422 with an actionable message explaining
+         *     that a higher encryption tier is required. This is a program constraint
+         *     (ENC phase dependency), not a bug.
+         *
+         *     Invalid owner_kind values are rejected with 422 by the service.
+         */
+        post: operations["create_workspace_v1_workspaces_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search workspace entries visible to the caller
+         * @description Search workspace entries visible to the calling actor.
+         *
+         *     Returns entries from workspaces visible to the caller — their
+         *     actor-owned workspaces plus every tenant-owned workspace in their
+         *     tenant. No entry from a workspace the caller cannot access is ever
+         *     included.
+         *
+         *     Filters are AND-combined:
+         *     - q: full-text search on body_md using the GIN index.
+         *     - kind: exact match on entry kind.
+         *     - owner_actor_id: restrict to workspaces owned by this actor (caller or admin only).
+         *     - reference_ids: comma-separated UUIDs; entry must contain ALL of them.
+         *
+         *     Cursor-paginated on entry_id ascending. total_count is null when the service
+         *     omits it for performance — use next_cursor as the canonical pagination signal.
+         */
+        get: operations["search_workspaces_v1_workspaces_search_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a workspace by ID
+         * @description Return a single workspace by ID.
+         *
+         *     The service enforces visibility via role-based access control.
+         *     WorkspaceNotFound → 404; WorkspaceOperationDenied → 403.
+         */
+        get: operations["_get_workspace_handler_v1_workspaces__workspace_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Soft-delete a workspace (idempotent)
+         * @description Soft-delete a workspace. Idempotent — a second call returns 204 unchanged.
+         *
+         *     Authorization is role-based: the write-gate checks owner_kind and
+         *     effective_roles. WorkspaceNotFound → 404; WorkspaceOperationDenied → 403.
+         *     Already-deleted workspaces are a no-op rather than an error.
+         */
+        delete: operations["_delete_workspace_handler_v1_workspaces__workspace_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a workspace (name, description, archived_at)
+         * @description Update a workspace's name, description, or archived_at.
+         *
+         *     Authorization: the caller must be the owning actor or an admin in the
+         *     workspace's owning tenant. Share holders cannot update. The service enforces
+         *     this check before applying any change.
+         *
+         *     Pass archived_at=null to un-archive a workspace. Omit a field to leave it
+         *     unchanged (name and description are partial-update safe).
+         */
+        patch: operations["_update_workspace_handler_v1_workspaces__workspace_id__patch"];
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List entries in a workspace
+         * @description List active entries in a workspace.
+         *
+         *     Access is gated by workspace visibility — the caller must be the
+         *     workspace owner (the calling actor for ``owner_kind='actor'``; any
+         *     actor in the owning tenant for ``owner_kind='tenant'``). The service
+         *     raises 403/404 before returning entries.
+         *
+         *     Excludes soft-deleted entries. Entries past their expires_at are still
+         *     returned; the expiry worker invalidates them in a background run.
+         *
+         *     Cursor-paginated on entry_id ascending.
+         */
+        get: operations["list_entries_v1_workspaces__workspace_id__entries_get"];
+        put?: never;
+        /**
+         * Create an entry in a workspace
+         * @description Create a new entry in a workspace.
+         *
+         *     The caller must be the workspace owner (the calling actor for
+         *     ``owner_kind='actor'`` workspaces; any actor in the owning tenant
+         *     for ``owner_kind='tenant'``). The service enforces access via
+         *     ``get_workspace`` before writing.
+         *
+         *     PII scanner runs on body_md and references_jsonb. A block-level hit raises
+         *     422 and the entry is NOT stored. A warn-level hit stores the entry and
+         *     returns a top-level ``warnings`` list in the response.
+         *
+         *     Regulated tenants cannot create entries (defense-in-depth against any path
+         *     that bypasses the workspace-create guard).
+         */
+        post: operations["create_entry_v1_workspaces__workspace_id__entries_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/entries/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Soft-delete a workspace entry (idempotent)
+         * @description Soft-delete a workspace entry. Idempotent — a second call returns 204 unchanged.
+         *
+         *     Authorization is role-based: the write-gate checks owner_kind and
+         *     effective_roles. WorkspaceNotFound → 404; WorkspaceOperationDenied → 403.
+         */
+        delete: operations["_delete_entry_handler_v1_workspaces__workspace_id__entries__entry_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a workspace entry
+         * @description Update a workspace entry's body, reference_ids, or references_jsonb.
+         *
+         *     Authorization: the caller must be the workspace owner (the calling
+         *     actor for ``owner_kind='actor'`` workspaces; any actor in the owning
+         *     tenant for ``owner_kind='tenant'``). The service enforces this via
+         *     workspace visibility before writing.
+         *
+         *     PII scanner runs on any provided body_md or references_jsonb. A block hit
+         *     returns 422 and the entry is NOT updated. A warn hit updates the entry and
+         *     returns a ``warnings`` list in the response.
+         *
+         *     Only supplied fields are updated; omitted fields retain their current values.
+         */
+        patch: operations["_update_entry_handler_v1_workspaces__workspace_id__entries__entry_id__patch"];
+        trace?: never;
+    };
+    "/webhooks/github": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Github Webhook
+         * @description Receive a GitHub push (or any event) webhook delivery.
+         */
+        post: operations["github_webhook_webhooks_github_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/gitlab": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Gitlab Webhook
+         * @description Receive a GitLab push (or any event) webhook delivery.
+         */
+        post: operations["gitlab_webhook_webhooks_gitlab_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    /** ActivateRequest */
-    ActivateRequest: {
-      /** Supersedes */
-      supersedes?: string | null;
-    };
-    /** AdoptionCreate */
-    AdoptionCreate: {
-      /** Intent */
-      intent?: string | null;
-      /** Version Pin */
-      version_pin?: string | null;
-    };
-    /**
-     * AdoptionListResponse
-     * @description Paginated list envelope for GET /v1/capabilities/{id}/adoptions.
-     *
-     *     Cursor wiring: envelope-only. The adoption set for a single capability is
-     *     small (one active adoption per consumer tenant), so ``next_cursor`` is
-     *     always ``None`` in practice. The wrapper exists for shape consistency with
-     *     every other list endpoint.
-     */
-    AdoptionListResponse: {
-      /** Items */
-      items: components['schemas']['AdoptionResponse'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-    };
-    /**
-     * AdoptionResponse
-     * @description An adoption event linking a consumer to a provider capability.
-     *
-     *     Default shape is UI-flavoured (core identifiers and intent fields only).
-     *     Bitemporal columns are audit-only — present only when the caller passes
-     *     ``?view=audit``. Route-level ``response_model_exclude_unset`` strips
-     *     unset audit fields so they don't appear as null keys in default responses.
-     */
-    AdoptionResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** Actor Id */
-      actor_id: string | null;
-      /**
-       * Adoption Id
-       * Format: uuid
-       */
-      adoption_id: string;
-      /**
-       * Consumer Tenant Id
-       * Format: uuid
-       */
-      consumer_tenant_id: string;
-      /** Ingested At */
-      ingested_at?: string | null;
-      /** Intent */
-      intent: string | null;
-      /** Invalidated At */
-      invalidated_at?: string | null;
-      /**
-       * Provider Capability Id
-       * Format: uuid
-       */
-      provider_capability_id: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-      /** Valid From */
-      valid_from?: string | null;
-      /** Valid To */
-      valid_to?: string | null;
-      /** Version Pin */
-      version_pin: string | null;
-    };
-    /** AffectedConsumer */
-    AffectedConsumer: {
-      /** Entity Id */
-      entity_id: string;
-      /** Name */
-      name: string | null;
-      /** Tenant Id */
-      tenant_id: string;
-      /** Version Pin */
-      version_pin: string | null;
-    };
-    /**
-     * AnnotationCreateRequest
-     * @description Request body for POST /v1/capabilities/{capability_id}/annotations.
-     */
-    AnnotationCreateRequest: {
-      /**
-       * Body
-       * @description Annotation text (min 1 character).
-       */
-      body: string;
-      /**
-       * Category
-       * @description Annotation category. Must be one of: bug, doc_gap, feedback, question, suggestion.
-       */
-      category: string;
-      /**
-       * Triage Note
-       * @description Optional provider triage note.
-       */
-      triage_note?: string | null;
-      /**
-       * Version Target
-       * @description Optional version string this annotation targets.
-       */
-      version_target?: string | null;
-    };
-    /**
-     * AnnotationTriageRequest
-     * @description Request body for PATCH /v1/annotations/{annotation_id}.
-     */
-    AnnotationTriageRequest: {
-      /**
-       * Status
-       * @description Annotation triage status. Must be one of: acknowledged, closed, open, triaged.
-       */
-      status: string;
-      /**
-       * Triage Note
-       * @description Optional provider triage note.
-       */
-      triage_note?: string | null;
-      /**
-       * Version Target
-       * @description Optional version string this annotation targets.
-       */
-      version_target?: string | null;
-    };
-    /** ApproveExceptionRequest */
-    ApproveExceptionRequest: {
-      approval: components['schemas']['ExceptionApprovalBody'];
-      /**
-       * Effective From
-       * Format: date-time
-       */
-      effective_from: string;
-      /** Effective Until */
-      effective_until?: string | null;
-      /** Exception Statement */
-      exception_statement: string;
-      /**
-       * Higher Scope Directive Id
-       * Format: uuid
-       */
-      higher_scope_directive_id: string;
-      /**
-       * Higher Scope Revision Id
-       * Format: uuid
-       */
-      higher_scope_revision_id: string;
-      /** Justification */
-      justification: string;
-      /** Lower Scope Action Class */
-      lower_scope_action_class?: string | null;
-      /** Lower Scope Capability Id */
-      lower_scope_capability_id?: string | null;
-      /** Lower Scope Data Sensitivity */
-      lower_scope_data_sensitivity?: string | null;
-      /** Lower Scope Domain Id */
-      lower_scope_domain_id?: string | null;
-      /** Lower Scope Environment */
-      lower_scope_environment?: string | null;
-      /** Lower Scope Kind */
-      lower_scope_kind: string;
-      /** Lower Scope Task Kind */
-      lower_scope_task_kind?: string | null;
-      /** Replacement Conflict Descriptor */
-      replacement_conflict_descriptor: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * ArtifactListResponse
-     * @description Paginated artifact list. Same envelope shape as CapabilityListResponse.
-     *
-     *     ``items`` carry the artifact rows shaped per the ``?fields=`` param;
-     *     callers that want the full body must opt in via
-     *     ``?fields=fact_id,category,title,body_format,created_at,body``.
-     *
-     *     ``next_cursor`` is ``None`` when no further pages exist; pass it as
-     *     ``cursor=`` on the next request to retrieve the following page.
-     */
-    ArtifactListResponse: {
-      /** Items */
-      items: components['schemas']['ArtifactResponse'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-    };
-    /**
-     * ArtifactResponse
-     * @description An artifact (fact) attached to a capability.
-     *
-     *     By default returns the UI-flavoured shape: the fact identifier, the
-     *     category vocabulary value, the body, and when it was ingested. The
-     *     bitemporal columns + tenant/entity FKs are audit-only and present
-     *     only when ``?view=audit`` is passed (route-level ``exclude_unset``
-     *     strips them otherwise).
-     */
-    ArtifactResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** Body */
-      body?: string | null;
-      /** Body Format */
-      body_format?: string | null;
-      /** Category */
-      category?: string | null;
-      /** Created At */
-      created_at?: string | null;
-      /** Created By Display Name */
-      created_by_display_name?: string | null;
-      /** Entity Id */
-      entity_id?: string | null;
-      /**
-       * Fact Id
-       * Format: uuid
-       */
-      fact_id: string;
-      /** Ingested At */
-      ingested_at?: string | null;
-      /** Invalidated At */
-      invalidated_at?: string | null;
-      /** Is Authoritative */
-      is_authoritative?: boolean | null;
-      /** Tenant Id */
-      tenant_id?: string | null;
-      /** Title */
-      title?: string | null;
-      /** Valid From */
-      valid_from?: string | null;
-      /** Valid To */
-      valid_to?: string | null;
-    };
-    /** AttachEvidenceRequest */
-    AttachEvidenceRequest: {
-      /**
-       * Evidence Id
-       * Format: uuid
-       */
-      evidence_id: string;
-    };
-    /**
-     * AttestationBody
-     * @description The host's signed envelope, passed through untouched.
-     *
-     *     `payload` stays an open string map rather than a typed model: it is the
-     *     object the host canonicalized and signed, and validating its shape here
-     *     would mean re-encoding it to check the signature.
-     */
-    AttestationBody: {
-      /** Attestation Id */
-      attestation_id: string;
-      /**
-       * Expires At
-       * Format: date-time
-       */
-      expires_at: string;
-      /**
-       * Issued At
-       * Format: date-time
-       */
-      issued_at: string;
-      /** Payload */
-      payload: {
-        [key: string]: string;
-      };
-      /** Profile */
-      profile: string;
-      /** Signature */
-      signature: string;
-      /** Signer Key Id */
-      signer_key_id: string;
-    };
-    /** AuditResponse */
-    AuditResponse: {
-      /** Items */
-      items: components['schemas']['AuditRow'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-    };
-    /** AuditRow */
-    AuditRow: {
-      /** Action */
-      action: string;
-      /** Actor Id */
-      actor_id: string | null;
-      /** After Jsonb */
-      after_jsonb: {
-        [key: string]: unknown;
-      } | null;
-      /**
-       * Audit Id
-       * Format: uuid
-       */
-      audit_id: string;
-      /** Before Jsonb */
-      before_jsonb: {
-        [key: string]: unknown;
-      } | null;
-      /** Error Code */
-      error_code: string | null;
-      /** Request Id */
-      request_id: string | null;
-      /**
-       * Target Id
-       * Format: uuid
-       */
-      target_id: string;
-      /** Target Type */
-      target_type: string;
-      /**
-       * Ts
-       * Format: date-time
-       */
-      ts: string;
-    };
-    /** BreakingChangePreviewResponse */
-    BreakingChangePreviewResponse: {
-      /** Affected Consumers */
-      affected_consumers: components['schemas']['AffectedConsumer'][];
-      /** Capability Id */
-      capability_id: string;
-      /** Changes */
-      changes: {
-        [key: string]: unknown;
-      }[];
-      /** Diff Classification */
-      diff_classification: string;
-      /** Proposed Version */
-      proposed_version: string;
-      /** Release Notes Scaffold */
-      release_notes_scaffold: string;
-    };
-    /**
-     * CapabilityDetailResponse
-     * @description Capability record serialised for the consumer GET endpoint.
-     *
-     *     Default shape is UI-flavoured. Audit-only fields (``tenant_id``,
-     *     ``is_active``, ``superseded_facts_count``, ``as_of``) are present
-     *     only when the caller passes ``?view=audit``; route-level
-     *     ``response_model_exclude_unset`` strips them otherwise.
-     *
-     *     The ``components``, ``depends_on``, ``external_ids``, and
-     *     ``interface`` fields are populated only when the corresponding
-     *     value appears in the ``?include=`` query parameter.
-     */
-    CapabilityDetailResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** As Of */
-      as_of?: string | null;
-      /** Attributes */
-      attributes: {
-        [key: string]: unknown;
-      };
-      components?: components['schemas']['EntityCollectionExpansion'] | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      depends_on?: components['schemas']['EntityCollectionExpansion'] | null;
-      /** Edges In */
-      edges_in: components['schemas']['EdgeRefItem'][];
-      /** Edges Out */
-      edges_out: components['schemas']['EdgeRefItem'][];
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** Entity Type */
-      entity_type: string;
-      /** External Id */
-      external_id: string | null;
-      external_ids?: components['schemas']['ExternalIdsExpansion'] | null;
-      /** Facts */
-      facts: components['schemas']['ArtifactResponse'][];
-      interface?: components['schemas']['InterfaceExpansion'] | null;
-      /** Is Active */
-      is_active?: boolean | null;
-      /** Lifecycle */
-      lifecycle: string;
-      /** Name */
-      name: string;
-      /** Superseded Facts Count */
-      superseded_facts_count?: number | null;
-      /** Tenant Id */
-      tenant_id?: string | null;
-    };
-    /** CapabilityListResponse */
-    CapabilityListResponse: {
-      /** Items */
-      items: components['schemas']['EntityRefItem'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-    };
-    /** CapabilityResponse */
-    CapabilityResponse: {
-      /** Attributes */
-      attributes: {
-        [key: string]: unknown;
-      };
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** External Id */
-      external_id: string | null;
-      /** Lifecycle */
-      lifecycle: string;
-      /** Name */
-      name: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /** CapabilityTypeSchemaCreate */
-    CapabilityTypeSchemaCreate: {
-      /**
-       * Is Advisory
-       * @default true
-       */
-      is_advisory: boolean;
-      /** Json Schema */
-      json_schema: {
-        [key: string]: unknown;
-      };
-      /** T Valid From */
-      t_valid_from?: string | null;
-      /** Type Name */
-      type_name: string;
-    };
-    /** CapabilityTypeSchemaPatch */
-    CapabilityTypeSchemaPatch: {
-      /** Is Advisory */
-      is_advisory?: boolean | null;
-    };
-    /** CapabilityTypeSchemaResponse */
-    CapabilityTypeSchemaResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** Is Advisory */
-      is_advisory: boolean;
-      /** Json Schema */
-      json_schema: {
-        [key: string]: unknown;
-      };
-      /**
-       * Schema Id
-       * Format: uuid
-       */
-      schema_id: string;
-      /**
-       * T Ingested At
-       * Format: date-time
-       */
-      t_ingested_at: string;
-      /** T Invalidated At */
-      t_invalidated_at: string | null;
-      /**
-       * T Valid From
-       * Format: date-time
-       */
-      t_valid_from: string;
-      /** T Valid To */
-      t_valid_to: string | null;
-      /** Type Name */
-      type_name: string;
-    };
-    /** ChallengeRequest */
-    ChallengeRequest: {
-      /** Idempotency Key */
-      idempotency_key: string;
-      /** Manifest Claims Digest */
-      manifest_claims_digest: string;
-      /** Session Id */
-      session_id: string;
-    };
-    /** ChallengeResponse */
-    ChallengeResponse: {
-      /** Arc Nonce */
-      arc_nonce: string;
-      /** Expires At */
-      expires_at: string;
-      /** Issued At */
-      issued_at: string;
-      /** Manifest Claims Digest */
-      manifest_claims_digest: string;
-    };
-    /**
-     * CreateArtifactRequest
-     * @description Body for ``POST /v1/capabilities/{id}/artifacts``.
-     *
-     *     ``title`` is required and validated server-side (1-200 chars, no
-     *     leading/trailing whitespace). ``body_format`` is one of
-     *     ``markdown`` (default), ``html``, ``plain``.
-     */
-    CreateArtifactRequest: {
-      /** Body */
-      body: string;
-      /**
-       * Body Format
-       * @default markdown
-       */
-      body_format: string;
-      /** Category */
-      category: string;
-      /** Title */
-      title: string;
-      /** Valid From */
-      valid_from?: string | null;
-    };
-    /** CreateCapabilityRequest */
-    CreateCapabilityRequest: {
-      /** Attributes */
-      attributes?: {
-        [key: string]: unknown;
-      };
-      /** Capability Type */
-      capability_type?: string | null;
-      /**
-       * Entity Type
-       * @default capability
-       * @constant
-       */
-      entity_type: 'capability';
-      /** External Id */
-      external_id?: string | null;
-      /** Name */
-      name: string;
-      /** Valid From */
-      valid_from?: string | null;
-    };
-    /** CreateConceptRequest */
-    CreateConceptRequest: {
-      /** Attributes */
-      attributes?: {
-        [key: string]: unknown;
-      };
-      /**
-       * Entity Type
-       * @default concept
-       * @constant
-       */
-      entity_type: 'concept';
-      /** External Id */
-      external_id?: string | null;
-      /** Name */
-      name: string;
-      /** Parent Capability Id */
-      parent_capability_id?: string | null;
-      /** Valid From */
-      valid_from?: string | null;
-    };
-    /** CreateOperationRequest */
-    CreateOperationRequest: {
-      /** Attributes */
-      attributes?: {
-        [key: string]: unknown;
-      };
-      /**
-       * Entity Type
-       * @default operation
-       * @constant
-       */
-      entity_type: 'operation';
-      /** External Id */
-      external_id?: string | null;
-      /** Name */
-      name: string;
-      /** Parent Capability Id */
-      parent_capability_id?: string | null;
-      /** Valid From */
-      valid_from?: string | null;
-    };
-    /** CreatePredicateRequest */
-    CreatePredicateRequest: {
-      /** Claim Category */
-      claim_category: string;
-      /** Definition */
-      definition: string;
-      /** Value */
-      value: string;
-      /** Value Type */
-      value_type: string;
-    };
-    /** DependencyResponse */
-    DependencyResponse: {
-      /** As Of */
-      as_of: string | null;
-      /** Depth */
-      depth: number;
-      /** Edges */
-      edges: components['schemas']['EdgeRefItem'][];
-      /**
-       * Root Entity Id
-       * Format: uuid
-       */
-      root_entity_id: string;
-    };
-    /** DetailPageResponse */
-    DetailPageResponse: {
-      /** Complete */
-      complete: boolean;
-      /** Continuation Token */
-      continuation_token?: string | null;
-      /** Items */
-      items: {
-        [key: string]: unknown;
-      }[];
-      /** Page Number */
-      page_number: number;
-      /** Profile */
-      profile: string;
-      /** Reason Codes */
-      reason_codes?: string[];
-      /**
-       * Receipt Id
-       * Format: uuid
-       */
-      receipt_id: string;
-      /** Request Digest */
-      request_digest: string;
-      /** Returned Bytes */
-      returned_bytes: number;
-    };
-    /** DetailRequestBody */
-    DetailRequestBody: {
-      /** Context Handle */
-      context_handle: string;
-      /** Continuation Token */
-      continuation_token?: string | null;
-      /** Idempotency Key */
-      idempotency_key: string;
-      /**
-       * Max Response Bytes
-       * @default 16384
-       */
-      max_response_bytes: number;
-      /** Request Kind */
-      request_kind: string;
-      /** Selector */
-      selector?: {
-        [key: string]: unknown;
-      };
-    };
-    /**
-     * EdgeRefItem
-     * @description An edge between two entities.
-     *
-     *     UI shape by default (edge id, both endpoints, relation, properties).
-     *     Bitemporal cols + tenant_id are audit-only — present only when the
-     *     caller passes ``?view=audit``.
-     */
-    EdgeRefItem: {
-      /**
-       * Dst Entity Id
-       * Format: uuid
-       */
-      dst_entity_id: string;
-      /**
-       * Edge Id
-       * Format: uuid
-       */
-      edge_id: string;
-      /** Ingested At */
-      ingested_at?: string | null;
-      /** Invalidated At */
-      invalidated_at?: string | null;
-      /** Properties */
-      properties: {
-        [key: string]: unknown;
-      } | null;
-      /** Rel */
-      rel: string;
-      /**
-       * Src Entity Id
-       * Format: uuid
-       */
-      src_entity_id: string;
-      /** Tenant Id */
-      tenant_id?: string | null;
-      /** Valid From */
-      valid_from?: string | null;
-      /** Valid To */
-      valid_to?: string | null;
-    };
-    /**
-     * EntityCollectionExpansion
-     * @description Container for an included entity collection.
-     *
-     *     ``truncated`` signals that the per-include cap was hit and ``next`` points
-     *     at the dedicated endpoint that returns the full set.
-     */
-    EntityCollectionExpansion: {
-      /** Items */
-      items: components['schemas']['IncludedEntityItem'][];
-      /** Next */
-      next?: string | null;
-      /** Truncated */
-      truncated: boolean;
-    };
-    /**
-     * EntityDetailResponse
-     * @description Detail-GET response for concept and operation entities.
-     *
-     *     Extends the base capability-record shape with HATEOAS navigation pointers.
-     *     ``_links.self`` is always populated; ``_links.parent`` is populated when the
-     *     entity carries a parent_capability_id (concept_of / operation_of edge) and
-     *     that id is already present in the response — no extra fetch is performed.
-     */
-    EntityDetailResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** Attributes */
-      attributes: {
-        [key: string]: unknown;
-      };
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** External Id */
-      external_id: string | null;
-      /** Lifecycle */
-      lifecycle: string;
-      /** Name */
-      name: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /** EntityRefItem */
-    EntityRefItem: {
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** Entity Type */
-      entity_type: string;
-      /** External Id */
-      external_id: string | null;
-      /** Is Active */
-      is_active: boolean;
-      /** Name */
-      name: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /** EntityRefResponse */
-    EntityRefResponse: {
-      /** Created At */
-      created_at: unknown;
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** Entity Type */
-      entity_type: string;
-      /** External Id */
-      external_id: string | null;
-      /** Is Active */
-      is_active: boolean;
-      /** Name */
-      name: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /**
-     * EntryCreateRequest
-     * @description Request body for POST /v1/workspaces/{workspace_id}/entries.
-     */
-    EntryCreateRequest: {
-      /**
-       * Body Md
-       * @description Entry body in Markdown (min 1 character).
-       */
-      body_md: string;
-      /**
-       * Expires At
-       * @description Optional ISO-8601 expiry timestamp for time-limited entries.
-       */
-      expires_at?: string | null;
-      /**
-       * Kind
-       * @description Entry kind. Must be one of: note, decision, open_question, saved_query, saved_view, private_annotation.
-       */
-      kind: string;
-      /**
-       * Reference Ids
-       * @description Optional list of entity UUIDs this entry references.
-       */
-      reference_ids?: string[];
-      /**
-       * References Jsonb
-       * @description Optional structured references (arbitrary JSON object).
-       */
-      references_jsonb?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    /**
-     * EntryUpdateRequest
-     * @description Request body for PATCH /v1/workspaces/{workspace_id}/entries/{entry_id}.
-     */
-    EntryUpdateRequest: {
-      /**
-       * Body Md
-       * @description New entry body.
-       */
-      body_md?: string | null;
-      /**
-       * Reference Ids
-       * @description New reference_ids list. Replaces the existing list.
-       */
-      reference_ids?: string[] | null;
-      /**
-       * References Jsonb
-       * @description New structured references. Replaces the existing object.
-       */
-      references_jsonb?: {
-        [key: string]: unknown;
-      } | null;
-    };
-    /** EventResponse */
-    EventResponse: {
-      /** Body */
-      body: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /**
-       * Event Id
-       * Format: uuid
-       */
-      event_id: string;
-      /** Kind */
-      kind: string;
-      /** Metadata */
-      metadata: {
-        [key: string]: unknown;
-      };
-      /** Seq */
-      seq: number;
-      /** Session Id */
-      session_id: string;
-      /** Tool Name */
-      tool_name: string | null;
-    };
-    /**
-     * ExceptionApprovalBody
-     * @description The evidence that authorizes one exception.
-     *
-     *     Carried in full rather than as a bare evidence id. The service writes
-     *     the evidence row and the exception row in one transaction -- they
-     *     reference each other, which is why both foreign keys are deferrable --
-     *     so there is no pre-existing evidence for an id to point at. Accepting
-     *     one would mean either writing an exception with no approval or leaving
-     *     evidence pointing at an exception that never gets created.
-     */
-    ExceptionApprovalBody: {
-      /**
-       * Approval Timestamp
-       * Format: date-time
-       */
-      approval_timestamp: string;
-      /** Approval Verifier Id */
-      approval_verifier_id: string;
-      /** Approved Payload Digest */
-      approved_payload_digest: string;
-      /** Approving Principal */
-      approving_principal: string;
-      /** Approving Role */
-      approving_role: string;
-      /** Audit Log Reference */
-      audit_log_reference: string;
-      /**
-       * Evidence Id
-       * Format: uuid
-       */
-      evidence_id: string;
-      /** Verifier Attestation */
-      verifier_attestation?: {
-        [key: string]: unknown;
-      };
-      /**
-       * Verifier Identity
-       * @default
-       */
-      verifier_identity: string;
-    };
-    /** ExternalIdCreate */
-    ExternalIdCreate: {
-      /** External Id */
-      external_id: string;
-      /** External System Slug */
-      external_system_slug: string;
-      /** Metadata Jsonb */
-      metadata_jsonb?: {
-        [key: string]: unknown;
-      } | null;
-      /** Url */
-      url?: string | null;
-    };
-    /**
-     * ExternalIdItem
-     * @description One row of the entity_external_ids registry, surfaced via ``?include=external_ids``.
-     */
-    ExternalIdItem: {
-      /** External Id */
-      external_id: string;
-      /** External System Slug */
-      external_system_slug: string;
-      /** Metadata */
-      metadata: {
-        [key: string]: unknown;
-      } | null;
-      /** Url */
-      url: string | null;
-    };
-    /**
-     * ExternalIdListResponse
-     * @description Paginated list envelope for GET /v1/entities/{id}/external-ids.
-     *
-     *     Cursor wiring: envelope-only. External-ID mappings per entity are bounded
-     *     (typically 1–10 per entity), so ``next_cursor`` is always ``None`` in
-     *     practice. The wrapper exists for client shape consistency.
-     */
-    ExternalIdListResponse: {
-      /** Items */
-      items: components['schemas']['ExternalIdResponse'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-    };
-    /** ExternalIdPatch */
-    ExternalIdPatch: {
-      /** Metadata Jsonb */
-      metadata_jsonb?: {
-        [key: string]: unknown;
-      } | null;
-      /** Url */
-      url?: string | null;
-    };
-    /** ExternalIdResponse */
-    ExternalIdResponse: {
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** External Id */
-      external_id: string;
-      /**
-       * External Id Pk
-       * Format: uuid
-       */
-      external_id_pk: string;
-      /** External System Slug */
-      external_system_slug: string;
-      /** Metadata Jsonb */
-      metadata_jsonb: {
-        [key: string]: unknown;
-      } | null;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-      /** Url */
-      url: string | null;
-    };
-    /** ExternalIdsExpansion */
-    ExternalIdsExpansion: {
-      /** Items */
-      items: components['schemas']['ExternalIdItem'][];
-      /** Truncated */
-      truncated: boolean;
-    };
-    /** ExternalSystemCreate */
-    ExternalSystemCreate: {
-      /** Description */
-      description?: string | null;
-      /** Display Name */
-      display_name: string;
-      /** Slug */
-      slug: string;
-      /** Url Template */
-      url_template?: string | null;
-    };
-    /** ExternalSystemResponse */
-    ExternalSystemResponse: {
-      /** Created At */
-      created_at: unknown;
-      /** Description */
-      description: string | null;
-      /** Display Name */
-      display_name: string;
-      /** Slug */
-      slug: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-      /** Url Template */
-      url_template: string | null;
-    };
-    /** HTTPValidationError */
-    HTTPValidationError: {
-      /** Detail */
-      detail?: components['schemas']['ValidationError'][];
-    };
-    /**
-     * IncludedEntityItem
-     * @description An entity surfaced by ``?include=components`` or ``?include=depends_on``.
-     *
-     *     Same shape as EntityRefItem plus the entity's current attribute set so
-     *     consumers don't need a second round-trip to inspect basic metadata
-     *     (display_name, summary, lifecycle.state, owner, …).
-     */
-    IncludedEntityItem: {
-      /** Attributes */
-      attributes: {
-        [key: string]: unknown;
-      };
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** Entity Type */
-      entity_type: string;
-      /** External Id */
-      external_id: string | null;
-      /** Is Active */
-      is_active: boolean;
-      /** Name */
-      name: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /**
-     * IntegrationListResponse
-     * @description Paginated list envelope for GET /v1/integrations.
-     *
-     *     Cursor wiring: envelope-only. Integrations connecting two specific
-     *     capabilities are bounded (typically 1–3), so ``next_cursor`` is always
-     *     ``None`` in practice. The wrapper exists for shape consistency.
-     */
-    IntegrationListResponse: {
-      /** Items */
-      items: components['schemas']['EntityRefItem'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-    };
-    /**
-     * InterfaceExpansion
-     * @description Latest interface surface for the capability, surfaced via ``?include=interface``.
-     *
-     *     ``surface`` is the canonical normalised JSON Schema document; ``raw`` is
-     *     the original artifact the caller submitted (JSON Schema, TypeScript, or
-     *     OpenAPI 3.x). Either may be ``None`` if no surface is registered.
-     */
-    InterfaceExpansion: {
-      /** Format */
-      format: string | null;
-      /** Raw */
-      raw: {
-        [key: string]: unknown;
-      } | null;
-      /** Surface */
-      surface: {
-        [key: string]: unknown;
-      } | null;
-      /** Version */
-      version: string | null;
-    };
-    /** InterfacePutRequest */
-    InterfacePutRequest: {
-      /** Interface Format */
-      interface_format: string;
-      /** Interface Source */
-      interface_source: unknown;
-    };
-    /**
-     * InterfaceReadResponse
-     * @description GET /v1/capabilities/{id}/interface response.
-     *
-     *     Default shape exposes the canonical surface, source, format, and time-travel
-     *     ``as_of``. Bitemporal row metadata is audit-only — present only when the
-     *     caller passes ``?view=audit``. Route-level ``response_model_exclude_unset``
-     *     strips unset audit fields so they don't appear as null keys in default
-     *     responses.
-     */
-    InterfaceReadResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** As Of */
-      as_of: string | null;
-      /** Capability Id */
-      capability_id: string;
-      /** Ingested At */
-      ingested_at?: string | null;
-      /** Interface Canonical */
-      interface_canonical: unknown | null;
-      /** Interface Format */
-      interface_format: string | null;
-      /** Interface Source */
-      interface_source: {
-        [key: string]: unknown;
-      } | null;
-      /** Invalidated At */
-      invalidated_at?: string | null;
-      /** Valid From */
-      valid_from?: string | null;
-      /** Valid To */
-      valid_to?: string | null;
-    };
-    /** InterfaceSurfaceResponse */
-    InterfaceSurfaceResponse: {
-      /** Events */
-      events: {
-        [key: string]: unknown;
-      }[];
-      /** Fields */
-      fields: {
-        [key: string]: unknown;
-      }[];
-      /** Operations */
-      operations: {
-        [key: string]: unknown;
-      }[];
-    };
-    /** LifecycleTransitionRequest */
-    LifecycleTransitionRequest: {
-      /** New State */
-      new_state: string;
-      /**
-       * Successor
-       * @description UUID of the replacement entity, or the string "none" to deprecate without a successor.
-       */
-      successor: string | 'none';
-      /** Valid From */
-      valid_from?: string | null;
-    };
-    /** LifecycleTransitionResponse */
-    LifecycleTransitionResponse: {
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** New State */
-      new_state: string;
-      /** Replaced By */
-      replaced_by: string | null;
-    };
-    /**
-     * Links
-     * @description HATEOAS-style navigation pointers for a resource.
-     *
-     *     Every detail response includes ``_links.self``; richer resources
-     *     expose pointers to related sub-resources (e.g. capability detail
-     *     points at its dependencies, artifacts, interface).
-     *
-     *     URLs preserve the address form the caller used — slug paths get
-     *     slug URLs back, UUID paths get UUID URLs.
-     */
-    Links: {
-      /** Actor */
-      actor?: string | null;
-      /** Artifacts */
-      artifacts?: string | null;
-      /** Capability */
-      capability?: string | null;
-      /** Dependencies */
-      dependencies?: string | null;
-      /** Interface */
-      interface?: string | null;
-      /** Parent */
-      parent?: string | null;
-      /** Self */
-      self: string;
-      /** Tenant */
-      tenant?: string | null;
-    };
-    /** LocalPredicateResponse */
-    LocalPredicateResponse: {
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-      /** Value */
-      value: string;
-    };
-    /**
-     * ManifestBody
-     * @description The task manifest, in exactly the field set the host canonicalized.
-     *
-     *     Every field is a string or a list of strings because that is what was
-     *     signed. Re-typing one here would change the bytes the digest is computed
-     *     over, and the attestation would stop verifying against a manifest the
-     *     caller did in fact send.
-     */
-    ManifestBody: {
-      /** Capability Ids */
-      capability_ids?: string[];
-      /** Data Sensitivity */
-      data_sensitivity: string;
-      /** Domain Ids */
-      domain_ids?: string[];
-      /** Environment */
-      environment: string;
-      /** Repository Identity */
-      repository_identity: string;
-      /** Requested Action Classes */
-      requested_action_classes?: string[];
-      /** Session Id */
-      session_id: string;
-      /** Supported Context Bundle Content Profiles */
-      supported_context_bundle_content_profiles?: string[];
-      /** Task Kind */
-      task_kind: string;
-      /** Task Summary */
-      task_summary?: string | null;
-    };
-    /** NotificationItem */
-    NotificationItem: {
-      /** Capability Id */
-      capability_id: string;
-      /** Capability Slug */
-      capability_slug: string;
-      /** Change Classification */
-      change_classification: string | null;
-      /** Event Kind */
-      event_kind: string;
-      /** Fetch Url */
-      fetch_url: string;
-      /** Notification Id */
-      notification_id: string;
-      /** Occurred At */
-      occurred_at: string;
-      /** Subscription Id */
-      subscription_id: string | null;
-      /** Tenant Id */
-      tenant_id: string;
-      /** Version After */
-      version_after: string | null;
-      /** Version Before */
-      version_before: string | null;
-    };
-    /** NotificationListResponse */
-    NotificationListResponse: {
-      /** Items */
-      items: components['schemas']['NotificationItem'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-    };
-    /** PiiFieldPolicyCreate */
-    PiiFieldPolicyCreate: {
-      /** Field Type */
-      field_type: string;
-      /** Pattern Id */
-      pattern_id?: string | null;
-      /** Policy */
-      policy: string;
-    };
-    /** PiiFieldPolicyResponse */
-    PiiFieldPolicyResponse: {
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Field Type */
-      field_type: string;
-      /** Pattern Id */
-      pattern_id: string | null;
-      /** Policy */
-      policy: string;
-      /**
-       * Policy Id
-       * Format: uuid
-       */
-      policy_id: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /** PiiPatternCreate */
-    PiiPatternCreate: {
-      /** Category */
-      category: string;
-      /**
-       * Is Enabled
-       * @default true
-       */
-      is_enabled: boolean;
-      /** Name */
-      name: string;
-      /** Policy Override */
-      policy_override?: string | null;
-      /** Regex */
-      regex: string;
-    };
-    /** PiiPatternPatch */
-    PiiPatternPatch: {
-      /** Category */
-      category?: string | null;
-      /** Is Enabled */
-      is_enabled?: boolean | null;
-      /** Policy Override */
-      policy_override?: string | null;
-      /** Regex */
-      regex?: string | null;
-    };
-    /** PiiPatternResponse */
-    PiiPatternResponse: {
-      /** Category */
-      category: string;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Created By */
-      created_by: string | null;
-      /** Detector Module */
-      detector_module: string | null;
-      /** Is Enabled */
-      is_enabled: boolean;
-      /** Is System */
-      is_system: boolean;
-      /** Name */
-      name: string;
-      /**
-       * Pattern Id
-       * Format: uuid
-       */
-      pattern_id: string;
-      /** Policy Override */
-      policy_override: string | null;
-      /** Regex */
-      regex: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /** PredicateResponse */
-    PredicateResponse: {
-      /** Claim Category */
-      claim_category: string;
-      /** Definition */
-      definition: string;
-      /** Deprecated At */
-      deprecated_at: string | null;
-      /** Scope */
-      scope: string;
-      /** Value */
-      value: string;
-      /** Value Type */
-      value_type: string;
-    };
-    /** PreviewVersionRequest */
-    PreviewVersionRequest: {
-      /** Interface Format */
-      interface_format: string;
-      /** Proposed Interface */
-      proposed_interface: unknown;
-      /** Proposed Version */
-      proposed_version: string;
-    };
-    /** ProgressionDefinitionCreate */
-    ProgressionDefinitionCreate: {
-      /** Definition */
-      definition: {
-        [key: string]: unknown;
-      };
-      /** Entity Type */
-      entity_type: string;
-      /**
-       * Is Advisory
-       * @default true
-       */
-      is_advisory: boolean;
-    };
-    /** ProgressionDefinitionResponse */
-    ProgressionDefinitionResponse: {
-      /** Definition */
-      definition: {
-        [key: string]: unknown;
-      };
-      /** Entity Type */
-      entity_type: string;
-      /** Is Advisory */
-      is_advisory: boolean;
-      /**
-       * Progression Id
-       * Format: uuid
-       */
-      progression_id: string;
-      /**
-       * T Ingested At
-       * Format: date-time
-       */
-      t_ingested_at: string;
-      /** T Invalidated At */
-      t_invalidated_at: string | null;
-      /**
-       * T Valid From
-       * Format: date-time
-       */
-      t_valid_from: string;
-      /** T Valid To */
-      t_valid_to: string | null;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /** ProgressionDefinitionUpdate */
-    ProgressionDefinitionUpdate: {
-      /** Definition */
-      definition: {
-        [key: string]: unknown;
-      };
-      /**
-       * Dry Run
-       * @default false
-       */
-      dry_run: boolean;
-      /**
-       * Force
-       * @default false
-       */
-      force: boolean;
-      /**
-       * Force Timeout Seconds
-       * @default 30
-       */
-      force_timeout_seconds: number;
-      /** Is Advisory */
-      is_advisory?: boolean | null;
-      /** Migration Plan */
-      migration_plan?: string | null;
-    };
-    /** ProgressionOverrideCreate */
-    ProgressionOverrideCreate: {
-      /**
-       * Bypass Skip Rules
-       * @default false
-       */
-      bypass_skip_rules: boolean;
-      /** From State */
-      from_state: string;
-      /** Gate Id */
-      gate_id: string;
-      /** Reason */
-      reason: string;
-      /** T Valid To */
-      t_valid_to?: string | null;
-      /** To State */
-      to_state: string;
-    };
-    /** ProgressionOverrideResponse */
-    ProgressionOverrideResponse: {
-      /**
-       * Audit Event Id
-       * Format: uuid
-       */
-      audit_event_id: string;
-      /**
-       * Authorized By
-       * Format: uuid
-       */
-      authorized_by: string;
-      /** Bypass Skip Rules */
-      bypass_skip_rules: boolean;
-      /** Consumed At */
-      consumed_at: string | null;
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** From State */
-      from_state: string;
-      /** Gate Id */
-      gate_id: string;
-      /**
-       * Override Id
-       * Format: uuid
-       */
-      override_id: string;
-      /** Reason */
-      reason: string;
-      /**
-       * T Valid From
-       * Format: date-time
-       */
-      t_valid_from: string;
-      /**
-       * T Valid To
-       * Format: date-time
-       */
-      t_valid_to: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-      /** To State */
-      to_state: string;
-    };
-    /**
-     * ProjectionResponse
-     * @description HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.
-     *
-     *     Maps one-to-one to ``registry.service.projections.Projection``.
-     *     ``next_cursor`` is None when no further pages exist; pass it as ``cursor=``
-     *     on the next request to retrieve the following page.
-     */
-    ProjectionResponse: {
-      /** Edges */
-      edges: components['schemas']['EdgeRefItem'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-      /** Nodes */
-      nodes: components['schemas']['EntityRefItem'][];
-    };
-    /**
-     * PurgeResultResponse
-     * @description JSON shape returned by DELETE /v1/admin/actors/{actor_id}/personal-data.
-     *
-     *     `purged_entries` and `purged_workspaces` are the workspace subsystem's
-     *     counts and are kept at the top level for callers that predate erasure
-     *     reaching anything else.
-     *
-     *     `subsystems` is the complete picture: one entry per subsystem the request
-     *     reached, with that subsystem's own vocabulary for what it removed. A caller
-     *     confirming an erasure should read this rather than the two flat counts,
-     *     which describe one subsystem out of several.
-     */
-    PurgeResultResponse: {
-      /** Purged Entries */
-      purged_entries: number;
-      /** Purged Workspaces */
-      purged_workspaces: number;
-      /**
-       * Subsystems
-       * @default {}
-       */
-      subsystems: {
-        [key: string]: {
-          [key: string]: number;
+    schemas: {
+        /** ActivateRequest */
+        ActivateRequest: {
+            /** Supersedes */
+            supersedes?: string | null;
         };
-      };
+        /** AdoptionCreate */
+        AdoptionCreate: {
+            /** Intent */
+            intent?: string | null;
+            /** Version Pin */
+            version_pin?: string | null;
+        };
+        /**
+         * AdoptionListResponse
+         * @description Paginated list envelope for GET /v1/capabilities/{id}/adoptions.
+         *
+         *     Cursor wiring: envelope-only. The adoption set for a single capability is
+         *     small (one active adoption per consumer tenant), so ``next_cursor`` is
+         *     always ``None`` in practice. The wrapper exists for shape consistency with
+         *     every other list endpoint.
+         */
+        AdoptionListResponse: {
+            /** Items */
+            items: components["schemas"]["AdoptionResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * AdoptionResponse
+         * @description An adoption event linking a consumer to a provider capability.
+         *
+         *     Default shape is UI-flavoured (core identifiers and intent fields only).
+         *     Bitemporal columns are audit-only — present only when the caller passes
+         *     ``?view=audit``. Route-level ``response_model_exclude_unset`` strips
+         *     unset audit fields so they don't appear as null keys in default responses.
+         */
+        AdoptionResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Actor Id */
+            actor_id: string | null;
+            /**
+             * Adoption Id
+             * Format: uuid
+             */
+            adoption_id: string;
+            /**
+             * Consumer Tenant Id
+             * Format: uuid
+             */
+            consumer_tenant_id: string;
+            /** Ingested At */
+            ingested_at?: string | null;
+            /** Intent */
+            intent: string | null;
+            /** Invalidated At */
+            invalidated_at?: string | null;
+            /**
+             * Provider Capability Id
+             * Format: uuid
+             */
+            provider_capability_id: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Valid From */
+            valid_from?: string | null;
+            /** Valid To */
+            valid_to?: string | null;
+            /** Version Pin */
+            version_pin: string | null;
+        };
+        /** AffectedConsumer */
+        AffectedConsumer: {
+            /** Entity Id */
+            entity_id: string;
+            /** Name */
+            name: string | null;
+            /** Tenant Id */
+            tenant_id: string;
+            /** Version Pin */
+            version_pin: string | null;
+        };
+        /** ApproveExceptionRequest */
+        ApproveExceptionRequest: {
+            approval: components["schemas"]["ExceptionApprovalBody"];
+            /**
+             * Effective From
+             * Format: date-time
+             */
+            effective_from: string;
+            /** Effective Until */
+            effective_until?: string | null;
+            /** Exception Statement */
+            exception_statement: string;
+            /**
+             * Higher Scope Directive Id
+             * Format: uuid
+             */
+            higher_scope_directive_id: string;
+            /**
+             * Higher Scope Revision Id
+             * Format: uuid
+             */
+            higher_scope_revision_id: string;
+            /** Justification */
+            justification: string;
+            /** Lower Scope Action Class */
+            lower_scope_action_class?: string | null;
+            /** Lower Scope Capability Id */
+            lower_scope_capability_id?: string | null;
+            /** Lower Scope Data Sensitivity */
+            lower_scope_data_sensitivity?: string | null;
+            /** Lower Scope Domain Id */
+            lower_scope_domain_id?: string | null;
+            /** Lower Scope Environment */
+            lower_scope_environment?: string | null;
+            /** Lower Scope Kind */
+            lower_scope_kind: string;
+            /** Lower Scope Task Kind */
+            lower_scope_task_kind?: string | null;
+            /** Replacement Conflict Descriptor */
+            replacement_conflict_descriptor: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * ArtifactListResponse
+         * @description Paginated artifact list. Same envelope shape as CapabilityListResponse.
+         *
+         *     ``items`` carry the artifact rows shaped per the ``?fields=`` param;
+         *     callers that want the full body must opt in via
+         *     ``?fields=fact_id,category,title,body_format,created_at,body``.
+         *
+         *     ``next_cursor`` is ``None`` when no further pages exist; pass it as
+         *     ``cursor=`` on the next request to retrieve the following page.
+         */
+        ArtifactListResponse: {
+            /** Items */
+            items: components["schemas"]["ArtifactResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * ArtifactResponse
+         * @description An artifact (fact) attached to a capability.
+         *
+         *     By default returns the UI-flavoured shape: the fact identifier, the
+         *     category vocabulary value, the body, and when it was ingested. The
+         *     bitemporal columns + tenant/entity FKs are audit-only and present
+         *     only when ``?view=audit`` is passed (route-level ``exclude_unset``
+         *     strips them otherwise).
+         */
+        ArtifactResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Body */
+            body?: string | null;
+            /** Body Format */
+            body_format?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Created At */
+            created_at?: string | null;
+            /** Created By Display Name */
+            created_by_display_name?: string | null;
+            /** Entity Id */
+            entity_id?: string | null;
+            /**
+             * Fact Id
+             * Format: uuid
+             */
+            fact_id: string;
+            /** Ingested At */
+            ingested_at?: string | null;
+            /** Invalidated At */
+            invalidated_at?: string | null;
+            /** Is Authoritative */
+            is_authoritative?: boolean | null;
+            /** Tenant Id */
+            tenant_id?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Valid From */
+            valid_from?: string | null;
+            /** Valid To */
+            valid_to?: string | null;
+        };
+        /** AttachEvidenceRequest */
+        AttachEvidenceRequest: {
+            /**
+             * Evidence Id
+             * Format: uuid
+             */
+            evidence_id: string;
+        };
+        /**
+         * AttestationBody
+         * @description The host's signed envelope, passed through untouched.
+         *
+         *     `payload` stays an open string map rather than a typed model: it is the
+         *     object the host canonicalized and signed, and validating its shape here
+         *     would mean re-encoding it to check the signature.
+         */
+        AttestationBody: {
+            /** Attestation Id */
+            attestation_id: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Issued At
+             * Format: date-time
+             */
+            issued_at: string;
+            /** Payload */
+            payload: {
+                [key: string]: string;
+            };
+            /** Profile */
+            profile: string;
+            /** Signature */
+            signature: string;
+            /** Signer Key Id */
+            signer_key_id: string;
+        };
+        /** AuditResponse */
+        AuditResponse: {
+            /** Items */
+            items: components["schemas"]["AuditRow"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** AuditRow */
+        AuditRow: {
+            /** Action */
+            action: string;
+            /** Actor Id */
+            actor_id: string | null;
+            /** After Jsonb */
+            after_jsonb: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Audit Id
+             * Format: uuid
+             */
+            audit_id: string;
+            /** Before Jsonb */
+            before_jsonb: {
+                [key: string]: unknown;
+            } | null;
+            /** Error Code */
+            error_code: string | null;
+            /** Request Id */
+            request_id: string | null;
+            /**
+             * Target Id
+             * Format: uuid
+             */
+            target_id: string;
+            /** Target Type */
+            target_type: string;
+            /**
+             * Ts
+             * Format: date-time
+             */
+            ts: string;
+        };
+        /** BreakingChangePreviewResponse */
+        BreakingChangePreviewResponse: {
+            /** Affected Consumers */
+            affected_consumers: components["schemas"]["AffectedConsumer"][];
+            /** Capability Id */
+            capability_id: string;
+            /** Changes */
+            changes: {
+                [key: string]: unknown;
+            }[];
+            /** Diff Classification */
+            diff_classification: string;
+            /** Proposed Version */
+            proposed_version: string;
+            /** Release Notes Scaffold */
+            release_notes_scaffold: string;
+        };
+        /**
+         * CapabilityDetailResponse
+         * @description Capability record serialised for the consumer GET endpoint.
+         *
+         *     Default shape is UI-flavoured. Audit-only fields (``tenant_id``,
+         *     ``is_active``, ``superseded_facts_count``, ``as_of``) are present
+         *     only when the caller passes ``?view=audit``; route-level
+         *     ``response_model_exclude_unset`` strips them otherwise.
+         *
+         *     The ``components``, ``depends_on``, ``external_ids``, and
+         *     ``interface`` fields are populated only when the corresponding
+         *     value appears in the ``?include=`` query parameter.
+         */
+        CapabilityDetailResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** As Of */
+            as_of?: string | null;
+            /** Attributes */
+            attributes: {
+                [key: string]: unknown;
+            };
+            components?: components["schemas"]["EntityCollectionExpansion"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            depends_on?: components["schemas"]["EntityCollectionExpansion"] | null;
+            /** Edges In */
+            edges_in: components["schemas"]["EdgeRefItem"][];
+            /** Edges Out */
+            edges_out: components["schemas"]["EdgeRefItem"][];
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Entity Type */
+            entity_type: string;
+            /** External Id */
+            external_id: string | null;
+            external_ids?: components["schemas"]["ExternalIdsExpansion"] | null;
+            /** Facts */
+            facts: components["schemas"]["ArtifactResponse"][];
+            interface?: components["schemas"]["InterfaceExpansion"] | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Lifecycle */
+            lifecycle: string;
+            /** Name */
+            name: string;
+            /** Superseded Facts Count */
+            superseded_facts_count?: number | null;
+            /** Tenant Id */
+            tenant_id?: string | null;
+        };
+        /** CapabilityListResponse */
+        CapabilityListResponse: {
+            /** Items */
+            items: components["schemas"]["EntityRefItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** CapabilityResponse */
+        CapabilityResponse: {
+            /** Attributes */
+            attributes: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** External Id */
+            external_id: string | null;
+            /** Lifecycle */
+            lifecycle: string;
+            /** Name */
+            name: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /** CapabilityTypeSchemaCreate */
+        CapabilityTypeSchemaCreate: {
+            /**
+             * Is Advisory
+             * @default true
+             */
+            is_advisory: boolean;
+            /** Json Schema */
+            json_schema: {
+                [key: string]: unknown;
+            };
+            /** T Valid From */
+            t_valid_from?: string | null;
+            /** Type Name */
+            type_name: string;
+        };
+        /** CapabilityTypeSchemaPatch */
+        CapabilityTypeSchemaPatch: {
+            /** Is Advisory */
+            is_advisory?: boolean | null;
+        };
+        /** CapabilityTypeSchemaResponse */
+        CapabilityTypeSchemaResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Is Advisory */
+            is_advisory: boolean;
+            /** Json Schema */
+            json_schema: {
+                [key: string]: unknown;
+            };
+            /**
+             * Schema Id
+             * Format: uuid
+             */
+            schema_id: string;
+            /**
+             * T Ingested At
+             * Format: date-time
+             */
+            t_ingested_at: string;
+            /** T Invalidated At */
+            t_invalidated_at: string | null;
+            /**
+             * T Valid From
+             * Format: date-time
+             */
+            t_valid_from: string;
+            /** T Valid To */
+            t_valid_to: string | null;
+            /** Type Name */
+            type_name: string;
+        };
+        /** ChallengeRequest */
+        ChallengeRequest: {
+            /** Idempotency Key */
+            idempotency_key: string;
+            /** Manifest Claims Digest */
+            manifest_claims_digest: string;
+            /** Session Id */
+            session_id: string;
+        };
+        /** ChallengeResponse */
+        ChallengeResponse: {
+            /** Arc Nonce */
+            arc_nonce: string;
+            /** Expires At */
+            expires_at: string;
+            /** Issued At */
+            issued_at: string;
+            /** Manifest Claims Digest */
+            manifest_claims_digest: string;
+        };
+        /**
+         * ConformancePolicyView
+         * @description The rule by which a strategy is judged defective.
+         */
+        ConformancePolicyView: {
+            /** Explanation */
+            explanation: string;
+            /** Minimum Sample */
+            minimum_sample: number;
+            /** Target Ratio */
+            target_ratio: number;
+        };
+        /**
+         * CreateArtifactRequest
+         * @description Body for ``POST /v1/capabilities/{id}/artifacts``.
+         *
+         *     ``title`` is required and validated server-side (1-200 chars, no
+         *     leading/trailing whitespace). ``body_format`` is one of
+         *     ``markdown`` (default), ``html``, ``plain``.
+         */
+        CreateArtifactRequest: {
+            /** Body */
+            body: string;
+            /**
+             * Body Format
+             * @default markdown
+             */
+            body_format: string;
+            /** Category */
+            category: string;
+            /** Title */
+            title: string;
+            /** Valid From */
+            valid_from?: string | null;
+        };
+        /** CreateCapabilityRequest */
+        CreateCapabilityRequest: {
+            /** Attributes */
+            attributes?: {
+                [key: string]: unknown;
+            };
+            /** Capability Type */
+            capability_type?: string | null;
+            /**
+             * Entity Type
+             * @default capability
+             * @constant
+             */
+            entity_type: "capability";
+            /** External Id */
+            external_id?: string | null;
+            /** Name */
+            name: string;
+            /** Valid From */
+            valid_from?: string | null;
+        };
+        /** CreateConceptRequest */
+        CreateConceptRequest: {
+            /** Attributes */
+            attributes?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Entity Type
+             * @default concept
+             * @constant
+             */
+            entity_type: "concept";
+            /** External Id */
+            external_id?: string | null;
+            /** Name */
+            name: string;
+            /** Parent Capability Id */
+            parent_capability_id?: string | null;
+            /** Valid From */
+            valid_from?: string | null;
+        };
+        /** CreateOperationRequest */
+        CreateOperationRequest: {
+            /** Attributes */
+            attributes?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Entity Type
+             * @default operation
+             * @constant
+             */
+            entity_type: "operation";
+            /** External Id */
+            external_id?: string | null;
+            /** Name */
+            name: string;
+            /** Parent Capability Id */
+            parent_capability_id?: string | null;
+            /** Valid From */
+            valid_from?: string | null;
+        };
+        /** CreatePredicateRequest */
+        CreatePredicateRequest: {
+            /** Claim Category */
+            claim_category: string;
+            /** Definition */
+            definition: string;
+            /** Value */
+            value: string;
+            /** Value Type */
+            value_type: string;
+        };
+        /** DependencyResponse */
+        DependencyResponse: {
+            /** As Of */
+            as_of: string | null;
+            /** Depth */
+            depth: number;
+            /** Edges */
+            edges: components["schemas"]["EdgeRefItem"][];
+            /**
+             * Root Entity Id
+             * Format: uuid
+             */
+            root_entity_id: string;
+        };
+        /** DetailPageResponse */
+        DetailPageResponse: {
+            /** Complete */
+            complete: boolean;
+            /** Continuation Token */
+            continuation_token?: string | null;
+            /** Items */
+            items: {
+                [key: string]: unknown;
+            }[];
+            /** Page Number */
+            page_number: number;
+            /** Profile */
+            profile: string;
+            /** Reason Codes */
+            reason_codes?: string[];
+            /**
+             * Receipt Id
+             * Format: uuid
+             */
+            receipt_id: string;
+            /** Request Digest */
+            request_digest: string;
+            /** Returned Bytes */
+            returned_bytes: number;
+        };
+        /** DetailRequestBody */
+        DetailRequestBody: {
+            /** Context Handle */
+            context_handle: string;
+            /** Continuation Token */
+            continuation_token?: string | null;
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Max Response Bytes
+             * @default 16384
+             */
+            max_response_bytes: number;
+            /** Request Kind */
+            request_kind: string;
+            /** Selector */
+            selector?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * EdgeRefItem
+         * @description An edge between two entities.
+         *
+         *     UI shape by default (edge id, both endpoints, relation, properties).
+         *     Bitemporal cols + tenant_id are audit-only — present only when the
+         *     caller passes ``?view=audit``.
+         */
+        EdgeRefItem: {
+            /**
+             * Dst Entity Id
+             * Format: uuid
+             */
+            dst_entity_id: string;
+            /**
+             * Edge Id
+             * Format: uuid
+             */
+            edge_id: string;
+            /** Ingested At */
+            ingested_at?: string | null;
+            /** Invalidated At */
+            invalidated_at?: string | null;
+            /** Properties */
+            properties: {
+                [key: string]: unknown;
+            } | null;
+            /** Rel */
+            rel: string;
+            /**
+             * Src Entity Id
+             * Format: uuid
+             */
+            src_entity_id: string;
+            /** Tenant Id */
+            tenant_id?: string | null;
+            /** Valid From */
+            valid_from?: string | null;
+            /** Valid To */
+            valid_to?: string | null;
+        };
+        /**
+         * EntityCollectionExpansion
+         * @description Container for an included entity collection.
+         *
+         *     ``truncated`` signals that the per-include cap was hit and ``next`` points
+         *     at the dedicated endpoint that returns the full set.
+         */
+        EntityCollectionExpansion: {
+            /** Items */
+            items: components["schemas"]["IncludedEntityItem"][];
+            /** Next */
+            next?: string | null;
+            /** Truncated */
+            truncated: boolean;
+        };
+        /**
+         * EntityDetailResponse
+         * @description Detail-GET response for concept and operation entities.
+         *
+         *     Extends the base capability-record shape with HATEOAS navigation pointers.
+         *     ``_links.self`` is always populated; ``_links.parent`` is populated when the
+         *     entity carries a parent_capability_id (concept_of / operation_of edge) and
+         *     that id is already present in the response — no extra fetch is performed.
+         */
+        EntityDetailResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Attributes */
+            attributes: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** External Id */
+            external_id: string | null;
+            /** Lifecycle */
+            lifecycle: string;
+            /** Name */
+            name: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /** EntityRefItem */
+        EntityRefItem: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Entity Type */
+            entity_type: string;
+            /** External Id */
+            external_id: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /** EntityRefResponse */
+        EntityRefResponse: {
+            /** Created At */
+            created_at: unknown;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Entity Type */
+            entity_type: string;
+            /** External Id */
+            external_id: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /**
+         * EntryCreateRequest
+         * @description Request body for POST /v1/workspaces/{workspace_id}/entries.
+         */
+        EntryCreateRequest: {
+            /**
+             * Body Md
+             * @description Entry body in Markdown (min 1 character).
+             */
+            body_md: string;
+            /**
+             * Expires At
+             * @description Optional ISO-8601 expiry timestamp for time-limited entries.
+             */
+            expires_at?: string | null;
+            /**
+             * Kind
+             * @description Entry kind. Must be one of: note, decision, open_question, saved_query, saved_view, private_annotation.
+             */
+            kind: string;
+            /**
+             * Reference Ids
+             * @description Optional list of entity UUIDs this entry references.
+             */
+            reference_ids?: string[];
+            /**
+             * References Jsonb
+             * @description Optional structured references (arbitrary JSON object).
+             */
+            references_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * EntryUpdateRequest
+         * @description Request body for PATCH /v1/workspaces/{workspace_id}/entries/{entry_id}.
+         */
+        EntryUpdateRequest: {
+            /**
+             * Body Md
+             * @description New entry body.
+             */
+            body_md?: string | null;
+            /**
+             * Reference Ids
+             * @description New reference_ids list. Replaces the existing list.
+             */
+            reference_ids?: string[] | null;
+            /**
+             * References Jsonb
+             * @description New structured references. Replaces the existing object.
+             */
+            references_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** EventResponse */
+        EventResponse: {
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /** Kind */
+            kind: string;
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            };
+            /** Seq */
+            seq: number;
+            /** Session Id */
+            session_id: string;
+            /** Tool Name */
+            tool_name: string | null;
+        };
+        /**
+         * ExceptionApprovalBody
+         * @description The evidence that authorizes one exception.
+         *
+         *     Carried in full rather than as a bare evidence id. The service writes
+         *     the evidence row and the exception row in one transaction -- they
+         *     reference each other, which is why both foreign keys are deferrable --
+         *     so there is no pre-existing evidence for an id to point at. Accepting
+         *     one would mean either writing an exception with no approval or leaving
+         *     evidence pointing at an exception that never gets created.
+         */
+        ExceptionApprovalBody: {
+            /**
+             * Approval Timestamp
+             * Format: date-time
+             */
+            approval_timestamp: string;
+            /** Approval Verifier Id */
+            approval_verifier_id: string;
+            /** Approved Payload Digest */
+            approved_payload_digest: string;
+            /** Approving Principal */
+            approving_principal: string;
+            /** Approving Role */
+            approving_role: string;
+            /** Audit Log Reference */
+            audit_log_reference: string;
+            /**
+             * Evidence Id
+             * Format: uuid
+             */
+            evidence_id: string;
+            /** Verifier Attestation */
+            verifier_attestation?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Verifier Identity
+             * @default
+             */
+            verifier_identity: string;
+        };
+        /** ExternalIdCreate */
+        ExternalIdCreate: {
+            /** External Id */
+            external_id: string;
+            /** External System Slug */
+            external_system_slug: string;
+            /** Metadata Jsonb */
+            metadata_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+            /** Url */
+            url?: string | null;
+        };
+        /**
+         * ExternalIdItem
+         * @description One row of the entity_external_ids registry, surfaced via ``?include=external_ids``.
+         */
+        ExternalIdItem: {
+            /** External Id */
+            external_id: string;
+            /** External System Slug */
+            external_system_slug: string;
+            /** Metadata */
+            metadata: {
+                [key: string]: unknown;
+            } | null;
+            /** Url */
+            url: string | null;
+        };
+        /**
+         * ExternalIdListResponse
+         * @description Paginated list envelope for GET /v1/entities/{id}/external-ids.
+         *
+         *     Cursor wiring: envelope-only. External-ID mappings per entity are bounded
+         *     (typically 1–10 per entity), so ``next_cursor`` is always ``None`` in
+         *     practice. The wrapper exists for client shape consistency.
+         */
+        ExternalIdListResponse: {
+            /** Items */
+            items: components["schemas"]["ExternalIdResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** ExternalIdPatch */
+        ExternalIdPatch: {
+            /** Metadata Jsonb */
+            metadata_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+            /** Url */
+            url?: string | null;
+        };
+        /** ExternalIdResponse */
+        ExternalIdResponse: {
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** External Id */
+            external_id: string;
+            /**
+             * External Id Pk
+             * Format: uuid
+             */
+            external_id_pk: string;
+            /** External System Slug */
+            external_system_slug: string;
+            /** Metadata Jsonb */
+            metadata_jsonb: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Url */
+            url: string | null;
+        };
+        /** ExternalIdsExpansion */
+        ExternalIdsExpansion: {
+            /** Items */
+            items: components["schemas"]["ExternalIdItem"][];
+            /** Truncated */
+            truncated: boolean;
+        };
+        /** ExternalSystemCreate */
+        ExternalSystemCreate: {
+            /** Description */
+            description?: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Slug */
+            slug: string;
+            /** Url Template */
+            url_template?: string | null;
+        };
+        /** ExternalSystemResponse */
+        ExternalSystemResponse: {
+            /** Created At */
+            created_at: unknown;
+            /** Description */
+            description: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Slug */
+            slug: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Url Template */
+            url_template: string | null;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * IncludedEntityItem
+         * @description An entity surfaced by ``?include=components`` or ``?include=depends_on``.
+         *
+         *     Same shape as EntityRefItem plus the entity's current attribute set so
+         *     consumers don't need a second round-trip to inspect basic metadata
+         *     (display_name, summary, lifecycle.state, owner, …).
+         */
+        IncludedEntityItem: {
+            /** Attributes */
+            attributes: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Entity Type */
+            entity_type: string;
+            /** External Id */
+            external_id: string | null;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /**
+         * IntegrationListResponse
+         * @description Paginated list envelope for GET /v1/integrations.
+         *
+         *     Cursor wiring: envelope-only. Integrations connecting two specific
+         *     capabilities are bounded (typically 1–3), so ``next_cursor`` is always
+         *     ``None`` in practice. The wrapper exists for shape consistency.
+         */
+        IntegrationListResponse: {
+            /** Items */
+            items: components["schemas"]["EntityRefItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * InterfaceExpansion
+         * @description Latest interface surface for the capability, surfaced via ``?include=interface``.
+         *
+         *     ``surface`` is the canonical normalised JSON Schema document; ``raw`` is
+         *     the original artifact the caller submitted (JSON Schema, TypeScript, or
+         *     OpenAPI 3.x). Either may be ``None`` if no surface is registered.
+         */
+        InterfaceExpansion: {
+            /** Format */
+            format: string | null;
+            /** Raw */
+            raw: {
+                [key: string]: unknown;
+            } | null;
+            /** Surface */
+            surface: {
+                [key: string]: unknown;
+            } | null;
+            /** Version */
+            version: string | null;
+        };
+        /** InterfacePutRequest */
+        InterfacePutRequest: {
+            /** Interface Format */
+            interface_format: string;
+            /** Interface Source */
+            interface_source: unknown;
+        };
+        /**
+         * InterfaceReadResponse
+         * @description GET /v1/capabilities/{id}/interface response.
+         *
+         *     Default shape exposes the canonical surface, source, format, and time-travel
+         *     ``as_of``. Bitemporal row metadata is audit-only — present only when the
+         *     caller passes ``?view=audit``. Route-level ``response_model_exclude_unset``
+         *     strips unset audit fields so they don't appear as null keys in default
+         *     responses.
+         */
+        InterfaceReadResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** As Of */
+            as_of: string | null;
+            /** Capability Id */
+            capability_id: string;
+            /** Ingested At */
+            ingested_at?: string | null;
+            /** Interface Canonical */
+            interface_canonical: unknown | null;
+            /** Interface Format */
+            interface_format: string | null;
+            /** Interface Source */
+            interface_source: {
+                [key: string]: unknown;
+            } | null;
+            /** Invalidated At */
+            invalidated_at?: string | null;
+            /** Valid From */
+            valid_from?: string | null;
+            /** Valid To */
+            valid_to?: string | null;
+        };
+        /** InterfaceSurfaceResponse */
+        InterfaceSurfaceResponse: {
+            /** Events */
+            events: {
+                [key: string]: unknown;
+            }[];
+            /** Fields */
+            fields: {
+                [key: string]: unknown;
+            }[];
+            /** Operations */
+            operations: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** LifecycleTransitionRequest */
+        LifecycleTransitionRequest: {
+            /** New State */
+            new_state: string;
+            /**
+             * Successor
+             * @description UUID of the replacement entity, or the string "none" to deprecate without a successor.
+             */
+            successor: string | "none";
+            /** Valid From */
+            valid_from?: string | null;
+        };
+        /** LifecycleTransitionResponse */
+        LifecycleTransitionResponse: {
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** New State */
+            new_state: string;
+            /** Replaced By */
+            replaced_by: string | null;
+        };
+        /**
+         * Links
+         * @description HATEOAS-style navigation pointers for a resource.
+         *
+         *     Every detail response includes ``_links.self``; richer resources
+         *     expose pointers to related sub-resources (e.g. capability detail
+         *     points at its dependencies, artifacts, interface).
+         *
+         *     URLs preserve the address form the caller used — slug paths get
+         *     slug URLs back, UUID paths get UUID URLs.
+         */
+        Links: {
+            /** Actor */
+            actor?: string | null;
+            /** Artifacts */
+            artifacts?: string | null;
+            /** Capability */
+            capability?: string | null;
+            /** Dependencies */
+            dependencies?: string | null;
+            /** Interface */
+            interface?: string | null;
+            /** Parent */
+            parent?: string | null;
+            /** Self */
+            self: string;
+            /** Tenant */
+            tenant?: string | null;
+        };
+        /** LocalPredicateResponse */
+        LocalPredicateResponse: {
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Value */
+            value: string;
+        };
+        /**
+         * ManifestBody
+         * @description The task manifest, in exactly the field set the host canonicalized.
+         *
+         *     Every field is a string or a list of strings because that is what was
+         *     signed. Re-typing one here would change the bytes the digest is computed
+         *     over, and the attestation would stop verifying against a manifest the
+         *     caller did in fact send.
+         */
+        ManifestBody: {
+            /** Capability Ids */
+            capability_ids?: string[];
+            /** Data Sensitivity */
+            data_sensitivity: string;
+            /** Domain Ids */
+            domain_ids?: string[];
+            /** Environment */
+            environment: string;
+            /** Repository Identity */
+            repository_identity: string;
+            /** Requested Action Classes */
+            requested_action_classes?: string[];
+            /** Session Id */
+            session_id: string;
+            /** Supported Context Bundle Content Profiles */
+            supported_context_bundle_content_profiles?: string[];
+            /** Task Kind */
+            task_kind: string;
+            /** Task Summary */
+            task_summary?: string | null;
+        };
+        /** NotificationItem */
+        NotificationItem: {
+            /** Capability Id */
+            capability_id: string;
+            /** Capability Slug */
+            capability_slug: string;
+            /** Change Classification */
+            change_classification: string | null;
+            /** Event Kind */
+            event_kind: string;
+            /** Fetch Url */
+            fetch_url: string;
+            /** Notification Id */
+            notification_id: string;
+            /** Occurred At */
+            occurred_at: string;
+            /** Subscription Id */
+            subscription_id: string | null;
+            /** Tenant Id */
+            tenant_id: string;
+            /** Version After */
+            version_after: string | null;
+            /** Version Before */
+            version_before: string | null;
+        };
+        /** NotificationListResponse */
+        NotificationListResponse: {
+            /** Items */
+            items: components["schemas"]["NotificationItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** OperationalHealthOut */
+        OperationalHealthOut: {
+            /** Data Quality */
+            data_quality: components["schemas"]["ReadingOut"][];
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Queues */
+            queues: components["schemas"]["ReadingOut"][];
+        };
+        /** PiiFieldPolicyCreate */
+        PiiFieldPolicyCreate: {
+            /** Field Type */
+            field_type: string;
+            /** Pattern Id */
+            pattern_id?: string | null;
+            /** Policy */
+            policy: string;
+        };
+        /** PiiFieldPolicyResponse */
+        PiiFieldPolicyResponse: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Field Type */
+            field_type: string;
+            /** Pattern Id */
+            pattern_id: string | null;
+            /** Policy */
+            policy: string;
+            /**
+             * Policy Id
+             * Format: uuid
+             */
+            policy_id: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /** PiiPatternCreate */
+        PiiPatternCreate: {
+            /** Category */
+            category: string;
+            /**
+             * Is Enabled
+             * @default true
+             */
+            is_enabled: boolean;
+            /** Name */
+            name: string;
+            /** Policy Override */
+            policy_override?: string | null;
+            /** Regex */
+            regex: string;
+        };
+        /** PiiPatternPatch */
+        PiiPatternPatch: {
+            /** Category */
+            category?: string | null;
+            /** Is Enabled */
+            is_enabled?: boolean | null;
+            /** Policy Override */
+            policy_override?: string | null;
+            /** Regex */
+            regex?: string | null;
+        };
+        /** PiiPatternResponse */
+        PiiPatternResponse: {
+            /** Category */
+            category: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Detector Module */
+            detector_module: string | null;
+            /** Is Enabled */
+            is_enabled: boolean;
+            /** Is System */
+            is_system: boolean;
+            /** Name */
+            name: string;
+            /**
+             * Pattern Id
+             * Format: uuid
+             */
+            pattern_id: string;
+            /** Policy Override */
+            policy_override: string | null;
+            /** Regex */
+            regex: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /** PredicateResponse */
+        PredicateResponse: {
+            /** Claim Category */
+            claim_category: string;
+            /** Definition */
+            definition: string;
+            /** Deprecated At */
+            deprecated_at: string | null;
+            /** Scope */
+            scope: string;
+            /** Value */
+            value: string;
+            /** Value Type */
+            value_type: string;
+        };
+        /** PreviewVersionRequest */
+        PreviewVersionRequest: {
+            /** Interface Format */
+            interface_format: string;
+            /** Proposed Interface */
+            proposed_interface: unknown;
+            /** Proposed Version */
+            proposed_version: string;
+        };
+        /** ProgressionDefinitionCreate */
+        ProgressionDefinitionCreate: {
+            /** Definition */
+            definition: {
+                [key: string]: unknown;
+            };
+            /** Entity Type */
+            entity_type: string;
+            /**
+             * Is Advisory
+             * @default true
+             */
+            is_advisory: boolean;
+        };
+        /** ProgressionDefinitionResponse */
+        ProgressionDefinitionResponse: {
+            /** Definition */
+            definition: {
+                [key: string]: unknown;
+            };
+            /** Entity Type */
+            entity_type: string;
+            /** Is Advisory */
+            is_advisory: boolean;
+            /**
+             * Progression Id
+             * Format: uuid
+             */
+            progression_id: string;
+            /**
+             * T Ingested At
+             * Format: date-time
+             */
+            t_ingested_at: string;
+            /** T Invalidated At */
+            t_invalidated_at: string | null;
+            /**
+             * T Valid From
+             * Format: date-time
+             */
+            t_valid_from: string;
+            /** T Valid To */
+            t_valid_to: string | null;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /** ProgressionDefinitionUpdate */
+        ProgressionDefinitionUpdate: {
+            /** Definition */
+            definition: {
+                [key: string]: unknown;
+            };
+            /**
+             * Dry Run
+             * @default false
+             */
+            dry_run: boolean;
+            /**
+             * Force
+             * @default false
+             */
+            force: boolean;
+            /**
+             * Force Timeout Seconds
+             * @default 30
+             */
+            force_timeout_seconds: number;
+            /** Is Advisory */
+            is_advisory?: boolean | null;
+            /** Migration Plan */
+            migration_plan?: string | null;
+        };
+        /** ProgressionOverrideCreate */
+        ProgressionOverrideCreate: {
+            /**
+             * Bypass Skip Rules
+             * @default false
+             */
+            bypass_skip_rules: boolean;
+            /** From State */
+            from_state: string;
+            /** Gate Id */
+            gate_id: string;
+            /** Reason */
+            reason: string;
+            /** T Valid To */
+            t_valid_to?: string | null;
+            /** To State */
+            to_state: string;
+        };
+        /** ProgressionOverrideResponse */
+        ProgressionOverrideResponse: {
+            /**
+             * Audit Event Id
+             * Format: uuid
+             */
+            audit_event_id: string;
+            /**
+             * Authorized By
+             * Format: uuid
+             */
+            authorized_by: string;
+            /** Bypass Skip Rules */
+            bypass_skip_rules: boolean;
+            /** Consumed At */
+            consumed_at: string | null;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** From State */
+            from_state: string;
+            /** Gate Id */
+            gate_id: string;
+            /**
+             * Override Id
+             * Format: uuid
+             */
+            override_id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * T Valid From
+             * Format: date-time
+             */
+            t_valid_from: string;
+            /**
+             * T Valid To
+             * Format: date-time
+             */
+            t_valid_to: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** To State */
+            to_state: string;
+        };
+        /**
+         * ProjectionResponse
+         * @description HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.
+         *
+         *     Maps one-to-one to ``registry.service.projections.Projection``.
+         *     ``next_cursor`` is None when no further pages exist; pass it as ``cursor=``
+         *     on the next request to retrieve the following page.
+         */
+        ProjectionResponse: {
+            /** Edges */
+            edges: components["schemas"]["EdgeRefItem"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Nodes */
+            nodes: components["schemas"]["EntityRefItem"][];
+        };
+        /**
+         * PurgeResultResponse
+         * @description JSON shape returned by DELETE /v1/admin/actors/{actor_id}/personal-data.
+         *
+         *     `purged_entries` and `purged_workspaces` are the workspace subsystem's
+         *     counts and are kept at the top level for callers that predate erasure
+         *     reaching anything else.
+         *
+         *     `subsystems` is the complete picture: one entry per subsystem the request
+         *     reached, with that subsystem's own vocabulary for what it removed. A caller
+         *     confirming an erasure should read this rather than the two flat counts,
+         *     which describe one subsystem out of several.
+         */
+        PurgeResultResponse: {
+            /** Purged Entries */
+            purged_entries: number;
+            /** Purged Workspaces */
+            purged_workspaces: number;
+            /**
+             * Subsystems
+             * @default {}
+             */
+            subsystems: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
+        };
+        /**
+         * ReadingOut
+         * @description One number and everything needed to read it correctly.
+         *
+         *     `scope` and `kind` have no defaults and are not optional. A response type
+         *     that could omit them would eventually omit them, and the result is a figure
+         *     that looks like a service-wide total and is one replica's count since it
+         *     last restarted.
+         */
+        ReadingOut: {
+            /**
+             * Actionable
+             * @description Why a non-zero value matters. Present when it is actionable on sight.
+             */
+            actionable?: string | null;
+            /**
+             * Instance
+             * @description Which replica answered. Set only for process-scoped readings.
+             */
+            instance?: string | null;
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @description 'gauge' is current state and can fall. 'counter' is cumulative since the process started and resets on deploy; a single reading of one is not a rate.
+             * @enum {string}
+             */
+            kind: "gauge" | "counter";
+            /** Label */
+            label: string;
+            /**
+             * Scope
+             * @description 'cluster' is counted from the database at read time and is correct under any number of replicas. 'process' is this replica's counter — a load-balanced read reaches an arbitrary process, so zero here does not prove zero everywhere.
+             * @enum {string}
+             */
+            scope: "cluster" | "process";
+            /**
+             * Value
+             * @description Null when the value could not be read. Deliberately not zero: an unreadable table is not an empty queue, and reporting one as the other shows the healthiest possible state at the worst moment.
+             */
+            value: number | null;
+        };
+        /** RecordEventRequest */
+        RecordEventRequest: {
+            /** Body */
+            body: string;
+            /** Kind */
+            kind: string;
+            /** Metadata */
+            metadata?: {
+                [key: string]: string;
+            };
+            /** Tool Name */
+            tool_name?: string | null;
+        };
+        /**
+         * RegisterVerifierRequest
+         * @description Admit an approval verifier as a trust root.
+         *
+         *     `public_key` is base64 on the wire and raw bytes in the service: the
+         *     encoding is a transport concern. Note what is *absent* -- no private key,
+         *     ever. Registration records the public half; the signing half stays with the
+         *     approver, which is what separates registrar from signer.
+         */
+        RegisterVerifierRequest: {
+            /** Algorithm */
+            algorithm?: string | null;
+            /** Allowed Evidence Types */
+            allowed_evidence_types: string[];
+            /** Approval Verifier Id */
+            approval_verifier_id: string;
+            /** Provider Id */
+            provider_id?: string | null;
+            /** Public Key */
+            public_key?: string | null;
+            /** Scope Kind */
+            scope_kind: string;
+            /** Scope Tenant Id */
+            scope_tenant_id?: string | null;
+            /** Valid From */
+            valid_from?: string | null;
+            /** Valid To */
+            valid_to?: string | null;
+            /** Verifier Kind */
+            verifier_kind: string;
+        };
+        /** ResolveContextRequest */
+        ResolveContextRequest: {
+            attestation: components["schemas"]["AttestationBody"];
+            manifest: components["schemas"]["ManifestBody"];
+            /**
+             * Max Context Bytes
+             * @default 12288
+             */
+            max_context_bytes: number;
+        };
+        /** ResolveContextResponse */
+        ResolveContextResponse: {
+            /** Blocked Reasons */
+            blocked_reasons?: string[];
+            /**
+             * Budget Limit Bytes
+             * @default 0
+             */
+            budget_limit_bytes: number;
+            /** Cap Facts */
+            cap_facts?: {
+                [key: string]: unknown;
+            }[];
+            /** Degraded Reasons */
+            degraded_reasons?: string[];
+            /** Directives */
+            directives?: {
+                [key: string]: unknown;
+            }[];
+            /** Omission Reasons */
+            omission_reasons?: string[];
+            /** Profile */
+            profile: string;
+            /**
+             * Receipt Id
+             * Format: uuid
+             */
+            receipt_id: string;
+            /**
+             * Rendered Content Bytes
+             * @default 0
+             */
+            rendered_content_bytes: number;
+            /** Replayed */
+            replayed: boolean;
+            /** Status */
+            status: string;
+        };
+        /** RevokeRequest */
+        RevokeRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /** RevokeVerifierRequest */
+        RevokeVerifierRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /** SearchResponse */
+        SearchResponse: {
+            /** Items */
+            items: components["schemas"]["SearchResultItem"][];
+            /** Took Ms */
+            took_ms: number;
+            /** Total */
+            total: number;
+        };
+        /** SearchResultItem */
+        SearchResultItem: {
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Entity Type */
+            entity_type: string;
+            /** Matching Facts */
+            matching_facts: components["schemas"]["ArtifactResponse"][];
+            /** Name */
+            name: string;
+            /** Retrieval Arms */
+            retrieval_arms: {
+                [key: string]: number;
+            };
+            /** Score */
+            score: number;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /** SessionResponse */
+        SessionResponse: {
+            /** Event Count */
+            event_count: number;
+            /**
+             * First Activity At
+             * Format: date-time
+             */
+            first_activity_at: string;
+            /**
+             * Last Activity At
+             * Format: date-time
+             */
+            last_activity_at: string;
+            /** Session Id */
+            session_id: string;
+        };
+        /**
+         * SetVisibilityRequest
+         * @description Body for PATCH /v1/capabilities/{entity_id}/visibility.
+         *
+         *     ``visibility`` must be one of: ``private``, ``tenant-shared``, ``public``.
+         *     ``shared_with_tenants`` is required (non-empty) when ``visibility='tenant-shared'``;
+         *     validation is enforced at the service layer (VisibilityService) and surfaced as HTTP 422.
+         */
+        SetVisibilityRequest: {
+            /** Shared With Tenants */
+            shared_with_tenants?: string[] | null;
+            /** Visibility */
+            visibility: string;
+        };
+        /** StrategyConfigView */
+        StrategyConfigView: {
+            /** Confidence Floor */
+            confidence_floor: number;
+            /** Is Enabled */
+            is_enabled: boolean;
+            /** Model Override */
+            model_override: string | null;
+            /** Prompt Override */
+            prompt_override: string | null;
+            /** Strategy Id */
+            strategy_id: string;
+        };
+        /**
+         * StrategyUpdate
+         * @description A change to one strategy's configuration.
+         *
+         *     Every field is optional and `None` means "leave it alone". Clearing an
+         *     override therefore needs its own flag: a single nullable field cannot express
+         *     both "do not touch this" and "remove it", and conflating them means an
+         *     operator who omits the prompt silently reverts to the shipped one.
+         */
+        StrategyUpdate: {
+            /**
+             * Clear Model Override
+             * @default false
+             */
+            clear_model_override: boolean;
+            /**
+             * Clear Prompt Override
+             * @default false
+             */
+            clear_prompt_override: boolean;
+            /** Confidence Floor */
+            confidence_floor?: number | null;
+            /** Is Enabled */
+            is_enabled?: boolean | null;
+            /** Model Override */
+            model_override?: string | null;
+            /** Prompt Override */
+            prompt_override?: string | null;
+        };
+        /**
+         * StrategyView
+         * @description A strategy as it will actually run for this tenant.
+         */
+        StrategyView: {
+            /** Confidence Floor */
+            confidence_floor: number;
+            /** Is Enabled */
+            is_enabled: boolean;
+            /** Model Id */
+            model_id: string;
+            /** Model Is Overridden */
+            model_is_overridden: boolean;
+            /** Namespace Template */
+            namespace_template: string;
+            /** Permitted Predicates */
+            permitted_predicates: string[];
+            /** Prompt Is Overridden */
+            prompt_is_overridden: boolean;
+            /** Strategy Id */
+            strategy_id: string;
+        };
+        /** SubscriptionCreate */
+        SubscriptionCreate: {
+            /** Event Kinds */
+            event_kinds: string[];
+            /** Webhook Hmac Secret Ref */
+            webhook_hmac_secret_ref?: string | null;
+            /** Webhook Url */
+            webhook_url?: string | null;
+        };
+        /**
+         * SubscriptionListResponse
+         * @description Paginated list envelope for GET /v1/capabilities/{id}/subscriptions.
+         *
+         *     Cursor wiring: envelope-only. Subscriptions per capability per tenant are
+         *     bounded (typically 1–5), so ``next_cursor`` is always ``None`` in practice.
+         *     The wrapper exists for shape consistency.
+         */
+        SubscriptionListResponse: {
+            /** Items */
+            items: components["schemas"]["SubscriptionResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * SubscriptionResponse
+         * @description A subscription that watches events on a capability.
+         *
+         *     Default shape is UI-flavoured (core subscription fields only). Bitemporal
+         *     columns are audit-only — present only when the caller passes ``?view=audit``.
+         *     Route-level ``response_model_exclude_unset`` strips unset audit fields so
+         *     they don't appear as null keys in default responses.
+         */
+        SubscriptionResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Actor Id */
+            actor_id: string | null;
+            /**
+             * Capability Id
+             * Format: uuid
+             */
+            capability_id: string;
+            /** Digest Window */
+            digest_window: string;
+            /** Event Kinds */
+            event_kinds: string[];
+            /** Ingested At */
+            ingested_at?: string | null;
+            /** Invalidated At */
+            invalidated_at?: string | null;
+            /** Is Enabled */
+            is_enabled: boolean;
+            /**
+             * Subscription Id
+             * Format: uuid
+             */
+            subscription_id: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Valid From */
+            valid_from?: string | null;
+            /** Valid To */
+            valid_to?: string | null;
+            /** Webhook Hmac Secret Ref */
+            webhook_hmac_secret_ref: string | null;
+            /** Webhook Url */
+            webhook_url: string | null;
+        };
+        /** SubscriptionUpdate */
+        SubscriptionUpdate: {
+            /** Event Kinds */
+            event_kinds?: string[] | null;
+            /** Is Enabled */
+            is_enabled?: boolean | null;
+            /** Webhook Hmac Secret Ref */
+            webhook_hmac_secret_ref?: string | null;
+            /** Webhook Url */
+            webhook_url?: string | null;
+        };
+        /** SupersededFactResponse */
+        SupersededFactResponse: {
+            /** Body */
+            body: string;
+            /** Category */
+            category: string;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Fact Id
+             * Format: uuid
+             */
+            fact_id: string;
+            /** Sync Run Id */
+            sync_run_id: string | null;
+            /**
+             * T Ingested At
+             * Format: date-time
+             */
+            t_ingested_at: string;
+            /**
+             * T Valid From
+             * Format: date-time
+             */
+            t_valid_from: string;
+        };
+        /** SyncRunResponse */
+        SyncRunResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Artifact Count */
+            artifact_count: number | null;
+            /** Duration S */
+            duration_s: number | null;
+            /** Error Summary */
+            error_summary: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Status */
+            status: string;
+            /**
+             * Sync Run Id
+             * Format: uuid
+             */
+            sync_run_id: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Trigger */
+            trigger: string;
+        };
+        /** SyncSourceCreate */
+        SyncSourceCreate: {
+            /** Config */
+            config?: {
+                [key: string]: unknown;
+            };
+            /** Credentials Ref */
+            credentials_ref?: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Schedule */
+            schedule?: string | null;
+            /** Source Type */
+            source_type: string;
+        };
+        /** SyncSourcePatch */
+        SyncSourcePatch: {
+            /** Config */
+            config?: {
+                [key: string]: unknown;
+            } | null;
+            /** Credentials Ref */
+            credentials_ref?: string | null;
+            /** Display Name */
+            display_name?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            /** Schedule */
+            schedule?: string | null;
+        };
+        /** SyncSourceResponse */
+        SyncSourceResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Config */
+            config: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string | null;
+            /** Credentials Ref */
+            credentials_ref: string | null;
+            /** Display Name */
+            display_name: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Schedule */
+            schedule: string | null;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Source Type */
+            source_type: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /**
+         * TraversalResultResponse
+         * @description HTTP response shape for graph traversal endpoints.
+         *
+         *     Maps one-to-one to TraversalResult; all UUID fields serialised as strings
+         *     by Pydantic's default JSON encoder.
+         */
+        TraversalResultResponse: {
+            /** As Of */
+            as_of: string | null;
+            /** Cache Hit */
+            cache_hit: boolean;
+            /** Depth */
+            depth: number;
+            /** Direction */
+            direction: string;
+            /** Edges */
+            edges: components["schemas"]["EdgeRefItem"][];
+            /** Nodes */
+            nodes: components["schemas"]["EntityRefItem"][];
+            /**
+             * Root Entity Id
+             * Format: uuid
+             */
+            root_entity_id: string;
+            /** Version Satisfied */
+            version_satisfied: {
+                [key: string]: boolean;
+            };
+        };
+        /** TriggerResponse */
+        TriggerResponse: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Status */
+            status: string;
+            /**
+             * Sync Run Id
+             * Format: uuid
+             */
+            sync_run_id: string;
+            /** Trigger */
+            trigger: string;
+        };
+        /**
+         * UpdateEntityRequest
+         * @description Bag of attribute updates applied bi-temporally; does not change entity_type or name directly.
+         */
+        UpdateEntityRequest: {
+            /** Updates */
+            updates: {
+                [key: string]: unknown;
+            };
+            /** Valid From */
+            valid_from?: string | null;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+        /** VocabularyValueCreate */
+        VocabularyValueCreate: {
+            /** Value */
+            value: string;
+        };
+        /** VocabularyValuePatch */
+        VocabularyValuePatch: {
+            /** Deprecated At */
+            deprecated_at?: string | null;
+        };
+        /** VocabularyValueResponse */
+        VocabularyValueResponse: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Deprecated At */
+            deprecated_at: string | null;
+            /** Is System */
+            is_system: boolean;
+            /** Kind */
+            kind: string;
+            /** Value */
+            value: string;
+            /**
+             * Vocab Id
+             * Format: uuid
+             */
+            vocab_id: string;
+        };
+        /**
+         * WhoAmIResponse
+         * @description Session-context payload — what the calling token resolves to.
+         *
+         *     Returned by ``GET /v1/whoami`` and the MCP ``whoami`` tool. UIs use
+         *     it to render permission-gated buttons before any other call.
+         */
+        WhoAmIResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Actor Display Name */
+            actor_display_name: string | null;
+            /** Actor Email */
+            actor_email: string | null;
+            /**
+             * Actor Id
+             * Format: uuid
+             */
+            actor_id: string;
+            /** Roles */
+            roles: string[];
+            /** Tenant Display Name */
+            tenant_display_name: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Tenant Slug */
+            tenant_slug: string;
+            /**
+             * Token Expires At
+             * @deprecated
+             * @description Always null. Token lifetime is the JWT's own exp claim, not tracked here.
+             */
+            token_expires_at?: string | null;
+            /**
+             * Token Id
+             * @deprecated
+             * @description Always null. Registry-issued tokens were removed; authentication is OIDC.
+             */
+            token_id?: string | null;
+        };
+        /**
+         * WorkspaceCreateRequest
+         * @description Request body for POST /v1/workspaces.
+         */
+        WorkspaceCreateRequest: {
+            /**
+             * Description
+             * @description Optional description.
+             */
+            description?: string | null;
+            /**
+             * Name
+             * @description Workspace name (min 1 character).
+             */
+            name: string;
+            /**
+             * Owner Kind
+             * @description Workspace ownership model. Must be 'actor' (personal) or 'tenant' (team).
+             */
+            owner_kind: string;
+        };
+        /**
+         * WorkspaceUpdateRequest
+         * @description Request body for PATCH /v1/workspaces/{workspace_id}.
+         */
+        WorkspaceUpdateRequest: {
+            /**
+             * Archived At
+             * @description ISO-8601 timestamp to archive. Pass null to un-archive.
+             */
+            archived_at?: string | null;
+            /**
+             * Description
+             * @description New description. Pass null to clear.
+             */
+            description?: string | null;
+            /**
+             * Name
+             * @description New workspace name.
+             */
+            name?: string | null;
+        };
+        /** _Accepted */
+        _Accepted: {
+            /** Approval Verifier Id */
+            approval_verifier_id?: string | null;
+            /** Evidence Id */
+            evidence_id?: string | null;
+            /** Exception Id */
+            exception_id?: string | null;
+            /** Revision Id */
+            revision_id?: string | null;
+            /** Status */
+            status: string;
+        };
     };
-    /** RecordEventRequest */
-    RecordEventRequest: {
-      /** Body */
-      body: string;
-      /** Kind */
-      kind: string;
-      /** Metadata */
-      metadata?: {
-        [key: string]: string;
-      };
-      /** Tool Name */
-      tool_name?: string | null;
-    };
-    /**
-     * RegisterVerifierRequest
-     * @description Admit an approval verifier as a trust root.
-     *
-     *     `public_key` is base64 on the wire and raw bytes in the service: the
-     *     encoding is a transport concern. Note what is *absent* -- no private key,
-     *     ever. Registration records the public half; the signing half stays with the
-     *     approver, which is what separates registrar from signer.
-     */
-    RegisterVerifierRequest: {
-      /** Algorithm */
-      algorithm?: string | null;
-      /** Allowed Evidence Types */
-      allowed_evidence_types: string[];
-      /** Approval Verifier Id */
-      approval_verifier_id: string;
-      /** Provider Id */
-      provider_id?: string | null;
-      /** Public Key */
-      public_key?: string | null;
-      /** Scope Kind */
-      scope_kind: string;
-      /** Scope Tenant Id */
-      scope_tenant_id?: string | null;
-      /** Valid From */
-      valid_from?: string | null;
-      /** Valid To */
-      valid_to?: string | null;
-      /** Verifier Kind */
-      verifier_kind: string;
-    };
-    /** ResolveContextRequest */
-    ResolveContextRequest: {
-      attestation: components['schemas']['AttestationBody'];
-      manifest: components['schemas']['ManifestBody'];
-      /**
-       * Max Context Bytes
-       * @default 12288
-       */
-      max_context_bytes: number;
-    };
-    /** ResolveContextResponse */
-    ResolveContextResponse: {
-      /** Blocked Reasons */
-      blocked_reasons?: string[];
-      /**
-       * Budget Limit Bytes
-       * @default 0
-       */
-      budget_limit_bytes: number;
-      /** Cap Facts */
-      cap_facts?: {
-        [key: string]: unknown;
-      }[];
-      /** Degraded Reasons */
-      degraded_reasons?: string[];
-      /** Directives */
-      directives?: {
-        [key: string]: unknown;
-      }[];
-      /** Omission Reasons */
-      omission_reasons?: string[];
-      /** Profile */
-      profile: string;
-      /**
-       * Receipt Id
-       * Format: uuid
-       */
-      receipt_id: string;
-      /**
-       * Rendered Content Bytes
-       * @default 0
-       */
-      rendered_content_bytes: number;
-      /** Replayed */
-      replayed: boolean;
-      /** Status */
-      status: string;
-    };
-    /** RevokeRequest */
-    RevokeRequest: {
-      /** Reason */
-      reason: string;
-    };
-    /** RevokeVerifierRequest */
-    RevokeVerifierRequest: {
-      /** Reason */
-      reason: string;
-    };
-    /** SearchResponse */
-    SearchResponse: {
-      /** Items */
-      items: components['schemas']['SearchResultItem'][];
-      /** Took Ms */
-      took_ms: number;
-      /** Total */
-      total: number;
-    };
-    /** SearchResultItem */
-    SearchResultItem: {
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /** Entity Type */
-      entity_type: string;
-      /** Matching Facts */
-      matching_facts: components['schemas']['ArtifactResponse'][];
-      /** Name */
-      name: string;
-      /** Retrieval Arms */
-      retrieval_arms: {
-        [key: string]: number;
-      };
-      /** Score */
-      score: number;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /** SessionResponse */
-    SessionResponse: {
-      /** Event Count */
-      event_count: number;
-      /**
-       * First Activity At
-       * Format: date-time
-       */
-      first_activity_at: string;
-      /**
-       * Last Activity At
-       * Format: date-time
-       */
-      last_activity_at: string;
-      /** Session Id */
-      session_id: string;
-    };
-    /**
-     * SetVisibilityRequest
-     * @description Body for PATCH /v1/capabilities/{entity_id}/visibility.
-     *
-     *     ``visibility`` must be one of: ``private``, ``tenant-shared``, ``public``.
-     *     ``shared_with_tenants`` is required (non-empty) when ``visibility='tenant-shared'``;
-     *     validation is enforced at the service layer (VisibilityService) and surfaced as HTTP 422.
-     */
-    SetVisibilityRequest: {
-      /** Shared With Tenants */
-      shared_with_tenants?: string[] | null;
-      /** Visibility */
-      visibility: string;
-    };
-    /** SubscriptionCreate */
-    SubscriptionCreate: {
-      /** Event Kinds */
-      event_kinds: string[];
-      /** Webhook Hmac Secret Ref */
-      webhook_hmac_secret_ref?: string | null;
-      /** Webhook Url */
-      webhook_url?: string | null;
-    };
-    /**
-     * SubscriptionListResponse
-     * @description Paginated list envelope for GET /v1/capabilities/{id}/subscriptions.
-     *
-     *     Cursor wiring: envelope-only. Subscriptions per capability per tenant are
-     *     bounded (typically 1–5), so ``next_cursor`` is always ``None`` in practice.
-     *     The wrapper exists for shape consistency.
-     */
-    SubscriptionListResponse: {
-      /** Items */
-      items: components['schemas']['SubscriptionResponse'][];
-      /** Next Cursor */
-      next_cursor: string | null;
-    };
-    /**
-     * SubscriptionResponse
-     * @description A subscription that watches events on a capability.
-     *
-     *     Default shape is UI-flavoured (core subscription fields only). Bitemporal
-     *     columns are audit-only — present only when the caller passes ``?view=audit``.
-     *     Route-level ``response_model_exclude_unset`` strips unset audit fields so
-     *     they don't appear as null keys in default responses.
-     */
-    SubscriptionResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** Actor Id */
-      actor_id: string | null;
-      /**
-       * Capability Id
-       * Format: uuid
-       */
-      capability_id: string;
-      /** Digest Window */
-      digest_window: string;
-      /** Event Kinds */
-      event_kinds: string[];
-      /** Ingested At */
-      ingested_at?: string | null;
-      /** Invalidated At */
-      invalidated_at?: string | null;
-      /** Is Enabled */
-      is_enabled: boolean;
-      /**
-       * Subscription Id
-       * Format: uuid
-       */
-      subscription_id: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-      /** Valid From */
-      valid_from?: string | null;
-      /** Valid To */
-      valid_to?: string | null;
-      /** Webhook Hmac Secret Ref */
-      webhook_hmac_secret_ref: string | null;
-      /** Webhook Url */
-      webhook_url: string | null;
-    };
-    /** SubscriptionUpdate */
-    SubscriptionUpdate: {
-      /** Event Kinds */
-      event_kinds?: string[] | null;
-      /** Is Enabled */
-      is_enabled?: boolean | null;
-      /** Webhook Hmac Secret Ref */
-      webhook_hmac_secret_ref?: string | null;
-      /** Webhook Url */
-      webhook_url?: string | null;
-    };
-    /** SupersededFactResponse */
-    SupersededFactResponse: {
-      /** Body */
-      body: string;
-      /** Category */
-      category: string;
-      /**
-       * Entity Id
-       * Format: uuid
-       */
-      entity_id: string;
-      /**
-       * Fact Id
-       * Format: uuid
-       */
-      fact_id: string;
-      /** Sync Run Id */
-      sync_run_id: string | null;
-      /**
-       * T Ingested At
-       * Format: date-time
-       */
-      t_ingested_at: string;
-      /**
-       * T Valid From
-       * Format: date-time
-       */
-      t_valid_from: string;
-    };
-    /** SyncRunResponse */
-    SyncRunResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** Artifact Count */
-      artifact_count: number | null;
-      /** Duration S */
-      duration_s: number | null;
-      /** Error Summary */
-      error_summary: string | null;
-      /** Finished At */
-      finished_at: string | null;
-      /**
-       * Source Id
-       * Format: uuid
-       */
-      source_id: string;
-      /**
-       * Started At
-       * Format: date-time
-       */
-      started_at: string;
-      /** Status */
-      status: string;
-      /**
-       * Sync Run Id
-       * Format: uuid
-       */
-      sync_run_id: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-      /** Trigger */
-      trigger: string;
-    };
-    /** SyncSourceCreate */
-    SyncSourceCreate: {
-      /** Config */
-      config?: {
-        [key: string]: unknown;
-      };
-      /** Credentials Ref */
-      credentials_ref?: string | null;
-      /** Display Name */
-      display_name: string;
-      /** Schedule */
-      schedule?: string | null;
-      /** Source Type */
-      source_type: string;
-    };
-    /** SyncSourcePatch */
-    SyncSourcePatch: {
-      /** Config */
-      config?: {
-        [key: string]: unknown;
-      } | null;
-      /** Credentials Ref */
-      credentials_ref?: string | null;
-      /** Display Name */
-      display_name?: string | null;
-      /** Is Active */
-      is_active?: boolean | null;
-      /** Schedule */
-      schedule?: string | null;
-    };
-    /** SyncSourceResponse */
-    SyncSourceResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** Config */
-      config: {
-        [key: string]: unknown;
-      };
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Created By */
-      created_by: string | null;
-      /** Credentials Ref */
-      credentials_ref: string | null;
-      /** Display Name */
-      display_name: string;
-      /** Is Active */
-      is_active: boolean;
-      /** Schedule */
-      schedule: string | null;
-      /**
-       * Source Id
-       * Format: uuid
-       */
-      source_id: string;
-      /** Source Type */
-      source_type: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-    };
-    /**
-     * TraversalResultResponse
-     * @description HTTP response shape for graph traversal endpoints.
-     *
-     *     Maps one-to-one to TraversalResult; all UUID fields serialised as strings
-     *     by Pydantic's default JSON encoder.
-     */
-    TraversalResultResponse: {
-      /** As Of */
-      as_of: string | null;
-      /** Cache Hit */
-      cache_hit: boolean;
-      /** Depth */
-      depth: number;
-      /** Direction */
-      direction: string;
-      /** Edges */
-      edges: components['schemas']['EdgeRefItem'][];
-      /** Nodes */
-      nodes: components['schemas']['EntityRefItem'][];
-      /**
-       * Root Entity Id
-       * Format: uuid
-       */
-      root_entity_id: string;
-      /** Version Satisfied */
-      version_satisfied: {
-        [key: string]: boolean;
-      };
-    };
-    /** TriggerResponse */
-    TriggerResponse: {
-      /**
-       * Source Id
-       * Format: uuid
-       */
-      source_id: string;
-      /**
-       * Started At
-       * Format: date-time
-       */
-      started_at: string;
-      /** Status */
-      status: string;
-      /**
-       * Sync Run Id
-       * Format: uuid
-       */
-      sync_run_id: string;
-      /** Trigger */
-      trigger: string;
-    };
-    /**
-     * UpdateEntityRequest
-     * @description Bag of attribute updates applied bi-temporally; does not change entity_type or name directly.
-     */
-    UpdateEntityRequest: {
-      /** Updates */
-      updates: {
-        [key: string]: unknown;
-      };
-      /** Valid From */
-      valid_from?: string | null;
-    };
-    /** ValidationError */
-    ValidationError: {
-      /** Location */
-      loc: (string | number)[];
-      /** Message */
-      msg: string;
-      /** Error Type */
-      type: string;
-    };
-    /** VocabularyValueCreate */
-    VocabularyValueCreate: {
-      /** Value */
-      value: string;
-    };
-    /** VocabularyValuePatch */
-    VocabularyValuePatch: {
-      /** Deprecated At */
-      deprecated_at?: string | null;
-    };
-    /** VocabularyValueResponse */
-    VocabularyValueResponse: {
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at: string;
-      /** Deprecated At */
-      deprecated_at: string | null;
-      /** Is System */
-      is_system: boolean;
-      /** Kind */
-      kind: string;
-      /** Value */
-      value: string;
-      /**
-       * Vocab Id
-       * Format: uuid
-       */
-      vocab_id: string;
-    };
-    /**
-     * WhoAmIResponse
-     * @description Session-context payload — what the calling token resolves to.
-     *
-     *     Returned by ``GET /v1/whoami`` and the MCP ``whoami`` tool. UIs use
-     *     it to render permission-gated buttons before any other call.
-     */
-    WhoAmIResponse: {
-      _links?: components['schemas']['Links'] | null;
-      /** Actor Display Name */
-      actor_display_name: string | null;
-      /** Actor Email */
-      actor_email: string | null;
-      /**
-       * Actor Id
-       * Format: uuid
-       */
-      actor_id: string;
-      /** Roles */
-      roles: string[];
-      /** Tenant Display Name */
-      tenant_display_name: string;
-      /**
-       * Tenant Id
-       * Format: uuid
-       */
-      tenant_id: string;
-      /** Tenant Slug */
-      tenant_slug: string;
-      /**
-       * Token Expires At
-       * @deprecated
-       * @description Always null. Token lifetime is the JWT's own exp claim, not tracked here.
-       */
-      token_expires_at?: string | null;
-      /**
-       * Token Id
-       * @deprecated
-       * @description Always null. Registry-issued tokens were removed; authentication is OIDC.
-       */
-      token_id?: string | null;
-    };
-    /**
-     * WorkspaceCreateRequest
-     * @description Request body for POST /v1/workspaces.
-     */
-    WorkspaceCreateRequest: {
-      /**
-       * Description
-       * @description Optional description.
-       */
-      description?: string | null;
-      /**
-       * Name
-       * @description Workspace name (min 1 character).
-       */
-      name: string;
-      /**
-       * Owner Kind
-       * @description Workspace ownership model. Must be 'actor' (personal) or 'tenant' (team).
-       */
-      owner_kind: string;
-    };
-    /**
-     * WorkspaceUpdateRequest
-     * @description Request body for PATCH /v1/workspaces/{workspace_id}.
-     */
-    WorkspaceUpdateRequest: {
-      /**
-       * Archived At
-       * @description ISO-8601 timestamp to archive. Pass null to un-archive.
-       */
-      archived_at?: string | null;
-      /**
-       * Description
-       * @description New description. Pass null to clear.
-       */
-      description?: string | null;
-      /**
-       * Name
-       * @description New workspace name.
-       */
-      name?: string | null;
-    };
-    /** _Accepted */
-    _Accepted: {
-      /** Approval Verifier Id */
-      approval_verifier_id?: string | null;
-      /** Evidence Id */
-      evidence_id?: string | null;
-      /** Exception Id */
-      exception_id?: string | null;
-      /** Revision Id */
-      revision_id?: string | null;
-      /** Status */
-      status: string;
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  healthz_healthz_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: string;
-          };
-        };
-      };
-    };
-  };
-  metrics_metrics_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-    };
-  };
-  readyz_readyz_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-    };
-  };
-  delete_actor_personal_data_v1_admin_actors__actor_id__personal_data_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        actor_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PurgeResultResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  query_audit_log_v1_admin_audit_get: {
-    parameters: {
-      query?: {
-        actor_id?: string | null;
-        action?: string | null;
-        target_type?: string | null;
-        target_id?: string | null;
-        from?: string | null;
-        to?: string | null;
-        cursor?: string | null;
-        page_size?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AuditResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_capability_types_v1_admin_capability_types_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityTypeSchemaResponse'][];
-        };
-      };
-    };
-  };
-  create_capability_type_v1_admin_capability_types_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CapabilityTypeSchemaCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityTypeSchemaResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_capability_type_v1_admin_capability_types__type_name__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        type_name: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityTypeSchemaResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  patch_capability_type_v1_admin_capability_types__type_name__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        type_name: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CapabilityTypeSchemaPatch'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityTypeSchemaResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_edge_property_schemas_v1_admin_edge_property_schemas_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown[];
-        };
-      };
-    };
-  };
-  create_edge_property_schema_v1_admin_edge_property_schemas_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-    };
-  };
-  _update_edge_property_schema_v1_admin_edge_property_schemas__schema_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        schema_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_external_systems_v1_admin_external_systems_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExternalSystemResponse'][];
-        };
-      };
-    };
-  };
-  create_external_system_v1_admin_external_systems_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ExternalSystemCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExternalSystemResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _delete_external_system_v1_admin_external_systems__slug__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        slug: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_pii_field_policies_v1_admin_pii_field_policies_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PiiFieldPolicyResponse'][];
-        };
-      };
-    };
-  };
-  create_pii_field_policy_v1_admin_pii_field_policies_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['PiiFieldPolicyCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PiiFieldPolicyResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _delete_pii_field_policy_v1_admin_pii_field_policies__policy_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        policy_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_pii_patterns_v1_admin_pii_patterns_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PiiPatternResponse'][];
-        };
-      };
-    };
-  };
-  create_pii_pattern_v1_admin_pii_patterns_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['PiiPatternCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PiiPatternResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _delete_pii_pattern_v1_admin_pii_patterns__pattern_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        pattern_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _patch_pii_pattern_v1_admin_pii_patterns__pattern_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        pattern_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['PiiPatternPatch'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PiiPatternResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_sync_runs_v1_admin_sync_runs_get: {
-    parameters: {
-      query?: {
-        source_id?: string | null;
-        status?: string | null;
-        from?: string | null;
-        to?: string | null;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SyncRunResponse'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_sync_run_v1_admin_sync_runs__sync_run_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        sync_run_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SyncRunResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_superseded_facts_for_run_v1_admin_sync_runs__sync_run_id__superseded_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        sync_run_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SupersededFactResponse'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_sync_sources_v1_admin_sync_sources_get: {
-    parameters: {
-      query?: {
-        active_only?: boolean;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SyncSourceResponse'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_sync_source_v1_admin_sync_sources_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SyncSourceCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SyncSourceResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_sync_source_v1_admin_sync_sources__source_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        source_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SyncSourceResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_sync_source_v1_admin_sync_sources__source_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        source_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  patch_sync_source_v1_admin_sync_sources__source_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        source_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SyncSourcePatch'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SyncSourceResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  trigger_sync_v1_admin_sync_sources__source_id__trigger_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path: {
-        source_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      202: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TriggerResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_progression_overrides_v1_admin_tenants__tenant_id__entities__entity_id__progression_overrides_get: {
-    parameters: {
-      query?: {
-        consumed?: boolean | null;
-        expired?: boolean | null;
-        from_state?: string | null;
-        to_state?: string | null;
-      };
-      header?: never;
-      path: {
-        tenant_id: string;
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProgressionOverrideResponse'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_progression_override_v1_admin_tenants__tenant_id__entities__entity_id__progression_overrides_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        tenant_id: string;
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ProgressionOverrideCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProgressionOverrideResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_progression_definitions_v1_admin_tenants__tenant_id__progression_definitions_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        tenant_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProgressionDefinitionResponse'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_progression_definition_v1_admin_tenants__tenant_id__progression_definitions_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        tenant_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ProgressionDefinitionCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProgressionDefinitionResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        tenant_id: string;
-        progression_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProgressionDefinitionResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  supersede_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        tenant_id: string;
-        progression_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ProgressionDefinitionUpdate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProgressionDefinitionResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  soft_delete_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        tenant_id: string;
-        progression_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_vocabulary_values_v1_admin_vocabularies__kind__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        kind: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VocabularyValueResponse'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  add_vocabulary_value_v1_admin_vocabularies__kind__post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path: {
-        kind: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['VocabularyValueCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VocabularyValueResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_vocabulary_value_v1_admin_vocabularies__kind___value__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        kind: string;
-        value: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  patch_vocabulary_value_v1_admin_vocabularies__kind___value__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        kind: string;
-        value: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['VocabularyValuePatch'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['VocabularyValueResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _delete_annotation_handler_v1_annotations__annotation_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        annotation_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _triage_annotation_handler_v1_annotations__annotation_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        annotation_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AnnotationTriageRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  revoke_approval_evidence_v1_arc_admin_approval_evidence__evidence_id__revoke_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        evidence_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RevokeVerifierRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  register_approval_verifier_v1_arc_admin_approval_verifiers_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RegisterVerifierRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  revoke_approval_verifier_v1_arc_admin_approval_verifiers__approval_verifier_id__revoke_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        approval_verifier_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RevokeVerifierRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  approve_context_exception_v1_arc_admin_exceptions_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ApproveExceptionRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  revoke_context_exception_v1_arc_admin_exceptions__exception_id__revoke_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        exception_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RevokeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  describe_operator_identity_v1_arc_admin_operator_identity_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-    };
-  };
-  activate_revision_v1_arc_admin_revisions__revision_id__activate_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        revision_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ActivateRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  attach_approval_evidence_v1_arc_admin_revisions__revision_id__approval_evidence_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        revision_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AttachEvidenceRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  invalidate_revision_v1_arc_admin_revisions__revision_id__invalidate_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        revision_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RevokeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  revoke_revision_v1_arc_admin_revisions__revision_id__revoke_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        revision_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RevokeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['_Accepted'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  issue_context_challenge_v1_arc_challenges_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ChallengeRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ChallengeResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_verification_metadata_v1_arc_metadata_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-    };
-  };
-  get_context_resolution_receipt_v1_arc_receipts__receipt_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        receipt_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  retrieve_context_detail_v1_arc_receipts__receipt_id__detail_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        receipt_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['DetailRequestBody'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['DetailPageResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  explain_context_resolution_v1_arc_receipts__receipt_id__explain_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        receipt_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  resolve_context_v1_arc_resolve_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ResolveContextRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ResolveContextResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_capabilities_v1_capabilities_get: {
-    parameters: {
-      query?: {
-        lifecycle?: string | null;
-        entity_type?: string | null;
-        /** @description Opaque cursor returned by the previous page. Omit to start from the first page. */
-        cursor?: string | null;
-        page_size?: number;
-        /** @description ISO-8601 UTC datetime for time-travel */
-        as_of?: string | null;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityListResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_capability_v1_capabilities_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateCapabilityRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_annotations_v1_capabilities__capability_id__annotations_get: {
-    parameters: {
-      query?: {
-        /** @description Filter by annotation status (open/triaged/acknowledged/closed). */
-        status?: string | null;
-        /** @description Opaque keyset pagination cursor. */
-        cursor?: string | null;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID */
-        capability_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_annotation_v1_capabilities__capability_id__annotations_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Capability UUID */
-        capability_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AnnotationCreateRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_interface_v1_capabilities__capability_id__interface_get: {
-    parameters: {
-      query?: {
-        /** @description ISO-8601 UTC for time-travel */
-        as_of?: string | null;
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` is accepted for API consistency but is currently a no-op here — the interface record is a composed view without individual bitemporal row metadata. Use ``?as_of=`` for time-travel instead. */
-        view?: string;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug */
-        capability_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['InterfaceReadResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  put_interface_v1_capabilities__capability_id__interface_put: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug */
-        capability_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['InterfacePutRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['InterfaceSurfaceResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  preview_version_v1_capabilities__capability_id__preview_version_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug */
-        capability_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['PreviewVersionRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['BreakingChangePreviewResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_subscriptions_for_capability_v1_capabilities__capability_id__subscriptions_get: {
-    parameters: {
-      query?: {
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
-        view?: string;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug */
-        capability_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SubscriptionListResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_subscription_v1_capabilities__capability_id__subscriptions_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path: {
-        /** @description Capability UUID or slug */
-        capability_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SubscriptionCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: string;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_capability_v1_capabilities__entity_id__get: {
-    parameters: {
-      query?: {
-        /** @description ISO-8601 UTC datetime for bi-temporal time-travel */
-        as_of?: string | null;
-        /** @description Comma-separated list of sub-resources to expand. Known values: components, depends_on, external_ids, interface. Each expansion is capped at 200 items — `truncated: true` + a `next` URL signal overflow. */
-        include?: string | null;
-        /** @description Response shape. `default` (UI-flavoured) is the standard minimal shape every endpoint returns. `audit` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at), tenant_id, and supersession metadata for audit / compliance consumers. */
-        view?: string;
-        /** @description Comma-separated list of fact categories to include in the `facts` field (e.g. `release_note,overview`). Default: no filter — every category is returned. Use this to narrow a fat detail response, e.g. fetch Salt + just its release notes in one call. */
-        facts_categories?: string | null;
-        /** @description Cap the number of facts returned (applied after the category filter). Default: no cap. Useful when a capability has hundreds of facts and the UI only renders the top N. */
-        facts_limit?: number | null;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityDetailResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_capability_v1_capabilities__entity_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  patch_capability_v1_capabilities__entity_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateEntityRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_artifacts_v1_capabilities__entity_id__artifacts_get: {
-    parameters: {
-      query?: {
-        /** @description Response shape: 'default' or 'audit' */
-        view?: string;
-        /** @description Comma-separated list of categories to filter by (e.g. 'overview,release_note'). Default: no filter. */
-        category?: string | null;
-        /** @description Sparse-field selection. Default for list: fact_id,category,title,body_format,created_at,created_by_display_name (body excluded). Add `body` explicitly to include it. Allowed: fact_id,category,title,body,body_format,created_at,created_by_display_name. */
-        fields?: string | null;
-        /** @description Opaque cursor returned by the previous page. Omit to start from the first page. */
-        cursor?: string | null;
-        /** @description Items per page (max 200) */
-        page_size?: number;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ArtifactListResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_artifact_v1_capabilities__entity_id__artifacts_post: {
-    parameters: {
-      query?: {
-        /** @description Response shape: 'default' or 'audit' */
-        view?: string;
-      };
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path: {
-        /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateArtifactRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ArtifactResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_artifact_v1_capabilities__entity_id__artifacts__fact_id__get: {
-    parameters: {
-      query?: {
-        /** @description Response shape: 'default' or 'audit' */
-        view?: string;
-        /** @description Sparse-field selection. Default for get: all UI fields including body. Allowed: fact_id,category,title,body,body_format,created_at,created_by_display_name. */
-        fields?: string | null;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
-        entity_id: string;
-        fact_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ArtifactResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_artifact_v1_capabilities__entity_id__artifacts__fact_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        entity_id: string;
-        fact_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_blast_radius_v1_capabilities__entity_id__blast_radius_get: {
-    parameters: {
-      query?: {
-        /** @description Traversal direction: 'forward' (dependencies) or 'reverse' (dependents) */
-        direction?: string;
-        /** @description Max hop count (1–5; capped at 5) */
-        depth?: number;
-        /** @description Comma-separated edge_rel vocab values; default: all dependency rels */
-        edge_types?: string | null;
-        /** @description ISO-8601 UTC datetime; values > 90 days ago bypass cache */
-        as_of?: string | null;
-        /** @description Semver string. When set, traversal only follows edges whose version predicates are satisfied by this version. Edges with no predicate are always included. */
-        as_of_version?: string | null;
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-        view?: string;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TraversalResultResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_dependencies_v1_capabilities__entity_id__dependencies_get: {
-    parameters: {
-      query?: {
-        depth?: number;
-        /** @description ISO-8601 UTC datetime for time-travel */
-        as_of?: string | null;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['DependencyResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_dependents_v1_capabilities__entity_id__dependents_get: {
-    parameters: {
-      query?: {
-        /** @description Max hop count (1–5; capped at 5) */
-        depth?: number;
-        /** @description Comma-separated edge_rel vocab values; default: all dependency rels */
-        edge_types?: string | null;
-        /** @description ISO-8601 UTC datetime for time-travel queries */
-        as_of?: string | null;
-        /** @description Semver string. When set, traversal only follows edges whose version predicates are satisfied by this version. Edges with no predicate are always included. */
-        as_of_version?: string | null;
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-        view?: string;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TraversalResultResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  patch_capability_lifecycle_v1_capabilities__entity_id__lifecycle_patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['LifecycleTransitionRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['LifecycleTransitionResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  set_visibility_handler_v1_capabilities__entity_id__visibility_patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SetVisibilityRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  post_blast_radius_v1_capabilities__entity_id__blast_radius_post: {
-    parameters: {
-      query?: {
-        /** @description Traversal direction: 'forward' or 'reverse' */
-        direction?: string;
-        /** @description Max hop count (1–5; capped at 5) */
-        depth?: number;
-        /** @description Comma-separated edge_rel vocab values */
-        edge_types?: string | null;
-        /** @description ISO-8601 UTC datetime */
-        as_of?: string | null;
-        /** @description Semver string for version predicate filtering */
-        as_of_version?: string | null;
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-        view?: string;
-      };
-      header?: never;
-      path: {
-        /** @description Capability UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['TraversalResultResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_adoptions_v1_capabilities__provider_cap_id__adoptions_get: {
-    parameters: {
-      query?: {
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
-        view?: string;
-      };
-      header?: never;
-      path: {
-        /** @description Provider capability UUID or slug */
-        provider_cap_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AdoptionListResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  adopt_capability_v1_capabilities__provider_cap_id__adoptions_post: {
-    parameters: {
-      query?: {
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
-        view?: string;
-      };
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path: {
-        /** @description Provider capability UUID or slug */
-        provider_cap_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['AdoptionCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AdoptionResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _unadopt_capability_v1_capabilities__provider_cap_id__adoptions__adoption_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Provider capability UUID or slug */
-        provider_cap_id: string;
-        adoption_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _create_v1_concepts_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateConceptRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _get_v1_concepts__entity_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Concept UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['EntityDetailResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  v1_concepts_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Concept UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  v1_concepts_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Concept UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateEntityRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  lookup_entity_by_external_id_v1_entities_get: {
-    parameters: {
-      query: {
-        /** @description External system slug (registered via /v1/admin/external-systems) */
-        external_system: string;
-        /** @description The raw external ID string as it appears in the upstream system */
-        external_id: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['EntityRefResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_external_ids_v1_entities__entity_id__external_ids_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Entity UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExternalIdListResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  add_external_id_v1_entities__entity_id__external_ids_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path: {
-        /** @description Entity UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ExternalIdCreate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExternalIdResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _delete_external_id_v1_entities__entity_id__external_ids__external_id_pk__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Entity UUID or slug */
-        entity_id: string;
-        external_id_pk: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _patch_external_id_v1_entities__entity_id__external_ids__external_id_pk__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Entity UUID or slug */
-        entity_id: string;
-        external_id_pk: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ExternalIdPatch'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ExternalIdResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_consumer_projection_v1_graph_consumer_get: {
-    parameters: {
-      query?: {
-        /** @description Opaque cursor returned by the previous page. Omit to start from the first page. */
-        cursor?: string | null;
-        /** @description Items per page (max 500) */
-        page_size?: number;
-        /** @description ISO-8601 UTC datetime for time-travel queries */
-        as_of?: string | null;
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-        view?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectionResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_provider_projection_v1_graph_provider_get: {
-    parameters: {
-      query?: {
-        /** @description Opaque cursor returned by the previous page. Omit to start from the first page. */
-        cursor?: string | null;
-        /** @description Items per page (max 500) */
-        page_size?: number;
-        /** @description ISO-8601 UTC datetime for time-travel queries */
-        as_of?: string | null;
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
-        view?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectionResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  find_integrations_v1_integrations_get: {
-    parameters: {
-      query: {
-        /** @description capability_a_id */
-        connects: string;
-        /** @description capability_b_id */
-        and: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['IntegrationListResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_sessions_v1_memory_sessions_get: {
-    parameters: {
-      query?: {
-        since?: string | null;
-        limit?: number;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SessionResponse'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_session_events_v1_memory_sessions__session_id__events_get: {
-    parameters: {
-      query?: {
-        since?: number | null;
-        until?: number | null;
-        kind?: string | null;
-        cursor?: number | null;
-        limit?: number;
-        order?: string;
-      };
-      header?: never;
-      path: {
-        session_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['EventResponse'][];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  record_event_v1_memory_sessions__session_id__events_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        session_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RecordEventRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['EventResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  get_session_event_v1_memory_sessions__session_id__events__event_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        session_id: string;
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['EventResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_session_event_v1_memory_sessions__session_id__events__event_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        session_id: string;
-        event_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_notifications_v1_notifications_get: {
-    parameters: {
-      query?: {
-        status?: string;
-        cursor?: string | null;
-        page_size?: number;
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` is accepted for API consistency but is currently a no-op here — NotificationItem has no bitemporal columns to expose. This parameter is reserved for future use. */
-        view?: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['NotificationListResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  mark_read_v1_notifications__notification_id__mark_read_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        notification_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _create_v1_operations_post: {
-    parameters: {
-      query?: never;
-      header?: {
-        'Idempotency-Key'?: string | null;
-        'X-Idempotency-Key'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateOperationRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _get_v1_operations__entity_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Operation UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['EntityDetailResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  v1_operations_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Operation UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  v1_operations_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Operation UUID or slug */
-        entity_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateEntityRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['CapabilityResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_global_predicates_v1_operator_claim_predicates_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PredicateResponse'][];
-        };
-      };
-    };
-  };
-  create_global_predicate_v1_operator_claim_predicates_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreatePredicateRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PredicateResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  inventory_local_predicates_v1_operator_claim_predicates_local_inventory_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['LocalPredicateResponse'][];
-        };
-      };
-    };
-  };
-  deprecate_global_predicate_v1_operator_claim_predicates__value__deprecate_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        value: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PredicateResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  search_v1_search_get: {
-    parameters: {
-      query: {
-        /** @description Free-text search query */
-        q: string;
-        top_k?: number;
-        /** @description ISO-8601 UTC datetime for time-travel */
-        as_of?: string | null;
-        entity_type?: string | null;
-        lifecycle?: string | null;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SearchResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _delete_subscription_handler_v1_subscriptions__subscription_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        subscription_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _update_subscription_handler_v1_subscriptions__subscription_id__patch: {
-    parameters: {
-      query?: {
-        /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
-        view?: string;
-      };
-      header?: never;
-      path: {
-        subscription_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SubscriptionUpdate'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SubscriptionResponse'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  whoami_v1_whoami_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['WhoAmIResponse'];
-        };
-      };
-    };
-  };
-  list_workspaces_v1_workspaces_get: {
-    parameters: {
-      query?: {
-        /** @description Include archived workspaces (default false). */
-        include_archived?: boolean;
-        /** @description Opaque keyset pagination cursor. */
-        cursor?: string | null;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_workspace_v1_workspaces_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['WorkspaceCreateRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  search_workspaces_v1_workspaces_search_get: {
-    parameters: {
-      query?: {
-        /** @description Full-text search string (optional). */
-        q?: string | null;
-        /** @description Filter by entry kind (optional). */
-        kind?: string | null;
-        /** @description Filter by workspace owner actor UUID (optional; self or admin only). */
-        owner_actor_id?: string | null;
-        /** @description Comma-separated list of reference UUIDs. Entry must contain all of them. */
-        reference_ids?: string | null;
-        /** @description Opaque keyset pagination cursor. */
-        cursor?: string | null;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _get_workspace_handler_v1_workspaces__workspace_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        workspace_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _delete_workspace_handler_v1_workspaces__workspace_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        workspace_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _update_workspace_handler_v1_workspaces__workspace_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        workspace_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['WorkspaceUpdateRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_entries_v1_workspaces__workspace_id__entries_get: {
-    parameters: {
-      query?: {
-        /** @description Filter by entry kind (optional). */
-        kind?: string | null;
-        /** @description Opaque keyset pagination cursor. */
-        cursor?: string | null;
-      };
-      header?: never;
-      path: {
-        /** @description Workspace UUID */
-        workspace_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_entry_v1_workspaces__workspace_id__entries_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Workspace UUID */
-        workspace_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['EntryCreateRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _delete_entry_handler_v1_workspaces__workspace_id__entries__entry_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        workspace_id: string;
-        entry_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  _update_entry_handler_v1_workspaces__workspace_id__entries__entry_id__patch: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        workspace_id: string;
-        entry_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['EntryUpdateRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: unknown;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  github_webhook_webhooks_github_post: {
-    parameters: {
-      query: {
-        source_id: string;
-      };
-      header?: {
-        'x-hub-signature-256'?: string | null;
-        'x-github-delivery'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: string;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  gitlab_webhook_webhooks_gitlab_post: {
-    parameters: {
-      query: {
-        source_id: string;
-      };
-      header?: {
-        'x-gitlab-token'?: string | null;
-        'x-gitlab-event-uuid'?: string | null;
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': {
-            [key: string]: string;
-          };
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
+    healthz_healthz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    metrics_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    readyz_readyz_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    delete_actor_personal_data_v1_admin_actors__actor_id__personal_data_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                actor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurgeResultResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    query_audit_log_v1_admin_audit_get: {
+        parameters: {
+            query?: {
+                actor_id?: string | null;
+                action?: string | null;
+                target_type?: string | null;
+                target_id?: string | null;
+                from?: string | null;
+                to?: string | null;
+                cursor?: string | null;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_capability_types_v1_admin_capability_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityTypeSchemaResponse"][];
+                };
+            };
+        };
+    };
+    create_capability_type_v1_admin_capability_types_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CapabilityTypeSchemaCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityTypeSchemaResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_capability_type_v1_admin_capability_types__type_name__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityTypeSchemaResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_capability_type_v1_admin_capability_types__type_name__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                type_name: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CapabilityTypeSchemaPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityTypeSchemaResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_edge_property_schemas_v1_admin_edge_property_schemas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown[];
+                };
+            };
+        };
+    };
+    create_edge_property_schema_v1_admin_edge_property_schemas_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    _update_edge_property_schema_v1_admin_edge_property_schemas__schema_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                schema_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_external_systems_v1_admin_external_systems_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExternalSystemResponse"][];
+                };
+            };
+        };
+    };
+    create_external_system_v1_admin_external_systems_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExternalSystemCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExternalSystemResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _delete_external_system_v1_admin_external_systems__slug__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_extraction_strategies_v1_admin_extraction_strategies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StrategyView"][];
+                };
+            };
+        };
+    };
+    get_conformance_policy_v1_admin_extraction_strategies_conformance_policy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConformancePolicyView"];
+                };
+            };
+        };
+    };
+    update_extraction_strategy_v1_admin_extraction_strategies__strategy_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                strategy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StrategyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StrategyConfigView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_operational_health_v1_admin_operational_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationalHealthOut"];
+                };
+            };
+        };
+    };
+    list_pii_field_policies_v1_admin_pii_field_policies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiiFieldPolicyResponse"][];
+                };
+            };
+        };
+    };
+    create_pii_field_policy_v1_admin_pii_field_policies_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PiiFieldPolicyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiiFieldPolicyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _delete_pii_field_policy_v1_admin_pii_field_policies__policy_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                policy_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_pii_patterns_v1_admin_pii_patterns_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiiPatternResponse"][];
+                };
+            };
+        };
+    };
+    create_pii_pattern_v1_admin_pii_patterns_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PiiPatternCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiiPatternResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _delete_pii_pattern_v1_admin_pii_patterns__pattern_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pattern_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _patch_pii_pattern_v1_admin_pii_patterns__pattern_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                pattern_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PiiPatternPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PiiPatternResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sync_runs_v1_admin_sync_runs_get: {
+        parameters: {
+            query?: {
+                source_id?: string | null;
+                status?: string | null;
+                from?: string | null;
+                to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sync_run_v1_admin_sync_runs__sync_run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sync_run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_superseded_facts_for_run_v1_admin_sync_runs__sync_run_id__superseded_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sync_run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupersededFactResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sync_sources_v1_admin_sync_sources_get: {
+        parameters: {
+            query?: {
+                active_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncSourceResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_sync_source_v1_admin_sync_sources_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncSourceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncSourceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_sync_source_v1_admin_sync_sources__source_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncSourceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_sync_source_v1_admin_sync_sources__source_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_sync_source_v1_admin_sync_sources__source_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncSourcePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncSourceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trigger_sync_v1_admin_sync_sources__source_id__trigger_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TriggerResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_progression_overrides_v1_admin_tenants__tenant_id__entities__entity_id__progression_overrides_get: {
+        parameters: {
+            query?: {
+                consumed?: boolean | null;
+                expired?: boolean | null;
+                from_state?: string | null;
+                to_state?: string | null;
+            };
+            header?: never;
+            path: {
+                tenant_id: string;
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressionOverrideResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_progression_override_v1_admin_tenants__tenant_id__entities__entity_id__progression_overrides_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgressionOverrideCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressionOverrideResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_progression_definitions_v1_admin_tenants__tenant_id__progression_definitions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressionDefinitionResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_progression_definition_v1_admin_tenants__tenant_id__progression_definitions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgressionDefinitionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressionDefinitionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+                progression_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressionDefinitionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    supersede_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+                progression_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProgressionDefinitionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressionDefinitionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    soft_delete_progression_definition_v1_admin_tenants__tenant_id__progression_definitions__progression_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tenant_id: string;
+                progression_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_vocabulary_values_v1_admin_vocabularies__kind__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyValueResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_vocabulary_value_v1_admin_vocabularies__kind__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path: {
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VocabularyValueCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyValueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_vocabulary_value_v1_admin_vocabularies__kind___value__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+                value: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_vocabulary_value_v1_admin_vocabularies__kind___value__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+                value: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VocabularyValuePatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VocabularyValueResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_approval_evidence_v1_arc_admin_approval_evidence__evidence_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeVerifierRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_approval_verifier_v1_arc_admin_approval_verifiers_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterVerifierRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_approval_verifier_v1_arc_admin_approval_verifiers__approval_verifier_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_verifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeVerifierRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_context_exception_v1_arc_admin_exceptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveExceptionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_context_exception_v1_arc_admin_exceptions__exception_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exception_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    describe_operator_identity_v1_arc_admin_operator_identity_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    activate_revision_v1_arc_admin_revisions__revision_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attach_approval_evidence_v1_arc_admin_revisions__revision_id__approval_evidence_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachEvidenceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    invalidate_revision_v1_arc_admin_revisions__revision_id__invalidate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_revision_v1_arc_admin_revisions__revision_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["_Accepted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_context_challenge_v1_arc_challenges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChallengeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChallengeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_verification_metadata_v1_arc_metadata_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    get_context_resolution_receipt_v1_arc_receipts__receipt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    retrieve_context_detail_v1_arc_receipts__receipt_id__detail_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DetailRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DetailPageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explain_context_resolution_v1_arc_receipts__receipt_id__explain_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_context_v1_arc_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolveContextRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolveContextResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_capabilities_v1_capabilities_get: {
+        parameters: {
+            query?: {
+                lifecycle?: string | null;
+                entity_type?: string | null;
+                /** @description Opaque cursor returned by the previous page. Omit to start from the first page. */
+                cursor?: string | null;
+                page_size?: number;
+                /** @description ISO-8601 UTC datetime for time-travel */
+                as_of?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_capability_v1_capabilities_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCapabilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_interface_v1_capabilities__capability_id__interface_get: {
+        parameters: {
+            query?: {
+                /** @description ISO-8601 UTC for time-travel */
+                as_of?: string | null;
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` is accepted for API consistency but is currently a no-op here — the interface record is a composed view without individual bitemporal row metadata. Use ``?as_of=`` for time-travel instead. */
+                view?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                capability_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterfaceReadResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_interface_v1_capabilities__capability_id__interface_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                capability_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterfacePutRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterfaceSurfaceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_version_v1_capabilities__capability_id__preview_version_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                capability_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BreakingChangePreviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_subscriptions_for_capability_v1_capabilities__capability_id__subscriptions_get: {
+        parameters: {
+            query?: {
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
+                view?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                capability_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_subscription_v1_capabilities__capability_id__subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Capability UUID or slug */
+                capability_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_capability_v1_capabilities__entity_id__get: {
+        parameters: {
+            query?: {
+                /** @description ISO-8601 UTC datetime for bi-temporal time-travel */
+                as_of?: string | null;
+                /** @description Comma-separated list of sub-resources to expand. Known values: components, depends_on, external_ids, interface. Each expansion is capped at 200 items — `truncated: true` + a `next` URL signal overflow. */
+                include?: string | null;
+                /** @description Response shape. `default` (UI-flavoured) is the standard minimal shape every endpoint returns. `audit` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at), tenant_id, and supersession metadata for audit / compliance consumers. */
+                view?: string;
+                /** @description Comma-separated list of fact categories to include in the `facts` field (e.g. `release_note,overview`). Default: no filter — every category is returned. Use this to narrow a fat detail response, e.g. fetch Salt + just its release notes in one call. */
+                facts_categories?: string | null;
+                /** @description Cap the number of facts returned (applied after the category filter). Default: no cap. Useful when a capability has hundreds of facts and the UI only renders the top N. */
+                facts_limit?: number | null;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_capability_v1_capabilities__entity_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_capability_v1_capabilities__entity_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEntityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_artifacts_v1_capabilities__entity_id__artifacts_get: {
+        parameters: {
+            query?: {
+                /** @description Response shape: 'default' or 'audit' */
+                view?: string;
+                /** @description Comma-separated list of categories to filter by (e.g. 'overview,release_note'). Default: no filter. */
+                category?: string | null;
+                /** @description Sparse-field selection. Default for list: fact_id,category,title,body_format,created_at,created_by_display_name (body excluded). Add `body` explicitly to include it. Allowed: fact_id,category,title,body,body_format,created_at,created_by_display_name. */
+                fields?: string | null;
+                /** @description Opaque cursor returned by the previous page. Omit to start from the first page. */
+                cursor?: string | null;
+                /** @description Items per page (max 200) */
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_artifact_v1_capabilities__entity_id__artifacts_post: {
+        parameters: {
+            query?: {
+                /** @description Response shape: 'default' or 'audit' */
+                view?: string;
+            };
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateArtifactRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_artifact_v1_capabilities__entity_id__artifacts__fact_id__get: {
+        parameters: {
+            query?: {
+                /** @description Response shape: 'default' or 'audit' */
+                view?: string;
+                /** @description Sparse-field selection. Default for get: all UI fields including body. Allowed: fact_id,category,title,body,body_format,created_at,created_by_display_name. */
+                fields?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
+                entity_id: string;
+                fact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_artifact_v1_capabilities__entity_id__artifacts__fact_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_id: string;
+                fact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_blast_radius_v1_capabilities__entity_id__blast_radius_get: {
+        parameters: {
+            query?: {
+                /** @description Traversal direction: 'forward' (dependencies) or 'reverse' (dependents) */
+                direction?: string;
+                /** @description Max hop count (1–5; capped at 5) */
+                depth?: number;
+                /** @description Comma-separated edge_rel vocab values; default: all dependency rels */
+                edge_types?: string | null;
+                /** @description ISO-8601 UTC datetime; values > 90 days ago bypass cache */
+                as_of?: string | null;
+                /** @description Semver string. When set, traversal only follows edges whose version predicates are satisfied by this version. Edges with no predicate are always included. */
+                as_of_version?: string | null;
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
+                view?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraversalResultResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dependencies_v1_capabilities__entity_id__dependencies_get: {
+        parameters: {
+            query?: {
+                depth?: number;
+                /** @description ISO-8601 UTC datetime for time-travel */
+                as_of?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug-form name (e.g. 'salt-design-system') */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DependencyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_dependents_v1_capabilities__entity_id__dependents_get: {
+        parameters: {
+            query?: {
+                /** @description Max hop count (1–5; capped at 5) */
+                depth?: number;
+                /** @description Comma-separated edge_rel vocab values; default: all dependency rels */
+                edge_types?: string | null;
+                /** @description ISO-8601 UTC datetime for time-travel queries */
+                as_of?: string | null;
+                /** @description Semver string. When set, traversal only follows edges whose version predicates are satisfied by this version. Edges with no predicate are always included. */
+                as_of_version?: string | null;
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
+                view?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraversalResultResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_capability_lifecycle_v1_capabilities__entity_id__lifecycle_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LifecycleTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LifecycleTransitionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_visibility_handler_v1_capabilities__entity_id__visibility_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetVisibilityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_blast_radius_v1_capabilities__entity_id__blast_radius_post: {
+        parameters: {
+            query?: {
+                /** @description Traversal direction: 'forward' or 'reverse' */
+                direction?: string;
+                /** @description Max hop count (1–5; capped at 5) */
+                depth?: number;
+                /** @description Comma-separated edge_rel vocab values */
+                edge_types?: string | null;
+                /** @description ISO-8601 UTC datetime */
+                as_of?: string | null;
+                /** @description Semver string for version predicate filtering */
+                as_of_version?: string | null;
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
+                view?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TraversalResultResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_adoptions_v1_capabilities__provider_cap_id__adoptions_get: {
+        parameters: {
+            query?: {
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
+                view?: string;
+            };
+            header?: never;
+            path: {
+                /** @description Provider capability UUID or slug */
+                provider_cap_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdoptionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    adopt_capability_v1_capabilities__provider_cap_id__adoptions_post: {
+        parameters: {
+            query?: {
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
+                view?: string;
+            };
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Provider capability UUID or slug */
+                provider_cap_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdoptionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdoptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _unadopt_capability_v1_capabilities__provider_cap_id__adoptions__adoption_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Provider capability UUID or slug */
+                provider_cap_id: string;
+                adoption_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _create_v1_concepts_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConceptRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _get_v1_concepts__entity_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Concept UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    v1_concepts_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Concept UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    v1_concepts_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Concept UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEntityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lookup_entity_by_external_id_v1_entities_get: {
+        parameters: {
+            query: {
+                /** @description External system slug (registered via /v1/admin/external-systems) */
+                external_system: string;
+                /** @description The raw external ID string as it appears in the upstream system */
+                external_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityRefResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_external_ids_v1_entities__entity_id__external_ids_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Entity UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExternalIdListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_external_id_v1_entities__entity_id__external_ids_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Entity UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExternalIdCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExternalIdResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _delete_external_id_v1_entities__entity_id__external_ids__external_id_pk__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Entity UUID or slug */
+                entity_id: string;
+                external_id_pk: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _patch_external_id_v1_entities__entity_id__external_ids__external_id_pk__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Entity UUID or slug */
+                entity_id: string;
+                external_id_pk: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExternalIdPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExternalIdResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_consumer_projection_v1_graph_consumer_get: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor returned by the previous page. Omit to start from the first page. */
+                cursor?: string | null;
+                /** @description Items per page (max 500) */
+                page_size?: number;
+                /** @description ISO-8601 UTC datetime for time-travel queries */
+                as_of?: string | null;
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
+                view?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_provider_projection_v1_graph_provider_get: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor returned by the previous page. Omit to start from the first page. */
+                cursor?: string | null;
+                /** @description Items per page (max 500) */
+                page_size?: number;
+                /** @description ISO-8601 UTC datetime for time-travel queries */
+                as_of?: string | null;
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal edge columns (valid_from / valid_to / ingested_at / invalidated_at / tenant_id) for audit consumers. */
+                view?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    find_integrations_v1_integrations_get: {
+        parameters: {
+            query: {
+                /** @description capability_a_id */
+                connects: string;
+                /** @description capability_b_id */
+                and: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IntegrationListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_sessions_v1_memory_sessions_get: {
+        parameters: {
+            query?: {
+                since?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_session_events_v1_memory_sessions__session_id__events_get: {
+        parameters: {
+            query?: {
+                since?: number | null;
+                until?: number | null;
+                kind?: string | null;
+                cursor?: number | null;
+                limit?: number;
+                order?: string;
+            };
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_event_v1_memory_sessions__session_id__events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordEventRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_session_event_v1_memory_sessions__session_id__events__event_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_session_event_v1_memory_sessions__session_id__events__event_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_notifications_v1_notifications_get: {
+        parameters: {
+            query?: {
+                status?: string;
+                cursor?: string | null;
+                page_size?: number;
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` is accepted for API consistency but is currently a no-op here — NotificationItem has no bitemporal columns to expose. This parameter is reserved for future use. */
+                view?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mark_read_v1_notifications__notification_id__mark_read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _create_v1_operations_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOperationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _get_v1_operations__entity_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Operation UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    v1_operations_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Operation UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    v1_operations_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Operation UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateEntityRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_global_predicates_v1_operator_claim_predicates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PredicateResponse"][];
+                };
+            };
+        };
+    };
+    create_global_predicate_v1_operator_claim_predicates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePredicateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PredicateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    inventory_local_predicates_v1_operator_claim_predicates_local_inventory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocalPredicateResponse"][];
+                };
+            };
+        };
+    };
+    deprecate_global_predicate_v1_operator_claim_predicates__value__deprecate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                value: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PredicateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_v1_search_get: {
+        parameters: {
+            query: {
+                /** @description Free-text search query */
+                q: string;
+                top_k?: number;
+                /** @description ISO-8601 UTC datetime for time-travel */
+                as_of?: string | null;
+                entity_type?: string | null;
+                lifecycle?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _delete_subscription_handler_v1_subscriptions__subscription_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _update_subscription_handler_v1_subscriptions__subscription_id__patch: {
+        parameters: {
+            query?: {
+                /** @description Response shape. ``default`` is the standard UI-flavoured shape. ``audit`` adds bitemporal columns (valid_from / valid_to / ingested_at / invalidated_at) for audit / compliance consumers. */
+                view?: string;
+            };
+            header?: never;
+            path: {
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    whoami_v1_whoami_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WhoAmIResponse"];
+                };
+            };
+        };
+    };
+    list_workspaces_v1_workspaces_get: {
+        parameters: {
+            query?: {
+                /** @description Include archived workspaces (default false). */
+                include_archived?: boolean;
+                /** @description Opaque keyset pagination cursor. */
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_workspace_v1_workspaces_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_workspaces_v1_workspaces_search_get: {
+        parameters: {
+            query?: {
+                /** @description Full-text search string (optional). */
+                q?: string | null;
+                /** @description Filter by entry kind (optional). */
+                kind?: string | null;
+                /** @description Filter by workspace owner actor UUID (optional; self or admin only). */
+                owner_actor_id?: string | null;
+                /** @description Comma-separated list of reference UUIDs. Entry must contain all of them. */
+                reference_ids?: string | null;
+                /** @description Opaque keyset pagination cursor. */
+                cursor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _get_workspace_handler_v1_workspaces__workspace_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _delete_workspace_handler_v1_workspaces__workspace_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _update_workspace_handler_v1_workspaces__workspace_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_entries_v1_workspaces__workspace_id__entries_get: {
+        parameters: {
+            query?: {
+                /** @description Filter by entry kind (optional). */
+                kind?: string | null;
+                /** @description Opaque keyset pagination cursor. */
+                cursor?: string | null;
+            };
+            header?: never;
+            path: {
+                /** @description Workspace UUID */
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_entry_v1_workspaces__workspace_id__entries_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace UUID */
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _delete_entry_handler_v1_workspaces__workspace_id__entries__entry_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _update_entry_handler_v1_workspaces__workspace_id__entries__entry_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    github_webhook_webhooks_github_post: {
+        parameters: {
+            query: {
+                source_id: string;
+            };
+            header?: {
+                "x-hub-signature-256"?: string | null;
+                "x-github-delivery"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gitlab_webhook_webhooks_gitlab_post: {
+        parameters: {
+            query: {
+                source_id: string;
+            };
+            header?: {
+                "x-gitlab-token"?: string | null;
+                "x-gitlab-event-uuid"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
 }
