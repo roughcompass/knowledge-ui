@@ -227,19 +227,39 @@ different reason, which is worth separating.
 Stating this precisely matters, because a rule that claims a gate it does not have
 is the same defect as a number claiming a strength it cannot bear.
 
-| Property                                                                               | Mechanism                                              | Kind            |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------ | --------------- |
-| Every design value is a Salt token that resolves                                       | stylelint allow-list plus `check-salt-tokens`          | **Enforced**    |
-| No CSS-in-JS, no utility CSS, no unscoped stylesheet outside the three theme entries   | lint, asserted per workspace by a resolved-config test | **Enforced**    |
-| No raw hex, no literal values in a style prop                                          | lint                                                   | **Enforced**    |
-| A chart only renders through the figure component that pairs it with a table           | restricted-import rule                                 | **Enforced**    |
-| No component names a role                                                              | lint                                                   | **Enforced**    |
-| Salt-covered elements are not used raw outside the ui-kit                              | lint                                                   | **Enforced**    |
-| Accessibility on every route, light and dark                                           | axe over the built artefacts                           | **Enforced**    |
-| Button and header case, one idiom per interaction, slot usage, radius by surface class | review                                                 | **Agreed only** |
+| Property                                                                             | Mechanism                                              | Kind            |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------ | --------------- |
+| Every design value is a Salt token that resolves                                     | stylelint allow-list plus `check-salt-tokens`          | **Enforced**    |
+| No CSS-in-JS, no utility CSS, no unscoped stylesheet outside the three theme entries | lint, asserted per workspace by a resolved-config test | **Enforced**    |
+| No raw hex, no literal values in a style prop                                        | lint                                                   | **Enforced**    |
+| A chart only renders through the figure component that pairs it with a table         | restricted-import rule                                 | **Enforced**    |
+| No component names a role                                                            | lint                                                   | **Enforced**    |
+| Salt-covered elements are not used raw outside the ui-kit                            | lint                                                   | **Enforced**    |
+| Accessibility on every route, light and dark                                         | axe over the built artefacts                           | **Enforced**    |
+| Every route has exactly one page heading, including the ones that refuse             | end-to-end sweep over all routes                       | **Enforced**    |
+| Button labels are Title Case, table headers are Title Case nouns                     | end-to-end sweep over all routes as an admin           | **Enforced**    |
+| Numeric columns are right-aligned with tabular figures                               | asserted on the classes Salt's own rule is keyed on    | **Enforced**    |
+| One idiom per interaction, slot usage, radius by surface class, noun choice          | review                                                 | **Agreed only** |
 
 The bottom row is the honest gap. Three deviations once passed lint, typecheck, the
 token guard and the bundle budget, and were caught by a human reading the screen —
 because none of those checks can tell a dropdown from three toggle buttons. Some
 of it is narrowable to a path rule and some is not; where it is not, this document
 is the citation a reviewer points at.
+
+Three rows moved _up_ from that gap, and how they moved is the reusable part: each
+was a rule about what reaches the screen, so none of them was ever going to be a
+lint rule, and each became an assertion in the end-to-end lane instead — the only
+one that sees rendered output across a host and two remotes.
+
+Case was the clearest case for it. Fourteen distinct button labels, two wrong, both
+on a page nobody had reopened — small enough that reviewing by eye finds most of
+them and reliably misses the last two.
+
+Alignment is the cautionary one. It was _declared_ for every numeric column in the
+app and never once took effect: first never read, then read and resolved to a CSS
+class that Salt's own `table.saltTable td` rule outranks. Nothing failed either
+time. A stylesheet declaration that loses a specificity contest is invisible to
+stylelint, to the token guard, and to jsdom — which computes no styles at all — so
+the assertion had to be about the mechanism Salt keys its rule on rather than about
+the declaration or the pixels.

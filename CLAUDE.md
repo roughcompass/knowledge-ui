@@ -160,9 +160,19 @@ version:
 5. **New primitives belong in the ui-kit**, not in a remote. A control invented
    inside a remote is invisible to the next screen that needs it.
 
-**No guard checks idiom.** The token rule, the parity guard, the budget and the
-doc-reference check all pass on a screen that breaks every rule above. That gap
+**Two of these are now gated; the rest are not.** Button and table-header case are
+asserted over every route in the end-to-end lane, because they are shape rather than
+judgement and both had drifted twice. Everything else above still passes lint, the
+token rule, the parity guard, the budget and the doc-reference check on a screen that
+breaks all of it — no check can tell a dropdown from three toggle buttons. That gap
 is real, which is why these are written down.
+
+The pattern worth reusing: a rule about **what reaches the screen** belongs in the
+end-to-end lane, not in a lint rule. Numeric alignment is the example that proves it
+— it was declared for every numeric column in the app and never once took effect,
+because a CSS module class loses to Salt's own `table.saltTable td` rule. No gate saw
+it. jsdom computes no styles, stylelint checks form and not effect, and the token
+guard checks that a token resolves and not that the declaration wins.
 
 ---
 
