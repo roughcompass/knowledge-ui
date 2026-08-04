@@ -21,6 +21,22 @@ a principal to one role by precedence and auditor sits lowest, a principal holdi
 admin and auditor _loses_ audit access — so being refused here is a normal server
 constraint rather than a mistake.
 
+**Usage has two gates, not one.** The four aggregate reads describe the whole
+deployment and are admin-only; the owner-scoped read admits producer and returns
+only what their tenant owns. One capability could not serve both — at the wider
+grant it would offer a producer an operator screen the API refuses, at the narrower
+it would hide a producer's own numbers from them. So the destination is gated on
+the owner scope, which is the one that lets a producer in, and the page itself
+tells them why the deployment panels are absent.
+
+**The usage page's job is mostly not undoing the service's care.** The API omits a
+day with no traffic rather than sending zero, "so a caller can tell an outage from
+a quiet weekend"; it returns a null distinct-actor count with the reason when the
+window reaches past raw retention; it warns that actor-days is not a headcount; and
+it labels the largest single-day p95 as such, because percentiles cannot be
+averaged. Every one of those is a distinction a dashboard erases by default, so
+each has a helper in the client whose only job is carrying it to the screen.
+
 **No screen reads the metrics exposition format, and none names an external
 dashboard.** Those numbers are per-replica and cumulative since process start, and
 a reader cannot tell; a console whose operations page is a set of links into a tool

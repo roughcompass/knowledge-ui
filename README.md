@@ -77,7 +77,7 @@ backend happens to be up is a repo whose tests stop being run.
 apps/shell                 session bootstrap, navigation rail, remote registry, error boundaries
 remotes/catalog            capability browse and detail, impact, adoption, subscriptions,
                            notifications, claims
-remotes/operations         health, operational health, audit log, sync connectors and runs
+remotes/operations         health, operational health, usage, audit log, sync connectors and runs
 packages/remote-contract   the typed host-to-remote handshake (types only, no runtime export)
 packages/auth              session, roles, the capability table, the dev persona roster
 packages/api-client        generated OpenAPI client, query keys, one module per API domain

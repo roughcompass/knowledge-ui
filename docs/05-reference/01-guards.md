@@ -52,6 +52,19 @@ where it proves nothing. It now fails on absent output, checks the client ids as
 well as the secret, and recognises the mocked build, which bakes the roster in on
 purpose.
 
+## The guard that guards the guards
+
+`tooling/__tests__/resolved-config.test.ts` is not in the table because it is a test
+rather than a script, but it belongs in the same family. Flat lint config replaces a
+rule's options rather than merging them, so a later block silently discards every
+earlier entry for the files it matches — and reading the config cannot tell you what
+survived, only resolving it per file can.
+
+That has now happened three times in this repo: to the raw-hex ban, to the package
+bans, and to the chart-mark ban inside the stylesheet exemption. The test resolves
+the config for one file per neighbourhood and asserts each rule arrived intact,
+which is the only mechanism that has actually caught it.
+
 ## The guard the gates do not have
 
 None of them checks **idiom**. Three deviations from the design standard once
