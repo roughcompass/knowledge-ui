@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 
-import type { SyncSource, SyncSourceCreate, SyncSourcePatch, TriggerReceipt } from './admin';
+import type { SyncSource, SyncSourceCreate, SyncSourcePatch, TriggerReceipt } from './adminSync';
 import type { RegistryClient } from './client';
 import type { RegistryError } from './errors';
 import { queryKeys, type KeyScope } from './keys';

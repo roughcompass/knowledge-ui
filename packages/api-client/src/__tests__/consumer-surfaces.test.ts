@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { EVENT_KINDS, NOTIFICATION_STATUSES } from '../consumer';
+/**
+ * The three consumer surfaces share a cache scope and a set of closed
+ * vocabularies, so they are asserted together even though they now live in three
+ * modules. Splitting this file per module would put the notification-key
+ * invalidation assertion out of reach of the root key it depends on.
+ */
+
+import { NOTIFICATION_STATUSES } from '../notifications';
+import { EVENT_KINDS } from '../subscriptions';
 import { queryKeys } from '../keys';
 import { PAGE_LIMITS, clampPageSize } from '../params';
 

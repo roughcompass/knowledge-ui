@@ -1,3 +1,20 @@
+/**
+ * The public surface of the API client, grouped the way the modules are.
+ *
+ * Three tiers, and the order below follows them: the transport and its error
+ * model, the shared request and cache plumbing, then one module per API domain.
+ * A new domain gets its own module and its own block here rather than joining an
+ * existing one — the two files this replaced had grown to five and three
+ * unrelated domains apiece, and the second was named `hooks.ts` while three of
+ * its siblings were also hooks.
+ *
+ * Everything is a named re-export. A star export would make this file's contents
+ * depend on what happens to be exported downstream, which is how a barrel stops
+ * being a statement about the package's surface.
+ */
+
+// -- transport --------------------------------------------------------------
+
 export {
   DEFAULT_TIMEOUT_MS,
   createRegistryClient,
@@ -20,15 +37,7 @@ export {
   type KnownErrorCode,
 } from './errors';
 
-export {
-  probeLiveness,
-  probeReadiness,
-  type Liveness,
-  type ProbeOptions,
-  type Readiness,
-} from './ops';
-
-export { describeScope, processScopeCaveat } from './readings';
+// -- request and cache plumbing ---------------------------------------------
 
 export { queryKeys, type KeyScope } from './keys';
 
@@ -42,32 +51,83 @@ export {
   type PagedEndpoint,
 } from './params';
 
+export { LIST_OPTIONS } from './queryDefaults';
+
 export { CursorStack, filterSignature } from './cursor';
+
+// -- domains ----------------------------------------------------------------
+
+export { useWhoami, type WhoAmI } from './identity';
 
 export {
   LIFECYCLE_STATES,
-  useAuditLog,
   useCapabilities,
   useCapability,
-  useLiveness,
-  useOperationalHealth,
-  type OperationalHealth,
-  type OperationalReading,
-  useReadiness,
-  useSearch,
-  useWhoami,
-  type AuditParams,
-  type AuditResponse,
-  type AuditRow,
   type CapabilityListParams,
   type CapabilityListResponse,
   type EntityRef,
   type Lifecycle,
+} from './catalog';
+
+export {
+  useSearch,
+  type SearchCitation,
   type SearchHit,
   type SearchParams,
   type SearchResponse,
-  type WhoAmI,
-} from './hooks';
+} from './search';
+
+export { useAuditLog, type AuditParams, type AuditResponse, type AuditRow } from './audit';
+
+export {
+  describeScope,
+  processScopeCaveat,
+  useLiveness,
+  useOperationalHealth,
+  useReadiness,
+  type OperationalHealth,
+  type OperationalReading,
+} from './operationalHealth';
+
+export {
+  probeLiveness,
+  probeReadiness,
+  type Liveness,
+  type ProbeOptions,
+  type Readiness,
+} from './ops';
+
+export {
+  useAdopt,
+  useAdoption,
+  useUnadopt,
+  type Adoption,
+  type AdoptInput,
+  type AdoptionListResponse,
+} from './adoptions';
+
+export {
+  EVENT_KINDS,
+  useCreateSubscription,
+  useDeleteSubscription,
+  usePatchSubscription,
+  useSubscriptions,
+  type EventKind,
+  type Subscription,
+  type SubscriptionCreate,
+  type SubscriptionPatch,
+} from './subscriptions';
+
+export {
+  NOTIFICATION_STATUSES,
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+  useNotifications,
+  type NotificationItem,
+  type NotificationListResponse,
+  type NotificationParams,
+  type NotificationStatus,
+} from './notifications';
 
 export {
   SYNC_RUN_STATUSES,
@@ -84,34 +144,8 @@ export {
   type SyncSourcePatch,
   type SyncSourceType,
   type TriggerReceipt,
-} from './admin';
+} from './adminSync';
 
 export { useCreateSyncSource, usePatchSyncSource, useTriggerSync } from './mutations';
-
-export {
-  EVENT_KINDS,
-  NOTIFICATION_STATUSES,
-  useAdopt,
-  useAdoption,
-  useCreateSubscription,
-  useDeleteSubscription,
-  useMarkAllNotificationsRead,
-  useMarkNotificationRead,
-  useNotifications,
-  usePatchSubscription,
-  useSubscriptions,
-  useUnadopt,
-  type Adoption,
-  type AdoptInput,
-  type AdoptionListResponse,
-  type EventKind,
-  type NotificationItem,
-  type NotificationListResponse,
-  type NotificationParams,
-  type NotificationStatus,
-  type Subscription,
-  type SubscriptionCreate,
-  type SubscriptionPatch,
-} from './consumer';
 
 export type { components, paths } from './generated/registry';

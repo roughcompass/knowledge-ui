@@ -1,8 +1,9 @@
-import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import type { RegistryClient } from './client';
 import type { components } from './generated/registry';
 import { queryKeys, type KeyScope } from './keys';
+import { LIST_OPTIONS } from './queryDefaults';
 import { compact, toApiTimestamp } from './params';
 
 /**
@@ -64,11 +65,6 @@ export type SyncSourceType = (typeof SYNC_SOURCE_TYPES)[number];
  */
 export const SYNC_RUN_STATUSES = ['queued', 'running', 'done', 'partial', 'failed'] as const;
 export type SyncRunStatus = (typeof SYNC_RUN_STATUSES)[number];
-
-const LIST_OPTIONS = {
-  placeholderData: keepPreviousData,
-  staleTime: 30_000,
-} as const;
 
 export function useSyncSources(
   client: RegistryClient,
