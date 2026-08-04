@@ -59,8 +59,15 @@ type SampleName = keyof typeof SAMPLES;
 const eslint = new ESLint({ cwd: repoRoot });
 
 async function rulesFor(sample: SampleName) {
-  const config = await eslint.calculateConfigForFile(SAMPLES[sample]);
-  return (config.rules ?? {}) as Record<string, unknown[] | undefined>;
+  /*
+   * `calculateConfigForFile` is typed `Promise<any>` by ESLint itself. Naming the
+   * one field this file reads confines that to a single line, rather than letting
+   * an untyped value flow into every assertion below it.
+   */
+  const config = (await eslint.calculateConfigForFile(SAMPLES[sample])) as {
+    rules?: Record<string, unknown[] | undefined>;
+  };
+  return config.rules ?? {};
 }
 
 function restrictedImportPaths(rules: Record<string, unknown[] | undefined>): string[] {

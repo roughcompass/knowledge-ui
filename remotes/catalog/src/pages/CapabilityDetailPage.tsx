@@ -4,6 +4,7 @@ import { useSession } from '@knowledge-ui/auth';
 import {
   DataTable,
   DescriptionList,
+  displayText,
   ErrorPanel,
   LoadingPanel,
   PageHeader,
@@ -42,7 +43,7 @@ function AttributeValue({ value }: { value: unknown }) {
   if (typeof value === 'object') {
     return <Text styleAs="code">{JSON.stringify(value)}</Text>;
   }
-  return <Text>{String(value)}</Text>;
+  return <Text>{displayText(value)}</Text>;
 }
 
 export function CapabilityDetailPage() {
@@ -57,7 +58,7 @@ export function CapabilityDetailPage() {
     ...(auditView ? { view: 'audit' as const } : {}),
   });
 
-  const data = (query.data ?? {}) as Record<string, unknown>;
+  const data = query.data ?? {};
   const entity = (data.entity ?? {}) as Record<string, unknown>;
   const attributes = (data.attributes ?? {}) as Record<string, unknown>;
   const facts = Array.isArray(data.facts) ? (data.facts as Array<Record<string, unknown>>) : [];
@@ -77,12 +78,12 @@ export function CapabilityDetailPage() {
    */
   const header = (
     <PageHeader
-      title={String(entity.name ?? handle ?? 'Capability')}
+      title={displayText(entity.name ?? handle ?? 'Capability')}
       metadata={
         query.isPending ? undefined : (
           <FlexLayout gap={1} align="center">
             {lifecycle ? <Tag>{lifecycle}</Tag> : null}
-            <Tag>{String(entity.entity_type ?? 'capability')}</Tag>
+            <Tag>{displayText(entity.entity_type ?? 'capability')}</Tag>
           </FlexLayout>
         )
       }
@@ -184,7 +185,7 @@ export function CapabilityDetailPage() {
           // Facts are not guaranteed an id, so the index is the fallback. It is
           // passed by `DataTable` — this used to declare it as a defaulted
           // parameter that never received a value, keying every id-less fact "0".
-          getRowId={(row, index) => String(row.fact_id ?? index)}
+          getRowId={(row, index) => displayText(row.fact_id ?? index)}
           emptyTitle="No facts recorded"
           emptyHeadingLevel="h3"
         />

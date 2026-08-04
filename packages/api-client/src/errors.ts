@@ -253,6 +253,30 @@ export function fieldErrors(error: unknown): Record<string, string[]> {
 }
 
 /**
+ * A thrown value that is neither envelope-shaped nor an `Error`, said out loud.
+ *
+ * Anything can be thrown in JavaScript, and whatever it is has to reach the form
+ * or a failed submit renders as silence. The obvious `String(value)` does that for
+ * a primitive and actively lies for an object, where it produces `[object Object]`
+ * — a message that occupies the space an explanation should and tells the reader
+ * nothing they can act on.
+ *
+ * So a primitive is quoted as-is and anything else is serialised. `JSON.stringify`
+ * returning `undefined` covers the genuinely unrenderable cases (a function, a
+ * bare symbol), which get a sentence saying the shape was unrecognised rather than
+ * a blank where a reason belongs.
+ */
+function describeThrown(error: unknown): string[] {
+  if (error === null || error === undefined) return [];
+  if (typeof error === 'string') return [error];
+  if (typeof error === 'number' || typeof error === 'boolean' || typeof error === 'bigint') {
+    return [String(error)];
+  }
+  const serialised = typeof error === 'object' ? JSON.stringify(error) : undefined;
+  return [serialised ?? 'The request failed and the reason was not in a recognisable shape.'];
+}
+
+/**
  * The messages that belong to no particular field.
  *
  * Everything with a null or empty `path`. Render these together above the controls;
@@ -265,7 +289,7 @@ export function formErrors(error: unknown): string[] {
     // Nothing envelope-shaped. A thrown Error still has to say something, or a
     // failed submit renders as silence.
     if (error instanceof Error) return [error.message];
-    return error === null || error === undefined ? [] : [String(error)];
+    return describeThrown(error);
   }
 
   return items.filter((i) => typeof i.path !== 'string' || i.path === '').map((i) => i.message);

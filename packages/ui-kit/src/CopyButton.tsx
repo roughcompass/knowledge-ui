@@ -60,7 +60,12 @@ export function CopyButton({
       <Button
         appearance="transparent"
         sentiment={state === 'failed' ? 'caution' : 'neutral'}
-        onClick={copy}
+        // `copy` is async and `onClick` expects nothing back. Discarding the
+        // promise explicitly is the difference between a rejection that is
+        // handled and one that is merely unobserved — `copy` catches the
+        // clipboard failure itself, so there is nothing left to await, and
+        // `void` records that rather than leaving it to be inferred.
+        onClick={() => void copy()}
         aria-label={ariaLabel ?? `${label} ${value}`}
       >
         {state === 'copied' ? <SuccessTickIcon aria-hidden /> : <CopyIcon aria-hidden />}

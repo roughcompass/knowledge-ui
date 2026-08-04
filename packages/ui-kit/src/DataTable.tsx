@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { SectionCard } from './SectionCard';
 import styles from './DataTable.module.css';
 import { EmptyState } from './EmptyState';
+import { displayText } from './displayText';
 import { LoadingPanel } from './LoadingPanel';
 
 /**
@@ -217,7 +218,7 @@ export function DataTable<TRow>({
               >
                 {column.render
                   ? column.render(row)
-                  : String((row as Record<string, unknown>)[column.key] ?? '')}
+                  : displayText((row as Record<string, unknown>)[column.key])}
               </TD>
             ))}
           </TR>

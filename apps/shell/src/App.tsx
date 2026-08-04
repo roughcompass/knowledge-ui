@@ -132,7 +132,7 @@ function AuthenticatedApp({
     if (!authRef.current || !personaKey) return null;
     return createRegistryClient({
       baseUrl: apiBaseUrl(),
-      getToken: () => authRef.current?.getToken() ?? Promise.resolve(null),
+      getToken: async () => (await authRef.current?.getToken()) ?? null,
       // Sent only after an explicit choice. A tenant header that does not match a
       // single-grant principal's own tenant is refused with a 403, so guessing
       // would lock the reader out of an account that works.

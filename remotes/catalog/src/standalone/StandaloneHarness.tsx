@@ -28,7 +28,7 @@ export function StandaloneHarness() {
     authRef.current ??= new DevPersonaAuthProvider({ personas, apiBaseUrl: apiBaseUrl() });
     return createRegistryClient({
       baseUrl: apiBaseUrl(),
-      getToken: () => authRef.current?.getToken() ?? Promise.resolve(null),
+      getToken: async () => (await authRef.current?.getToken()) ?? null,
     });
   }, [personas]);
 

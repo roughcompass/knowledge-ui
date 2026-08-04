@@ -1,5 +1,7 @@
 import js from '@eslint/js';
 import globals from 'globals';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
+import noOnlyTests from 'eslint-plugin-no-only-tests';
 import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
@@ -222,13 +224,82 @@ export default tseslint.config(
   },
 
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+
+  /*
+   * Type-aware rules, not just syntactic ones.
+   *
+   * `recommended` alone cannot see types, so it misses the whole
+   * floating-promise family — and this is a React app where nearly every
+   * interesting call is async: mutations, prefetches, the token mint. An
+   * unawaited promise there fails silently and surfaces as a UI that did not
+   * update, which is the hardest class of bug to trace back to its cause.
+   *
+   * The cost is real: type-aware linting needs the program, so `lint` is slower
+   * than it was. That is the right trade for a rule set that catches
+   * `no-floating-promises`, `no-misused-promises` and `await-thenable`.
+   */
+  ...tseslint.configs.recommendedTypeChecked,
+
+  /*
+   * Accessibility at edit time, not only at the built-artefact stage.
+   *
+   * There is already an axe gate over the built pages, and it is the stronger
+   * check — it sees computed contrast and real focus order. But it runs last, and
+   * it only visits routes somebody remembered to list. This catches the static
+   * half while the component is still being written, which is when it is cheap.
+   */
+  jsxA11y.flatConfigs.recommended,
+
+  {
+    /*
+     * One rule widened, for a role the plugin's table gets right in general and
+     * wrong here.
+     *
+     * `separator` is non-interactive by default and a `tabindex` on one is usually
+     * a mistake. But ARIA defines a focusable separator as a widget — it is the
+     * window-splitter pattern, the way a resizable pane is meant to be exposed —
+     * and the navigation rail's drag handle is exactly that. Left as shipped, the
+     * rule's only satisfying answer is a handle no keyboard can reach, which is
+     * the outcome it exists to prevent.
+     *
+     * Named here rather than disabled at the call site because the exception is
+     * about a role, not about one component: the next resizable surface should
+     * inherit the judgement instead of rediscovering it.
+     */
+    files: ['**/*.tsx'],
+    rules: {
+      'jsx-a11y/no-noninteractive-tabindex': [
+        'error',
+        { tags: [], roles: ['tabpanel', 'separator'], allowExpressionValues: true },
+      ],
+    },
+  },
 
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       globals: { ...globals.browser, ...globals.es2022 },
+      /*
+       * An explicit project list rather than `projectService`.
+       *
+       * The service only auto-discovers files named `tsconfig.json`, and the tier
+       * holding the end-to-end specs, the test setup and the Vite configs is covered
+       * by `tsconfig.tooling.json` — deliberately, because those files are not part
+       * of any package's output. So the service reported every one of them as "not
+       * found by the project service", which is true and unhelpful.
+       *
+       * Globbed per workspace so adding one is picked up without editing this.
+       */
+      parserOptions: {
+        project: [
+          './tsconfig.tooling.json',
+          './packages/*/tsconfig.json',
+          './apps/*/tsconfig.json',
+          './remotes/*/tsconfig.json',
+        ],
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: { 'react-hooks': reactHooks },
     rules: {
@@ -320,6 +391,29 @@ export default tseslint.config(
         globalCss: 'allowed',
       }),
     },
+  },
+
+  /*
+   * Type-aware rules need the program, and these files are outside every tsconfig
+   * that provides one. Turned off rather than left to fail on a project-service
+   * lookup that cannot succeed.
+   */
+  {
+    files: ['**/*.mjs', '**/*.js'],
+    ...tseslint.configs.disableTypeChecked,
+  },
+
+  /*
+   * A focused test would silently skip its siblings.
+   *
+   * `it.only` is invaluable while debugging and catastrophic when committed: the
+   * suite goes green having run one assertion, and nothing about the output says
+   * so. There are none today; this is the check that keeps it that way.
+   */
+  {
+    files: ['**/*.test.{ts,tsx}', 'e2e/**/*.spec.ts'],
+    plugins: { 'no-only-tests': noOnlyTests },
+    rules: { 'no-only-tests/no-only-tests': 'error' },
   },
 
   // Node-side tooling.

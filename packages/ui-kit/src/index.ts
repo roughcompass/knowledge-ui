@@ -31,6 +31,7 @@ export { UnavailableNotice } from './UnavailableNotice';
 export { Note } from './Note';
 export { LoadingPanel } from './LoadingPanel';
 export { ErrorPanel } from './ErrorPanel';
+export { displayText } from './displayText';
 export { DataTable, type Column, type DataTableProps } from './DataTable';
 
 /**

@@ -38,7 +38,24 @@ globalThis.ResizeObserver ??= NoopResizeObserver;
  * jsdom implements no `Element.scrollIntoView` either. Salt's list controls call it
  * when the active option changes, so opening any `Dropdown` throws without this.
  */
-Element.prototype.scrollIntoView ??= function scrollIntoView() {};
+/*
+ * Asked as a property descriptor rather than either obvious spelling, both of which
+ * are wrong in a way the compiler or the linter catches:
+ *
+ *   `Element.prototype.scrollIntoView ??= …`  reads the method off its prototype to
+ *   test it, which is a detached method reference — the shape `unbound-method` is
+ *   there to catch, and indistinguishable from the cases where it is a real bug.
+ *
+ *   `'scrollIntoView' in Element.prototype`  narrows to `never` on the false branch,
+ *   because the DOM lib *declares* the method: TypeScript is describing the standard,
+ *   and the standard says it exists. The gap is jsdom's, and no type knows that.
+ *
+ * The descriptor answers the actual question — does this runtime define it — without
+ * reading the value or contradicting the type.
+ */
+if (Object.getOwnPropertyDescriptor(Element.prototype, 'scrollIntoView') === undefined) {
+  Element.prototype.scrollIntoView = function scrollIntoView() {};
+}
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 

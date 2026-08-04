@@ -100,7 +100,7 @@ export function AppSidebar({
   }, []);
 
   const onPointerDown = useCallback(
-    (event: React.PointerEvent<HTMLButtonElement>) => {
+    (event: React.PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       const startX = event.clientX;
       const startWidth = railRef.current?.getBoundingClientRect().width ?? width;
@@ -134,13 +134,32 @@ export function AppSidebar({
       {footer ? <div className={styles.footerZone}>{footer}</div> : null}
 
       {/*
-        A real button so it is focusable and operable from the keyboard. `separator`
-        with an orientation and value is the role a resize handle should carry, and
-        it is what lets a screen reader announce the current width.
+        A focusable separator — the window-splitter pattern. `separator` carrying an
+        orientation and a value is the role a resize handle should have, and adding
+        `tabindex` is what promotes it from decoration to a widget, so a screen
+        reader announces the current width and the arrow keys work.
+
+        This was a `<button>` first, for the focusability that comes free with one.
+        That is not a legal pairing: the roles a `<button>` may take are an
+        enumerated list and `separator` is not on it, so the element and the role
+        described two different things and a browser was free to believe either. A
+        `div` starts with no semantics to contradict, which is what makes the role
+        the whole answer here — and it needs no `background`/`border`/`padding`
+        reset, so the stylesheet lost three declarations undoing button chrome.
       */}
-      <button
-        type="button"
+      {/*
+        eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions --
+        The plugin classes `separator` as non-interactive from the ARIA role table,
+        which is right for the default case and wrong for this one: ARIA defines a
+        separator *with* `tabindex` as a widget, and a splitter that cannot be
+        driven from the keyboard is the thing the rule is trying to prevent. There
+        is no role that would satisfy both the plugin and a screen reader here, so
+        the exception is scoped to this element and the reason recorded rather than
+        the rule weakened repo-wide.
+      */}
+      <div
         className={styles.handle}
+        tabIndex={0}
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize navigation"

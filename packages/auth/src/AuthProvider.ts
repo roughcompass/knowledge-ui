@@ -121,13 +121,21 @@ export class DevPersonaAuthProvider implements AuthProvider {
     clearToken(this.cacheKey);
   }
 
-  async switchTo(personaKey: string): Promise<void> {
+  /*
+   * Returns a promise without awaiting anything, which is deliberate rather than
+   * sloppy: the interface declares `Promise<void>` because swapping credentials
+   * is I/O in the general case — a provider backed by a real login would redirect
+   * and wait. This one only moves a pointer into an in-memory roster, so it
+   * resolves immediately and the caller's `await` costs a microtask.
+   */
+  switchTo(personaKey: string): Promise<void> {
     const next = this.personas.find((p) => p.key === personaKey);
     if (!next) throw new Error(`unknown persona "${personaKey}"`);
     this.current = next;
     // Deliberately not clearing the outgoing persona's token: switching back is
     // common and the cache is per-persona, so keeping it costs nothing.
     this.onPersonaChange?.(personaKey);
+    return Promise.resolve();
   }
 
   private async mint(): Promise<string | null> {

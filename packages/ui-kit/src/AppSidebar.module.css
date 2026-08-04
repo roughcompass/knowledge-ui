@@ -179,9 +179,6 @@
   inset-inline-end: 0;
   inline-size: var(--salt-spacing-100);
   cursor: col-resize;
-  background: transparent;
-  border: none;
-  padding: 0;
   z-index: 1;
 }
 

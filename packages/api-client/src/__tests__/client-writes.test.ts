@@ -16,7 +16,7 @@ import { RegistryError } from '../errors';
 type FetchArgs = [input: string, init: RequestInit | undefined];
 
 function stubFetch(response: Response) {
-  const spy = vi.fn(async () => response);
+  const spy = vi.fn(() => Promise.resolve(response));
   vi.stubGlobal('fetch', spy);
   return spy;
 }

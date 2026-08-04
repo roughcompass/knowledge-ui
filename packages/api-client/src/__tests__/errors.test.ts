@@ -177,4 +177,40 @@ describe('fieldErrors() / formErrors()', () => {
     expect(fieldErrors(new TypeError('boom'))).toEqual({});
     expect(formErrors(undefined)).toEqual([]);
   });
+
+  it('never renders a thrown object as "[object Object]"', () => {
+    /*
+     * Anything at all can be thrown, and `String(value)` — the obvious way to make a
+     * message out of one — is silence with extra steps for the object case. It fills
+     * the space where an explanation belongs with a string a reader cannot act on and
+     * cannot distinguish from a real message, so the failure is invisible in exactly
+     * the place someone is already stuck.
+     *
+     * A rejected `fetch` in a browser extension, a library throwing a plain bag, a
+     * `Promise.reject({ code })` — all of these reach here, and none is an `Error`.
+     */
+    expect(formErrors({ code: 'rate_limited', retry_after: 30 })).toEqual([
+      '{"code":"rate_limited","retry_after":30}',
+    ]);
+    expect(formErrors(['first', 'second'])).toEqual(['["first","second"]']);
+  });
+
+  it('quotes a thrown primitive as itself', () => {
+    // `throw 'nope'` is bad practice and it happens. Serialising it would add
+    // quotation marks to a message that reads perfectly well without them.
+    expect(formErrors('the connector refused the credentials')).toEqual([
+      'the connector refused the credentials',
+    ]);
+    expect(formErrors(422)).toEqual(['422']);
+  });
+
+  it('falls back to a sentence when the thrown value cannot be serialised', () => {
+    // A function or a bare symbol has no JSON form, so the serialising branch
+    // answers `undefined`. Rendering that as an empty list would put the form back
+    // in the state this whole function exists to prevent: submit failed, nothing
+    // said.
+    const messages = formErrors(() => undefined);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toMatch(/not in a recognisable shape/);
+  });
 });
