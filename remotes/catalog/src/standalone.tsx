@@ -24,19 +24,38 @@ import { StandaloneHarness } from './standalone/StandaloneHarness';
  * simpler than one component that has to detect whether it is hosted. There is
  * nothing to get wrong at runtime because the branch happens at build time.
  */
-const container = document.getElementById('root');
-if (!container) throw new Error('no #root element to mount into');
+async function bootstrap() {
+  /*
+   * The interceptor, when this page is the mocked lane.
+   *
+   * A service worker's scope is the origin that served it, so the shell's copy
+   * cannot cover this page: developing the remote on its own means its own
+   * origin, its own worker, its own registration. Started before render for the
+   * same reason the shell does — the harness mints a token on mount, and a
+   * request that escapes before the worker is ready would reach for an identity
+   * provider that the whole point of this lane is not to need.
+   */
+  if (import.meta.env.VITE_MSW === 'on') {
+    const { startWorker } = await import('@knowledge-ui/testing/browser');
+    await startWorker();
+  }
 
-createRoot(container).render(
-  <StrictMode>
-    <SaltProviderNext mode="light" density="low" accent="teal" corner="rounded">
-      <QueryClientProvider client={new QueryClient()}>
-        {/* Same future flags as the shell, so standalone and federated
-            navigation resolve identically. */}
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <StandaloneHarness />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </SaltProviderNext>
-  </StrictMode>,
-);
+  const container = document.getElementById('root');
+  if (!container) throw new Error('no #root element to mount into');
+
+  createRoot(container).render(
+    <StrictMode>
+      <SaltProviderNext mode="light" density="low" accent="teal" corner="rounded">
+        <QueryClientProvider client={new QueryClient()}>
+          {/* Same future flags as the shell, so standalone and federated
+              navigation resolve identically. */}
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <StandaloneHarness />
+          </BrowserRouter>
+        </QueryClientProvider>
+      </SaltProviderNext>
+    </StrictMode>,
+  );
+}
+
+void bootstrap();

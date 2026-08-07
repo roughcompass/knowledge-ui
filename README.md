@@ -66,11 +66,15 @@ What you are looking at is fixture data. It is deliberately not a copy of any
 seed: names like `pattern-library` exist only here, which is also how you can
 tell at a glance which lane you are in.
 
-Two things worth knowing. The remote harnesses served directly on `:5171` and
-`:5172` are separate documents and are **not** intercepted, so those still need a
-backend. And the interceptor is a service worker, which outlives the run that
-registered it — switching back to `npm run dev` in the same browser is safe
-anyway, because the handlers only answer for a page that asked for them.
+All three origins intercept, not just the shell: the standalone harnesses on
+`:5171` and `:5172` are separate documents, and a service worker's scope is the
+origin that served it, so each carries its own copy of the worker. `guards`
+checks all three against the installed library, because a partial regeneration
+leaves one origin on a different version and fails quietly.
+
+The interceptor outlives the run that registered it, which is what service
+workers do. Switching back to `npm run dev` in the same browser is safe anyway —
+the handlers only answer for a page that asked for them.
 
 The test lane is the same handlers compiled into the built artefacts:
 

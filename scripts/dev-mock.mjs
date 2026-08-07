@@ -24,7 +24,7 @@ import { spawn } from 'node:child_process';
 
 console.log('lane: mocked (no registry, identity provider or entitlement service required)');
 console.log('      data is fixture data — the same set the tests assert against');
-console.log('      the standalone remote harnesses on :5171 and :5172 still need a backend\n');
+console.log('      all three origins intercept: shell :5170, catalog :5171, operations :5172\n');
 
 const child = spawn('npm', ['run', 'dev'], {
   stdio: 'inherit',

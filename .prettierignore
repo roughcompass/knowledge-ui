@@ -15,7 +15,9 @@ test-results/
 playwright-report/
 blob-report/
 
-# Vendored by the mock-request CLI, which owns its formatting.
-apps/shell/public/mockServiceWorker.js
+# Vendored by the mock-request CLI, which owns its formatting. One per origin a
+# worker has to intercept, because a service worker's scope is its own origin —
+# the shell cannot lend its copy to a remote's standalone page.
+**/public/mockServiceWorker.js
 
 package-lock.json
