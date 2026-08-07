@@ -77,11 +77,14 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.5"
+    "@types/react-dom": "18.3.5",
+    "js-yaml": "4.3.1"
   },
   "msw": {
     "workerDirectory": [
-      "apps/shell/public"
+      "apps/shell/public",
+      "remotes/catalog/public",
+      "remotes/operations/public"
     ]
   }
 }
