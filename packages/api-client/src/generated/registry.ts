@@ -357,6 +357,260 @@ export interface paths {
         patch: operations["update_extraction_strategy_v1_admin_extraction_strategies__strategy_id__patch"];
         trace?: never;
     };
+    "/v1/admin/memory-autopromote-allowlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Autopromote Allowlist
+         * @description Every predicate this tenant has opted into automatic promotion.
+         *
+         *     Empty by default -- an unconfigured tenant auto-promotes nothing, the
+         *     same closed posture `GuardrailService.may_auto_promote` itself starts
+         *     from.
+         */
+        get: operations["get_autopromote_allowlist_v1_admin_memory_autopromote_allowlist_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/memory-autopromote-allowlist:allow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Allow Autopromote Predicate
+         * @description Opt one predicate into automatic promotion.
+         *
+         *     Returns the allowlist's new state rather than a bare status -- an
+         *     operator widening what may skip review should be able to confirm the
+         *     resulting set without a second round trip. Adding an already-allowlisted
+         *     predicate is a no-op (the service's own `ON CONFLICT DO NOTHING`), so
+         *     this route has no not-found or conflict case to translate.
+         */
+        post: operations["allow_autopromote_predicate_v1_admin_memory_autopromote_allowlist_allow_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/memory-autopromote-allowlist:revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Autopromote Predicate
+         * @description Opt one predicate back out of automatic promotion.
+         *
+         *     Idempotent the same way `allow` is: revoking a predicate that was never
+         *     allowlisted leaves the (empty) intersection unchanged, so there is
+         *     nothing here to 404 on either.
+         */
+        post: operations["revoke_autopromote_predicate_v1_admin_memory_autopromote_allowlist_revoke_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/memory-calibration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Memory Calibration
+         * @description Every (provider, model, strategy) triple ever fitted, reduced to its
+         *     most recent attempt.
+         *
+         *     Deployment-wide, not scoped to the calling tenant: `memory_calibration_mapping`
+         *     carries no tenant column, because the thing being measured -- how much a
+         *     provider's self-reported confidence predicts correctness -- is shared, and
+         *     no tenant can recalibrate somebody else's. An admin from any tenant sees
+         *     the same rows.
+         */
+        get: operations["list_memory_calibration_v1_admin_memory_calibration_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/memory-calibration:refit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refit Memory Calibration
+         * @description Run the fit -> publish sequence for one named triple right now, rather
+         *     than waiting for the periodic worker's next tick.
+         *
+         *     Calls `refit_one` -- the exact function the calibration-refit worker calls
+         *     per triple -- so this is not a second implementation of what "refit a
+         *     triple" means; it is the same one, run on demand. A triple with fewer
+         *     judged outcomes than the evaluation floor requires comes back with the
+         *     `uncalibrated` version and `activated: false`, the same refusal the worker
+         *     itself would report; nothing about calling this early bypasses that gate.
+         */
+        post: operations["refit_memory_calibration_v1_admin_memory_calibration_refit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/memory-promotion-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Promotion Policy
+         * @description The tenant's current promotion-review posture.
+         *
+         *     An unconfigured tenant is not an error: it reads back `PromotionPolicy`'s
+         *     own cautious defaults (no confidence floor, a low blast-radius threshold,
+         *     nothing on the always-review list) rather than a 404, because those
+         *     defaults are exactly what governs promotion until an admin changes them.
+         */
+        get: operations["get_promotion_policy_v1_admin_memory_promotion_policy_get"];
+        /**
+         * Put Promotion Policy
+         * @description Replace the tenant's promotion-review posture in one write.
+         *
+         *     The bounds on `confidence_floor`/`blast_radius_threshold` are checked
+         *     twice -- once by the view model's own `Field` constraints, once inside
+         *     `set_policy` itself -- deliberately: the view model lets a malformed
+         *     request 422 before a session even opens, but `set_policy` is the one
+         *     gate that matters if this write is ever reached some other way.
+         */
+        put: operations["put_promotion_policy_v1_admin_memory_promotion_policy_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/memory-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Memory Sources
+         * @description Every source this tenant has declared an authority tier and a ceiling
+         *     for. A source that exists in `sync_sources` but has never been declared
+         *     here does not appear -- it also may not write a single claim yet.
+         */
+        get: operations["list_memory_sources_v1_admin_memory_sources_get"];
+        put?: never;
+        /**
+         * Declare Memory Source
+         * @description Register what a source's claims are worth and how many it may write
+         *     per window. Required before the source may write anything --
+         *     `SourceGovernanceService.admit` refuses an undeclared source outright.
+         *     Re-declaring an already-governed source upserts its tier and ceiling;
+         *     the `PATCH` route below reaches the same write path for a partial
+         *     change.
+         */
+        post: operations["declare_memory_source_v1_admin_memory_sources_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/memory-sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Memory Source
+         * @description Partial-update a declared source's tier, ceiling, and/or provisioning flag.
+         *
+         *     Loads the current policy first so an omitted field keeps its existing
+         *     value instead of reverting to `declare`'s own defaults -- a `PATCH` that
+         *     names only `ingest_ceiling` must not silently reset the authority tier
+         *     (or flip `may_provision_entities` off) to whatever `declare` would
+         *     default it to. The tenant check happens here, before `declare` is ever
+         *     called: `policy_for` carries no tenant filter of its own, and `declare`'s
+         *     own ownership check answers a wrong tenant with 403, which -- unlike this
+         *     route's 404 -- would confirm that some tenant governs this `source_id`,
+         *     just not the caller's.
+         */
+        patch: operations["patch_memory_source_v1_admin_memory_sources__source_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/memory-sources/{source_id}:reset-breaker": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset Memory Source Breaker
+         * @description Close a tripped breaker early, returning the reloaded policy so the
+         *     caller can see the breaker is clear without a second GET.
+         *
+         *     `reset_breaker` folds "no such source" and "not your source" into one
+         *     `PermissionError` (403) by design -- its own docstring records that
+         *     decision so a future type-narrowing does not silently re-split the two
+         *     into a cross-tenant existence oracle. This route does not re-split them
+         *     either; `NotFoundError` is caught alongside it only for symmetry with
+         *     every other route in this file, not because `reset_breaker` raises it
+         *     today.
+         */
+        post: operations["reset_memory_source_breaker_v1_admin_memory_sources__source_id__reset_breaker_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admin/operational-health": {
         parameters: {
             query?: never;
@@ -364,7 +618,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Operational conditions an operator should meet rather than search for */
+        /**
+         * Operational conditions an operator should meet rather than search for
+         * @description Collect queue depths, data-quality checks, and other actionable operator metrics from the current instant.
+         */
         get: operations["get_operational_health_v1_admin_operational_health_get"];
         put?: never;
         post?: never;
@@ -504,7 +761,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Sync Runs */
+        /**
+         * List Sync Runs
+         * @description List this tenant's sync runs, optionally filtered by source, status, and a `from`/`to` window.
+         */
         get: operations["list_sync_runs_v1_admin_sync_runs_get"];
         put?: never;
         post?: never;
@@ -521,7 +781,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Sync Run */
+        /**
+         * Get Sync Run
+         * @description Return a single sync run's outcome, 404 if it does not exist or belongs to another tenant.
+         */
         get: operations["get_sync_run_v1_admin_sync_runs__sync_run_id__get"];
         put?: never;
         post?: never;
@@ -558,7 +821,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Sync Sources */
+        /**
+         * List Sync Sources
+         * @description List this tenant's sync sources; `active_only` (default true) hides soft-deleted rows.
+         */
         get: operations["list_sync_sources_v1_admin_sync_sources_get"];
         put?: never;
         /**
@@ -744,10 +1010,11 @@ export interface paths {
          *     entity_type) has its t_valid_to set to now. Both writes happen in a single
          *     transaction so there is never a gap or overlap in the validity window.
          *
-         *     When the incoming body flips is_advisory from True to False, a pre-flight scan
-         *     runs before writing. The scan validates every entity of the same (tenant_id,
-         *     entity_type) against the proposed enforcing definition and collects offenders.
-         *     Four outcome paths:
+         *     A pre-flight scan runs before writing on every PUT, regardless of whether
+         *     the write also changes is_advisory. The scan validates every entity of the
+         *     same (tenant_id, entity_type) against the proposed definition and collects
+         *     offenders — entities whose current stage_progression state or gates would
+         *     no longer be valid. Four outcome paths:
          *
          *     - dry_run=True: return 200 with offender list; do NOT write.
          *     - force=True + migration_plan: skip scan, write immediately; migration_plan is
@@ -783,7 +1050,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Which capabilities this tenant's callers asked about */
+        /**
+         * Which capabilities this tenant's callers asked about
+         * @description Rank capabilities by this tenant's own call volume.
+         *
+         *     Never reflects other tenants' usage of the same capability.
+         */
         get: operations["get_capability_rankings_v1_admin_usage_capabilities_get"];
         put?: never;
         post?: never;
@@ -800,7 +1072,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Daily call volume, outcomes, and latency percentiles */
+        /**
+         * Daily call volume, outcomes, and latency percentiles
+         * @description Day-by-day figures behind the summary's totals, one point per day per surface.
+         *
+         *     Days with no recorded traffic are absent from `points` rather than present
+         *     with zeros, so a caller can distinguish an outage from a quiet day. Every
+         *     percentile here is exact for its own day — this is the series to read for
+         *     latency over time, since the summary's `worst_daily_p95_ms` is only the
+         *     largest of these, not a recomputed window-wide percentile.
+         */
         get: operations["get_usage_series_v1_admin_usage_series_get"];
         put?: never;
         post?: never;
@@ -817,7 +1098,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Call volume, outcomes, and reach per surface over a window */
+        /**
+         * Call volume, outcomes, and reach per surface over a window
+         * @description Aggregate figures only — this route never returns a row naming an actor.
+         *
+         *     `from`/`to` default to the last 30 whole days ending today; today's own
+         *     rollup is included even though it is only partially through the day, so a
+         *     caller checking traffic they just generated does not see it missing.
+         *     `distinct_actors` is null once the window reaches past the raw-retention
+         *     boundary, because it cannot be reconstructed from the daily rollups alone.
+         */
         get: operations["get_usage_summary_v1_admin_usage_summary_get"];
         put?: never;
         post?: never;
@@ -834,7 +1124,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Which MCP tools agents actually call */
+        /**
+         * Which MCP tools agents actually call
+         * @description Rank MCP tools by call volume over the window; `limit` bounds the returned list, not the underlying count.
+         */
         get: operations["get_tool_rankings_v1_admin_usage_tools_get"];
         put?: never;
         post?: never;
@@ -939,23 +1232,42 @@ export interface paths {
         put?: never;
         /**
          * Register Approval Verifier
-         * @description Admit an approval verifier, deployment-wide.
+         * @description Complete a D1 enrollment challenge, admitting the verifier it names.
          *
-         *     Operator identity regardless of the verifier's own scope, matching
-         *     revocation. Registering a verifier decides *who counts as an approver*,
-         *     and its blast radius is every activation and exception that verifier will
-         *     ever vouch for -- the same blast radius revocation has, and therefore the
-         *     same gate.
-         *
-         *     This is not a way to forge an approval. What is recorded is a public key or
-         *     a provider id; the private half stays with the approver, so the registrar
-         *     and the signer are different parties by construction. An operator who
-         *     registers a key they also hold is both, which no check at this layer can
-         *     prevent -- so registration audits the credential and allowlist
-         *     fingerprints instead, and an auditor can prove which configuration
-         *     admitted which verifier.
+         *     Replaces the pre-existing direct-registration route entirely: there is
+         *     no longer a way to admit a principal-bound verifier without first
+         *     proving possession of its credential (or having a configured provider
+         *     attest to it) against the exact bytes `create_enrollment_challenge`
+         *     committed. Operator-gated deployment-wide, matching registration's
+         *     pre-existing gate -- see that route's own docstring.
          */
         post: operations["register_approval_verifier_v1_arc_admin_approval_verifiers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/approval-verifiers/enrollment-challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Enrollment Challenge
+         * @description Issue a five-minute, single-use D1 enrollment challenge.
+         *
+         *     Operator-gated deployment-wide, matching registration and revocation
+         *     below: enrolling a verifier decides who counts as an approver, the same
+         *     blast-radius decision the other two verifier-trust routes gate the same
+         *     way. The enrolled principal need not be the caller (Appendix A.4) --
+         *     only the *creating* identity is checked against the allowlist.
+         */
+        post: operations["create_enrollment_challenge_v1_arc_admin_approval_verifiers_enrollment_challenges_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1168,6 +1480,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/arc/admin/source-connectors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register Source Connector
+         * @description Admit a configured-connector authority.
+         *
+         *     Operator-gated regardless of the body's own declared scope — see
+         *     `SourceAdmissionService.register_connector`'s docstring for why this
+         *     takes the same gate as approval-verifier registration rather than the
+         *     tenant-admin path admission itself uses. A caller admitting a source
+         *     names one of these by id; it can never supply a fetch scheme, host, or
+         *     credential of its own — those live only here, in the registered
+         *     allowlist, checked again on every redirect hop at fetch time.
+         */
+        post: operations["register_source_connector_v1_arc_admin_source_connectors_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/admin/source-upload-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register Source Upload Policy
+         * @description Admit an authorized-upload authority.
+         *
+         *     Operator-gated for the same reason connector registration is — see
+         *     `register_source_connector`. The authenticated caller uploads bytes
+         *     directly under one of these; it supplies no URL, so there is no host
+         *     or redirect to validate at fetch time — only the scope, media type,
+         *     byte ceiling, and verifier allowlist registered here.
+         */
+        post: operations["register_source_upload_policy_v1_arc_admin_source_upload_policies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Artifact Family */
+        post: operations["create_artifact_family_v1_arc_artifacts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/artifacts/{artifact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Artifact Family */
+        get: operations["get_artifact_family_v1_arc_artifacts__artifact_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/artifacts/{artifact_id}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open Proposal */
+        post: operations["open_proposal_v1_arc_artifacts__artifact_id__proposals_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/arc/challenges": {
         parameters: {
             query?: never;
@@ -1212,6 +1629,224 @@ export interface paths {
         get: operations["get_verification_metadata_v1_arc_metadata_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Proposal Thread */
+        get: operations["get_proposal_thread_v1_arc_proposals__proposal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Proposal Version */
+        get: operations["get_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit Proposal Version
+         * @description `PATCH {PV}`: validates and persists the candidate semantics and
+         *     field provenance in one call.
+         *
+         *     `ProvenanceService.edit` validates `semantics` (closed-schema,
+         *     duplicate-identifier, ambiguous-selector) and every `field_provenance`
+         *     entry's conditional shape before writing either, then persists both --
+         *     the candidate document into `arc_authoring_proposal_versions.semantics`,
+         *     the entries into `arc_authoring_field_provenance` -- in one transaction.
+         *     The returned `ProposalVersionResponse` is a fresh read of the version,
+         *     so `available_actions` accounts for the fact that editing an open
+         *     version is now legal.
+         */
+        patch: operations["edit_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__patch"];
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Draft Proposal Version
+         * @description `POST {PV}/draft`: ask the drafter sandbox for a citation-bound
+         *     patch.
+         *
+         *     Refuses with `arc_drafter_model_disabled` on every deployment running
+         *     the committed decision artifact (`outcome: human_only`) -- see
+         *     `DrafterService.draft`'s own docstring for why that refusal is
+         *     provably the first thing this call does.
+         */
+        post: operations["draft_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/reach-confirmations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Reach
+         * @description `POST {PV}/reach-confirmations`: record that the caller has reviewed
+         *     each named field path's reach, for this frozen candidate.
+         */
+        post: operations["confirm_reach_v1_arc_proposals__proposal_id__versions__proposal_version__reach_confirmations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Proposal Version */
+        post: operations["reject_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/semantic-tests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run Semantic Tests */
+        post: operations["run_semantic_tests_v1_arc_proposals__proposal_id__versions__proposal_version__semantic_tests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Proposal Version
+         * @description `POST {PV}/submit`.
+         *
+         *     Refuses on every deployment today with `arc_operational_integrity_pending`
+         *     -- see `ArtifactMaterialisationService`'s own module docstring for why --
+         *     before this handler, or the service method it calls, touches a session.
+         *     Once the two collaborators it needs are wired, the same call freezes the
+         *     version, materialises its bound draft revision, and returns a fresh
+         *     read of it, matching every other transition route's fresh-read
+         *     convention.
+         */
+        post: operations["submit_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/supersede": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Supersede Proposal Version */
+        post: operations["supersede_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__supersede_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate Proposal Version
+         * @description `POST {PV}/validate`: re-checks the persisted candidate semantics
+         *     (if a `PATCH` has ever written one) and every persisted
+         *     `field_provenance` row's conditional shape.
+         *
+         *     See `ProvenanceService.revalidate_stored`'s own docstring: both halves
+         *     are read fresh from storage on this call, so this reports on what is
+         *     actually persisted right now, not on whatever was true when a prior
+         *     `PATCH` wrote it.
+         */
+        post: operations["validate_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw Proposal Version */
+        post: operations["withdraw_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__withdraw_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1311,6 +1946,88 @@ export interface paths {
          *     is never selected under one instant and evaluated under another.
          */
         post: operations["resolve_context_v1_arc_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/sources/connector-fetches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admit Source Connector Fetch
+         * @description Admit source bytes a registered connector fetches.
+         *
+         *     The caller names only a registered connector and immutable locator; it
+         *     can never supply a fetch host, credential, or redirect target — those
+         *     are validated against the connector's own allowlist on every hop.
+         */
+        post: operations["admit_source_connector_fetch_v1_arc_sources_connector_fetches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/sources/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admit Source Upload
+         * @description Admit source bytes the caller uploads directly.
+         *
+         *     The `body` part streams through a hard 10 MiB ceiling while this
+         *     deployment hashes it; the claim's own `source_content_digest` is
+         *     checked against that computed digest, never trusted in its place.
+         */
+        post: operations["admit_source_upload_v1_arc_sources_uploads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/sources/{source_evidence_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Source Evidence */
+        get: operations["get_source_evidence_v1_arc_sources__source_evidence_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/sources/{source_evidence_id}/body": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Source Body */
+        get: operations["get_source_body_v1_arc_sources__source_evidence_id__body_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1523,7 +2240,10 @@ export interface paths {
          */
         get: operations["list_artifacts_v1_capabilities__entity_id__artifacts_get"];
         put?: never;
-        /** Create Artifact */
+        /**
+         * Create Artifact
+         * @description Attach a fact to an entity after checking for idempotency and scanning the body for PII.
+         */
         post: operations["create_artifact_v1_capabilities__entity_id__artifacts_post"];
         delete?: never;
         options?: never;
@@ -1538,7 +2258,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Artifact */
+        /**
+         * Get Artifact
+         * @description Return one artifact by ID, 404 if it does not belong to this entity/tenant.
+         */
         get: operations["get_artifact_v1_capabilities__entity_id__artifacts__fact_id__get"];
         put?: never;
         post?: never;
@@ -1573,9 +2296,6 @@ export interface paths {
          *
          *     ``cache_hit=True`` indicates the result was served from the materialized
          *     cache; ``False`` indicates the live CTE was executed.
-         *
-         *     A POST-tunneled alias ``POST /v1/capabilities/{entity_id}:blast-radius``
-         *     accepts the same parameters via query string and returns an identical body.
          *
          *     Pass ``?view=audit`` to include bitemporal columns on edge items.
          */
@@ -1711,33 +2431,6 @@ export interface paths {
          *     - 422 if visibility value is invalid or tenant-shared without shared_with_tenants.
          */
         patch: operations["set_visibility_handler_v1_capabilities__entity_id__visibility_patch"];
-        trace?: never;
-    };
-    "/v1/capabilities/{entity_id}:blast-radius": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Blast-radius — POST-tunneled alias (same handler as GET)
-         * @description POST-tunneled alias for blast-radius.
-         *
-         *     The path segment accepts a UUID or slug-form name. Accepts the same query
-         *     parameters as the GET form.  Returns an identical response body.  Useful
-         *     when intermediate proxies filter non-standard HTTP verbs or when clients
-         *     can only issue POST requests.
-         *
-         *     Pass ``?view=audit`` to include bitemporal columns on edge items.
-         */
-        post: operations["post_blast_radius_v1_capabilities__entity_id__blast_radius_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/v1/capabilities/{provider_cap_id}/adoptions": {
@@ -2049,7 +2742,7 @@ export interface paths {
         };
         /**
          * Find integrations that connect two capabilities
-         * @description List integrations whose member edges connect ``connects`` and ``and``.
+         * @description List integrations whose member edges connect ``capability_a`` and ``capability_b``.
          *
          *     Visibility-filtered: an integration is included only if it is
          *     visible to the calling tenant.
@@ -2061,6 +2754,152 @@ export interface paths {
         get: operations["find_integrations_v1_integrations_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/capability-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Capability Requests
+         * @description What is waiting on this tenant to decide, or what it has asked for.
+         *
+         *     `role=owner` (the default) is the review queue -- `CapabilityRequestService.for_owner`,
+         *     narrowed to still-open requests by `open_only` (default `true`), the same
+         *     "what needs my attention" framing the curation queue and the proposal
+         *     queue use. `role=requester` is the tenant's own outbound history --
+         *     `raised_by` -- and `open_only` has no meaning there: a declined or
+         *     duplicate-marked request is exactly the signal this surface exists to
+         *     keep visible (see the module docstring), so requester mode always shows
+         *     everything rather than silently filtering a view meant to show
+         *     everything. Keyset-paginated on `(created_at, request_id)`, the same
+         *     `cursor`/`page_size` in, `next_cursor` out shape every other list route
+         *     in this file uses.
+         */
+        get: operations["list_capability_requests_v1_memory_capability_requests_get"];
+        put?: never;
+        /**
+         * Raise Capability Request
+         * @description Ask the tenant that owns a capability for something, routed by the subject.
+         *
+         *     `CapabilityRequestService.raise_request` resolves the owning tenant with a
+         *     bare existence check (`subject exists and is active`), not a visibility
+         *     filter -- its own docstring frames that as a routing lookup, not a read a
+         *     caller sees the result of. Called directly from a route, that lookup turns
+         *     into a cross-tenant existence oracle: a caller could tell a private entity
+         *     apart from a nonexistent one just by whether the request is accepted or
+         *     refused. So this route resolves the subject through the chokepoint first
+         *     and, when it comes back invisible, raises the *identical* error the
+         *     service itself raises for an absent subject -- same status, same message
+         *     -- rather than inventing a second "you can't see that" answer that would
+         *     itself be the tell. Absent and invisible are the same answer everywhere
+         *     else in this file; this is the one place that rule has to be enforced a
+         *     layer above the service that would otherwise skip it.
+         */
+        post: operations["raise_capability_request_v1_memory_capability_requests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/capability-requests/{request_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Capability Request
+         * @description One request, visible to its owner or the tenant that raised it.
+         *
+         *     `CapabilityRequestService.get` already scopes to those two tenants and
+         *     returns `None` to anyone else -- the same "absent and not-yours look
+         *     identical" rule the raise route above enforces on the way in -- so there
+         *     is nothing further to wrap here; this route just turns `None` into 404.
+         */
+        get: operations["get_capability_request_v1_memory_capability_requests__request_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Transition Capability Request
+         * @description Move a request along its lifecycle: acknowledge, accept, decline, mark
+         *     duplicate, or resolve.
+         *
+         *     Authority is entirely `CapabilityRequestService.transition`'s own gate
+         *     (owning tenant, `producer`/`admin` role, and the legal-transition check)
+         *     -- this route resolves tenant context and nothing else, the same
+         *     division of labor `review_promotion_proposal` above uses for the
+         *     proposal PATCH. `to_status` is a closed `Literal` so an unknown target
+         *     status is a 422 from request validation rather than reaching the
+         *     service's own transition-table check; illegal-but-named transitions
+         *     (e.g. skipping straight to `accepted`) and a missing reason on a
+         *     decision that requires one are still the service's 409/422 to raise.
+         */
+        patch: operations["transition_capability_request_v1_memory_capability_requests__request_id__patch"];
+        trace?: never;
+    };
+    "/v1/memory/capability-requests/{request_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Capability Request History
+         * @description Every transition, in order.
+         *
+         *     `CapabilityRequestService.history` already scopes to the caller the same
+         *     way `get` does -- an empty tuple for a request that does not exist and
+         *     an empty tuple for one that exists but belongs to neither of the
+         *     caller's tenants, indistinguishable on purpose. This route reports both
+         *     as an empty list rather than manufacturing a 404 the service's own
+         *     return type gives no way to tell apart from "no transitions yet".
+         */
+        get: operations["get_capability_request_history_v1_memory_capability_requests__request_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/capability-requests/{request_id}:link-promotion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link Capability Request To Promotion
+         * @description Record that an accepted (or already-resolved) request produced a
+         *     canonical change, closing the loop visibly for the requester.
+         *
+         *     Plain POST, not run through `HttpMethodRouter` -- the same reasoning
+         *     `:link`/`:discard`/`:reverse` document above: there is no alternate verb
+         *     for "point this request at the change it produced", so there is nothing
+         *     to switch between across deployment modes.
+         *     `CapabilityRequestService.link_to_promotion` refuses (409) a request that
+         *     is not yet accepted or resolved -- a declined request cannot point at a
+         *     change nobody agreed to make.
+         */
+        post: operations["link_capability_request_to_promotion_v1_memory_capability_requests__request_id__link_promotion_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2084,6 +2923,49 @@ export interface paths {
          *     answerable from the same route.
          */
         get: operations["query_claims_v1_memory_claims_get"];
+        put?: never;
+        /**
+         * Assert Claim
+         * @description The agent-to-ingest feedback path: assert a claim directly, not through extraction.
+         *
+         *     `stage_claim_defended` (`service/memory/claim_assertion.py`) runs
+         *     directive-containment and PII checks before ever calling
+         *     `ClaimService.stage_claim` -- see the module docstring above for why
+         *     this route cannot call `stage_claim` directly. Ontology validation,
+         *     subject resolution, authority derivation, and visibility all remain
+         *     `stage_claim`'s own job, unchanged: an unresolvable `subject_reference`
+         *     still lands the claim `unlinked` rather than refusing the write, and
+         *     nothing here ever reaches the canonical graph -- promotion is the only
+         *     path onto that, and it runs later, by a different actor, through its own
+         *     review gate.
+         */
+        post: operations["assert_claim_v1_memory_claims_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/claims/believed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Believed Claims
+         * @description What the store believed about a subject at a past instant.
+         *
+         *     `ClaimHistoryService.believed_at` takes no tenant context by design, so
+         *     this route resolves the subject through the chokepoint first -- a
+         *     subject the caller cannot see answers identically to one that does not
+         *     exist, so a subject id is never a cross-tenant existence oracle here
+         *     either. Bounded by the subject and unpaginated on purpose: the answer is
+         *     one subject's belief set at one instant, not a list that grows without
+         *     it, so there is no cursor to give it.
+         */
+        get: operations["get_believed_claims_v1_memory_claims_believed_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2135,10 +3017,274 @@ export interface paths {
          *     A claim the caller may not see is absent rather than forbidden. Telling them it
          *     exists but is not theirs is an existence oracle over every claim in the
          *     deployment, and the subject of a claim is often the sensitive part.
+         *
+         *     A bare single-segment GET like this one matches any literal sibling under
+         *     `/claims/` too -- exactly the reason `/claims/search` above is declared
+         *     first in this same file. The curation-surface router
+         *     (`api/routers/memory_curation.py`) has since grown its own literal
+         *     sibling, `GET /claims/believed`, in a different router entirely; that one
+         *     stays reachable only because `registry.wiring.routes` registers that
+         *     router before this one. Moving this route ahead of that registration
+         *     would silently swallow it the same way an unordered `/claims/search`
+         *     would swallow itself here.
          */
         get: operations["get_claim_v1_memory_claims__claim_id__get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/claims/{claim_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Claim History
+         * @description The claim's full supersession/confirmation chain, oldest first.
+         *
+         *     `ClaimHistoryService.chain_for` takes no tenant context by design, so
+         *     this route is the one place tenant enforcement happens for it. The
+         *     requested claim must exist, its own visibility must pass, and its
+         *     subject must resolve as visible through the chokepoint -- any of the
+         *     three failing answers identically (404), so a claim id is never a
+         *     cross-tenant existence oracle. Every entry the chain walk returns is
+         *     then filtered by the same claim-level check: a chain can cross a
+         *     supersession that narrowed visibility partway through (two independently
+         *     staged claims about the same fact do not have to request the same
+         *     visibility), and serving that entry to a caller who could not have read
+         *     it directly would leak through the one row this route already cleared.
+         *
+         *     The rows this decision runs against come from
+         *     `ClaimHistoryService.visibility_rows_for` -- this router holds no SQL of
+         *     its own, only the chokepoint call and the claim-visible rule above.
+         */
+        get: operations["get_claim_history_v1_memory_claims__claim_id__history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/claims/{claim_id}:adjudicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Adjudicate Claim
+         * @description Record whether a claim turned out to be correct.
+         *
+         *     The only input a calibration fit is ever built from, which is why
+         *     `verdict` and `observed_confidence` are constrained at this view model
+         *     rather than left to `ConfirmationService.adjudicate`'s own
+         *     `ValidationError` checks: `verdict` is a closed `Literal`,
+         *     `observed_confidence` is range-bound `[0, 1]` -- a caller who sends an
+         *     unknown verdict or an out-of-range confidence gets a 422 from request
+         *     validation, before the service (and its calibration observation table)
+         *     is ever touched.
+         */
+        post: operations["adjudicate_claim_v1_memory_claims__claim_id__adjudicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/claims/{claim_id}:confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Claim
+         * @description A human puts their name to a claim, producing a new one that supersedes it.
+         *
+         *     No request body: everything `ConfirmationService.confirm` needs beyond
+         *     the claim id comes from the caller's own tenant context. The human-vs-
+         *     service distinction is not a role a caller can assert here -- the
+         *     service derives it from the authenticated actor's own `actor_kind`, so
+         *     a worker calling this route gets the same `PermissionError` (403) a
+         *     direct call would raise; a route-level check would just be a second
+         *     place that gate could drift from the service's.
+         */
+        post: operations["confirm_claim_v1_memory_claims__claim_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/claims/{claim_id}:discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discard Claim
+         * @description Refuse a claim outright: it never serves again.
+         *
+         *     Works on a staged claim or one still unlinked -- a reference that will
+         *     never resolve has this as its only way out of the queue. Curator-only,
+         *     the same bar `link_subject` sets.
+         */
+        post: operations["discard_claim_v1_memory_claims__claim_id__discard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/claims/{claim_id}:link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link Claim Subject
+         * @description Give a subjectless claim a home.
+         *
+         *     Curator-only, and the service is the one gate: role, tenancy, and the
+         *     claim's current status are all asserted by `ClaimService.link_subject`
+         *     itself, not re-checked here.
+         */
+        post: operations["link_claim_subject_v1_memory_claims__claim_id__link_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/curation-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Curation Queue
+         * @description Everything needing curator attention in the caller's tenant.
+         *
+         *     `?counts=true` returns the per-reason tally instead of the item list --
+         *     the number a curator needs to see before opening the queue is not the
+         *     same as the page they open, and a tally needs no pagination of its own.
+         *
+         *     Not registered through `HttpMethodRouter`: this is a plain read, always
+         *     exposed, with nothing to switch between across deployment modes.
+         */
+        get: operations["get_curation_queue_v1_memory_curation_queue_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/promotion-proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Promotion Proposals
+         * @description Proposals owned by the caller's tenant, oldest first.
+         *
+         *     `state` defaults to `"open"` -- the review queue, not the full history --
+         *     matching the curation queue's own "what needs my attention" framing.
+         *     Keyset-paginated the same way: `cursor`/`page_size` in, `next_cursor` out.
+         */
+        get: operations["list_promotion_proposals_v1_memory_promotion_proposals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/promotion-proposals/{proposal_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Promotion Proposal
+         * @description One proposal, if it exists and the caller's tenant owns its subject.
+         *
+         *     `PromotionService.get_proposal` runs no tenancy filter of its own (its
+         *     docstring is explicit that the caller must apply one) -- a proposal
+         *     addressed to a different tenant is reported identically to one that does
+         *     not exist, so this route is never a cross-tenant existence oracle.
+         */
+        get: operations["get_promotion_proposal_v1_memory_promotion_proposals__proposal_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Review Promotion Proposal
+         * @description Accept (optionally amending the value) or reject an open proposal.
+         *
+         *     Authority is entirely the service's own gate: `PromotionService.accept`/
+         *     `reject` both call `_assert_may_review` (owner tenant, `producer` or
+         *     `admin` role) after loading the proposal under `FOR UPDATE`. This route
+         *     resolves tenant context and nothing else -- a second role check here
+         *     would just be a second place it could drift from the service's.
+         */
+        patch: operations["review_promotion_proposal_v1_memory_promotion_proposals__proposal_id__patch"];
+        trace?: never;
+    };
+    "/v1/memory/promotions/{promotion_id}:reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reverse Promotion
+         * @description Undo a promotion, restoring whatever the canonical graph said before it.
+         *
+         *     Plain POST, not run through `HttpMethodRouter` -- the same reasoning
+         *     `:link`/`:discard` document above: there is no alternate verb for
+         *     "reverse this specific promotion", so there is nothing to switch between
+         *     across deployment modes. `PromotionService.reverse` refuses (409) when a
+         *     later promotion has already built on the row this one created; the
+         *     caller reverses that one first.
+         */
+        post: operations["reverse_promotion_v1_memory_promotions__promotion_id__reverse_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2179,10 +3325,11 @@ export interface paths {
          * List Session Events
          * @description Replay a session in sequence order, forward or reverse.
          *
-         *     `since`, `until` and `cursor` are sequence numbers rather than timestamps
-         *     or offsets. A timestamp cannot order a burst of events recorded in the same
-         *     microsecond, and an offset over an append-only log re-reads shifting
-         *     windows as new events arrive mid-page.
+         *     `since_seq`, `until_seq` and `cursor` are sequence numbers rather than
+         *     timestamps or offsets — named distinctly from the sibling sessions-list
+         *     endpoint's `since`, which is a datetime. A timestamp cannot order a burst
+         *     of events recorded in the same microsecond, and an offset over an
+         *     append-only log re-reads shifting windows as new events arrive mid-page.
          *
          *     Reverse order with a small limit is how a resuming agent asks for "the last
          *     few turns" without reading a whole conversation.
@@ -2483,7 +3630,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** How the capabilities your tenant owns are being called */
+        /**
+         * How the capabilities your tenant owns are being called
+         * @description Sum call volume across every calling tenant for capabilities this tenant owns.
+         *
+         *     Requires the `producer` (or `admin`) role, since this is the publisher's
+         *     own view of their capabilities' reach, distinct from `/v1/admin/usage/...`
+         *     which scopes to the caller's own traffic as a consumer.
+         */
         get: operations["get_owned_capability_usage_v1_usage_owned_capabilities_get"];
         put?: never;
         post?: never;
@@ -2548,8 +3702,9 @@ export interface paths {
          *
          *     Regulated tenants (is_regulated=true) cannot create workspaces at encryption
          *     tier 'none' — the service returns 422 with an actionable message explaining
-         *     that a higher encryption tier is required. This is a program constraint
-         *     (ENC phase dependency), not a bug.
+         *     that a higher encryption tier is required. This is a deliberate constraint,
+         *     not a bug: content encryption is a retrofit layer that does not exist yet,
+         *     so regulated tenants cannot be onboarded until it does.
          *
          *     Invalid owner_kind values are rejected with 422 by the service.
          */
@@ -2585,7 +3740,7 @@ export interface paths {
          *     Cursor-paginated on entry_id ascending. total_count is null when the service
          *     omits it for performance — use next_cursor as the canonical pagination signal.
          */
-        get: operations["search_workspaces_v1_workspaces_search_get"];
+        get: operations["search_workspace_entries_v1_workspaces_search_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2769,6 +3924,40 @@ export interface components {
             /** Supersedes */
             supersedes?: string | null;
         };
+        /**
+         * ActorRef
+         * @description Response-only. Never accepted in a request body -- see
+         *     `arc_authoring_enums.RESERVED_ACTOR_FIELDS`.
+         */
+        ActorRef: {
+            /** Issuer */
+            issuer: string;
+            /** Subject */
+            subject: string;
+        };
+        /** AdjudicateClaimRequest */
+        AdjudicateClaimRequest: {
+            /** Note */
+            note?: string | null;
+            /** Observed Confidence */
+            observed_confidence: number;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "correct" | "incorrect" | "undecidable";
+        };
+        /** AdjudicateClaimResponse */
+        AdjudicateClaimResponse: {
+            /** Status */
+            status: string;
+        };
+        /**
+         * AdmissionMethod
+         * @description How a source's bytes entered the system.
+         * @enum {string}
+         */
+        AdmissionMethod: "connector_fetch" | "authorized_upload";
         /** AdoptionCreate */
         AdoptionCreate: {
             /** Intent */
@@ -2848,6 +4037,64 @@ export interface components {
             /** Version Pin */
             version_pin: string | null;
         };
+        /**
+         * AllowlistPredicateRequest
+         * @description Body shared by `:allow` and `:revoke` -- one predicate name per call.
+         */
+        AllowlistPredicateRequest: {
+            /** Predicate */
+            predicate: string;
+        };
+        /**
+         * AllowlistResponse
+         * @description The tenant's current autopromote allowlist, returned by the GET and by both mutation routes.
+         */
+        AllowlistResponse: {
+            /** Predicates */
+            predicates: string[];
+        };
+        /**
+         * ApprovalVerifierResponse
+         * @description An enrolled projection-approval verifier.
+         */
+        ApprovalVerifierResponse: {
+            /**
+             * Approval Verifier Id
+             * Format: uuid
+             */
+            approval_verifier_id: string;
+            binding_kind: components["schemas"]["PrincipalBindingKind"];
+            /** Credential Fingerprint */
+            credential_fingerprint: string;
+            /**
+             * Enrolled At
+             * Format: date-time
+             */
+            enrolled_at: string;
+            /** Evidence Types */
+            evidence_types: components["schemas"]["EvidenceType"][];
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Principal Issuer */
+            principal_issuer: string;
+            /** Principal Subject */
+            principal_subject: string;
+            /** Provider Id */
+            provider_id?: string | null;
+            /** Revoked At */
+            revoked_at?: string | null;
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /**
+             * Valid To
+             * Format: date-time
+             */
+            valid_to: string;
+        };
         /** ApproveExceptionRequest */
         ApproveExceptionRequest: {
             approval: components["schemas"]["ExceptionApprovalBody"];
@@ -2891,6 +4138,160 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * ArtifactApplicabilityRule
+         * @description Nested element of `ArtifactSemantics.applicability[]`; mirrors the
+         *     private `_APPLICABILITY_RULE_SCHEMA` constant. Same residual-gap note
+         *     as `ArtifactDirective`.
+         */
+        ArtifactApplicabilityRule: {
+            /** Action Classes */
+            action_classes?: string[] | null;
+            /** Capability Ids */
+            capability_ids?: string[] | null;
+            /** Capability Labels */
+            capability_labels?: string[] | null;
+            /** Data Sensitivity Tiers */
+            data_sensitivity_tiers?: string[] | null;
+            /** Domain Ids */
+            domain_ids?: string[] | null;
+            /** Effective From */
+            effective_from?: string | null;
+            /** Effective Until */
+            effective_until?: string | null;
+            /** Environments */
+            environments?: string[] | null;
+            /** Is Mandatory */
+            is_mandatory: boolean;
+            /**
+             * Rule Id
+             * Format: uuid
+             */
+            rule_id: string;
+            /**
+             * Scope
+             * @enum {string}
+             */
+            scope: "global" | "tenant" | "domain" | "capability" | "task";
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+            /** Task Kinds */
+            task_kinds?: string[] | null;
+        };
+        /**
+         * ArtifactDirective
+         * @description Nested element of `ArtifactSemantics.directives[]`; mirrors the
+         *     private `_DIRECTIVE_SCHEMA` constant. See this module's docstring for
+         *     the residual-gap note on nested-shape parity.
+         */
+        ArtifactDirective: {
+            /** Accepted Verifier Classes */
+            accepted_verifier_classes?: string[] | null;
+            /** Accepted Verifier Ids */
+            accepted_verifier_ids?: string[] | null;
+            /** Compact Statement Plaintext */
+            compact_statement_plaintext: string;
+            /** Compact Statement Plaintext Digest */
+            compact_statement_plaintext_digest: string;
+            /** Conflict Key Action Class */
+            conflict_key_action_class?: string | null;
+            /** Conflict Key Constraint Operator */
+            conflict_key_constraint_operator?: string | null;
+            /** Conflict Key Constraint Value */
+            conflict_key_constraint_value?: string | null;
+            /** Conflict Key Modality */
+            conflict_key_modality?: string | null;
+            /** Conflict Key Namespace */
+            conflict_key_namespace?: string | null;
+            /** Conflict Key Operation */
+            conflict_key_operation?: string | null;
+            /** Conflict Key Schema Version */
+            conflict_key_schema_version: number;
+            /** Conflict Key Subject Selector */
+            conflict_key_subject_selector?: string | null;
+            /** Conflict Key Target Selector */
+            conflict_key_target_selector?: string | null;
+            /** Conflict Subject Digest */
+            conflict_subject_digest?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Delegable Exception */
+            delegable_exception: boolean;
+            /**
+             * Directive Id
+             * Format: uuid
+             */
+            directive_id: string;
+            /**
+             * Directive Type
+             * @enum {string}
+             */
+            directive_type: "citation_only" | "verify_before_action";
+            /** Required Evidence Type */
+            required_evidence_type?: string | null;
+            /** Satisfaction Mode */
+            satisfaction_mode?: ("self_attested" | "signed_result") | null;
+            /** Source Anchor */
+            source_anchor: string;
+            /** Verification Max Age Seconds */
+            verification_max_age_seconds?: number | null;
+        };
+        /**
+         * ArtifactFamilyCreate
+         * @description Body for `POST /v1/arc/artifacts`: creates the stable identity a
+         *     proposal thread will revise.
+         */
+        ArtifactFamilyCreate: {
+            kind: components["schemas"]["ArtifactKind"];
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Slug */
+            slug: string;
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * ArtifactFamilyResponse
+         * @description An artifact family: the stable identity of a versioned artifact.
+         */
+        ArtifactFamilyResponse: {
+            /** Active Revision Id */
+            active_revision_id?: string | null;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            created_by: components["schemas"]["ActorRef"];
+            kind: components["schemas"]["ArtifactKind"];
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Slug */
+            slug: string;
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * ArtifactKind
+         * @description Mirrors the `ck_arc_artifacts_kind` CHECK constraint on
+         *     `arc_artifacts.kind` (`registry/storage/migrations/versions/
+         *     0001_baseline_schema.py`) -- today's only source for this vocabulary.
+         *     Transcribed rather than imported: that constraint is a raw SQL string
+         *     in a migration, not an importable Python constant. This phase adds no
+         *     new kind.
+         * @enum {string}
+         */
+        ArtifactKind: "standard" | "policy" | "adr" | "runbook" | "capability_contract";
         /**
          * ArtifactListResponse
          * @description Paginated artifact list. Same envelope shape as CapabilityListResponse.
@@ -2952,6 +4353,176 @@ export interface components {
             /** Valid To */
             valid_to?: string | null;
         };
+        /**
+         * ArtifactSemantics
+         * @description Exactly the closed `arc_artifact_semantics_v1` profile object.
+         */
+        ArtifactSemantics: {
+            /** Applicability */
+            applicability: components["schemas"]["ArtifactApplicabilityRule"][];
+            /** Applicability Baseline Version */
+            applicability_baseline_version: string;
+            /** Approved Retention Floor Days */
+            approved_retention_floor_days: number;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /**
+             * Content Classification
+             * @enum {string}
+             */
+            content_classification: "public" | "internal" | "confidential";
+            /**
+             * Detail Audience
+             * @enum {string}
+             */
+            detail_audience: "agent_only" | "human_only" | "agent_and_human";
+            /** Directives */
+            directives: components["schemas"]["ArtifactDirective"][];
+            /**
+             * Initial Freshness Basis
+             * @enum {string}
+             */
+            initial_freshness_basis: "connector_verified" | "revision_pinned_only";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "directive_bundle" | "task_summary_template";
+            /** Materialiser Profile */
+            materialiser_profile: string;
+            /** Materialiser Version */
+            materialiser_version: string;
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Owning Tenant Id */
+            owning_tenant_id?: string | null;
+            /**
+             * Profile
+             * @default arc_artifact_semantics_v1
+             * @constant
+             */
+            profile: "arc_artifact_semantics_v1";
+            /** Projection Schema Version */
+            projection_schema_version: number;
+            /**
+             * Review Expires At
+             * Format: date-time
+             */
+            review_expires_at: string;
+            /** Reviewed Baseline Revision Id */
+            reviewed_baseline_revision_id?: string | null;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Source Approval Evidence Digest */
+            source_approval_evidence_digest: string;
+            /** Source Content Digest */
+            source_content_digest: string;
+            /** Source Revision Locator */
+            source_revision_locator: string;
+            /** Source System */
+            source_system: string;
+            /**
+             * Visibility
+             * @enum {string}
+             */
+            visibility: "standard" | "restricted";
+        };
+        /** ArtifactSemanticsPartial */
+        ArtifactSemanticsPartial: {
+            /** Applicability */
+            applicability?: components["schemas"]["ArtifactApplicabilityRule"][] | null;
+            /** Applicability Baseline Version */
+            applicability_baseline_version?: string | null;
+            /** Approved Retention Floor Days */
+            approved_retention_floor_days?: number | null;
+            /** Artifact Id */
+            artifact_id?: string | null;
+            /** Content Classification */
+            content_classification?: ("public" | "internal" | "confidential") | null;
+            /** Detail Audience */
+            detail_audience?: ("agent_only" | "human_only" | "agent_and_human") | null;
+            /** Directives */
+            directives?: components["schemas"]["ArtifactDirective"][] | null;
+            /** Initial Freshness Basis */
+            initial_freshness_basis?: ("connector_verified" | "revision_pinned_only") | null;
+            /** Kind */
+            kind?: ("directive_bundle" | "task_summary_template") | null;
+            /** Materialiser Profile */
+            materialiser_profile?: string | null;
+            /** Materialiser Version */
+            materialiser_version?: string | null;
+            owning_scope?: components["schemas"]["OwningScope"] | null;
+            /** Owning Tenant Id */
+            owning_tenant_id?: string | null;
+            /** Profile */
+            profile?: "arc_artifact_semantics_v1" | null;
+            /** Projection Schema Version */
+            projection_schema_version?: number | null;
+            /** Review Expires At */
+            review_expires_at?: string | null;
+            /** Reviewed Baseline Revision Id */
+            reviewed_baseline_revision_id?: string | null;
+            /** Revision Id */
+            revision_id?: string | null;
+            /** Source Approval Evidence Digest */
+            source_approval_evidence_digest?: string | null;
+            /** Source Content Digest */
+            source_content_digest?: string | null;
+            /** Source Revision Locator */
+            source_revision_locator?: string | null;
+            /** Source System */
+            source_system?: string | null;
+            /** Visibility */
+            visibility?: ("standard" | "restricted") | null;
+        };
+        /** AssertClaimRequest */
+        AssertClaimRequest: {
+            /** Asserted Valid From */
+            asserted_valid_from?: string | null;
+            /** Asserted Valid To */
+            asserted_valid_to?: string | null;
+            /** Evidence */
+            evidence: components["schemas"]["EvidenceItemRequest"][];
+            /** Namespace */
+            namespace?: string | null;
+            /** Predicate */
+            predicate: string;
+            /** Subject Reference */
+            subject_reference: string;
+            /** Value */
+            value: unknown;
+            /** Visibility */
+            visibility?: ("public" | "tenant-shared" | "private") | null;
+        };
+        /** AssertClaimResponse */
+        AssertClaimResponse: {
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Is Contested */
+            is_contested: boolean;
+            /** Owning Tenant Id */
+            owning_tenant_id: string | null;
+            /** Predicate */
+            predicate: string;
+            /** Source Authority */
+            source_authority: string;
+            /** Status */
+            status: string;
+            /** Subject Entity Id */
+            subject_entity_id: string | null;
+            /** Value */
+            value: unknown;
+            /** Visibility */
+            visibility: string;
+        };
         /** AttachEvidenceRequest */
         AttachEvidenceRequest: {
             /**
@@ -2992,14 +4563,20 @@ export interface components {
             /** Signer Key Id */
             signer_key_id: string;
         };
-        /** AuditResponse */
+        /**
+         * AuditResponse
+         * @description Paginated audit log; next_cursor is null when no further events exist.
+         */
         AuditResponse: {
             /** Items */
             items: components["schemas"]["AuditRow"][];
             /** Next Cursor */
             next_cursor: string | null;
         };
-        /** AuditRow */
+        /**
+         * AuditRow
+         * @description One audit event with its before/after states and metadata.
+         */
         AuditRow: {
             /** Action */
             action: string;
@@ -3035,6 +4612,63 @@ export interface components {
              */
             ts: string;
         };
+        /**
+         * AvailableAction
+         * @description The closed set of actions a proposal-version read model may report
+         *     as available to the caller; see `AVAILABLE_ACTION_ROUTE_ACTIONS`.
+         * @enum {string}
+         */
+        AvailableAction: "edit" | "validate" | "run_semantic_tests" | "confirm_reach" | "draft" | "submit" | "withdraw" | "reject" | "supersede" | "request_approval" | "qualify" | "accept_qualification" | "activate";
+        /** BelievedClaimResponse */
+        BelievedClaimResponse: {
+            /** Bucket */
+            bucket: string | null;
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Confidence */
+            confidence: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Is Contested */
+            is_contested: boolean;
+            /** Predicate */
+            predicate: string;
+            /** Source Authority */
+            source_authority: string;
+            /** Status */
+            status: string;
+            /** Superseded By */
+            superseded_by: string | null;
+            /** Superseded Reason */
+            superseded_reason: string | null;
+            /** T Invalidated At */
+            t_invalidated_at: string | null;
+            /** Value */
+            value: unknown;
+            /** Was Current */
+            was_current: boolean;
+        };
+        /** BelievedClaimsResponse */
+        BelievedClaimsResponse: {
+            /** Items */
+            items: components["schemas"]["BelievedClaimResponse"][];
+        };
+        /** Body_admit_source_upload_v1_arc_sources_uploads_post */
+        Body_admit_source_upload_v1_arc_sources_uploads_post: {
+            /**
+             * Body
+             * Format: binary
+             */
+            body: string;
+            /** Metadata */
+            metadata: string;
+        };
         /** BreakingChangePreviewResponse */
         BreakingChangePreviewResponse: {
             /** Affected Consumers */
@@ -3051,6 +4685,61 @@ export interface components {
             proposed_version: string;
             /** Release Notes Scaffold */
             release_notes_scaffold: string;
+        };
+        /**
+         * CalibrationMappingResponse
+         * @description One (provider, model, strategy) triple's most recent fit -- deployment-wide, not tenant-scoped.
+         */
+        CalibrationMappingResponse: {
+            /**
+             * Fitted At
+             * Format: date-time
+             */
+            fitted_at: string;
+            /** Measured Error */
+            measured_error: number;
+            /** Model Id */
+            model_id: string;
+            /** N Adjudicated */
+            n_adjudicated: number;
+            /** Provider Id */
+            provider_id: string;
+            /** Status */
+            status: string;
+            /** Strategy Id */
+            strategy_id: string;
+            /** Version */
+            version: string;
+        };
+        /**
+         * CalibrationRefitRequest
+         * @description Body for POST /memory-calibration:refit -- names the exact triple to refit now.
+         */
+        CalibrationRefitRequest: {
+            /** Model Id */
+            model_id: string;
+            /** Provider Id */
+            provider_id: string;
+            /** Strategy Id */
+            strategy_id: string;
+        };
+        /**
+         * CalibrationRefitResponse
+         * @description Outcome of an on-demand refit; `activated: false` means the triple stayed below the evaluation floor.
+         */
+        CalibrationRefitResponse: {
+            /** Activated */
+            activated: boolean;
+            /** Model Id */
+            model_id: string;
+            /** N Adjudicated */
+            n_adjudicated: number;
+            /** Provider Id */
+            provider_id: string;
+            /** Strategy Id */
+            strategy_id: string;
+            /** Version */
+            version: string;
         };
         /**
          * CapabilityDetailResponse
@@ -3108,14 +4797,20 @@ export interface components {
             /** Tenant Id */
             tenant_id?: string | null;
         };
-        /** CapabilityListResponse */
+        /**
+         * CapabilityListResponse
+         * @description Paginated list envelope for GET /v1/capabilities; `next_cursor` is None once the last page is returned.
+         */
         CapabilityListResponse: {
             /** Items */
             items: components["schemas"]["EntityRefItem"][];
             /** Next Cursor */
             next_cursor: string | null;
         };
-        /** CapabilityRankingOut */
+        /**
+         * CapabilityRankingOut
+         * @description Response body for GET /v1/admin/usage/capabilities: which capabilities this tenant's callers asked about.
+         */
         CapabilityRankingOut: {
             /** Capabilities */
             capabilities: components["schemas"]["CapabilityUsageOut"][];
@@ -3130,7 +4825,59 @@ export interface components {
              */
             start: string;
         };
-        /** CapabilityResponse */
+        /** CapabilityRequestListResponse */
+        CapabilityRequestListResponse: {
+            /** Items */
+            items: components["schemas"]["CapabilityRequestResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** CapabilityRequestResponse */
+        CapabilityRequestResponse: {
+            /** Body */
+            body: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Decision Reason */
+            decision_reason: string | null;
+            /**
+             * Owner Tenant Id
+             * Format: uuid
+             */
+            owner_tenant_id: string;
+            /** Request Category */
+            request_category: string;
+            /**
+             * Request Id
+             * Format: uuid
+             */
+            request_id: string;
+            /**
+             * Requester Tenant Id
+             * Format: uuid
+             */
+            requester_tenant_id: string;
+            /** Resulting Promotion Id */
+            resulting_promotion_id: string | null;
+            /** Status */
+            status: string;
+            /**
+             * Subject Entity Id
+             * Format: uuid
+             */
+            subject_entity_id: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * CapabilityResponse
+         * @description Response for the capability create/update routes.
+         *
+         *     The bare record, without list-envelope or expansion fields.
+         */
         CapabilityResponse: {
             /** Attributes */
             attributes: {
@@ -3158,7 +4905,12 @@ export interface components {
              */
             tenant_id: string;
         };
-        /** CapabilityTypeSchemaCreate */
+        /**
+         * CapabilityTypeSchemaCreate
+         * @description Body for POST /capability-types.
+         *
+         *     `is_advisory` (default true) controls whether validation failures block a write.
+         */
         CapabilityTypeSchemaCreate: {
             /**
              * Is Advisory
@@ -3174,12 +4926,18 @@ export interface components {
             /** Type Name */
             type_name: string;
         };
-        /** CapabilityTypeSchemaPatch */
+        /**
+         * CapabilityTypeSchemaPatch
+         * @description Body for PATCH /capability-types/{type_name}; today the only supported change is flipping `is_advisory`.
+         */
         CapabilityTypeSchemaPatch: {
             /** Is Advisory */
             is_advisory?: boolean | null;
         };
-        /** CapabilityTypeSchemaResponse */
+        /**
+         * CapabilityTypeSchemaResponse
+         * @description A capability-type's JSON Schema and its bi-temporal validity window.
+         */
         CapabilityTypeSchemaResponse: {
             _links?: components["schemas"]["Links"] | null;
             /** Is Advisory */
@@ -3210,7 +4968,10 @@ export interface components {
             /** Type Name */
             type_name: string;
         };
-        /** CapabilityUsageOut */
+        /**
+         * CapabilityUsageOut
+         * @description One capability's call volume for the window, nested inside CapabilityRankingOut.
+         */
         CapabilityUsageOut: {
             /** Actor Days */
             actor_days: number;
@@ -3241,6 +5002,24 @@ export interface components {
             issued_at: string;
             /** Manifest Claims Digest */
             manifest_claims_digest: string;
+        };
+        /**
+         * Citation
+         * @description A pointer from one semantic field back to the source excerpt that
+         *     justifies it.
+         */
+        Citation: {
+            /** Excerpt Digest */
+            excerpt_digest: string;
+            /** Field Path */
+            field_path: string;
+            /** Source Anchor */
+            source_anchor: string;
+            /**
+             * Source Evidence Id
+             * Format: uuid
+             */
+            source_evidence_id: string;
         };
         /**
          * CitationItem
@@ -3274,6 +5053,11 @@ export interface components {
             kind: string;
             /** Ref */
             ref: string;
+        };
+        /** ClaimHistoryResponse */
+        ClaimHistoryResponse: {
+            /** Items */
+            items: components["schemas"]["BelievedClaimResponse"][];
         };
         /**
          * ClaimResponse
@@ -3327,6 +5111,30 @@ export interface components {
             /** Value */
             value: unknown;
         };
+        /** ConfirmationResponse */
+        ConfirmationResponse: {
+            /** Bucket */
+            bucket: string;
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Confidence */
+            confidence: number;
+            /**
+             * Confirms Claim Id
+             * Format: uuid
+             */
+            confirms_claim_id: string;
+            /**
+             * Hold Until
+             * Format: date-time
+             */
+            hold_until: string;
+            /** Source Authority */
+            source_authority: string;
+        };
         /**
          * ConformancePolicyView
          * @description The rule by which a strategy is judged defective.
@@ -3338,6 +5146,23 @@ export interface components {
             minimum_sample: number;
             /** Target Ratio */
             target_ratio: number;
+        };
+        /**
+         * ConnectorFetchRequest
+         * @description Body for `POST /v1/arc/sources/connector-fetches`: admits a source
+         *     body a configured connector fetches, rather than one the caller
+         *     uploads directly.
+         */
+        ConnectorFetchRequest: {
+            claim: components["schemas"]["SourceApprovalClaim"];
+            /** Connector Id */
+            connector_id: string;
+            /** Proof */
+            proof: components["schemas"]["DetachedSignatureProof"] | components["schemas"]["VerifierAttestationProof"];
+            /** Source Revision Locator */
+            source_revision_locator: string;
+            /** Verifier Id */
+            verifier_id: string;
         };
         /**
          * CreateArtifactRequest
@@ -3362,7 +5187,10 @@ export interface components {
             /** Valid From */
             valid_from?: string | null;
         };
-        /** CreateCapabilityRequest */
+        /**
+         * CreateCapabilityRequest
+         * @description Body for ``POST /v1/capabilities`` -- creates a top-level, adoptable entity.
+         */
         CreateCapabilityRequest: {
             /** Attributes */
             attributes?: {
@@ -3383,7 +5211,10 @@ export interface components {
             /** Valid From */
             valid_from?: string | null;
         };
-        /** CreateConceptRequest */
+        /**
+         * CreateConceptRequest
+         * @description Body for creating a concept entity; `parent_capability_id` links it via a `concept_of` edge.
+         */
         CreateConceptRequest: {
             /** Attributes */
             attributes?: {
@@ -3404,7 +5235,10 @@ export interface components {
             /** Valid From */
             valid_from?: string | null;
         };
-        /** CreateOperationRequest */
+        /**
+         * CreateOperationRequest
+         * @description Body for creating an operation entity; `parent_capability_id` links it via an `operation_of` edge.
+         */
         CreateOperationRequest: {
             /** Attributes */
             attributes?: {
@@ -3436,7 +5270,10 @@ export interface components {
             /** Value Type */
             value_type: string;
         };
-        /** DailyPointOut */
+        /**
+         * DailyPointOut
+         * @description One day's exact figures for one surface — unlike the summary, nothing here is an approximation.
+         */
         DailyPointOut: {
             /** Calls */
             calls: number;
@@ -3466,7 +5303,10 @@ export interface components {
              */
             surface: "rest" | "mcp";
         };
-        /** DailySeriesOut */
+        /**
+         * DailySeriesOut
+         * @description Response body for GET /v1/admin/usage/series: the day-by-day breakdown behind the summary's totals.
+         */
         DailySeriesOut: {
             /**
              * End
@@ -3484,7 +5324,16 @@ export interface components {
              */
             start: string;
         };
-        /** DependencyResponse */
+        /**
+         * DeltaCode
+         * @description Derived by import from `authoring_profile_shapes.DELTA_CODES` (ADR 041 Section 4); see `RiskClassification` for why this is a same-layer import.
+         * @enum {string}
+         */
+        DeltaCode: "newly_selected" | "no_longer_selected" | "conflict_changed" | "mandatory_block_added" | "mandatory_block_removed";
+        /**
+         * DependencyResponse
+         * @description Response for the dependency-traversal endpoint -- edges reachable from `root_entity_id` within `depth`.
+         */
         DependencyResponse: {
             /** As Of */
             as_of: string | null;
@@ -3497,6 +5346,21 @@ export interface components {
              * Format: uuid
              */
             root_entity_id: string;
+        };
+        /**
+         * DetachedSignatureProof
+         * @description One `ApprovalProof` variant: a signature computed directly over a
+         *     named profile's canonical bytes.
+         */
+        DetachedSignatureProof: {
+            signature_algorithm: components["schemas"]["SignatureAlgorithm"];
+            /** Signature Base64 */
+            signature_base64: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            verification_method: "detached_signature";
         };
         /** DetailPageResponse */
         DetailPageResponse: {
@@ -3544,6 +5408,42 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** DiscardClaimRequest */
+        DiscardClaimRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /** DiscardResponse */
+        DiscardResponse: {
+            /** Status */
+            status: string;
+        };
+        /**
+         * DraftPatchResponse
+         * @description Result of `POST {PV}/draft`: a proposed partial patch with its
+         *     supporting citations.
+         */
+        DraftPatchResponse: {
+            /** Citations */
+            citations: components["schemas"]["Citation"][];
+            /** Declined Field Paths */
+            declined_field_paths: string[];
+            patch: components["schemas"]["ArtifactSemanticsPartial"];
+        };
+        /**
+         * DraftRequest
+         * @description Body for `POST {PV}/draft`: asks the drafter for a patch covering
+         *     the named field paths, sourced from the given evidence.
+         */
+        DraftRequest: {
+            /**
+             * Source Evidence Id
+             * Format: uuid
+             */
+            source_evidence_id: string;
+            /** Target Field Paths */
+            target_field_paths: string[];
+        };
         /**
          * EdgeRefItem
          * @description An edge between two entities.
@@ -3584,6 +5484,70 @@ export interface components {
             valid_from?: string | null;
             /** Valid To */
             valid_to?: string | null;
+        };
+        /**
+         * EmptyRequest
+         * @description A request body with no fields -- used by routes whose action needs
+         *     no input beyond the resource path.
+         */
+        EmptyRequest: Record<string, never>;
+        /**
+         * EnrollmentChallengeRequest
+         * @description `principal_issuer`/`principal_subject`/`provider_allowed_principal_issuer`
+         *     are legitimate *target*-principal fields (Appendix A.4) naming the
+         *     principal being enrolled -- not the reserved *actor* fields the caller
+         *     is refused for supplying.
+         */
+        EnrollmentChallengeRequest: {
+            binding_kind: components["schemas"]["PrincipalBindingKind"];
+            /** Evidence Types */
+            evidence_types: components["schemas"]["EvidenceType"][];
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Principal Issuer */
+            principal_issuer?: string | null;
+            /** Principal Subject */
+            principal_subject?: string | null;
+            /** Provider Allowed Principal Issuer */
+            provider_allowed_principal_issuer?: string | null;
+            /** Provider Id */
+            provider_id?: string | null;
+            /** Public Key Base64 */
+            public_key_base64: string;
+            signature_algorithm: components["schemas"]["SignatureAlgorithm"];
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /**
+             * Valid To
+             * Format: date-time
+             */
+            valid_to: string;
+        };
+        /**
+         * EnrollmentChallengeResponse
+         * @description The signing challenge a verifier enrollment must complete: the
+         *     caller signs `canonical_enrollment_bytes_base64` and submits that
+         *     signature via `VerifierRegistrationRequest`.
+         */
+        EnrollmentChallengeResponse: {
+            /** Canonical Enrollment Bytes Base64 */
+            canonical_enrollment_bytes_base64: string;
+            /**
+             * Enrollment Challenge Id
+             * Format: uuid
+             */
+            enrollment_challenge_id: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Signing Domain */
+            signing_domain: string;
         };
         /**
          * EntityCollectionExpansion
@@ -3664,10 +5628,16 @@ export interface components {
             /** Tenant Id */
             tenant_id?: string | null;
         };
-        /** EntityRefResponse */
+        /**
+         * EntityRefResponse
+         * @description The entity resolved by the external-system-slug + external-ID lookup route.
+         */
         EntityRefResponse: {
-            /** Created At */
-            created_at: unknown;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
             /**
              * Entity Id
              * Format: uuid
@@ -3770,6 +5740,24 @@ export interface components {
             /** Tool Name */
             tool_name: string | null;
         };
+        /** EvidenceItemRequest */
+        EvidenceItemRequest: {
+            /** Excerpt */
+            excerpt?: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "session_event" | "document_revision" | "commit" | "work_item" | "connector_run" | "curator" | "incident";
+            /** Ref */
+            ref: string;
+        };
+        /**
+         * EvidenceType
+         * @description The two kinds of approval evidence the system records.
+         * @enum {string}
+         */
+        EvidenceType: "artifact_activation" | "exception_approval";
         /**
          * ExceptionApprovalBody
          * @description The evidence that authorizes one exception.
@@ -3812,7 +5800,63 @@ export interface components {
              */
             verifier_identity: string;
         };
-        /** ExternalIdCreate */
+        /**
+         * ExpectedImpactEnvelope
+         * @description Exactly the closed `arc_expected_impact_envelope_v1` profile object.
+         */
+        ExpectedImpactEnvelope: {
+            /** Author Issuer */
+            author_issuer: string;
+            /** Author Subject */
+            author_subject: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Envelope Id
+             * Format: uuid
+             */
+            envelope_id: string;
+            /** Items */
+            items: components["schemas"]["ExpectedImpactEnvelopeItem"][];
+            /**
+             * Profile
+             * @default arc_expected_impact_envelope_v1
+             * @constant
+             */
+            profile: "arc_expected_impact_envelope_v1";
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Proposal Version */
+            proposal_version: number;
+        };
+        /**
+         * ExpectedImpactEnvelopeItem
+         * @description Nested element of `ExpectedImpactEnvelope.items[]`; mirrors the
+         *     private `_ENVELOPE_ITEM_SCHEMA` constant. Same residual-gap note as
+         *     `ArtifactDirective`.
+         */
+        ExpectedImpactEnvelopeItem: {
+            class_predicate: components["schemas"]["ObservationClassPredicate"];
+            delta_code: components["schemas"]["DeltaCode"];
+            /** Item Id */
+            item_id: string;
+            /** Maximum Count */
+            maximum_count?: number | null;
+            /** Minimum Count */
+            minimum_count: number;
+            /** Rationale Code */
+            rationale_code: string;
+        };
+        /**
+         * ExternalIdCreate
+         * @description Body for POST .../external-ids; `url` overrides the system's `url_template` when supplied.
+         */
         ExternalIdCreate: {
             /** External Id */
             external_id: string;
@@ -3855,7 +5899,10 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
-        /** ExternalIdPatch */
+        /**
+         * ExternalIdPatch
+         * @description Body for PATCH .../external-ids/{pk}; only `url` and `metadata_jsonb` are ever mutable.
+         */
         ExternalIdPatch: {
             /** Metadata Jsonb */
             metadata_jsonb?: {
@@ -3864,7 +5911,10 @@ export interface components {
             /** Url */
             url?: string | null;
         };
-        /** ExternalIdResponse */
+        /**
+         * ExternalIdResponse
+         * @description One entity-to-external-system mapping, returned by the create/list/patch routes.
+         */
         ExternalIdResponse: {
             /**
              * Entity Id
@@ -3892,14 +5942,20 @@ export interface components {
             /** Url */
             url: string | null;
         };
-        /** ExternalIdsExpansion */
+        /**
+         * ExternalIdsExpansion
+         * @description Container for an ``?include=external_ids`` expansion, same truncation contract as EntityCollectionExpansion.
+         */
         ExternalIdsExpansion: {
             /** Items */
             items: components["schemas"]["ExternalIdItem"][];
             /** Truncated */
             truncated: boolean;
         };
-        /** ExternalSystemCreate */
+        /**
+         * ExternalSystemCreate
+         * @description Body for POST /v1/admin/external-systems; `slug` is the identifier every mapping will reference.
+         */
         ExternalSystemCreate: {
             /** Description */
             description?: string | null;
@@ -3910,10 +5966,16 @@ export interface components {
             /** Url Template */
             url_template?: string | null;
         };
-        /** ExternalSystemResponse */
+        /**
+         * ExternalSystemResponse
+         * @description A registered external system, returned by the create and list admin routes.
+         */
         ExternalSystemResponse: {
-            /** Created At */
-            created_at: unknown;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
             /** Description */
             description: string | null;
             /** Display Name */
@@ -3927,6 +5989,32 @@ export interface components {
             tenant_id: string;
             /** Url Template */
             url_template: string | null;
+        };
+        /**
+         * FieldProvenanceInput
+         * @description Request-only. Deliberately not one of the profile-aliased
+         *     components in `arc_authoring_profiles.py`: it is a different shape
+         *     than the persisted `arc_field_provenance_v1` canonical profile (no
+         *     `author_issuer`/`author_subject` split, an `excerpt_digest` name
+         *     instead of `quoted_excerpt_digest`, and a `source_evidence_id` the
+         *     profile does not carry). Carries no `author`: for a `human_judgment`
+         *     field the author is the authenticated caller of the `PATCH`, written
+         *     server-side, never client-supplied.
+         */
+        FieldProvenanceInput: {
+            /** Author Role */
+            author_role?: string | null;
+            /** Derivation Profile */
+            derivation_profile?: string | null;
+            /** Excerpt Digest */
+            excerpt_digest?: string | null;
+            /** Field Path */
+            field_path: string;
+            provenance_class: components["schemas"]["ProvenanceClass"];
+            /** Source Anchor */
+            source_anchor?: string | null;
+            /** Source Evidence Id */
+            source_evidence_id?: string | null;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -4061,7 +6149,10 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
-        /** LifecycleTransitionRequest */
+        /**
+         * LifecycleTransitionRequest
+         * @description Body for POST /capabilities/{id}/lifecycle — deprecate or reinstate, naming the successor or "none".
+         */
         LifecycleTransitionRequest: {
             /** New State */
             new_state: string;
@@ -4073,7 +6164,10 @@ export interface components {
             /** Valid From */
             valid_from?: string | null;
         };
-        /** LifecycleTransitionResponse */
+        /**
+         * LifecycleTransitionResponse
+         * @description Echoes the transition outcome; replaced_by is null when successor was 'none'.
+         */
         LifecycleTransitionResponse: {
             /**
              * Entity Id
@@ -4084,6 +6178,48 @@ export interface components {
             new_state: string;
             /** Replaced By */
             replaced_by: string | null;
+        };
+        /** LinkClaimRequest */
+        LinkClaimRequest: {
+            /** Subject Reference */
+            subject_reference: string;
+        };
+        /** LinkRequestToPromotionRequest */
+        LinkRequestToPromotionRequest: {
+            /**
+             * Promotion Id
+             * Format: uuid
+             */
+            promotion_id: string;
+        };
+        /** LinkRequestToPromotionResponse */
+        LinkRequestToPromotionResponse: {
+            /** Status */
+            status: string;
+        };
+        /** LinkedClaimResponse */
+        LinkedClaimResponse: {
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Is Contested */
+            is_contested: boolean;
+            /** Owning Tenant Id */
+            owning_tenant_id: string | null;
+            /** Predicate */
+            predicate: string;
+            /** Source Authority */
+            source_authority: string;
+            /** Status */
+            status: string;
+            /** Subject Entity Id */
+            subject_entity_id: string | null;
+            /** Value */
+            value: unknown;
+            /** Visibility */
+            visibility: string;
         };
         /**
          * Links
@@ -4187,7 +6323,34 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
-        /** OperationalHealthOut */
+        /**
+         * ObservationClassPredicate
+         * @description Exactly the closed `arc_observation_class_predicate_v1` profile object.
+         */
+        ObservationClassPredicate: {
+            /** Capability Ids */
+            capability_ids?: string[] | null;
+            /** Data Sensitivity Tier */
+            data_sensitivity_tier?: string[] | null;
+            /** Domain Ids */
+            domain_ids?: string[] | null;
+            /** Environment */
+            environment?: string[] | null;
+            /**
+             * Profile
+             * @default arc_observation_class_predicate_v1
+             * @constant
+             */
+            profile: "arc_observation_class_predicate_v1";
+            /** Requested Action Classes */
+            requested_action_classes?: string[] | null;
+            /** Task Kind */
+            task_kind?: string[] | null;
+        };
+        /**
+         * OperationalHealthOut
+         * @description Response body for GET /operational-health: metrics an operator should see on demand rather than scrape.
+         */
         OperationalHealthOut: {
             /** Data Quality */
             data_quality: components["schemas"]["ReadingOut"][];
@@ -4199,7 +6362,16 @@ export interface components {
             /** Queues */
             queues: components["schemas"]["ReadingOut"][];
         };
-        /** OwnedCapabilityUsageListOut */
+        /**
+         * OperationalIntegrityState
+         * @description Whether a revision's operational-chain checkpoint is trustworthy.
+         * @enum {string}
+         */
+        OperationalIntegrityState: "pending" | "verified" | "failed" | "unavailable";
+        /**
+         * OwnedCapabilityUsageListOut
+         * @description Response body for GET /v1/usage/owned-capabilities.
+         */
         OwnedCapabilityUsageListOut: {
             /**
              * Capabilities
@@ -4217,7 +6389,10 @@ export interface components {
              */
             start: string;
         };
-        /** OwnedCapabilityUsageOut */
+        /**
+         * OwnedCapabilityUsageOut
+         * @description One owned capability's cross-tenant call totals, nested inside OwnedCapabilityUsageListOut.
+         */
         OwnedCapabilityUsageOut: {
             /**
              * Actor Days
@@ -4249,7 +6424,19 @@ export interface components {
              */
             payload_bytes: number | null;
         };
-        /** PiiFieldPolicyCreate */
+        /**
+         * OwningScope
+         * @description Whether a resource is global or bound to one tenant.
+         * @enum {string}
+         */
+        OwningScope: "global" | "tenant";
+        /**
+         * PiiFieldPolicyCreate
+         * @description Body for POST /pii-field-policies.
+         *
+         *     `pattern_id` scopes the override to one pattern; leave it null to cover
+         *     the field type as a whole.
+         */
         PiiFieldPolicyCreate: {
             /** Field Type */
             field_type: string;
@@ -4258,7 +6445,10 @@ export interface components {
             /** Policy */
             policy: string;
         };
-        /** PiiFieldPolicyResponse */
+        /**
+         * PiiFieldPolicyResponse
+         * @description A per-field PII policy override, returned by the create and list routes.
+         */
         PiiFieldPolicyResponse: {
             /**
              * Created At
@@ -4282,7 +6472,10 @@ export interface components {
              */
             tenant_id: string;
         };
-        /** PiiPatternCreate */
+        /**
+         * PiiPatternCreate
+         * @description Body for POST /pii-patterns; always creates a tenant-owned pattern, never a system one.
+         */
         PiiPatternCreate: {
             /** Category */
             category: string;
@@ -4298,7 +6491,10 @@ export interface components {
             /** Regex */
             regex: string;
         };
-        /** PiiPatternPatch */
+        /**
+         * PiiPatternPatch
+         * @description Body for PATCH /pii-patterns/{id}; refused with 403 when the target row is system-seeded.
+         */
         PiiPatternPatch: {
             /** Category */
             category?: string | null;
@@ -4309,7 +6505,10 @@ export interface components {
             /** Regex */
             regex?: string | null;
         };
-        /** PiiPatternResponse */
+        /**
+         * PiiPatternResponse
+         * @description A PII pattern, tenant-owned or system-seeded; `is_system` gates whether PATCH/DELETE may touch it.
+         */
         PiiPatternResponse: {
             /** Category */
             category: string;
@@ -4367,7 +6566,19 @@ export interface components {
             /** Proposed Version */
             proposed_version: string;
         };
-        /** ProgressionDefinitionCreate */
+        /**
+         * PrincipalBindingKind
+         * @description Whether an enrolled verifier is bound to one exact principal or to
+         *     any principal a trusted provider vouches for.
+         * @enum {string}
+         */
+        PrincipalBindingKind: "exact_principal" | "provider_delegated";
+        /**
+         * ProgressionDefinitionCreate
+         * @description Body for POST .../progression-definitions.
+         *
+         *     The first definition for an entity_type starts as advisory by default.
+         */
         ProgressionDefinitionCreate: {
             /** Definition */
             definition: {
@@ -4381,7 +6592,10 @@ export interface components {
              */
             is_advisory: boolean;
         };
-        /** ProgressionDefinitionResponse */
+        /**
+         * ProgressionDefinitionResponse
+         * @description A progression definition row, current or historical (see `t_valid_to`/`t_invalidated_at`).
+         */
         ProgressionDefinitionResponse: {
             /** Definition */
             definition: {
@@ -4416,7 +6630,17 @@ export interface components {
              */
             tenant_id: string;
         };
-        /** ProgressionDefinitionUpdate */
+        /**
+         * ProgressionDefinitionUpdate
+         * @description Body for PUT .../progression-definitions/{id} -- a supersession, not an in-place edit.
+         *
+         *     `dry_run`, `force`, `migration_plan`, and `force_timeout_seconds` are the
+         *     graduation pre-flight controls. They are evaluated on every PUT, not only
+         *     an `is_advisory` True→False flip: removing or renaming a state can strand
+         *     existing entities whether or not the definition's advisory status is
+         *     changing, and `dry_run=true` must always preview that blast radius before
+         *     anything is written.
+         */
         ProgressionDefinitionUpdate: {
             /** Definition */
             definition: {
@@ -4442,7 +6666,10 @@ export interface components {
             /** Migration Plan */
             migration_plan?: string | null;
         };
-        /** ProgressionOverrideCreate */
+        /**
+         * ProgressionOverrideCreate
+         * @description Body for POST .../progression-overrides; `reason` is required because every override is audit-logged first.
+         */
         ProgressionOverrideCreate: {
             /**
              * Bypass Skip Rules
@@ -4460,7 +6687,10 @@ export interface components {
             /** To State */
             to_state: string;
         };
-        /** ProgressionOverrideResponse */
+        /**
+         * ProgressionOverrideResponse
+         * @description A recorded override; `audit_event_id` points at the audit row committed before this row ever existed.
+         */
         ProgressionOverrideResponse: {
             /**
              * Audit Event Id
@@ -4514,7 +6744,7 @@ export interface components {
          * ProjectionResponse
          * @description HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.
          *
-         *     Maps one-to-one to ``registry.service.projections.Projection``.
+         *     Maps one-to-one to ``registry.service.platform.projections.Projection``.
          *     ``next_cursor`` is None when no further pages exist; pass it as ``cursor=``
          *     on the next request to retrieve the following page.
          */
@@ -4526,6 +6756,225 @@ export interface components {
             /** Nodes */
             nodes: components["schemas"]["EntityRefItem"][];
         };
+        /**
+         * PromotionPolicyRequest
+         * @description Body for PUT /memory-promotion-policy -- a full replace, not a partial update; all three fields are required.
+         */
+        PromotionPolicyRequest: {
+            /** Always Review */
+            always_review?: string[];
+            /** Blast Radius Threshold */
+            blast_radius_threshold: number;
+            /** Confidence Floor */
+            confidence_floor: number;
+        };
+        /**
+         * PromotionPolicyResponse
+         * @description The tenant's promotion-review posture, read by GET and echoed by PUT after a replace.
+         */
+        PromotionPolicyResponse: {
+            /** Always Review */
+            always_review: string[];
+            /** Blast Radius Threshold */
+            blast_radius_threshold: number;
+            /** Confidence Floor */
+            confidence_floor: number;
+        };
+        /** ProposalDecisionResponse */
+        ProposalDecisionResponse: {
+            /** Promotion Id */
+            promotion_id: string | null;
+            proposal: components["schemas"]["ProposalResponse"];
+        };
+        /** ProposalListResponse */
+        ProposalListResponse: {
+            /** Items */
+            items: components["schemas"]["ProposalResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * ProposalOpenRequest
+         * @description Body for `POST /v1/arc/artifacts/{id}/proposals`: opens a new
+         *     proposal version against an admitted source.
+         */
+        ProposalOpenRequest: {
+            /** Reviewed Baseline Revision Id */
+            reviewed_baseline_revision_id?: string | null;
+            /**
+             * Source Evidence Id
+             * Format: uuid
+             */
+            source_evidence_id: string;
+        };
+        /**
+         * ProposalPatchRequest
+         * @description Body for `PATCH {PV}`: replaces a proposal version's candidate
+         *     semantics and field provenance.
+         */
+        ProposalPatchRequest: {
+            /** Field Provenance */
+            field_provenance: components["schemas"]["FieldProvenanceInput"][];
+            semantics: components["schemas"]["ArtifactSemantics"];
+        };
+        /** ProposalResponse */
+        ProposalResponse: {
+            /**
+             * Author Tenant Id
+             * Format: uuid
+             */
+            author_tenant_id: string;
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Created At */
+            created_at: string | null;
+            /** Current Value */
+            current_value: unknown;
+            /** High Impact */
+            high_impact: boolean;
+            /** High Impact Reasons */
+            high_impact_reasons: string[];
+            /**
+             * Owner Tenant Id
+             * Format: uuid
+             */
+            owner_tenant_id: string;
+            /** Predicate */
+            predicate: string;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Proposed Value */
+            proposed_value: unknown;
+            /** State */
+            state: string;
+            /**
+             * Subject Entity Id
+             * Format: uuid
+             */
+            subject_entity_id: string;
+            /** Target Key */
+            target_key: string;
+            /** Target Kind */
+            target_kind: string;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+        };
+        /**
+         * ProposalState
+         * @description The closed proposal-version lifecycle state (ADR 040 Section 5).
+         * @enum {string}
+         */
+        ProposalState: "open" | "submitted" | "approved" | "activated" | "rejected" | "stale" | "superseded" | "withdrawn";
+        /**
+         * ProposalSummary
+         * @description The list-view row for one proposal version; used by both REST list
+         *     responses and the MCP `PagedProposalSummaries` result.
+         */
+        ProposalSummary: {
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Proposal Version */
+            proposal_version: number;
+            risk_classification?: components["schemas"]["RiskClassification"] | null;
+            state: components["schemas"]["ProposalState"];
+        };
+        /**
+         * ProposalThreadResponse
+         * @description A proposal thread: the identity and version sequence for one
+         *     artifact family's attempts to create or revise a member.
+         */
+        ProposalThreadResponse: {
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Latest Version */
+            latest_version: number;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Versions */
+            versions: components["schemas"]["ProposalSummary"][];
+        };
+        /**
+         * ProposalVersionResponse
+         * @description The detail view of one immutable proposal version, including its
+         *     current state, allowed transitions, and available actions.
+         */
+        ProposalVersionResponse: {
+            /** Allowed Transitions */
+            allowed_transitions: components["schemas"]["ProposalState"][];
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            /** Available Actions */
+            available_actions: components["schemas"]["AvailableAction"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Frozen At */
+            frozen_at?: string | null;
+            operational_integrity_state: components["schemas"]["OperationalIntegrityState"];
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Proposal Version */
+            proposal_version: number;
+            /** Reason Codes */
+            reason_codes: components["schemas"]["ReasonCode"][];
+            /** Reviewed Baseline Revision Id */
+            reviewed_baseline_revision_id?: string | null;
+            /** Revision Id */
+            revision_id?: string | null;
+            /** Risk Algorithm Version */
+            risk_algorithm_version?: string | null;
+            risk_classification?: components["schemas"]["RiskClassification"] | null;
+            /**
+             * Source Evidence Id
+             * Format: uuid
+             */
+            source_evidence_id: string;
+            state: components["schemas"]["ProposalState"];
+        };
+        /**
+         * ProvenanceClass
+         * @description The three mutually exclusive ways a semantic field can be justified.
+         * @enum {string}
+         */
+        ProvenanceClass: "source_backed" | "human_judgment" | "server_derived";
         /**
          * PurgeResultResponse
          * @description JSON shape returned by DELETE /v1/admin/actors/{actor_id}/personal-data.
@@ -4553,6 +7002,96 @@ export interface components {
                     [key: string]: number;
                 };
             };
+        };
+        /** QueueCountsResponse */
+        QueueCountsResponse: {
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+        };
+        /** QueueItemResponse */
+        QueueItemResponse: {
+            /** Available Actions */
+            available_actions: string[];
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Confidence */
+            confidence: number | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Human Backed */
+            human_backed: boolean;
+            /** Predicate */
+            predicate: string;
+            /** Proposal Id */
+            proposal_id: string | null;
+            /** Reason */
+            reason: string;
+            /** Subject Entity Id */
+            subject_entity_id: string | null;
+            /** Subject Reference */
+            subject_reference: string;
+            /** Value */
+            value: unknown;
+        };
+        /** QueueListResponse */
+        QueueListResponse: {
+            /** Items */
+            items: components["schemas"]["QueueItemResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** RaiseCapabilityRequestRequest */
+        RaiseCapabilityRequestRequest: {
+            /** Body */
+            body: string;
+            /** Request Category */
+            request_category: string;
+            /**
+             * Subject Entity Id
+             * Format: uuid
+             */
+            subject_entity_id: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * ReachConfirmationItem
+         * @description One field's confirmation state in `ReachConfirmationResponse`.
+         */
+        ReachConfirmationItem: {
+            /** Confirmed */
+            confirmed: boolean;
+            /** Confirmed At */
+            confirmed_at?: string | null;
+            confirmed_by?: components["schemas"]["ActorRef"] | null;
+            /** Field Path */
+            field_path: string;
+        };
+        /**
+         * ReachConfirmationRequest
+         * @description Body for `POST {PV}/reach-confirmations`: the field paths the
+         *     caller is confirming reach for.
+         */
+        ReachConfirmationRequest: {
+            /** Field Paths */
+            field_paths: string[];
+        };
+        /**
+         * ReachConfirmationResponse
+         * @description Result of `POST {PV}/reach-confirmations`, and the same shape
+         *     embedded in `ReviewPackageResponse.reach_confirmations`.
+         */
+        ReachConfirmationResponse: {
+            /** Confirmations */
+            confirmations: components["schemas"]["ReachConfirmationItem"][];
         };
         /**
          * ReadingOut
@@ -4596,6 +7135,17 @@ export interface components {
              */
             value: number | null;
         };
+        ReasonCode: string;
+        /**
+         * ReasonRequest
+         * @description Body shared by every bare state-transition route (withdraw, reject,
+         *     supersede, revoke).
+         */
+        ReasonRequest: {
+            /** Note */
+            note?: string | null;
+            reason_code: components["schemas"]["ReasonCode"];
+        };
         /** RecordEventRequest */
         RecordEventRequest: {
             /** Body */
@@ -4610,35 +7160,30 @@ export interface components {
             tool_name?: string | null;
         };
         /**
-         * RegisterVerifierRequest
-         * @description Admit an approval verifier as a trust root.
-         *
-         *     `public_key` is base64 on the wire and raw bytes in the service: the
-         *     encoding is a transport concern. Note what is *absent* -- no private key,
-         *     ever. Registration records the public half; the signing half stays with the
-         *     approver, which is what separates registrar from signer.
+         * RefusalCode
+         * @description The twenty-six closed refusal codes; see `REFUSAL_CODE_STATUS` for
+         *     each one's HTTP status (Appendix A.5).
+         * @enum {string}
          */
-        RegisterVerifierRequest: {
-            /** Algorithm */
-            algorithm?: string | null;
-            /** Allowed Evidence Types */
-            allowed_evidence_types: string[];
-            /** Approval Verifier Id */
-            approval_verifier_id: string;
-            /** Provider Id */
-            provider_id?: string | null;
-            /** Public Key */
-            public_key?: string | null;
-            /** Scope Kind */
-            scope_kind: string;
-            /** Scope Tenant Id */
-            scope_tenant_id?: string | null;
-            /** Valid From */
-            valid_from?: string | null;
-            /** Valid To */
-            valid_to?: string | null;
-            /** Verifier Kind */
-            verifier_kind: string;
+        RefusalCode: "arc_source_admission_refused" | "arc_source_status_unavailable" | "arc_evidence_type_not_writable" | "arc_enrollment_challenge_required" | "arc_enrollment_verification_failed" | "arc_approval_challenge_expired" | "arc_approval_challenge_failed" | "arc_approval_challenge_superseded" | "arc_approval_already_completed" | "arc_approval_verification_failed" | "arc_approval_challenge_limit_reached" | "arc_proposal_state_conflict" | "arc_proposal_validation_failed" | "arc_provenance_invalid" | "arc_reach_confirmation_required" | "arc_envelope_invalid" | "arc_observation_insufficient" | "arc_observation_failed" | "arc_qualification_actor_invalid" | "arc_qualification_expired" | "arc_activation_predicate_failed" | "arc_operational_integrity_pending" | "arc_operational_integrity_failed" | "arc_drafter_model_disabled" | "arc_idempotency_conflict" | "arc_actor_not_caller_supplied";
+        /** RequestHistoryResponse */
+        RequestHistoryResponse: {
+            /** Items */
+            items: components["schemas"]["RequestTransitionResponse"][];
+        };
+        /** RequestTransitionResponse */
+        RequestTransitionResponse: {
+            /** From Status */
+            from_status: string;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Reason */
+            reason: string | null;
+            /** To Status */
+            to_status: string;
         };
         /** ResolveContextRequest */
         ResolveContextRequest: {
@@ -4688,17 +7233,55 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** ReversePromotionRequest */
+        ReversePromotionRequest: {
+            /** Reason */
+            reason: string;
+        };
+        /** ReversePromotionResponse */
+        ReversePromotionResponse: {
+            /** Status */
+            status: string;
+        };
+        /** ReviewProposalRequest */
+        ReviewProposalRequest: {
+            /** Amended Value */
+            amended_value?: unknown;
+            /** Reason */
+            reason?: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "accepted" | "rejected";
+        };
         /** RevokeRequest */
         RevokeRequest: {
             /** Reason */
             reason: string;
         };
-        /** RevokeVerifierRequest */
+        /**
+         * RevokeVerifierRequest
+         * @description Body for `POST /approval-evidence/{evidence_id}/revoke`.
+         *
+         *     Not the verifier-revoke route below -- that one moved to the wire
+         *     `ReasonRequest` per Appendix A.1's contract for D1. This narrower model
+         *     stays for evidence revocation, which AAS-T13's contract does not touch.
+         */
         RevokeVerifierRequest: {
             /** Reason */
             reason: string;
         };
-        /** SearchResponse */
+        /**
+         * RiskClassification
+         * @description Derived by import from `authoring_profile_shapes.RISK_CLASSIFICATIONS` (ADR 041 Section 2) -- both live in the schema layer, so this is a same-layer import that cannot drift from that tuple, unlike the cross-layer import `RevisionLifecycleState`/`ArtifactKind` avoid.
+         * @enum {string}
+         */
+        RiskClassification: "global_mandatory" | "global_non_mandatory" | "tenant_mandatory" | "tenant_non_mandatory" | "domain_mandatory" | "domain_non_mandatory" | "capability_mandatory" | "capability_non_mandatory" | "task_mandatory" | "task_non_mandatory";
+        /**
+         * SearchResponse
+         * @description Response for the search endpoint -- bounded by `top_k`, so `total` is an exact count, not an estimate.
+         */
         SearchResponse: {
             /** Items */
             items: components["schemas"]["SearchResultItem"][];
@@ -4741,6 +7324,51 @@ export interface components {
             /** Tenant Id */
             tenant_id?: string | null;
         };
+        /**
+         * SemanticTestCase
+         * @description One test case in a `SemanticTestRequest`: a predicate manifest to
+         *     execute against the candidate semantics.
+         */
+        SemanticTestCase: {
+            manifest: components["schemas"]["ObservationClassPredicate"];
+            /** Test Id */
+            test_id: string;
+        };
+        /**
+         * SemanticTestRequest
+         * @description Body for `POST {PV}/semantic-tests`.
+         */
+        SemanticTestRequest: {
+            /** Tests */
+            tests: components["schemas"]["SemanticTestCase"][];
+        };
+        /**
+         * SemanticTestResultItem
+         * @description One executed test's frozen expected/actual result.
+         */
+        SemanticTestResultItem: {
+            /** Actual */
+            actual: {
+                [key: string]: unknown;
+            };
+            /** Expected */
+            expected: {
+                [key: string]: unknown;
+            };
+            /** Passed */
+            passed: boolean;
+            /** Test Id */
+            test_id: string;
+        };
+        /**
+         * SemanticTestResultResponse
+         * @description Result of `POST {PV}/semantic-tests`, and the same shape embedded
+         *     in `ReviewPackageResponse.semantic_tests`.
+         */
+        SemanticTestResultResponse: {
+            /** Results */
+            results: components["schemas"]["SemanticTestResultItem"][];
+        };
         /** SessionResponse */
         SessionResponse: {
             /** Event Count */
@@ -4771,6 +7399,278 @@ export interface components {
             shared_with_tenants?: string[] | null;
             /** Visibility */
             visibility: string;
+        };
+        /**
+         * SignatureAlgorithm
+         * @description Derived by import from the `signature_algorithm` enum already closed on the `arc_approval_verifier_enrollment_v1` profile schema. Appendix A.3 names `arc/service/approval_trust.py` as this vocabulary's eventual home, but that module does not yet declare a registered algorithm set; re-point this derivation once it does.
+         * @enum {string}
+         */
+        SignatureAlgorithm: "Ed25519";
+        /**
+         * SourceApprovalClaim
+         * @description Exactly the closed `arc_source_approval_claim_v1` profile object.
+         */
+        SourceApprovalClaim: {
+            /** Approval Locator */
+            approval_locator: string;
+            /** Approval Scope */
+            approval_scope: string;
+            /**
+             * Approved At
+             * Format: date-time
+             */
+            approved_at: string;
+            /** Approving Authority Issuer */
+            approving_authority_issuer: string;
+            /** Approving Authority Subject */
+            approving_authority_subject: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Profile
+             * @default arc_source_approval_claim_v1
+             * @constant
+             */
+            profile: "arc_source_approval_claim_v1";
+            /** Source Content Digest */
+            source_content_digest: string;
+            /**
+             * Source Content Digest Algorithm
+             * @default sha256
+             * @constant
+             */
+            source_content_digest_algorithm: "sha256";
+            /** Source Content Type */
+            source_content_type: string;
+            /** Source Revision Locator */
+            source_revision_locator: string;
+            /** Source System */
+            source_system: string;
+        };
+        /**
+         * SourceApprovalStatus
+         * @description The freshness state of a source's upstream approval.
+         * @enum {string}
+         */
+        SourceApprovalStatus: "current" | "expired" | "revoked" | "unknown" | "overdue";
+        /**
+         * SourceConnectorRegistration
+         * @description Body for registering a configured source connector: the closed set
+         *     of schemes, hosts, media types, and verifiers it may use.
+         */
+        SourceConnectorRegistration: {
+            /** Allowed Hosts */
+            allowed_hosts: string[];
+            /** Allowed Media Types */
+            allowed_media_types: string[];
+            /** Allowed Schemes */
+            allowed_schemes: string[];
+            /** Allowed Verifier Ids */
+            allowed_verifier_ids: string[];
+            /** Connector Id */
+            connector_id: string;
+            /** Credential Ref */
+            credential_ref?: string | null;
+            /** Max Bytes */
+            max_bytes: number;
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+        };
+        /**
+         * SourceConnectorResponse
+         * @description `SourceConnectorRegistration` plus the timestamp the registration
+         *     was accepted.
+         */
+        SourceConnectorResponse: {
+            /** Allowed Hosts */
+            allowed_hosts: string[];
+            /** Allowed Media Types */
+            allowed_media_types: string[];
+            /** Allowed Schemes */
+            allowed_schemes: string[];
+            /** Allowed Verifier Ids */
+            allowed_verifier_ids: string[];
+            /** Connector Id */
+            connector_id: string;
+            /** Credential Ref */
+            credential_ref?: string | null;
+            /** Max Bytes */
+            max_bytes: number;
+            owning_scope: components["schemas"]["OwningScope"];
+            /**
+             * Registered At
+             * Format: date-time
+             */
+            registered_at: string;
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+        };
+        /**
+         * SourceDeclareRequest
+         * @description Body for POST /memory-sources -- declares or re-declares a source's full policy in one write.
+         */
+        SourceDeclareRequest: {
+            /** Authority Tier */
+            authority_tier: string;
+            /**
+             * Ingest Ceiling
+             * @default 1000
+             */
+            ingest_ceiling: number;
+            /**
+             * May Provision Entities
+             * @default false
+             */
+            may_provision_entities: boolean;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Window Seconds
+             * @default 3600
+             */
+            window_seconds: number;
+        };
+        /**
+         * SourceEvidenceResponse
+         * @description Never contains signature bytes, credentials, or the claim's raw proof.
+         */
+        SourceEvidenceResponse: {
+            admission_method: components["schemas"]["AdmissionMethod"];
+            /**
+             * Admitted At
+             * Format: date-time
+             */
+            admitted_at: string;
+            /** Connector Id */
+            connector_id?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Next Check At
+             * Format: date-time
+             */
+            next_check_at: string;
+            /** Policy Id */
+            policy_id?: string | null;
+            /** Source Content Bytes */
+            source_content_bytes: number;
+            /** Source Content Digest */
+            source_content_digest: string;
+            /** Source Content Type */
+            source_content_type: string;
+            /**
+             * Source Evidence Id
+             * Format: uuid
+             */
+            source_evidence_id: string;
+            /** Source Revision Locator */
+            source_revision_locator: string;
+            /** Source System */
+            source_system: string;
+            status: components["schemas"]["SourceApprovalStatus"];
+            /**
+             * Status Checked At
+             * Format: date-time
+             */
+            status_checked_at: string;
+            verification_method: components["schemas"]["VerificationMethod"];
+            /**
+             * Verified At
+             * Format: date-time
+             */
+            verified_at: string;
+            /** Verifier Id */
+            verifier_id: string;
+        };
+        /**
+         * SourcePolicyPatch
+         * @description Body for PATCH /memory-sources/{id} -- every field optional; an omitted field keeps its current value.
+         */
+        SourcePolicyPatch: {
+            /** Authority Tier */
+            authority_tier?: string | null;
+            /** Ingest Ceiling */
+            ingest_ceiling?: number | null;
+            /** May Provision Entities */
+            may_provision_entities?: boolean | null;
+            /** Window Seconds */
+            window_seconds?: number | null;
+        };
+        /**
+         * SourcePolicyResponse
+         * @description A declared source's governance state, including live breaker/breach counters.
+         */
+        SourcePolicyResponse: {
+            /** Authority Tier */
+            authority_tier: string;
+            /** Breach Count */
+            breach_count: number;
+            /** Breaker Open Until */
+            breaker_open_until: string | null;
+            /** Ingest Ceiling */
+            ingest_ceiling: number;
+            /** May Provision Entities */
+            may_provision_entities: boolean;
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Window Seconds */
+            window_seconds: number;
+        };
+        /**
+         * SourceUploadPolicyRegistration
+         * @description Body for registering an authorized-upload policy: the closed set of
+         *     media types and verifiers a direct upload under this policy may use.
+         */
+        SourceUploadPolicyRegistration: {
+            /** Allowed Media Types */
+            allowed_media_types: string[];
+            /** Allowed Verifier Ids */
+            allowed_verifier_ids: string[];
+            /** Max Bytes */
+            max_bytes: number;
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Policy Id */
+            policy_id: string;
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+        };
+        /**
+         * SourceUploadPolicyResponse
+         * @description `SourceUploadPolicyRegistration` plus the timestamp the
+         *     registration was accepted.
+         */
+        SourceUploadPolicyResponse: {
+            /** Allowed Media Types */
+            allowed_media_types: string[];
+            /** Allowed Verifier Ids */
+            allowed_verifier_ids: string[];
+            /** Max Bytes */
+            max_bytes: number;
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Policy Id */
+            policy_id: string;
+            /**
+             * Registered At
+             * Format: date-time
+             */
+            registered_at: string;
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
         };
         /** StrategyConfigView */
         StrategyConfigView: {
@@ -4835,6 +7735,13 @@ export interface components {
             prompt_is_overridden: boolean;
             /** Strategy Id */
             strategy_id: string;
+        };
+        /**
+         * SubmitRequest
+         * @description Body for `POST {PV}/submit`.
+         */
+        SubmitRequest: {
+            expected_impact_envelope: components["schemas"]["ExpectedImpactEnvelope"];
         };
         /** SubscriptionCreate */
         SubscriptionCreate: {
@@ -4917,7 +7824,10 @@ export interface components {
             /** Webhook Url */
             webhook_url?: string | null;
         };
-        /** SupersededFactResponse */
+        /**
+         * SupersededFactResponse
+         * @description A fact that a later sync run marked no longer authoritative for this run.
+         */
         SupersededFactResponse: {
             /** Body */
             body: string;
@@ -4946,7 +7856,10 @@ export interface components {
              */
             t_valid_from: string;
         };
-        /** SurfaceSummaryOut */
+        /**
+         * SurfaceSummaryOut
+         * @description One surface's (rest or mcp) figures for the requested window, nested inside UsageSummaryOut.
+         */
         SurfaceSummaryOut: {
             /**
              * Actor Days
@@ -4984,7 +7897,10 @@ export interface components {
              */
             worst_daily_p95_ms: number | null;
         };
-        /** SyncRunResponse */
+        /**
+         * SyncRunResponse
+         * @description One sync run's outcome, returned by the run-listing and run-detail routes.
+         */
         SyncRunResponse: {
             _links?: components["schemas"]["Links"] | null;
             /** Artifact Count */
@@ -5020,7 +7936,10 @@ export interface components {
             /** Trigger */
             trigger: string;
         };
-        /** SyncSourceCreate */
+        /**
+         * SyncSourceCreate
+         * @description Body for POST /sync-sources; `source_type` must name a registered connector.
+         */
         SyncSourceCreate: {
             /** Config */
             config?: {
@@ -5035,7 +7954,10 @@ export interface components {
             /** Source Type */
             source_type: string;
         };
-        /** SyncSourcePatch */
+        /**
+         * SyncSourcePatch
+         * @description Body for PATCH /sync-sources/{id}; every field optional, an omitted one keeps its current value.
+         */
         SyncSourcePatch: {
             /** Config */
             config?: {
@@ -5050,7 +7972,10 @@ export interface components {
             /** Schedule */
             schedule?: string | null;
         };
-        /** SyncSourceResponse */
+        /**
+         * SyncSourceResponse
+         * @description A sync source's configuration and status, returned by the source CRUD routes.
+         */
         SyncSourceResponse: {
             _links?: components["schemas"]["Links"] | null;
             /** Config */
@@ -5085,7 +8010,10 @@ export interface components {
              */
             tenant_id: string;
         };
-        /** ToolRankingOut */
+        /**
+         * ToolRankingOut
+         * @description Response body for GET /v1/admin/usage/tools: which MCP tools this tenant's agents actually call.
+         */
         ToolRankingOut: {
             /**
              * End
@@ -5100,7 +8028,10 @@ export interface components {
             /** Tools */
             tools: components["schemas"]["ToolUsageOut"][];
         };
-        /** ToolUsageOut */
+        /**
+         * ToolUsageOut
+         * @description One MCP tool's call volume and outcomes for the window, nested inside ToolRankingOut.
+         */
         ToolUsageOut: {
             /** Actor Days */
             actor_days: number;
@@ -5114,6 +8045,16 @@ export interface components {
             tool: string;
             /** Worst Daily P95 Ms */
             worst_daily_p95_ms: number | null;
+        };
+        /** TransitionRequestRequest */
+        TransitionRequestRequest: {
+            /** Reason */
+            reason?: string | null;
+            /**
+             * To Status
+             * @enum {string}
+             */
+            to_status: "acknowledged" | "accepted" | "declined" | "duplicate" | "resolved";
         };
         /**
          * TraversalResultResponse
@@ -5145,7 +8086,10 @@ export interface components {
                 [key: string]: boolean;
             };
         };
-        /** TriggerResponse */
+        /**
+         * TriggerResponse
+         * @description Acknowledgement that a manual sync run was scheduled -- `status` is always "queued" at this point.
+         */
         TriggerResponse: {
             /**
              * Source Id
@@ -5179,7 +8123,10 @@ export interface components {
             /** Valid From */
             valid_from?: string | null;
         };
-        /** UsageSummaryOut */
+        /**
+         * UsageSummaryOut
+         * @description Response body for GET /v1/admin/usage/summary: one row per surface for the resolved window.
+         */
         UsageSummaryOut: {
             /** Days */
             days: number;
@@ -5205,17 +8152,88 @@ export interface components {
             /** Error Type */
             type: string;
         };
-        /** VocabularyValueCreate */
+        /**
+         * ValidationErrorItem
+         * @description One field-level validation failure in `ValidationResponse.errors`.
+         */
+        ValidationErrorItem: {
+            code: components["schemas"]["RefusalCode"];
+            /** Field Path */
+            field_path: string;
+            /** Message */
+            message: string;
+        };
+        /**
+         * ValidationResponse
+         * @description Result of `POST {PV}/validate`: whether the current candidate
+         *     passes closed-schema and conditional-requiredness checks.
+         */
+        ValidationResponse: {
+            /** Errors */
+            errors: components["schemas"]["ValidationErrorItem"][];
+            /** Valid */
+            valid: boolean;
+        };
+        /**
+         * VerificationMethod
+         * @description How an `ApprovalProof` is checked: a detached signature or a
+         *     trusted provider's attestation.
+         * @enum {string}
+         */
+        VerificationMethod: "detached_signature" | "verifier_attestation";
+        /**
+         * VerifierAttestationProof
+         * @description The other `ApprovalProof` variant: a trusted provider's own
+         *     attestation format, rather than a signature this system verifies
+         *     directly.
+         */
+        VerifierAttestationProof: {
+            /** Assertion Base64 */
+            assertion_base64: string;
+            /** Assertion Format */
+            assertion_format: string;
+            /** Provider Id */
+            provider_id: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            verification_method: "verifier_attestation";
+        };
+        /**
+         * VerifierRegistrationRequest
+         * @description Body for `POST /v1/arc/admin/approval-verifiers`: completes a
+         *     previously created enrollment challenge with proof of possession.
+         */
+        VerifierRegistrationRequest: {
+            /**
+             * Enrollment Challenge Id
+             * Format: uuid
+             */
+            enrollment_challenge_id: string;
+            /** Proof */
+            proof: components["schemas"]["DetachedSignatureProof"] | components["schemas"]["VerifierAttestationProof"];
+        };
+        /**
+         * VocabularyValueCreate
+         * @description Body for POST /vocabularies/{kind}; adding a value already present is a no-op, not an error.
+         */
         VocabularyValueCreate: {
             /** Value */
             value: string;
         };
-        /** VocabularyValuePatch */
+        /**
+         * VocabularyValuePatch
+         * @description Body for PATCH /vocabularies/{kind}/{value}; the only mutable field is `deprecated_at`.
+         */
         VocabularyValuePatch: {
             /** Deprecated At */
             deprecated_at?: string | null;
         };
-        /** VocabularyValueResponse */
+        /**
+         * VocabularyValueResponse
+         * @description One value in a vocabulary kind, including whether and when it was deprecated.
+         */
         VocabularyValueResponse: {
             /**
              * Created At
@@ -5265,18 +8283,6 @@ export interface components {
             tenant_id: string;
             /** Tenant Slug */
             tenant_slug: string;
-            /**
-             * Token Expires At
-             * @deprecated
-             * @description Always null. Token lifetime is the JWT's own exp claim, not tracked here.
-             */
-            token_expires_at?: string | null;
-            /**
-             * Token Id
-             * @deprecated
-             * @description Always null. Registry-issued tokens were removed; authentication is OIDC.
-             */
-            token_id?: string | null;
         };
         /**
          * WorkspaceCreateRequest
@@ -5322,8 +8328,6 @@ export interface components {
         };
         /** _Accepted */
         _Accepted: {
-            /** Approval Verifier Id */
-            approval_verifier_id?: string | null;
             /** Evidence Id */
             evidence_id?: string | null;
             /** Exception Id */
@@ -5817,6 +8821,317 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StrategyConfigView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_autopromote_allowlist_v1_admin_memory_autopromote_allowlist_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllowlistResponse"];
+                };
+            };
+        };
+    };
+    allow_autopromote_predicate_v1_admin_memory_autopromote_allowlist_allow_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AllowlistPredicateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllowlistResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_autopromote_predicate_v1_admin_memory_autopromote_allowlist_revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AllowlistPredicateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllowlistResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_memory_calibration_v1_admin_memory_calibration_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalibrationMappingResponse"][];
+                };
+            };
+        };
+    };
+    refit_memory_calibration_v1_admin_memory_calibration_refit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalibrationRefitRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalibrationRefitResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_promotion_policy_v1_admin_memory_promotion_policy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionPolicyResponse"];
+                };
+            };
+        };
+    };
+    put_promotion_policy_v1_admin_memory_promotion_policy_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionPolicyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionPolicyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_memory_sources_v1_admin_memory_sources_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourcePolicyResponse"][];
+                };
+            };
+        };
+    };
+    declare_memory_source_v1_admin_memory_sources_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceDeclareRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourcePolicyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_memory_source_v1_admin_memory_sources__source_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourcePolicyPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourcePolicyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_memory_source_breaker_v1_admin_memory_sources__source_id__reset_breaker_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourcePolicyResponse"];
                 };
             };
             /** @description Validation Error */
@@ -6903,7 +10218,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RegisterVerifierRequest"];
+                "application/json": components["schemas"]["VerifierRegistrationRequest"];
             };
         };
         responses: {
@@ -6913,7 +10228,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_Accepted"];
+                    "application/json": components["schemas"]["ApprovalVerifierResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_enrollment_challenge_v1_arc_admin_approval_verifiers_enrollment_challenges_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnrollmentChallengeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentChallengeResponse"];
                 };
             };
             /** @description Validation Error */
@@ -6938,7 +10286,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RevokeVerifierRequest"];
+                "application/json": components["schemas"]["ReasonRequest"];
             };
         };
         responses: {
@@ -6948,7 +10296,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["_Accepted"];
+                    "application/json": components["schemas"]["ApprovalVerifierResponse"];
                 };
             };
             /** @description Validation Error */
@@ -7192,6 +10540,171 @@ export interface operations {
             };
         };
     };
+    register_source_connector_v1_arc_admin_source_connectors_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceConnectorRegistration"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceConnectorResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_source_upload_policy_v1_arc_admin_source_upload_policies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SourceUploadPolicyRegistration"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceUploadPolicyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_artifact_family_v1_arc_artifacts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArtifactFamilyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactFamilyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_artifact_family_v1_arc_artifacts__artifact_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactFamilyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_proposal_v1_arc_artifacts__artifact_id__proposals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalOpenRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     issue_context_challenge_v1_arc_challenges_post: {
         parameters: {
             query?: never;
@@ -7243,6 +10756,393 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    get_proposal_thread_v1_arc_proposals__proposal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalThreadResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalPatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    draft_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__draft_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DraftRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftPatchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_reach_v1_arc_proposals__proposal_id__versions__proposal_version__reach_confirmations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReachConfirmationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReachConfirmationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_semantic_tests_v1_arc_proposals__proposal_id__versions__proposal_version__semantic_tests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SemanticTestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SemanticTestResultResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__submit_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    supersede_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__supersede_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmptyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    withdraw_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__withdraw_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -7368,6 +11268,138 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResolveContextResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admit_source_connector_fetch_v1_arc_sources_connector_fetches_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectorFetchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceEvidenceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admit_source_upload_v1_arc_sources_uploads_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_admit_source_upload_v1_arc_sources_uploads_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceEvidenceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_source_evidence_v1_arc_sources__source_evidence_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceEvidenceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_source_body_v1_arc_sources__source_evidence_id__body_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                source_evidence_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -8098,51 +12130,6 @@ export interface operations {
             };
         };
     };
-    post_blast_radius_v1_capabilities__entity_id__blast_radius_post: {
-        parameters: {
-            query?: {
-                /** @description Traversal direction: 'forward' or 'reverse' */
-                direction?: string;
-                /** @description Max hop count (1–5; capped at 5) */
-                depth?: number;
-                /** @description Comma-separated edge_rel vocab values */
-                edge_types?: string | null;
-                /** @description ISO-8601 UTC datetime */
-                as_of?: string | null;
-                /** @description Semver string for version predicate filtering */
-                as_of_version?: string | null;
-                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
-                view?: "default" | "audit";
-            };
-            header?: never;
-            path: {
-                /** @description Capability UUID or slug */
-                entity_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TraversalResultResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_adoptions_v1_capabilities__provider_cap_id__adoptions_get: {
         parameters: {
             query?: {
@@ -8641,9 +12628,9 @@ export interface operations {
         parameters: {
             query: {
                 /** @description capability_a_id */
-                connects: string;
+                capability_a: string;
                 /** @description capability_b_id */
-                and: string;
+                capability_b: string;
                 /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
                 view?: "default" | "audit";
             };
@@ -8660,6 +12647,205 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IntegrationListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_capability_requests_v1_memory_capability_requests_get: {
+        parameters: {
+            query?: {
+                role?: "owner" | "requester";
+                open_only?: boolean;
+                cursor?: string | null;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityRequestListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    raise_capability_request_v1_memory_capability_requests_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RaiseCapabilityRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_capability_request_v1_memory_capability_requests__request_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transition_capability_request_v1_memory_capability_requests__request_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_capability_request_history_v1_memory_capability_requests__request_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestHistoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_capability_request_to_promotion_v1_memory_capability_requests__request_id__link_promotion_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkRequestToPromotionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkRequestToPromotionResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8698,6 +12884,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClaimResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    assert_claim_v1_memory_claims_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssertClaimRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssertClaimResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_believed_claims_v1_memory_claims_believed_get: {
+        parameters: {
+            query: {
+                subject_entity_id: string;
+                predicate?: string | null;
+                /** @description ISO-8601 UTC datetime for time-travel */
+                as_of: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BelievedClaimsResponse"];
                 };
             };
             /** @description Validation Error */
@@ -8780,6 +13036,340 @@ export interface operations {
             };
         };
     };
+    get_claim_history_v1_memory_claims__claim_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClaimHistoryResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    adjudicate_claim_v1_memory_claims__claim_id__adjudicate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdjudicateClaimRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdjudicateClaimResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_claim_v1_memory_claims__claim_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    discard_claim_v1_memory_claims__claim_id__discard_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiscardClaimRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscardResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_claim_subject_v1_memory_claims__claim_id__link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                claim_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkClaimRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkedClaimResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_curation_queue_v1_memory_curation_queue_get: {
+        parameters: {
+            query?: {
+                counts?: boolean;
+                cursor?: string | null;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueListResponse"] | components["schemas"]["QueueCountsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_promotion_proposals_v1_memory_promotion_proposals_get: {
+        parameters: {
+            query?: {
+                state?: "open" | "accepted" | "amended" | "rejected";
+                cursor?: string | null;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_promotion_proposal_v1_memory_promotion_proposals__proposal_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_promotion_proposal_v1_memory_promotion_proposals__proposal_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewProposalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDecisionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reverse_promotion_v1_memory_promotions__promotion_id__reverse_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                promotion_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReversePromotionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReversePromotionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_sessions_v1_memory_sessions_get: {
         parameters: {
             query?: {
@@ -8815,8 +13405,8 @@ export interface operations {
     list_session_events_v1_memory_sessions__session_id__events_get: {
         parameters: {
             query?: {
-                since?: number | null;
-                until?: number | null;
+                since_seq?: number | null;
+                until_seq?: number | null;
                 kind?: string | null;
                 cursor?: number | null;
                 limit?: number;
@@ -9484,7 +14074,7 @@ export interface operations {
             };
         };
     };
-    search_workspaces_v1_workspaces_search_get: {
+    search_workspace_entries_v1_workspaces_search_get: {
         parameters: {
             query?: {
                 /** @description Full-text search string (optional). */

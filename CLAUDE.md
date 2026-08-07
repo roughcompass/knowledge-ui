@@ -33,6 +33,7 @@ and that property is asserted rather than hoped for.
 | `check-bundle-budget`            | growth in what a reader actually downloads, measured over the federated graph                                              |
 | `check-operational-data-sources` | naming an external dashboard as the source of operational truth, or parsing the metrics exposition format in a browser     |
 | `check-no-dev-secrets`           | the dev persona roster reaching a production artefact                                                                      |
+| `check-spec-freshness`           | the vendored API document falling behind the service it is generated from. Skips when no service is reachable              |
 
 Two of these are worth understanding rather than just obeying:
 

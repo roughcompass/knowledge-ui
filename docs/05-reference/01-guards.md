@@ -1,16 +1,17 @@
 # The guards
 
-Six scripts. `npm run ci` runs all of them; each exists because something went
+Seven scripts. `npm run ci` runs all of them; each exists because something went
 wrong once.
 
-| Script                           | Fails when                                                                                                          |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `check-salt-tokens`              | a `var(--salt-*)` reference does not resolve in the shipped theme, or resolves only in the legacy one               |
-| `check-shared-parity`            | a workspace pins a federated dependency differently from the share contract                                         |
-| `check-no-doc-refs`              | code or Markdown references a planning document                                                                     |
-| `check-bundle-budget`            | an artefact's fetched total exceeds its budget                                                                      |
-| `check-operational-data-sources` | a screen names an external dashboard as operational truth, or parses the metrics exposition format in a browser     |
-| `check-no-dev-secrets`           | the dev persona roster reaches a production artefact — or the build output is missing, so there is nothing to check |
+| Script                           | Fails when                                                                                                                       |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `check-salt-tokens`              | a `var(--salt-*)` reference does not resolve in the shipped theme, or resolves only in the legacy one                            |
+| `check-shared-parity`            | a workspace pins a federated dependency differently from the share contract                                                      |
+| `check-no-doc-refs`              | code or Markdown references a planning document                                                                                  |
+| `check-bundle-budget`            | an artefact's fetched total exceeds its budget                                                                                   |
+| `check-operational-data-sources` | a screen names an external dashboard as operational truth, or parses the metrics exposition format in a browser                  |
+| `check-no-dev-secrets`           | the dev persona roster reaches a production artefact — or the build output is missing, so there is nothing to check              |
+| `check-spec-freshness`           | the vendored API document falling behind the running service, which makes whole domains unreachable with every check still green |
 
 ## Why each one exists
 
