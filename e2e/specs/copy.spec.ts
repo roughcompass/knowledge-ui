@@ -23,6 +23,8 @@ const ROUTES = [
   '/catalog',
   '/catalog?q=ledger',
   '/catalog/salt-design-system',
+  '/catalog/salt-design-system/interface',
+  '/catalog/salt-design-system/impact',
   '/catalog/claims',
   '/catalog/context',
   '/catalog/context/receipts',

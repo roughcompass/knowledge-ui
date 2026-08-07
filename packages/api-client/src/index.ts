@@ -63,6 +63,7 @@ export {
   LIFECYCLE_STATES,
   useCapabilities,
   useCapability,
+  useCapabilityInterface,
   type CapabilityListParams,
   type CapabilityListResponse,
   type EntityRef,

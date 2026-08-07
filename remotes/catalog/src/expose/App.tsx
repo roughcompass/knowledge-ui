@@ -88,6 +88,11 @@ export default function CatalogApp(props: RemoteMountProps<Session, RegistryClie
             <Route path="graph/analytics" element={<GraphAnalyticsPage />} />
             <Route path="graph/ontology" element={<GraphOntologyPage />} />
             <Route path=":handle" element={<CapabilityDetailPage />} />
+            {/*
+            The tab is a path segment, so every view of a capability is a link a
+            colleague can be sent and the accessibility and copy sweeps can visit.
+          */}
+            <Route path=":handle/:tab" element={<CapabilityDetailPage />} />
           </Routes>
         </Suspense>
       </RouterLinks>

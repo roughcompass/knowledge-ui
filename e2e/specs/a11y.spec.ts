@@ -43,6 +43,11 @@ const ROUTES = [
   { path: '/catalog/context/receipts', name: 'ARC receipt inspector' },
   { path: '/ops/usage', name: 'usage console' },
   { path: '/catalog/salt-design-system', name: 'capability detail (adopt + subscriptions)' },
+  // Each tab is its own route, so each is swept: a tab that only exists as click
+  // state is one no sweep can reach and no colleague can be sent.
+  { path: '/catalog/salt-design-system/interface', name: 'capability interface' },
+  { path: '/catalog/salt-design-system/impact', name: 'capability impact' },
+  { path: '/catalog/salt-design-system/record', name: 'capability record fields' },
 ];
 
 /** The session bootstrap has to finish before the page means anything. */

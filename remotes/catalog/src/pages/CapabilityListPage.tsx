@@ -366,7 +366,17 @@ export function CapabilityListPage() {
             hasError={Boolean(error)}
             emptyTitle="No matches"
             emptyDescription={`Nothing in this tenant matched “${q}”. Search covers names and the text recorded against each capability; try a broader word, or clear the lifecycle and type filters.`}
-            onRowClick={(row) => navigate(row.name)}
+            /*
+              Carries the reader's filters forward, so the detail page's back control
+              can hand them back. Without it a reader who arrived from a filtered
+              search returned to an unfiltered browse and rebuilt it by hand.
+            */
+            onRowClick={(row) =>
+              navigate({
+                pathname: row.name,
+                search: params.toString() ? `?from=${encodeURIComponent(params.toString())}` : '',
+              })
+            }
           />
         </>
       ) : (
@@ -390,7 +400,17 @@ export function CapabilityListPage() {
             hasError={Boolean(error)}
             emptyTitle="No capabilities"
             emptyDescription="Nothing has been published in this tenant yet."
-            onRowClick={(row) => navigate(row.name)}
+            /*
+              Carries the reader's filters forward, so the detail page's back control
+              can hand them back. Without it a reader who arrived from a filtered
+              search returned to an unfiltered browse and rebuilt it by hand.
+            */
+            onRowClick={(row) =>
+              navigate({
+                pathname: row.name,
+                search: params.toString() ? `?from=${encodeURIComponent(params.toString())}` : '',
+              })
+            }
           />
           <CursorPager
             showingCount={rows.length}

@@ -1,4 +1,15 @@
-import { Button, FlexLayout, StackLayout, Tag, Text } from '@salt-ds/core';
+import {
+  Button,
+  FlexLayout,
+  StackLayout,
+  Tab,
+  TabBar,
+  TabList,
+  TabTrigger,
+  Tabs,
+  Tag,
+  Text,
+} from '@salt-ds/core';
 import { useCapability, type RegistryClient } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
 import {
@@ -11,12 +22,12 @@ import {
   SectionCard,
   termText,
 } from '@knowledge-ui/ui-kit';
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { AdoptionControl } from '../components/AdoptionControl';
 import { ImpactPanel } from '../components/ImpactPanel';
 import { SubscriptionPanel } from '../components/SubscriptionPanel';
+import { InterfacePanel } from './capability/InterfacePanel';
 
 /**
  * One capability in full.
@@ -81,10 +92,18 @@ function overviewOf(facts: ReadonlyArray<Record<string, unknown>>): string | und
 }
 
 export function CapabilityDetailPage() {
-  const { handle } = useParams<{ handle: string }>();
+  const { handle } = useParams<{ handle: string; tab: string }>();
   const { session, client } = useSession<RegistryClient>();
   const navigate = useNavigate();
-  const [auditView, setAuditView] = useState(false);
+  /*
+    The record fields are a tab now, not a toggle. A control that reveals a panel
+    further down the same page is a second idiom for what tabs already do, and it
+    left the reader's position in the page dependent on state no link could carry.
+  */
+  const { tab: tabParam } = useParams<{ tab: string }>();
+  const auditView = tabParam === 'record';
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get('from') ?? undefined;
 
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
   const query = useCapability(client, scope, handle, {
@@ -160,20 +179,18 @@ export function CapabilityDetailPage() {
             the time this matters.
           */}
           {handle ? <AdoptionControl handle={handle} /> : null}
+          {/*
+            Carries the search back with it. This was `navigate('..')`, which dropped
+            the query, the lifecycle filter and the type filter — so a reader who
+            arrived from a filtered search returned to an unfiltered browse and had
+            to rebuild it. The list writes its own state into `from` when it links
+            here, and this hands it back.
+          */}
           <Button
-            appearance={auditView ? 'solid' : 'bordered'}
+            appearance="bordered"
             sentiment="neutral"
-            disabled={query.isPending}
-            onClick={() => setAuditView((v) => !v)}
+            onClick={() => navigate({ pathname: '..', search: from ? `?${from}` : '' })}
           >
-            {/*
-              "Bitemporal" is the storage model's word, and it was the label on a
-              primary control on the busiest page in the app. What the button
-              actually does is ask for the record-keeping fields, so it says that.
-            */}
-            {auditView ? 'Hide Record Fields' : 'Show Record Fields'}
-          </Button>
-          <Button appearance="bordered" sentiment="neutral" onClick={() => navigate('..')}>
             Back to Catalog
           </Button>
         </FlexLayout>
@@ -197,82 +214,120 @@ export function CapabilityDetailPage() {
       </StackLayout>
     );
 
+  /*
+   * Views of one capability, as routed tabs.
+   *
+   * The page was a single column that ran impact, then attributes, then every fact,
+   * then subscriptions, then optionally the record fields — so the answer to "what
+   * is its contract" and "who depends on it" were separated by a table that can run
+   * to hundreds of rows. Tabs are the right idiom precisely because these are views
+   * of one thing rather than navigation between things.
+   *
+   * The tab is a path segment rather than click state, for the same reason the rail
+   * derives from the route: a tab a colleague cannot be sent a link to is a tab that
+   * does not exist for them. It also means the accessibility and copy sweeps can
+   * visit each one.
+   */
+  const tab = tabParam ?? 'overview';
+
+  const tabs = [
+    { value: 'overview', label: 'Overview' },
+    { value: 'interface', label: 'Interface' },
+    { value: 'impact', label: 'Impact' },
+    { value: 'record', label: 'Record' },
+  ] as const;
+
   return (
     <StackLayout gap={3}>
       {header}
 
-      {/*
-        First, because a reader deciding whether to depend on this capability — or
-        whether changing it is safe — acts on this. Everything below is reference
-        they look up afterwards.
-      */}
-      {handle ? <ImpactPanel handle={handle} /> : null}
+      <Tabs
+        value={tab}
+        onChange={(_event, value) => navigate(value === 'overview' ? '.' : `../${handle}/${value}`)}
+      >
+        <TabBar>
+          <TabList>
+            {tabs.map((entry) => (
+              <Tab key={entry.value} value={entry.value}>
+                <TabTrigger>{entry.label}</TabTrigger>
+              </Tab>
+            ))}
+          </TabList>
+        </TabBar>
+      </Tabs>
 
-      {/*
+      {tab === 'impact' && handle ? <ImpactPanel handle={handle} /> : null}
+      {tab === 'interface' && handle ? <InterfacePanel handle={handle} /> : null}
+
+      {tab === 'overview' ? (
+        <>
+          {/*
         A description list rather than a two-column table, which is what this was. A
         table claims its rows are comparable, and these are one heterogeneous set of
         fields about one capability — there is nothing to scan down a column of
         values, and headers reading "Key" and "Value" invited a reader to try.
       */}
-      <SectionCard
-        title="Details"
-        description="The attributes recorded against this capability."
-        banded
-      >
-        {attributeRows.length === 0 ? (
-          <Text color="secondary">No attributes recorded for this capability.</Text>
-        ) : (
-          <DescriptionList
-            caption="Details"
-            hideCaption
-            items={attributeRows.map((row) => ({
-              // The key title-cased into the term a reader would use. The datum is
-              // the value beside it and is untouched; only the field *name* is
-              // rewritten, and `owner` was never a word the registry expected back.
-              term: termText(row.key),
-              detail: <AttributeValue value={row.value} />,
-            }))}
-          />
-        )}
-      </SectionCard>
+          <SectionCard
+            title="Details"
+            description="The attributes recorded against this capability."
+            banded
+          >
+            {attributeRows.length === 0 ? (
+              <Text color="secondary">No attributes recorded for this capability.</Text>
+            ) : (
+              <DescriptionList
+                caption="Details"
+                hideCaption
+                items={attributeRows.map((row) => ({
+                  // The key title-cased into the term a reader would use. The datum is
+                  // the value beside it and is untouched; only the field *name* is
+                  // rewritten, and `owner` was never a word the registry expected back.
+                  term: termText(row.key),
+                  detail: <AttributeValue value={row.value} />,
+                }))}
+              />
+            )}
+          </SectionCard>
 
-      <SectionCard
-        title="Facts"
-        description="Statements recorded about this capability, by category. The overview above is one of them."
-        banded
-        flush
-      >
-        <DataTable
-          caption="Facts"
-          hideCaption
-          zebra
-          columns={[
-            {
-              key: 'category',
-              header: 'Category',
-              render: (row) => <Tag>{termText(String(row.category))}</Tag>,
-            },
-            { key: 'body', header: 'Body', render: (row) => <Text>{String(row.body)}</Text> },
-          ]}
-          rows={facts}
-          // Facts are not guaranteed an id, so the index is the fallback. It is
-          // passed by `DataTable` — this used to declare it as a defaulted
-          // parameter that never received a value, keying every id-less fact "0".
-          getRowId={(row, index) => displayText(row.fact_id ?? index)}
-          emptyTitle="No facts recorded"
-          emptyHeadingLevel="h3"
-        />
-      </SectionCard>
+          <SectionCard
+            title="Facts"
+            description="Statements recorded about this capability, by category. The overview above is one of them."
+            banded
+            flush
+          >
+            <DataTable
+              caption="Facts"
+              hideCaption
+              zebra
+              columns={[
+                {
+                  key: 'category',
+                  header: 'Category',
+                  render: (row) => <Tag>{termText(String(row.category))}</Tag>,
+                },
+                { key: 'body', header: 'Body', render: (row) => <Text>{String(row.body)}</Text> },
+              ]}
+              rows={facts}
+              // Facts are not guaranteed an id, so the index is the fallback. It is
+              // passed by `DataTable` — this used to declare it as a defaulted
+              // parameter that never received a value, keying every id-less fact "0".
+              getRowId={(row, index) => displayText(row.fact_id ?? index)}
+              emptyTitle="No facts recorded"
+              emptyHeadingLevel="h3"
+            />
+          </SectionCard>
 
-      {/*
+          {/*
         Below identity and impact, not above them. This is a personal preference
         about a mailbox; it was the first thing under the title, so a reader who
         arrived asking "what is this and who depends on it" met a subscription
         control before either answer.
       */}
-      {handle ? <SubscriptionPanel handle={handle} /> : null}
+          {handle ? <SubscriptionPanel handle={handle} /> : null}
+        </>
+      ) : null}
 
-      {auditView ? (
+      {tab === 'record' ? (
         <SectionCard
           title="Record fields"
           description="The registry's own record-keeping: who the row belongs to, whether it is still active, and when it was read. Omitted from the response entirely unless requested, so an empty table here means the server sent nothing — not that the values are null. Valid-time intervals are not among them: those belong to individual facts and edges, which are the rows that assert something that can later stop being true."

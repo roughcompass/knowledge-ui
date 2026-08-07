@@ -31,6 +31,19 @@ export const queryKeys = {
   capability: (scope: KeyScope, handle: string, params: Record<string, unknown> = {}) =>
     [...root(scope), 'capabilities', 'detail', handle, params] as const,
 
+  /**
+   * The capability's contract, keyed apart from its detail.
+   *
+   * A separate resource on the server and a separate read here, so invalidating one
+   * does not drop the other — a reader flipping between the overview and the
+   * contract should not re-fetch what they just looked at.
+   */
+  capabilityInterface: (
+    scope: KeyScope,
+    handle: string,
+    params: Record<string, unknown> = {},
+  ) => [...root(scope), 'capabilities', 'interface', handle, params] as const,
+
   search: (scope: KeyScope, params: Record<string, unknown> = {}) =>
     [...root(scope), 'search', params] as const,
 
