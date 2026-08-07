@@ -44,6 +44,9 @@ export const queryKeys = {
     params: Record<string, unknown> = {},
   ) => [...root(scope), 'capabilities', 'interface', handle, params] as const,
 
+  curationQueue: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'memory', 'curation-queue', params] as const,
+
   search: (scope: KeyScope, params: Record<string, unknown> = {}) =>
     [...root(scope), 'search', params] as const,
 

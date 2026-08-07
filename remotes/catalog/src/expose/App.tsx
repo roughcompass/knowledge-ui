@@ -32,6 +32,9 @@ const GraphOntologyPage = lazy(() =>
 const GraphProjectionsPage = lazy(() =>
   import('../pages/GraphProjectionsPage').then((m) => ({ default: m.GraphProjectionsPage })),
 );
+const CurationQueuePage = lazy(() =>
+  import('../pages/CurationQueuePage').then((m) => ({ default: m.CurationQueuePage })),
+);
 const ArcReceiptPage = lazy(() =>
   import('../pages/ArcReceiptPage').then((m) => ({ default: m.ArcReceiptPage })),
 );
@@ -39,6 +42,7 @@ const ArcReceiptPage = lazy(() =>
 import { CapabilityDetailPage } from '../pages/CapabilityDetailPage';
 import { CapabilityListPage } from '../pages/CapabilityListPage';
 import { ClaimsPage } from '../pages/ClaimsPage';
+import { ClaimDetailPage } from '../pages/ClaimDetailPage';
 import { GraphDashboardPage } from '../pages/GraphDashboardPage';
 import { NotificationsPage } from '../pages/NotificationsPage';
 import { WorkspaceDetailPage } from '../pages/WorkspaceDetailPage';
@@ -77,6 +81,18 @@ export default function CatalogApp(props: RemoteMountProps<Session, RegistryClie
         */}
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="claims" element={<ClaimsPage />} />
+            {/*
+            The citation drill-in `useClaim` was written for. The hook was typed and
+            exported and no route rendered it, so the claims browser listed evidence
+            counts that could not be opened.
+          */}
+            {/*
+              Before `claims/:claimId`, or a visit to the queue matches it as a claim
+              id and 404s against the detail endpoint. Same rule the notifications
+              route above is ordered by.
+            */}
+            <Route path="claims/queue" element={<CurationQueuePage />} />
+            <Route path="claims/:claimId" element={<ClaimDetailPage />} />
             <Route path="context" element={<ContextLabPage />} />
             <Route path="context/receipts" element={<ArcReceiptPage />} />
             <Route path="context/receipts/:receiptId" element={<ArcReceiptPage />} />

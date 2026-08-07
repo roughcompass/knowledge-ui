@@ -117,6 +117,32 @@ export const memoryHandlers = [
     );
   }),
 
+  /*
+   * The curation queue.
+   *
+   * Ordered before the `:claimId` handler, or `/curation-queue` would be matched as
+   * a claim id — the same ordering rule the routes themselves follow. A fixture is
+   * never richer than its endpoint, so each row carries only what the queue is
+   * documented to return: why the item is waiting, which claim it is, and when it
+   * was staged.
+   */
+  http.get('*/v1/memory/curation-queue', ({ request }) => {
+    if (new URL(request.url).searchParams.get('counts') === 'true') {
+      return HttpResponse.json({ counts: { unlinked: 1, contested: 0 } });
+    }
+    return HttpResponse.json({
+      items: [
+        {
+          reason: 'unlinked',
+          claim_id: CLAIMS[0]?.claim_id ?? '11111111-1111-4111-8111-111111111111',
+          subject_ref: 'system:github/unknown-repo',
+          staged_at: '2026-07-02T14:03:11Z',
+        },
+      ],
+      next_cursor: null,
+    });
+  }),
+
   http.get('*/v1/memory/claims/:claimId', ({ params }) => {
     const found = CLAIMS.find((c) => c.claim_id === params.claimId);
     if (!found) {

@@ -132,3 +132,45 @@ export function useSyncRuns(
     ...LIST_OPTIONS,
   });
 }
+
+/**
+ * One sync run, and what it replaced.
+ *
+ * The runs table listed failures with no way to open one — a run that failed was a
+ * row with a status and a truncated message, and the endpoint carrying the detail
+ * had no client. The superseded read is the other half: what a run replaced is the
+ * question an operator asks immediately after "what did it do".
+ */
+export function useSyncRun(
+  client: RegistryClient,
+  scope: KeyScope,
+  runId: string | undefined,
+  options: { enabled?: boolean } = {},
+): UseQueryResult<Record<string, unknown>> {
+  return useQuery({
+    queryKey: queryKeys.syncRun(scope, runId ?? ''),
+    queryFn: ({ signal }) =>
+      client.request<Record<string, unknown>>(
+        `/v1/admin/sync-runs/${encodeURIComponent(runId as string)}`,
+        { signal },
+      ),
+    enabled: (options.enabled ?? true) && Boolean(runId),
+  });
+}
+
+export function useSyncRunSuperseded(
+  client: RegistryClient,
+  scope: KeyScope,
+  runId: string | undefined,
+  options: { enabled?: boolean } = {},
+): UseQueryResult<Record<string, unknown>> {
+  return useQuery({
+    queryKey: queryKeys.supersededFacts(scope, runId ?? ''),
+    queryFn: ({ signal }) =>
+      client.request<Record<string, unknown>>(
+        `/v1/admin/sync-runs/${encodeURIComponent(runId as string)}/superseded`,
+        { signal },
+      ),
+    enabled: (options.enabled ?? true) && Boolean(runId),
+  });
+}

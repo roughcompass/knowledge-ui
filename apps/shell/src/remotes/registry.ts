@@ -129,6 +129,13 @@ export const NAVIGATION: readonly NavigationSection[] = [
       href: remoteChildHref('catalog', 'notifications'),
       label: 'Notifications',
     },
+    {
+      // Beside Claims rather than under Operations: the steward reading it is the
+      // same reader who browses claims, and the endpoint takes the same capability.
+      href: remoteChildHref('catalog', 'claims/queue'),
+      label: 'Curation Queue',
+      need: 'memory:read',
+    },
   ]),
   {
     /*

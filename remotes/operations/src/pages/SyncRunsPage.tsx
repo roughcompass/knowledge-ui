@@ -28,6 +28,7 @@ import {
   popoverOverlayProps,
   termText,
   type Column,
+  KLink,
 } from '@knowledge-ui/ui-kit';
 import { useMemo, useState } from 'react';
 
@@ -98,7 +99,16 @@ export function SyncRunsPage() {
         key: 'started_at',
         header: 'Started',
         figures: 'tabular' as const,
-        render: (row) => <Text styleAs="notation">{instantText(row.started_at) ?? '—'}</Text>,
+        /*
+          The way into the run. This table listed failures with a truncated summary
+          and no destination, so reading what a connector actually reported meant
+          going to the server logs.
+        */
+        render: (row) => (
+          <KLink to={`runs/${String(row.sync_run_id)}`} underline="never" color="primary">
+            {instantText(row.started_at) ?? '—'}
+          </KLink>
+        ),
       },
       {
         key: 'source_id',

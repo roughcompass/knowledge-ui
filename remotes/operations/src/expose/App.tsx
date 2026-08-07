@@ -11,6 +11,7 @@ import { AuditLogPage } from '../pages/AuditLogPage';
 import { HealthPage } from '../pages/HealthPage';
 import { MetricsPage } from '../pages/MetricsPage';
 import { SyncRunsPage } from '../pages/SyncRunsPage';
+import { SyncRunDetailPage } from '../pages/SyncRunDetailPage';
 import { SyncSourcesPage } from '../pages/SyncSourcesPage';
 import { UsagePage } from '../pages/UsagePage';
 
@@ -61,6 +62,19 @@ export default function OperationsApp(props: RemoteMountProps<Session, RegistryC
               element={
                 <GuardedAdmin screen="Sync runs">
                   <SyncRunsPage />
+                </GuardedAdmin>
+              }
+            />
+            {/*
+              The operations remote's first detail route. Every page here used to be
+              a list that terminated in itself, so a failed run could be seen and not
+              read.
+            */}
+            <Route
+              path="sync/runs/:runId"
+              element={
+                <GuardedAdmin screen="Sync run">
+                  <SyncRunDetailPage />
                 </GuardedAdmin>
               }
             />

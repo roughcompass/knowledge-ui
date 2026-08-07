@@ -372,6 +372,18 @@ export function ClaimsPage() {
                   ),
               },
               {
+                key: 'claim_id',
+                header: 'Claim',
+                /*
+                  The way into the citation drill-in. Evidence counts were listed on
+                  this page with nothing to open — the detail hook existed and no
+                  route rendered it.
+                */
+                render: (row) => (
+                  <EntityLink id={String(row.claim_id)} to={`../claims/${String(row.claim_id)}`} />
+                ),
+              },
+              {
                 key: 'predicate',
                 header: 'Predicate',
                 /*

@@ -39,6 +39,7 @@ const ROUTES = [
   // bulk action and two unavailability notices.
   { path: '/catalog/notifications', name: 'notifications inbox' },
   { path: '/catalog/claims', name: 'claims browser' },
+  { path: '/catalog/claims/queue', name: 'curation queue' },
   { path: '/catalog/context', name: 'context lab' },
   { path: '/catalog/context/receipts', name: 'ARC receipt inspector' },
   { path: '/ops/usage', name: 'usage console' },

@@ -210,6 +210,8 @@ export {
   SYNC_RUN_STATUSES,
   SYNC_SOURCE_TYPES,
   useSyncRuns,
+  useSyncRun,
+  useSyncRunSuperseded,
   useSyncSource,
   useSyncSources,
   type SupersededFact,
@@ -268,3 +270,5 @@ export {
   type ProjectionResponse,
   type VocabularyValue,
 } from './graph';
+
+export { useCurationQueue, useCurationCounts } from './curation';
