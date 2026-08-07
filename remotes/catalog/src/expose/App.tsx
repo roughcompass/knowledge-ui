@@ -4,16 +4,42 @@ import type { RegistryClient } from '@knowledge-ui/api-client';
 import type { Session } from '@knowledge-ui/auth';
 import { Route, Routes } from 'react-router-dom';
 import { RouterLinks } from '../RouterLinks';
+import { lazy, Suspense } from 'react';
+import { LoadingPanel } from '@knowledge-ui/ui-kit';
 
-import { ArcReceiptPage } from '../pages/ArcReceiptPage';
+/**
+ * Routes behind a dynamic import.
+ *
+ * Not premature optimisation — the bundle budget failed at 360.5 KB gz against 360,
+ * and this remote's fetched total is the guard against a surface being added without
+ * anyone noticing what it costs. `manualChunks` does nothing under Module Federation,
+ * so a lazy route boundary is the only lever left.
+ *
+ * These five are the ones to move: the graph area and the context lab are distinct
+ * product areas a reader enters deliberately, not the landing surface, and they are
+ * the largest files in the remote. The catalog list and a capability's detail stay
+ * eager, because they are where most sessions begin.
+ */
+const ContextLabPage = lazy(() =>
+  import('../pages/ContextLabPage').then((m) => ({ default: m.ContextLabPage })),
+);
+const GraphAnalyticsPage = lazy(() =>
+  import('../pages/GraphAnalyticsPage').then((m) => ({ default: m.GraphAnalyticsPage })),
+);
+const GraphOntologyPage = lazy(() =>
+  import('../pages/GraphOntologyPage').then((m) => ({ default: m.GraphOntologyPage })),
+);
+const GraphProjectionsPage = lazy(() =>
+  import('../pages/GraphProjectionsPage').then((m) => ({ default: m.GraphProjectionsPage })),
+);
+const ArcReceiptPage = lazy(() =>
+  import('../pages/ArcReceiptPage').then((m) => ({ default: m.ArcReceiptPage })),
+);
+
 import { CapabilityDetailPage } from '../pages/CapabilityDetailPage';
 import { CapabilityListPage } from '../pages/CapabilityListPage';
 import { ClaimsPage } from '../pages/ClaimsPage';
-import { ContextLabPage } from '../pages/ContextLabPage';
 import { GraphDashboardPage } from '../pages/GraphDashboardPage';
-import { GraphOntologyPage } from '../pages/GraphOntologyPage';
-import { GraphAnalyticsPage } from '../pages/GraphAnalyticsPage';
-import { GraphProjectionsPage } from '../pages/GraphProjectionsPage';
 import { NotificationsPage } from '../pages/NotificationsPage';
 import { WorkspaceDetailPage } from '../pages/WorkspaceDetailPage';
 import { WorkspacesPage } from '../pages/WorkspacesPage';
@@ -41,26 +67,28 @@ export default function CatalogApp(props: RemoteMountProps<Session, RegistryClie
       }}
     >
       <RouterLinks>
-        <Routes>
-          <Route index element={<CapabilityListPage />} />
-          {/*
+        <Suspense fallback={<LoadingPanel label="Loading page" />}>
+          <Routes>
+            <Route index element={<CapabilityListPage />} />
+            {/*
           Before the `:handle` route, or a visit to /notifications would match it
           as a capability slug and 404 against the detail endpoint.
         */}
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="claims" element={<ClaimsPage />} />
-          <Route path="context" element={<ContextLabPage />} />
-          <Route path="context/receipts" element={<ArcReceiptPage />} />
-          <Route path="context/receipts/:receiptId" element={<ArcReceiptPage />} />
-          <Route path="workspaces" element={<WorkspacesPage />} />
-          <Route path="workspaces/:workspaceId" element={<WorkspaceDetailPage />} />
-          {/* Same rule as notifications: before `:handle`, or /graph is a slug. */}
-          <Route path="graph" element={<GraphDashboardPage />} />
-          <Route path="graph/projections" element={<GraphProjectionsPage />} />
-          <Route path="graph/analytics" element={<GraphAnalyticsPage />} />
-          <Route path="graph/ontology" element={<GraphOntologyPage />} />
-          <Route path=":handle" element={<CapabilityDetailPage />} />
-        </Routes>
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="claims" element={<ClaimsPage />} />
+            <Route path="context" element={<ContextLabPage />} />
+            <Route path="context/receipts" element={<ArcReceiptPage />} />
+            <Route path="context/receipts/:receiptId" element={<ArcReceiptPage />} />
+            <Route path="workspaces" element={<WorkspacesPage />} />
+            <Route path="workspaces/:workspaceId" element={<WorkspaceDetailPage />} />
+            {/* Same rule as notifications: before `:handle`, or /graph is a slug. */}
+            <Route path="graph" element={<GraphDashboardPage />} />
+            <Route path="graph/projections" element={<GraphProjectionsPage />} />
+            <Route path="graph/analytics" element={<GraphAnalyticsPage />} />
+            <Route path="graph/ontology" element={<GraphOntologyPage />} />
+            <Route path=":handle" element={<CapabilityDetailPage />} />
+          </Routes>
+        </Suspense>
       </RouterLinks>
     </SessionProvider>
   );

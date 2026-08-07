@@ -152,6 +152,17 @@ h6.saltText {
    * a stylesheet of its own to be the right shape.
    */
   --saltDialog-borderRadius: var(--kui-radius-modal);
+
+  /*
+   * The fill of a placeholder bar.
+   *
+   * One step up from the hairline alpha the rail and cards already use — the same
+   * ramp, read by role: a hairline is the faintest mark that reads as a line, and a
+   * placeholder has to read as a block without competing with real text beside it.
+   * Alpha rather than a fixed grey so it lands correctly on both the tinted canvas
+   * and the lighter card surfaces, in both modes.
+   */
+  --kui-skeleton-background: var(--salt-palette-alpha-contrast-low);
 }
 
 /*

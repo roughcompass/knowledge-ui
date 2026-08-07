@@ -161,6 +161,34 @@ report it live in remotes and a context does not cross that boundary. It carries
 `aria-current`: the rail already marks the current page, and an end-to-end invariant
 asserts that no two elements claim it.
 
+## Loading, and why there is a skeleton now
+
+This kit refused skeletons for a long time, and the reasoning was sound: a skeleton
+has to mirror the shape of the content to be worth anything, and a mirror that drifts
+is worse than an honest spinner.
+
+What made that decisive was an assumed shape of the answer — a `Skeleton` exported to
+pages, each composing a wireframe by hand, each free to fall out of step with the
+content beside it. **The drift is a property of hand-composition, not of skeletons.**
+
+So the bar is built and is _not_ exported. No page can reach it. The components that
+render placeholders generate them from the same declaration that builds their real
+content: `DataTable` from its `columns` array — the identical array that builds the
+header and the cells — and the tile and description list from their own slots. There
+is no second description of the shape, so there is nothing to keep in sync.
+
+`LoadingPanel` survives for waits that are not tabular: a single record being read, a
+mutation in flight.
+
+Two rules for anything that animates, which this is the first of in this repo:
+
+- The region carries `aria-busy`, the bars are `aria-hidden`, and a visually hidden
+  live region says what is loading. Placeholder bars announced individually are a run
+  of empty elements.
+- Every animation ships with its `prefers-reduced-motion` escape in the same
+  stylesheet. A pulse is decoration; the bar still says "content is coming" without
+  it.
+
 ## Links
 
 Salt ships `Link`, and until recently nothing used it. Every inline link in the app
@@ -277,12 +305,12 @@ An earlier revision listed `Toast`, `EntityRow`, `Skeleton` and `Tabs` as still 
 build. Checked against Salt, three of the four should not be built at all, and saying
 so is more useful than shipping them:
 
-| Wanted      | Reality                                                                                                                                                |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Tabs`      | Salt ships the whole family — `Tabs`, `TabBar`, `TabList`, `TabPanel`, `TabTrigger`. Use it directly                                                   |
-| `EntityRow` | Salt's `LinkCard` and `InteractableCard` are a descriptive row with one action, which is the definition                                                |
-| `Skeleton`  | Not in Salt, and not worth custom CSS. Salt's `Spinner` through the existing loading panel is the answer; a shimmer is an animation, not a requirement |
-| `Toast`     | Salt ships it, and it is still the wrong choice here — see below                                                                                       |
+| Wanted      | Reality                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------- |
+| `Tabs`      | Salt ships the whole family — `Tabs`, `TabBar`, `TabList`, `TabPanel`, `TabTrigger`. Use it directly    |
+| `EntityRow` | Salt's `LinkCard` and `InteractableCard` are a descriptive row with one action, which is the definition |
+| `Skeleton`  | Built — but internal, and generated rather than composed. See below                                     |
+| `Toast`     | Salt ships it, and it is still the wrong choice here — see below                                        |
 
 The general lesson, which is why this table stays rather than being deleted: a
 standard that lists components to build without checking the design system first will
@@ -327,8 +355,7 @@ is the same defect as a number claiming a strength it cannot bear.
 | Every anchor is Salt's `Link` through the kit's `KLink`                              | restricted-import rule                                 | **Enforced**    |
 | No component names a role                                                            | lint                                                   | **Enforced**    |
 | Salt-covered elements are not used raw outside the ui-kit                            | lint                                                   | **Enforced**    |
-| Accessibility on every route, in light                                               | axe over the built artefacts                           | **Enforced**    |
-| Accessibility on every route, in dark                                                | nothing — the sweep runs in one mode                   | **Agreed only** |
+| Accessibility on every route, light and dark                                         | axe over the built artefacts, both modes               | **Enforced**    |
 | Every route has exactly one page heading, including the ones that refuse             | end-to-end sweep over all routes                       | **Enforced**    |
 | Button labels are Title Case, table headers are Title Case nouns                     | end-to-end sweep over all routes as an admin           | **Enforced**    |
 | Numeric columns are right-aligned with tabular figures                               | asserted on the classes Salt's own rule is keyed on    | **Enforced**    |
@@ -340,12 +367,14 @@ because none of those checks can tell a dropdown from three toggle buttons. Some
 of it is narrowable to a path rule and some is not; where it is not, this document
 is the citation a reviewer points at.
 
-**The dark row used to read "light and dark, Enforced", and that was not true.** The
-sweep runs in one mode; there is no second pass anywhere in the end-to-end specs. It
-is corrected above rather than left, because a table claiming a gate it does not have
-is the same defect as a number claiming a strength it cannot bear — and this one had
-a live cost, since the unstyled anchors it would most obviously have caught are
-worst precisely in the mode it never ran.
+**The dark row claimed a gate that did not exist, and now does.** It read "light and
+dark, Enforced" while the sweep ran in one mode and no second pass appeared anywhere
+in the end-to-end specs — a table claiming a gate it does not have is the same defect
+as a number claiming a strength it cannot bear. It had a live cost: every inline link
+in the app rendered as an unstyled browser-default anchor, which is worst in exactly
+the mode that was never checked. The sweep now runs both modes over every route, and
+asserts the mode took before trusting the result, because a dark run that silently
+rendered light is a green result for a check that never happened.
 
 Three rows moved _up_ from that gap, and how they moved is the reusable part: each
 was a rule about what reaches the screen, so none of them was ever going to be a

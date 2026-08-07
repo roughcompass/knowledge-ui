@@ -5,7 +5,7 @@ import { SectionCard } from './SectionCard';
 import styles from './DataTable.module.css';
 import { EmptyState } from './EmptyState';
 import { displayText } from './displayText';
-import { LoadingPanel } from './LoadingPanel';
+import { SkeletonBar } from './Skeleton';
 
 /**
  * A thin generic wrapper over Salt's table primitives.
@@ -114,6 +114,17 @@ export interface DataTableProps<TRow> {
    */
   card?: boolean;
   isLoading?: boolean;
+  /**
+   * The caller's query failed and the caller is already saying so.
+   *
+   * Suppresses the empty state, which is otherwise reached by falling through the
+   * zero-rows branch — four pages rendered an error banner and "nothing has been
+   * published in this tenant yet" one above the other. A failed query knows nothing
+   * about whether the tenant is empty.
+   */
+  hasError?: boolean;
+  /** Placeholder rows while the first page is in flight. */
+  skeletonRows?: number;
   emptyTitle?: string;
   emptyDescription?: ReactNode;
   /**
@@ -154,14 +165,74 @@ export function DataTable<TRow>({
   zebra = false,
   card = false,
   isLoading = false,
+  hasError = false,
+  skeletonRows = 5,
   emptyTitle = 'Nothing to show',
   emptyDescription,
   emptyHeadingLevel = 'h2',
   onRowClick,
 }: DataTableProps<TRow>) {
-  // Loading before empty: an empty state shown while the first page is still in
-  // flight tells the reader there is no data when nobody knows yet.
-  if (isLoading && rows.length === 0) return <LoadingPanel label={`Loading ${caption}`} />;
+  /*
+   * Error before empty.
+   *
+   * On a failed request four pages rendered their error banner *and* fell through to
+   * here, so the reader was told the query failed and, directly beneath it, that the
+   * tenant contains nothing. Those are different facts calling for different actions
+   * — retry, versus publish something — and the second one is not known. When the
+   * caller is already showing the failure, this renders nothing.
+   */
+  if (hasError && rows.length === 0) return null;
+
+  /*
+   * Loading before empty: an empty state shown while the first page is still in
+   * flight tells the reader there is no data when nobody knows yet.
+   *
+   * The placeholder is built from `columns` — the same array that builds the real
+   * header and the real cells — so it cannot describe a shape the table does not
+   * have. That is the whole reason this kit can carry a skeleton at all: the
+   * standing objection was that a hand-composed wireframe drifts from its content,
+   * and there is no second description of the shape here to drift.
+   */
+  if (isLoading && rows.length === 0)
+    return (
+      <div aria-busy="true">
+        <Text className="salt-visuallyHidden" role="status" aria-live="polite">
+          {`Loading ${caption}`}
+        </Text>
+        <Table className={styles.table} zebra={zebra} divider={zebra ? 'none' : 'tertiary'}>
+          <caption className={hideCaption ? 'salt-visuallyHidden' : undefined}>
+            <Text color="secondary" styleAs="notation">
+              {caption}
+            </Text>
+          </caption>
+          <THead>
+            <TR>
+              {columns.map((column) => (
+                <TH
+                  key={column.key}
+                  scope="col"
+                  {...cellProps({ align: column.align, figures: column.figures })}
+                >
+                  {column.header}
+                </TH>
+              ))}
+            </TR>
+          </THead>
+          <TBody>
+            {Array.from({ length: skeletonRows }, (_, rowIndex) => (
+              <TR key={rowIndex}>
+                {columns.map((column, columnIndex) => (
+                  <TD key={column.key}>
+                    <SkeletonBar index={rowIndex + columnIndex} />
+                  </TD>
+                ))}
+              </TR>
+            ))}
+          </TBody>
+        </Table>
+      </div>
+    );
+
   if (rows.length === 0)
     return (
       <EmptyState

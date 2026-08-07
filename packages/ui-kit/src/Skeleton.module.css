@@ -1,0 +1,66 @@
+/*
+ * A placeholder bar.
+ *
+ * Deliberately not exported from the package index. A free-standing skeleton is the
+ * thing that drifts: a page composes a wireframe by hand, the content changes, and
+ * the wireframe goes on describing the old shape — which is worse than an honest
+ * spinner, and is why this kit refused skeletons for as long as it did. The
+ * components that render these generate them from the same declaration that builds
+ * their real content, so there is nothing to keep in sync.
+ */
+.bar {
+  background: var(--kui-skeleton-background);
+  border-radius: var(--kui-radius-surface);
+  block-size: var(--salt-size-base);
+  animation: kui-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes kui-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/*
+ * The repo's first reduced-motion block. A pulse is decoration; the bar still says
+ * "content is coming" without it, and a reader who has asked the operating system to
+ * stop animation has asked for exactly this.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+  }
+}
+
+/*
+ * Five widths rather than one.
+ *
+ * A grid of identical bars reads as a loading graphic; a ragged one reads as text
+ * that has not arrived yet. Classes rather than an inline width because literal
+ * values in a `style` prop are a lint error here, and `inline-size` is outside
+ * stylelint's token allow-list so a percentage needs no token.
+ */
+.w0 {
+  inline-size: 72%;
+}
+
+.w1 {
+  inline-size: 54%;
+}
+
+.w2 {
+  inline-size: 86%;
+}
+
+.w3 {
+  inline-size: 46%;
+}
+
+.w4 {
+  inline-size: 64%;
+}

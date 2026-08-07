@@ -17,8 +17,20 @@ import styles from './Layout.module.css';
  * running the entire width and tables floating in a very long line of empty
  * space to the right.
  */
-export function ContentColumn({ children }: { children: ReactNode }) {
-  return <div className={styles.content}>{children}</div>;
+export function ContentColumn({
+  children,
+  width = 'standard',
+}: {
+  children: ReactNode;
+  /**
+   * `standard` (1200px) for a single column of tables and prose. `wide` (1600px) for
+   * a page composed of two columns. `full` for a surface whose own content sets the
+   * width. Chosen by what the page holds, not by how much.
+   */
+  width?: 'standard' | 'wide' | 'full';
+}) {
+  const tier = width === 'standard' ? styles.standard : width === 'wide' ? styles.wide : undefined;
+  return <div className={tier ? `${styles.content} ${tier}` : styles.content}>{children}</div>;
 }
 
 /**

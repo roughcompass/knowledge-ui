@@ -46,6 +46,12 @@ export { instantText } from './instantText';
 export { isoDay } from './isoDay';
 export { termText } from './termText';
 export { TileGrid } from './TileGrid';
+
+/**
+ * A main column with an aside. The only multi-column page arrangement in the kit,
+ * named once so four pages do not each derive their own grid.
+ */
+export { PageColumns } from './PageColumns';
 export { DataTable, type Column, type DataTableProps } from './DataTable';
 
 /**

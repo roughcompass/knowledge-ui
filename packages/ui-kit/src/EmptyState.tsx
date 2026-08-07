@@ -1,4 +1,5 @@
 import { StackLayout, Text } from '@salt-ds/core';
+import { FolderOpenIcon } from '@salt-ds/icons';
 import type { ReactNode } from 'react';
 
 import { SectionCard } from './SectionCard';
@@ -37,6 +38,20 @@ export function EmptyState({
   return (
     <SectionCard>
       <StackLayout gap={1} align="center">
+        {/*
+          The icon the design standard has specified since it was written, and which
+          this component never rendered. Its own anatomy line asks for one at around
+          32px above a Title Case title — the whole point being that a block of
+          centred text with no mark reads as a rendering failure rather than as an
+          answer.
+
+          Fixed rather than passed in, deliberately. An icon slot invites a different
+          glyph per screen, and thirty empty states with thirty icons is a second
+          vocabulary nobody agreed to; the state is always the same state. Hidden
+          from assistive technology because the title beneath it already says what
+          this is, and an announced icon would repeat it.
+        */}
+        <FolderOpenIcon size={2} aria-hidden />
         <Text styleAs="h4" as={headingLevel}>
           {title}
         </Text>

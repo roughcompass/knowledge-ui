@@ -145,6 +145,8 @@ export function MetricsPage() {
 
           <DataTable
             caption="Data-quality counters"
+            emptyTitle="No Data-Quality Counters"
+            emptyDescription="The service published no counters in this snapshot. That is an absence of readings, not a reading of zero — a counter with nothing to report is omitted rather than sent at zero."
             columns={[
               { key: 'label', header: 'Condition' },
               {

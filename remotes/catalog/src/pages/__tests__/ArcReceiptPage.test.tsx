@@ -72,5 +72,13 @@ describe('the ARC receipt inspector', () => {
 
     expect(screen.getByText('No Receipt Open')).toBeInTheDocument();
     expect(screen.queryByText('Receipt not available')).not.toBeInTheDocument();
+
+    /*
+      The assertion that was missing, and why it mattered: a disabled react-query
+      query reports `isPending === true`, so this route rendered its empty state and
+      a spinner at the same time, permanently. Checking only for the empty state and
+      the absence of an error is precisely the pair that leaves that invisible.
+    */
+    expect(screen.queryByText('Reading ARC receipt')).not.toBeInTheDocument();
   });
 });

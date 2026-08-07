@@ -216,6 +216,7 @@ export function SyncRunsPage() {
           rows={rows}
           getRowId={(row) => row.sync_run_id}
           isLoading={runs.isPending}
+          hasError={Boolean(runs.error)}
           emptyTitle="No runs in this window"
           emptyDescription="Nothing has run in the last week under these filters. A source with no schedule only runs when triggered by hand."
           emptyHeadingLevel="h3"

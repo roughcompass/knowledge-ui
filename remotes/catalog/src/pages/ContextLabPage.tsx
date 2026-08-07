@@ -23,6 +23,7 @@ import {
   popoverOverlayProps,
   termText,
   KLink,
+  UnavailableNotice,
 } from '@knowledge-ui/ui-kit';
 import {
   Button,
@@ -666,9 +667,15 @@ export function ContextLabPage() {
           allowedSources={allowedSources}
         />
       ) : (
-        <ErrorPanel
+        /*
+          A refusal, not a failure. Every other gated surface in the app says this
+          with an unavailable notice; an error panel here claimed something had gone
+          wrong when the answer is that this identity was never offered the sources.
+          Two idioms for one state is what makes a console read as assembled.
+        */
+        <UnavailableNotice
           title="Context probes are not available to this role"
-          error={new Error('This identity cannot search any retrieval source exposed by the lab.')}
+          reason="This identity cannot search any retrieval source exposed by the lab."
         />
       )}
     </StackLayout>

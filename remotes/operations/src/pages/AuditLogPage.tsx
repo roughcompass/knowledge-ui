@@ -176,6 +176,7 @@ export function AuditLogPage() {
         rows={rows}
         getRowId={(row) => String(row.audit_id)}
         isLoading={query.isPending && allowed}
+        hasError={Boolean(query.error)}
         emptyTitle="No audit entries"
         emptyDescription="Nothing matching those filters has been recorded."
       />

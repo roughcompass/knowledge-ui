@@ -1,6 +1,6 @@
 import { createRegistryClient } from '@knowledge-ui/api-client';
 import { makeSession, renderWithProviders } from '@knowledge-ui/testing';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -31,6 +31,16 @@ const renderAt = (path: string, role: 'consumer' | 'producer' = 'consumer') =>
 describe('the browse table', () => {
   it('drops columns that cannot tell two rows apart, and says what they held', async () => {
     renderAt('/catalog');
+    /*
+      Wait for the rows, not just for a table.
+
+      The loading branch now renders a placeholder table carrying the full column
+      set — which is correct, since the columns it is given are the ones it would
+      render — so `findByRole('table')` matches before the data lands. This
+      assertion is about what survives *after* the rows arrive, and settling on a
+      real cell is what says they have.
+    */
+    await waitFor(() => expect(document.querySelector('[aria-busy="true"]')).toBeNull());
     const table = await screen.findByRole('table', { name: /Capabilities in this tenant/i });
 
     expect(within(table).queryByRole('columnheader', { name: /^Type$/i })).not.toBeInTheDocument();
@@ -49,6 +59,7 @@ describe('the browse table', () => {
 
   it('keeps the name and the external id, which do tell rows apart', async () => {
     renderAt('/catalog');
+    await waitFor(() => expect(document.querySelector('[aria-busy="true"]')).toBeNull());
     const table = await screen.findByRole('table', { name: /Capabilities in this tenant/i });
 
     expect(within(table).getByRole('columnheader', { name: /Name/i })).toBeInTheDocument();

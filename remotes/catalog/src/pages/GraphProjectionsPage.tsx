@@ -206,6 +206,8 @@ export function GraphProjectionsPage() {
               rows={nodes}
               getRowId={(row) => row.entity_id}
               caption="Entities in this projection"
+              emptyTitle="No Entities in This Projection"
+              emptyDescription="This tenant publishes nothing of this kind yet. A projection is built from what the catalog holds, so it fills as capabilities are registered."
               hideCaption
             />
           </SectionCard>
@@ -220,6 +222,8 @@ export function GraphProjectionsPage() {
                 rows={edges}
                 getRowId={(row) => row.edge_id}
                 caption="Edges in this projection"
+                emptyTitle="No Edges in This Projection"
+                emptyDescription="Nothing in this tenant declares a relationship in this direction yet. Edges arrive with the capabilities that declare them."
                 hideCaption
               />
               <Note label="Why there is no count of the whole projection">

@@ -106,7 +106,18 @@ export function ArcReceiptPage() {
         />
       ) : null}
 
-      {receipt.isPending ? <LoadingPanel label="Reading ARC receipt" /> : null}
+      {/*
+        Gated on `receiptId`, not on `isPending` alone.
+
+        `useArcReceipt` is `enabled: Boolean(receiptId)`, and a disabled query in
+        react-query v5 reports `isPending === true` — it is "pending" in the sense of
+        having no data and no error, not in the sense of a request being in flight.
+        So this rail destination rendered its empty state *and* a spinner labelled
+        "Reading ARC receipt", forever, on a page where nothing had been asked for.
+        The existing unit test asserted the empty state and the absence of the error,
+        which is exactly the pair that leaves this visible.
+      */}
+      {receiptId && receipt.isPending ? <LoadingPanel label="Reading ARC receipt" /> : null}
       {receipt.error ? <ErrorPanel title="Receipt not available" error={receipt.error} /> : null}
 
       {receipt.data ? (

@@ -198,7 +198,21 @@ export function WorkspaceDetailPage() {
   const [deletingEntry, setDeletingEntry] = useState<WorkspaceEntry | null>(null);
   const [receipt, setReceipt] = useState<string | null>(null);
 
-  if (workspace.isPending) return <LoadingPanel label="Loading workspace" />;
+  /*
+    The header outlives the wait.
+
+    This returned a bare spinner, so the page lost its title, its breadcrumb context
+    and its heading for as long as the read took — a route that renders no `h1` while
+    loading is one an end-to-end sweep can only catch by timing. The capability
+    detail page already keeps its header through every state; this now matches it.
+  */
+  if (workspace.isPending)
+    return (
+      <StackLayout gap={3}>
+        <PageHeader title="Workspace" />
+        <LoadingPanel label="Loading workspace" />
+      </StackLayout>
+    );
 
   if (workspace.error) {
     return (

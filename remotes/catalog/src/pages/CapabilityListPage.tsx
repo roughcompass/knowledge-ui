@@ -363,6 +363,7 @@ export function CapabilityListPage() {
             rows={rows as SearchHit[]}
             getRowId={(row) => row.entity_id}
             isLoading={isPending}
+            hasError={Boolean(error)}
             emptyTitle="No matches"
             emptyDescription={`Nothing in this tenant matched “${q}”. Search covers names and the text recorded against each capability; try a broader word, or clear the lifecycle and type filters.`}
             onRowClick={(row) => navigate(row.name)}
@@ -386,6 +387,7 @@ export function CapabilityListPage() {
             rows={browseRows}
             getRowId={(row) => row.entity_id}
             isLoading={isPending}
+            hasError={Boolean(error)}
             emptyTitle="No capabilities"
             emptyDescription="Nothing has been published in this tenant yet."
             onRowClick={(row) => navigate(row.name)}

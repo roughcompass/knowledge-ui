@@ -13,12 +13,29 @@
  */
 
 .content {
-  /* The "standard" tier: dashboards and data pages. Tables get the full width up
-     to this point, which is enough for the widest table in the app. */
-  max-inline-size: 1200px;
   inline-size: 100%;
   margin-inline: auto;
   min-inline-size: 0;
+}
+
+/*
+ * Three width tiers rather than one.
+ *
+ * Every page was capped at 1200px in a single column, so on a wide display the rail
+ * took 15rem, the content took 1200, and the rest was empty canvas — most of what
+ * made the app read as sparse. The cap was right for a page of prose and a page of
+ * one table; it was never right for a page that wants a main column and an aside.
+ *
+ * A tier is chosen by what the page holds, not by how much it holds: `standard` for
+ * a single column of tables and prose, `wide` for a page composed of two columns,
+ * `full` for a surface whose own content sets the width.
+ */
+.standard {
+  max-inline-size: 1200px;
+}
+
+.wide {
+  max-inline-size: 1600px;
 }
 
 .prose {

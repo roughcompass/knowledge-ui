@@ -370,6 +370,7 @@ export function SyncSourcesPage() {
           rows={sources.data ?? []}
           getRowId={(row) => row.source_id}
           isLoading={sources.isPending}
+          hasError={Boolean(sources.error)}
           emptyTitle="No sync connectors"
           emptyDescription="Nothing is being mirrored into this tenant yet. Add a source to start."
           emptyHeadingLevel="h3"

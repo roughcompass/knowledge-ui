@@ -168,6 +168,8 @@ export function GraphOntologyPage() {
             rows={entityTypes.data}
             getRowId={(row) => row.vocab_id}
             caption="Entity type vocabulary"
+            emptyTitle="No Entity Types Registered"
+            emptyDescription="The vocabulary is empty for this tenant. Entity types are administered through the registry, not from this console."
             hideCaption
           />
         </SectionCard>
@@ -183,6 +185,8 @@ export function GraphOntologyPage() {
             rows={edgeRels.data}
             getRowId={(row) => row.vocab_id}
             caption="Edge relation vocabulary"
+            emptyTitle="No Edge Relations Registered"
+            emptyDescription="No relationship kinds are defined for this tenant yet."
             hideCaption
           />
         </SectionCard>
@@ -198,6 +202,8 @@ export function GraphOntologyPage() {
             rows={types.data}
             getRowId={(row) => row.schema_id}
             caption="Capability type schemas"
+            emptyTitle="No Capability Type Schemas"
+            emptyDescription="No type carries a schema in this tenant. A capability without one is still valid; its fields are simply unconstrained."
             hideCaption
           />
         </SectionCard>
@@ -213,6 +219,8 @@ export function GraphOntologyPage() {
             rows={edgeSchemas.data}
             getRowId={(row, index) => String(row.schema_id ?? index)}
             caption="Edge property schemas"
+            emptyTitle="No Edge Property Schemas"
+            emptyDescription="No relationship kind constrains its properties in this tenant."
             hideCaption
           />
         </SectionCard>

@@ -51,22 +51,50 @@ async function ready(page: Page, path: string) {
   await expect(page.getByRole('main')).toBeVisible();
 }
 
-for (const route of ROUTES) {
-  test(`no critical a11y violations: ${route.name}`, async ({ page }) => {
-    await ready(page, route.path);
+/**
+ * Both modes, because half of what this gate can catch is colour.
+ *
+ * The design standard claimed this sweep ran "light and dark" and asserted it was
+ * enforced. It ran in one mode, and there was no second pass anywhere in these specs
+ * — a table claiming a gate it did not have. It had a live cost: every inline link in
+ * the app rendered as an unstyled browser-default anchor for as long as the app has
+ * existed, which is worst in dark mode, and is precisely the class of defect a
+ * contrast check finds.
+ *
+ * Dark is selected by writing the mode the app persists, before the first paint, so
+ * the run never sees a light frame. Reading the toggle instead would depend on the
+ * rail being rendered and on the control keeping its label.
+ */
+const MODES = ['light', 'dark'] as const;
 
-    const { violations } = await new AxeBuilder({ page })
-      .include('#root')
-      .withTags(['wcag2a', 'wcag2aa'])
-      .analyze();
+for (const mode of MODES) {
+  for (const route of ROUTES) {
+    test(`no critical a11y violations in ${mode}: ${route.name}`, async ({ page }) => {
+      await page.addInitScript((value) => {
+        window.localStorage.setItem('kui:color-mode', value);
+      }, mode);
 
-    const critical = violations.filter((v) => v.impact === 'critical');
-    expect(
-      critical,
-      `Critical violations on ${route.path}:\n` +
-        critical.map((v) => `  ${v.id}: ${v.help}`).join('\n'),
-    ).toEqual([]);
-  });
+      await ready(page, route.path);
+
+      // Assert the mode actually took before trusting a pass. A dark run that
+      // silently rendered light is a green result for a check that never happened,
+      // which is the failure this whole sweep exists to stop being possible.
+      // Salt's next theme carries the mode as an attribute, not a class.
+      await expect(page.locator('.salt-theme')).toHaveAttribute('data-mode', mode);
+
+      const { violations } = await new AxeBuilder({ page })
+        .include('#root')
+        .withTags(['wcag2a', 'wcag2aa'])
+        .analyze();
+
+      const critical = violations.filter((v) => v.impact === 'critical');
+      expect(
+        critical,
+        `Critical violations on ${route.path} in ${mode}:\n` +
+          critical.map((v) => `  ${v.id}: ${v.help}`).join('\n'),
+      ).toEqual([]);
+    });
+  }
 }
 
 test('every page has exactly one main landmark and a working skip link', async ({ page }) => {
