@@ -23,43 +23,89 @@ async function ready(page: Page, path: string) {
   await expect(page.getByRole('main')).toBeVisible();
 }
 
-test('the rail drills into a section and replaces its own contents', async ({ page }) => {
+test('every section and its pages are visible at once', async ({ page }) => {
   await ready(page, '/');
 
   const rail = page.locator(RAIL);
-  await expect(rail.getByRole('link', { name: 'Overview' })).toBeVisible();
-  await expect(rail.getByRole('link', { name: 'Operations' })).toBeVisible();
 
-  await rail.getByRole('link', { name: 'Operations' }).click();
-  await expect(page).toHaveURL(/\/ops$/);
+  // Sections are disclosures, not destinations: their own href used to be their
+  // first child's, so two rows went to the same place and only one could be current.
+  await expect(rail.getByRole('button', { name: 'Operations' })).toBeVisible();
+  await expect(rail.getByRole('button', { name: 'Catalog' })).toBeVisible();
 
-  // The section's pages replace the top-level list rather than nesting under it.
-  await expect(rail.getByRole('link', { name: 'Metrics' })).toBeVisible();
-  await expect(rail.getByRole('link', { name: 'Capabilities' })).toHaveCount(0);
+  // Leaves from *different* sections are on screen together. Under the previous
+  // drill-down each of these was three navigations from the other.
+  await expect(rail.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible();
+  await expect(rail.getByRole('link', { name: 'Operational Health' })).toBeVisible();
+  await expect(rail.getByRole('link', { name: 'Capabilities' })).toBeVisible();
 });
 
-test('the drilled panel is derived from the route, not from click state', async ({ page }) => {
-  // Straight to a child route with no clicks. The panel has to open already drilled,
-  // or a pasted link lands with the rail describing somewhere else.
+test('a lateral move between sections costs one click', async ({ page }) => {
+  // The complaint this rail was rebuilt for. From a catalog page, an operations page
+  // used to be: back to the dashboard, into Operations, then the page.
+  await ready(page, '/catalog/claims');
+
+  const rail = page.locator(RAIL);
+  // Health rather than Usage: every role holds `ops:view`, and this test is about
+  // the distance between two sections, not about a capability gate.
+  await rail.getByRole('link', { name: 'Health', exact: true }).click();
+  await expect(page).toHaveURL(/\/ops$/);
+});
+
+test('Context Lab is directly available from the dashboard and top-level rail', async ({
+  page,
+}) => {
+  await ready(page, '/');
+
+  const rail = page.locator(RAIL);
+  // A section is a disclosure now, not a destination — its href used to duplicate
+  // its own first child's.
+  await expect(rail.getByRole('button', { name: 'Context Lab' })).toBeVisible();
+
+  const dashboardEntry = page
+    .getByRole('main')
+    .getByRole('link', { name: /Context Lab.*Test retrieval evidence/i });
+  await expect(dashboardEntry).toBeVisible();
+  await dashboardEntry.click();
+
+  await expect(page).toHaveURL(/\/catalog\/context$/);
+  await expect(page.getByRole('heading', { name: 'Context Lab' })).toBeVisible();
+  await expect(rail.getByRole('link', { name: 'Probes' })).toBeVisible();
+  await expect(rail.getByRole('link', { name: 'Receipt Inspector' })).toBeVisible();
+});
+
+test('the current item is derived from the route, not from click state', async ({ page }) => {
+  // Straight to a child route with no clicks. A pasted link has to land with the rail
+  // already describing where the reader is.
   await ready(page, '/ops/metrics');
 
   const rail = page.locator(RAIL);
-  await expect(rail.getByRole('link', { name: 'Health' })).toBeVisible();
-  await expect(rail.getByRole('link', { name: 'Capabilities' })).toHaveCount(0);
+  await expect(rail.getByRole('link', { name: 'Operational Health' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  // And the rest of the app is still reachable from here.
+  await expect(rail.getByRole('link', { name: 'Capabilities' })).toBeVisible();
 });
 
-test('the back control names and reaches its actual destination', async ({ page }) => {
+test('a collapsed section still shows that it holds the current page', async ({ page }) => {
   await ready(page, '/ops/metrics');
 
-  // Announced with the direction, because the chevron is hidden from assistive
-  // technology and the text alone would read as a link *to* the destination.
-  const back = page.locator(RAIL).getByRole('link', { name: /back to overview/i });
-  await expect(back).toBeVisible();
+  const rail = page.locator(RAIL);
+  const operations = rail.getByRole('button', { name: 'Operations' });
 
-  await back.click();
-  await expect(page).toHaveURL(/\/$/);
-  // Back out of a section restores the top-level list.
-  await expect(page.locator(RAIL).getByRole('link', { name: 'Capabilities' })).toBeVisible();
+  await operations.click();
+  // Collapsing hides the leaf, so the section itself has to carry the signal —
+  // otherwise closing a section loses where you are.
+  await expect(rail.getByRole('link', { name: 'Operational Health' })).toHaveCount(0);
+  await expect(operations).toHaveAttribute('aria-expanded', 'false');
+
+  // And the choice survives a reload, beside the rail's own width.
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page.locator(RAIL).getByRole('button', { name: 'Operations' })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  );
 });
 
 test('the rail header and the top bar are the same height', async ({ page }) => {

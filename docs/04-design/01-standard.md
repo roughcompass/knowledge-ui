@@ -124,6 +124,87 @@ display sizes its default of zero reads loose.
 sentence case. The current console uses Title Case with noun specificity, and the
 noun is the useful half: "Adopt Capability" tells a reader what will be adopted.
 
+## Navigation
+
+**The rail nests. It does not drill.** Every section and every child the reader's role
+grants is on screen at once; sections are disclosures, collapsible and remembered,
+and the leaves are the links.
+
+It used to replace its own contents on entering a section, with a back control to the
+dashboard as the only way out. That made a lateral move cost three navigations — and
+no reader of this product works inside one section for a session. A producer's loop is
+a capability, then its usage, which lives in the other remote, then the change inbox.
+An auditor's crosses all three sections. The drill optimised for a reader who does not
+exist.
+
+Salt's `NavigationItem` has published `parent`, `expanded`, `level` and `blurActive`
+the whole time; the replace-the-panel behaviour was never a constraint of the
+component. The widest role sees four sections and eighteen leaves, which fits the
+rail's existing scroll container.
+
+Three rules follow from nesting:
+
+- **A section is not a destination.** Every section's href used to be its own first
+  child's, so two rows went to the same place and only the child could carry
+  `aria-current`. Sections now own no route.
+- **A collapsed section that holds the current page says so**, via `blurActive`.
+  Closing a section must not lose where you are.
+- **A label matches the page it opens.** Five did not — "Metrics" opened
+  "Operational health", "Dashboard" opened "Graph". The second of those was invisible
+  until nesting put the app's own Dashboard on screen beside it, which is the general
+  hazard: a name only has to be unique among the things visible at the same time, and
+  nesting changes what those are.
+
+**The breadcrumb is a location readout, not a second navigation.** Four segments —
+tenant, section, page, entity — built from the path, because the pages that would
+report it live in remotes and a context does not cross that boundary. It carries no
+`aria-current`: the rail already marks the current page, and an end-to-end invariant
+asserts that no two elements claim it.
+
+## Links
+
+Salt ships `Link`, and until recently nothing used it. Every inline link in the app
+was react-router's `Link`, which renders a bare `<a>` — and nothing here styles an
+anchor. Not Salt's `global.css`, which is thirty-nine lines and touches no `a`. Not
+the next theme. Not this repo's one global sheet. So every link in every page
+rendered at the user agent's default: blue, underlined, purple once visited, and in
+dark mode very nearly black on black.
+
+Seventeen sites across ten files, since the first page shipped. It is worth naming
+why nothing caught it: lint sees a valid import, the token guard checks that tokens
+resolve rather than that a declaration exists, jsdom computes no styles, and the
+end-to-end sweeps assert copy and landmarks. A missing style has no failing check —
+only a reader.
+
+**`KLink` is the only anchor.** It is Salt's `Link` with a routing seam, so it carries
+rest, hover, active, focus and visited — the last through
+`--salt-content-foreground-visited`, a real token in the shipped theme — plus the
+external-link icon and its visually hidden text. Hand-rolling anchor CSS would
+reimplement four states and the screen-reader text, badly.
+
+Two presentations, both from Salt's own API rather than a stylesheet:
+
+| Context                                | Form                                |
+| -------------------------------------- | ----------------------------------- |
+| Prose, a card action, a header control | the default — underlined at rest    |
+| A table cell, a list of ids            | `underline="never" color="primary"` |
+
+A table whose primary column is a link renders one underline per row, which reads as
+a ruled form rather than a list; accent colour carries the affordance instead. Colour
+alone is not an affordance for a reader who cannot distinguish it, so the underline
+returns on hover, from one declaration in the global sheet.
+
+**The router is handed to ui-kit, not imported by it.** ui-kit is imported by three
+bundles and takes no react-router dependency, so an adapter is installed at each
+bundle root. That installation exists three times on purpose: workspace packages are
+excluded from the federation share contract, so each remote carries its own copy of
+ui-kit, and a React context is identified by object identity — a provider mounted only
+in the shell is invisible to every component in a remote.
+
+Enforced by lint: react-router's `Link` and `NavLink` are unimportable in `apps/**`
+and `remotes/**`. Four files are exempt — the three adapter installations, and the app
+frame, where a `Link` handed to Salt's `render` prop _is_ the anchor Salt renders.
+
 ## Tables
 
 - **One separation mechanism.** Striped or bordered, never both, and plain is a
@@ -208,6 +289,16 @@ standard that lists components to build without checking the design system first
 grow a parallel kit. The question is always "does Salt have this", and the answer was
 yes three times out of four.
 
+**The lesson has a second half, learned later and more expensively: asking whether
+Salt has it is not enough if nothing then uses it.** `Link` was in Salt the whole
+time and had zero consumers, so every anchor in the app rendered unstyled — see
+[Links](#links). So were `Tabs`, which this table recommends using directly and which
+nothing imports; `GridItem` and `ParentChildLayout`, while every page stayed a single
+column; and `NavigationItem`'s `parent`/`expanded`/`level` props, while the rail
+replaced its own contents to descend one level. A component that exists, is
+documented here, and is unused is indistinguishable from one that was never built —
+except that the gap is harder to see.
+
 **No toast, and the reason is behavioural rather than technical.** Salt's core does
 export a `Toast`, and it is presentational — no provider, so nothing about the
 federated boundary prevents it. What rules it out here is that in an operator console
@@ -233,9 +324,11 @@ is the same defect as a number claiming a strength it cannot bear.
 | No CSS-in-JS, no utility CSS, no unscoped stylesheet outside the three theme entries | lint, asserted per workspace by a resolved-config test | **Enforced**    |
 | No raw hex, no literal values in a style prop                                        | lint                                                   | **Enforced**    |
 | A chart only renders through the figure component that pairs it with a table         | restricted-import rule                                 | **Enforced**    |
+| Every anchor is Salt's `Link` through the kit's `KLink`                              | restricted-import rule                                 | **Enforced**    |
 | No component names a role                                                            | lint                                                   | **Enforced**    |
 | Salt-covered elements are not used raw outside the ui-kit                            | lint                                                   | **Enforced**    |
-| Accessibility on every route, light and dark                                         | axe over the built artefacts                           | **Enforced**    |
+| Accessibility on every route, in light                                               | axe over the built artefacts                           | **Enforced**    |
+| Accessibility on every route, in dark                                                | nothing — the sweep runs in one mode                   | **Agreed only** |
 | Every route has exactly one page heading, including the ones that refuse             | end-to-end sweep over all routes                       | **Enforced**    |
 | Button labels are Title Case, table headers are Title Case nouns                     | end-to-end sweep over all routes as an admin           | **Enforced**    |
 | Numeric columns are right-aligned with tabular figures                               | asserted on the classes Salt's own rule is keyed on    | **Enforced**    |
@@ -246,6 +339,13 @@ token guard and the bundle budget, and were caught by a human reading the screen
 because none of those checks can tell a dropdown from three toggle buttons. Some
 of it is narrowable to a path rule and some is not; where it is not, this document
 is the citation a reviewer points at.
+
+**The dark row used to read "light and dark, Enforced", and that was not true.** The
+sweep runs in one mode; there is no second pass anywhere in the end-to-end specs. It
+is corrected above rather than left, because a table claiming a gate it does not have
+is the same defect as a number claiming a strength it cannot bear — and this one had
+a live cost, since the unstyled anchors it would most obviously have caught are
+worst precisely in the mode it never ran.
 
 Three rows moved _up_ from that gap, and how they moved is the reusable part: each
 was a rule about what reaches the screen, so none of them was ever going to be a

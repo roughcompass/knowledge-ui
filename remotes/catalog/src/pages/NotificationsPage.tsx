@@ -19,9 +19,10 @@ import {
   UnavailableNotice,
   instantText,
   popoverOverlayProps,
+  termText,
+  KLink,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 /**
  * What changed in the capabilities you subscribed to.
@@ -75,7 +76,7 @@ export function NotificationsPage() {
       <FilterField label="Show" basis="11rem">
         <Dropdown
           bordered
-          value={status}
+          value={termText(status)}
           onSelectionChange={(_e, selected) =>
             setStatus((selected?.[0] as NotificationStatus) ?? 'unread')
           }
@@ -83,7 +84,7 @@ export function NotificationsPage() {
         >
           {NOTIFICATION_STATUSES.map((value) => (
             <Option key={value} value={value}>
-              {value}
+              {termText(value)}
             </Option>
           ))}
         </Dropdown>
@@ -160,7 +161,11 @@ export function NotificationsPage() {
             header: 'Capability',
             // Linking out is the whole mechanism for "what changed" — the payload
             // does not carry it, by design.
-            render: (row) => <Link to={`../${encodeURIComponent(row.slug)}`}>{row.slug}</Link>,
+            render: (row) => (
+              <KLink underline="never" color="primary" to={`../${encodeURIComponent(row.slug)}`}>
+                {row.slug}
+              </KLink>
+            ),
           },
           { key: 'kind', header: 'Event' },
           {
@@ -230,17 +235,6 @@ export function NotificationsPage() {
           reason="There is no bulk endpoint, so each one is a separate call and they do not succeed or fail together. The ones that worked are read; the rest are still listed."
         />
       ) : null}
-
-      {/*
-        Placed here rather than on a page of its own because this is the only
-        cross-capability consumer surface, so it is where a reader asks "what
-        have I adopted" and needs an answer to why there is no list.
-      */}
-      <UnavailableNotice
-        title="There is no list of everything you have adopted"
-        reason="Adoption is read one capability at a time — the consumer graph projection returns which capabilities your tenant is connected to, but carries no version pin and no indication of whether you are behind. Assembling a list here would mean asserting a status the server never did."
-        tracking="Adoption state is shown on each capability's own page. A cross-capability view needs a catalog requirement filed first."
-      />
     </StackLayout>
   );
 }

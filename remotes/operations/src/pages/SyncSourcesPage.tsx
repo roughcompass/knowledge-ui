@@ -33,6 +33,7 @@ import {
   PageHeader,
   SectionCard,
   popoverOverlayProps,
+  termText,
   type Column,
 } from '@knowledge-ui/ui-kit';
 import { useMemo, useState, type ChangeEvent } from 'react';
@@ -311,7 +312,7 @@ export function SyncSourcesPage() {
             >
               <Dropdown
                 bordered
-                value={draft.source_type}
+                value={draft.source_type ? termText(draft.source_type) : ''}
                 onSelectionChange={(_event, selected) =>
                   setDraft((d) => ({ ...d, source_type: (selected?.[0] ?? '') as SyncSourceType }))
                 }
@@ -319,7 +320,7 @@ export function SyncSourcesPage() {
               >
                 {SYNC_SOURCE_TYPES.map((type) => (
                   <Option key={type} value={type}>
-                    {type}
+                    {termText(type)}
                   </Option>
                 ))}
               </Dropdown>

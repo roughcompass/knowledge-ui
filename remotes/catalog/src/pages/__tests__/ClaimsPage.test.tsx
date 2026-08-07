@@ -223,6 +223,11 @@ describe('the claims page', () => {
      *
      * The server validates the value against a closed set and refuses anything else,
      * so an abbreviated spelling would produce a 422 rather than a degraded answer.
+     * What is written here is therefore the *reading* of that closed set: the option
+     * still carries `l1_responder` as its value, and `termText` sentence-cases it for
+     * display so a filter list does not show snake_case to a reader. Spelled out as
+     * literals rather than derived from `CLAIM_PERSONAS.map(termText)`, because a
+     * test that recomputes the thing it is checking passes when both are wrong.
      *
      * And the control is found by the word "Persona" rather than "Depth", which is
      * what it used to say. "Depth" named the effect instead of the values in the
@@ -235,7 +240,7 @@ describe('the claims page', () => {
     await screen.findByRole('table', { name: /claims/i });
 
     await userEvent.click(screen.getByRole('combobox', { name: /^persona$/i }));
-    for (const persona of ['l1_responder', 'l3_engineer', 'architect', 'agent']) {
+    for (const persona of ['L1 responder', 'L3 engineer', 'Architect', 'Agent']) {
       expect(screen.getByRole('option', { name: persona })).toBeInTheDocument();
     }
   });

@@ -139,6 +139,33 @@ const restrictedImports = ({ paths = [], globalCss = 'banned' } = {}) => [
  * Hoisted so the two blocks that need it share one definition rather than one
  * having it and the other silently not.
  */
+/**
+ * react-router's `Link` renders a bare `<a>`, and nothing in this app styles one.
+ *
+ * Not Salt's `global.css`, not the next theme, not this repo's one global sheet — so
+ * every inline link in every page rendered at the user agent's default: blue,
+ * underlined, purple once visited, and very nearly black on black in dark mode. It
+ * was seventeen sites across ten files, and it had been that way since the first
+ * page shipped, because a missing style is invisible to lint, to the token guard and
+ * to jsdom.
+ *
+ * `KLink` is Salt's `Link` with a routing seam, so it carries the four states, the
+ * visited token and the external-link ADA text that hand-rolled anchor CSS would
+ * have to reimplement. This rule is what stops the bare one coming back — the same
+ * family as the chart-mark rule above: a convention nothing enforces is one import
+ * away from being skipped.
+ *
+ * Exempted below: the three files that install the adapter, and the app frame, where
+ * a router `Link` is handed to Salt's `render` prop and *is* the anchor Salt asked
+ * for rather than an unstyled one of its own.
+ */
+const ROUTER_LINK_VIA_KIT = {
+  name: 'react-router-dom',
+  importNames: ['Link', 'NavLink'],
+  message:
+    'Use <KLink> from @knowledge-ui/ui-kit. A react-router Link renders a bare <a>, and nothing in this app styles an anchor — it will render browser-default blue, and near-invisible in dark mode.',
+};
+
 const CHART_MARKS_ONLY_VIA_FIGURE = {
   name: '@knowledge-ui/ui-kit',
   importNames: ['BarSeries', 'Sparkline'],
@@ -367,6 +394,32 @@ export default tseslint.config(
   {
     files: ['remotes/**/*.{ts,tsx}', 'apps/**/*.{ts,tsx}'],
     rules: {
+      'no-restricted-imports': restrictedImports({
+        paths: [CHART_MARKS_ONLY_VIA_FIGURE, ROUTER_LINK_VIA_KIT],
+      }),
+    },
+  },
+
+  /*
+   * The four files that may import react-router's `Link`.
+   *
+   * Three install the link adapter and need the router's own hooks; the app frame
+   * hands a `Link` to Salt's `render` prop on `NavigationItem` and `SidebarBack`,
+   * where it becomes the anchor Salt renders and styles rather than a bare one of
+   * its own. That is the opposite of the defect the ban exists for.
+   *
+   * The chart ban is restated because this block matches files the feature-code
+   * block also matches, and the later block wins wholesale — the trap documented at
+   * the composer.
+   */
+  {
+    files: [
+      'apps/shell/src/chrome/RouterLinks.tsx',
+      'apps/shell/src/chrome/AppFrame.tsx',
+      'remotes/catalog/src/RouterLinks.tsx',
+      'remotes/operations/src/RouterLinks.tsx',
+    ],
+    rules: {
       'no-restricted-imports': restrictedImports({ paths: [CHART_MARKS_ONLY_VIA_FIGURE] }),
     },
   },
@@ -382,12 +435,12 @@ export default tseslint.config(
     files: ['apps/shell/src/main.tsx', 'remotes/*/src/standalone.tsx'],
     rules: {
       'no-restricted-imports': restrictedImports({
-        // The chart ban has to be restated here, because this block matches files
-        // the feature-code block also matches and the later one wins. Without it
-        // these three entries were the only files in apps/ and remotes/ free to
-        // import a mark directly — a narrower version of the very bug this
+        // The chart and link bans have to be restated here, because this block
+        // matches files the feature-code block also matches and the later one wins.
+        // Without it these three entries were the only files in apps/ and remotes/
+        // free to import a mark directly — a narrower version of the very bug this
         // composition exists to prevent.
-        paths: [CHART_MARKS_ONLY_VIA_FIGURE],
+        paths: [CHART_MARKS_ONLY_VIA_FIGURE, ROUTER_LINK_VIA_KIT],
         globalCss: 'allowed',
       }),
     },

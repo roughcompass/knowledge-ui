@@ -138,7 +138,7 @@ function EdgeGroups({ edges }: { edges: readonly EdgeRef[] }) {
             <Tag>{String(group.length)}</Tag>
           </FlexLayout>
           <DataTable
-            caption={`Edges of type ${relationship}`}
+            caption={`Entities related by ${relationship}`}
             hideCaption
             columns={[
               { key: 'dst_entity_id', header: 'Entity' },
@@ -203,7 +203,7 @@ export function ImpactPanel({ handle }: { handle: string }) {
     <SectionCard title="Impact" description={hint}>
       <StackLayout gap={2}>
         <FilterBar label="Impact traversal">
-          <FilterField label="Question" basis="14rem">
+          <FilterField label="Ask" basis="14rem">
             <Dropdown
               bordered
               value={LABELS[question]}
@@ -220,7 +220,7 @@ export function ImpactPanel({ handle }: { handle: string }) {
             </Dropdown>
           </FilterField>
 
-          <FilterField label="Depth" basis="8rem">
+          <FilterField label="Hops to follow" basis="8rem">
             <Dropdown
               bordered
               value={String(depth)}
@@ -258,7 +258,7 @@ export function ImpactPanel({ handle }: { handle: string }) {
            * would need markup and a stylesheet to suppress the bullets, for a
            * structure that is never more than three items long.
            */
-          <Note label="Partial Answer" variant="warning">
+          <Note label="What this answer could not settle" variant="warning">
             {caveats.join(' ')}
           </Note>
         ) : null}

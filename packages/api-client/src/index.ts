@@ -77,6 +77,28 @@ export {
   type SearchResponse,
 } from './search';
 
+export {
+  CONTEXT_PROBE_SOURCES,
+  contextProbeItemId,
+  runContextProbe,
+  useContextProbe,
+  type CatalogProbeResult,
+  type ClaimProbeResult,
+  type ContextProbeRequest,
+  type ContextProbeResult,
+  type ContextProbeSource,
+  type WorkspaceProbeResult,
+} from './contextProbe';
+
+export {
+  useArcReceipt,
+  useArcReceiptExplanation,
+  type ArcReceipt,
+  type ArcReceiptEvent,
+  type ArcReceiptExplanation,
+  type ArcSelectedDirective,
+} from './arc';
+
 export { useAuditLog, type AuditParams, type AuditResponse, type AuditRow } from './audit';
 
 export {
@@ -202,4 +224,46 @@ export {
 
 export { useCreateSyncSource, usePatchSyncSource, useTriggerSync } from './mutations';
 
+export {
+  WORKSPACE_ENTRY_KINDS,
+  WORKSPACE_OWNER_KINDS,
+  useCreateWorkspace,
+  useCreateWorkspaceEntry,
+  useDeleteWorkspace,
+  useDeleteWorkspaceEntry,
+  useUpdateWorkspace,
+  useWorkspace,
+  useWorkspaceEntries,
+  useWorkspaces,
+  type Workspace,
+  type WorkspaceCreate,
+  type WorkspaceEntry,
+  type WorkspaceEntryCreate,
+  type WorkspaceEntryKind,
+  type WorkspaceEntryListResponse,
+  type WorkspaceEntryParams,
+  type WorkspaceEntryWarning,
+  type WorkspaceListParams,
+  type WorkspaceListResponse,
+  type WorkspaceOwnerKind,
+  type WorkspacePatch,
+} from './workspaces';
+
 export type { components, paths } from './generated/registry';
+
+export {
+  GRAPH_VOCABULARY_KINDS,
+  PROJECTION_DIRECTIONS,
+  useCapabilityTypes,
+  useEdgePropertySchemas,
+  useGraphProjection,
+  useVocabulary,
+  type CapabilityTypeSchema,
+  type EdgePropertySchema,
+  type GraphEdge,
+  type GraphVocabularyKind,
+  type ProjectionDirection,
+  type ProjectionParams,
+  type ProjectionResponse,
+  type VocabularyValue,
+} from './graph';

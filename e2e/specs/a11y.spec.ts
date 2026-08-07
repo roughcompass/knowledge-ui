@@ -39,6 +39,8 @@ const ROUTES = [
   // bulk action and two unavailability notices.
   { path: '/catalog/notifications', name: 'notifications inbox' },
   { path: '/catalog/claims', name: 'claims browser' },
+  { path: '/catalog/context', name: 'context lab' },
+  { path: '/catalog/context/receipts', name: 'ARC receipt inspector' },
   { path: '/ops/usage', name: 'usage console' },
   { path: '/catalog/salt-design-system', name: 'capability detail (adopt + subscriptions)' },
 ];
@@ -88,7 +90,9 @@ test('at most one navigation item is the current page', async ({ page }) => {
     // What must never happen is two siblings claiming the same thing, which is
     // what a prefix match on the index route produced.
     const labels = await current.allInnerTexts();
-    const opsTabs = labels.filter((t) => ['Health', 'Metrics', 'Audit log'].includes(t.trim()));
+    const opsTabs = labels.filter((t) =>
+      ['Health', 'Operational Health', 'Audit log'].includes(t.trim()),
+    );
     expect(opsTabs.length, `${route.path} marked ${opsTabs.length} ops tabs current`).toBeLessThan(
       2,
     );

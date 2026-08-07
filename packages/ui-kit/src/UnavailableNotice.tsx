@@ -22,11 +22,28 @@ import type { ReactNode } from 'react';
  *
  * `reason` is required. A notice that says only "unavailable" moves the question
  * from the screen to a person, which is where it was before the panel existed.
+ *
+ * ## Two weights, because not every absence is worth the same attention
+ *
+ * Naming every absence is right; giving all of them the same bordered banner is
+ * not. A page that gates three panels by role and names two permanent gaps in the
+ * API renders five identical blue boxes, and five identical boxes read as a
+ * broken screen rather than an honest one — the reader stops distinguishing "you
+ * cannot see this" from "nobody can" from "this matters to your decision", and
+ * eventually stops reading any of them.
+ *
+ * So `tone` splits them. `notice` is the banner, for an absence the reader might
+ * act on: a permission they could request, a feature they might expect to find
+ * where they are looking. `quiet` is the same words as text in the panel's own
+ * position — for a permanent limit of the API that applies to everyone equally
+ * and that no reader can do anything about. Nothing is hidden either way; the
+ * title and the reason are rendered in both. Only the volume changes.
  */
 export function UnavailableNotice({
   title,
   reason,
   tracking,
+  tone = 'notice',
 }: {
   /** What is missing, in the reader's terms. Not "no data". */
   title: string;
@@ -34,16 +51,28 @@ export function UnavailableNotice({
   reason: ReactNode;
   /** Where the decision to fix it lives, so the reader can follow it. */
   tracking?: ReactNode;
+  /**
+   * `quiet` for a permanent limit nobody can act on, `notice` for an absence
+   * with a next step. Defaults to `notice`: a new absence should have to argue
+   * its way down to quiet rather than start there.
+   */
+  tone?: 'notice' | 'quiet';
 }) {
+  const body = (
+    <StackLayout gap={1}>
+      <Text styleAs="label" color={tone === 'quiet' ? 'secondary' : undefined}>
+        {title}
+      </Text>
+      <Text color={tone === 'quiet' ? 'secondary' : undefined}>{reason}</Text>
+      {tracking !== undefined ? <Text color="secondary">{tracking}</Text> : null}
+    </StackLayout>
+  );
+
+  if (tone === 'quiet') return body;
+
   return (
     <Banner status="info">
-      <BannerContent>
-        <StackLayout gap={1}>
-          <Text styleAs="label">{title}</Text>
-          <Text>{reason}</Text>
-          {tracking !== undefined ? <Text color="secondary">{tracking}</Text> : null}
-        </StackLayout>
-      </BannerContent>
+      <BannerContent>{body}</BannerContent>
     </Banner>
   );
 }

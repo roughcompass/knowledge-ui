@@ -72,7 +72,7 @@ export const CLAIMS = [
   claim({
     claim_id: 'claim-3',
     predicate: 'owned_by',
-    value: 'design-systems-team',
+    value: 'design-systems',
     claim_category: 'ownership',
     confidence: 0.33,
     citations: [{ kind: 'doc', ref: 'adr/001', excerpt: 'the design systems team owns Salt' }],
@@ -139,12 +139,12 @@ export const impactHandlers = [
       depth,
       direction: 'reverse',
       as_of: null,
-      nodes: [{ entity_id: 'checkout-web', name: 'Checkout Web' }],
+      nodes: [{ entity_id: 'client-portal-web', name: 'Client Portal Web' }],
       edges:
         depth >= 2
-          ? [edge('calls', 'checkout-web', 'e1'), edge('calls', 'payments-web', 'e2')]
-          : [edge('calls', 'checkout-web', 'e1')],
-      version_satisfied: { 'checkout-web': false },
+          ? [edge('calls', 'client-portal-web', 'e1'), edge('calls', 'trader-workbench-web', 'e2')]
+          : [edge('calls', 'client-portal-web', 'e1')],
+      version_satisfied: { 'client-portal-web': false },
       cache_hit: true,
     });
   }),

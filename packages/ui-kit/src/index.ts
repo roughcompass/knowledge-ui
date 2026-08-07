@@ -4,12 +4,22 @@ export { ContentColumn, Prose } from './Layout';
 // workspace permitted a stylesheet, and the tab underline and card bands both
 // need one.
 export { AppShell } from './AppShell';
-export { AppSidebar, SidebarBack } from './AppSidebar';
+export { AppSidebar } from './AppSidebar';
 export { ScopeSwitcher, RailBrand, type ScopeOption } from './ScopeSwitcher';
 export { ScopeBreadcrumb, type BreadcrumbSegment } from './ScopeBreadcrumb';
 export { SectionCard } from './SectionCard';
 export { StatTile } from './StatTile';
 export { NavCard } from './NavCard';
+
+/**
+ * The only anchor in the app.
+ *
+ * `KLink` is Salt's `Link` with a routing seam; the provider is installed once per
+ * bundle because ui-kit is not federated and a context does not cross that boundary.
+ * A lint rule bans react-router's `Link` in pages and components so an unstyled
+ * anchor cannot come back.
+ */
+export { KLink, LinkAdapterProvider, type KLinkProps } from './LinkAdapter';
 
 export { PageHeader } from './PageHeader';
 export { FilterBar, FilterField, popoverOverlayProps } from './FilterBar';
@@ -34,6 +44,7 @@ export { ErrorPanel } from './ErrorPanel';
 export { displayText } from './displayText';
 export { instantText } from './instantText';
 export { isoDay } from './isoDay';
+export { termText } from './termText';
 export { TileGrid } from './TileGrid';
 export { DataTable, type Column, type DataTableProps } from './DataTable';
 

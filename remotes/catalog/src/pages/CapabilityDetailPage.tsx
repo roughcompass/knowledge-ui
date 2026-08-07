@@ -9,6 +9,7 @@ import {
   LoadingPanel,
   PageHeader,
   SectionCard,
+  termText,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -35,15 +36,48 @@ import { SubscriptionPanel } from '../components/SubscriptionPanel';
  * which is what this page shipped until it was run against a real registry rather than
  * a fixture of only-strings.
  *
- * Objects and arrays are shown as compact JSON in the mono face, because at that point
- * the value *is* data and pretending otherwise loses it entirely.
+ * A bitemporal wrapper carrying a single `state` is unwrapped to the state, because
+ * `{"state":"ga"}` on screen is storage shape leaking into the product: the reader is
+ * shown a JSON literal and left to parse it. This reads a field the response actually
+ * sent rather than inferring one — the value is the server's, only the braces are
+ * dropped. Anything else object-shaped is still shown as compact JSON, because at that
+ * point the value *is* data and prettifying it would lose part of it.
  */
 function AttributeValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) return <Text color="secondary">—</Text>;
+
   if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const state = record.state;
+    if (typeof state === 'string' && Object.keys(record).length === 1) {
+      return <Text>{termText(state)}</Text>;
+    }
     return <Text styleAs="code">{JSON.stringify(value)}</Text>;
   }
+
   return <Text>{displayText(value)}</Text>;
+}
+
+/**
+ * The order a reader wants these fields in, and the labels they would use.
+ *
+ * The response is an object, and object key order is whatever the serializer felt
+ * like — which put `display_name` third and `lifecycle` last on a page whose whole
+ * job is to say what this thing is. Keys the registry has never sent are not listed;
+ * they fall through to the alphabetical tail below with their key title-cased, which
+ * is the honest treatment of a field this app has never seen.
+ */
+const ATTRIBUTE_ORDER = ['owner', 'tier', 'lifecycle', 'display_name'] as const;
+
+function attributeRank(key: string): number {
+  const index = ATTRIBUTE_ORDER.indexOf(key as (typeof ATTRIBUTE_ORDER)[number]);
+  return index === -1 ? ATTRIBUTE_ORDER.length : index;
+}
+
+/** The body of the `overview` fact, which is the one-line answer to "what is this". */
+function overviewOf(facts: ReadonlyArray<Record<string, unknown>>): string | undefined {
+  const overview = facts.find((fact) => fact.category === 'overview');
+  return typeof overview?.body === 'string' ? overview.body : undefined;
 }
 
 export function CapabilityDetailPage() {
@@ -64,7 +98,24 @@ export function CapabilityDetailPage() {
   const facts = Array.isArray(data.facts) ? (data.facts as Array<Record<string, unknown>>) : [];
   const lifecycle = typeof data.lifecycle === 'string' ? data.lifecycle : undefined;
 
-  const attributeRows = Object.entries(attributes).map(([key, value]) => ({ key, value }));
+  const attributeRows = Object.entries(attributes)
+    .map(([key, value]) => ({ key, value }))
+    .sort((a, b) => attributeRank(a.key) - attributeRank(b.key) || a.key.localeCompare(b.key));
+
+  /*
+   * The name a person would say, when the server sent one. A reader arrives having
+   * clicked "Salt Design System" in a search result or having been sent the link by
+   * a colleague who called it that; titling the page `salt-design-system` and filing
+   * the real name three panels down as a row in a key/value block made them confirm
+   * they were in the right place by reading the URL.
+   *
+   * The slug is not dropped — it is the handle in every API call, every dependency
+   * edge and every `package.json`, so it stays on screen as metadata beside the tags.
+   */
+  const displayName =
+    typeof attributes.display_name === 'string' ? attributes.display_name : undefined;
+  const slug = displayText(entity.name ?? handle ?? '');
+  const overview = overviewOf(facts);
 
   /*
    * The header renders in every state, including while the request is in flight.
@@ -78,12 +129,25 @@ export function CapabilityDetailPage() {
    */
   const header = (
     <PageHeader
-      title={displayText(entity.name ?? handle ?? 'Capability')}
+      title={displayName ?? slug ?? 'Capability'}
+      // The one sentence the reader came for, at the top instead of at the bottom.
+      // Absent when the capability has no overview fact — an empty line here would
+      // be this page inventing a summary the registry never wrote.
+      description={overview}
       metadata={
         query.isPending ? undefined : (
           <FlexLayout gap={1} align="center">
-            {lifecycle ? <Tag>{lifecycle}</Tag> : null}
-            <Tag>{displayText(entity.entity_type ?? 'capability')}</Tag>
+            {lifecycle ? <Tag>{termText(lifecycle)}</Tag> : null}
+            <Tag>{termText(displayText(entity.entity_type ?? 'capability'))}</Tag>
+            {/*
+              Shown whenever it is not already the title, so the handle a reader
+              needs for an import or an API call is always on the page.
+            */}
+            {displayName ? (
+              <Text styleAs="code" color="secondary">
+                {slug}
+              </Text>
+            ) : null}
           </FlexLayout>
         )
       }
@@ -102,7 +166,12 @@ export function CapabilityDetailPage() {
             disabled={query.isPending}
             onClick={() => setAuditView((v) => !v)}
           >
-            {auditView ? 'Hide Bitemporal Fields' : 'Show Bitemporal Fields'}
+            {/*
+              "Bitemporal" is the storage model's word, and it was the label on a
+              primary control on the busiest page in the app. What the button
+              actually does is ask for the record-keeping fields, so it says that.
+            */}
+            {auditView ? 'Hide Record Fields' : 'Show Record Fields'}
           </Button>
           <Button appearance="bordered" sentiment="neutral" onClick={() => navigate('..')}>
             Back to Catalog
@@ -133,17 +202,9 @@ export function CapabilityDetailPage() {
       {header}
 
       {/*
-        Above Attributes because it is actionable and they are reference. A reader
-        who came to decide whether to depend on this capability acts here; a reader
-        who came to look something up scrolls past.
-      */}
-      {handle ? <SubscriptionPanel handle={handle} /> : null}
-
-      {/*
-        Above the reference tables for the same reason the subscription panel is:
-        a reader deciding whether to depend on this capability, or whether changing
-        it is safe, acts on this. Attributes and facts are what they look up
-        afterwards.
+        First, because a reader deciding whether to depend on this capability — or
+        whether changing it is safe — acts on this. Everything below is reference
+        they look up afterwards.
       */}
       {handle ? <ImpactPanel handle={handle} /> : null}
 
@@ -153,22 +214,34 @@ export function CapabilityDetailPage() {
         fields about one capability — there is nothing to scan down a column of
         values, and headers reading "Key" and "Value" invited a reader to try.
       */}
-      <SectionCard title="Attributes" banded>
+      <SectionCard
+        title="Details"
+        description="The attributes recorded against this capability."
+        banded
+      >
         {attributeRows.length === 0 ? (
           <Text color="secondary">No attributes recorded for this capability.</Text>
         ) : (
           <DescriptionList
-            caption="Attributes"
+            caption="Details"
             hideCaption
             items={attributeRows.map((row) => ({
-              term: row.key,
+              // The key title-cased into the term a reader would use. The datum is
+              // the value beside it and is untouched; only the field *name* is
+              // rewritten, and `owner` was never a word the registry expected back.
+              term: termText(row.key),
               detail: <AttributeValue value={row.value} />,
             }))}
           />
         )}
       </SectionCard>
 
-      <SectionCard title="Facts" banded flush>
+      <SectionCard
+        title="Facts"
+        description="Statements recorded about this capability, by category. The overview above is one of them."
+        banded
+        flush
+      >
         <DataTable
           caption="Facts"
           hideCaption
@@ -177,7 +250,7 @@ export function CapabilityDetailPage() {
             {
               key: 'category',
               header: 'Category',
-              render: (row) => <Tag>{String(row.category)}</Tag>,
+              render: (row) => <Tag>{termText(String(row.category))}</Tag>,
             },
             { key: 'body', header: 'Body', render: (row) => <Text>{String(row.body)}</Text> },
           ]}
@@ -191,18 +264,26 @@ export function CapabilityDetailPage() {
         />
       </SectionCard>
 
+      {/*
+        Below identity and impact, not above them. This is a personal preference
+        about a mailbox; it was the first thing under the title, so a reader who
+        arrived asking "what is this and who depends on it" met a subscription
+        control before either answer.
+      */}
+      {handle ? <SubscriptionPanel handle={handle} /> : null}
+
       {auditView ? (
         <SectionCard
-          title="Audit fields"
-          description="Omitted from the response entirely unless requested, so an empty table here means the server sent nothing — not that the values are null. Valid-time intervals are not among them: those belong to individual facts and edges, which are the rows that assert something that can later stop being true. An entity has a creation time and an active flag, and both are shown here."
+          title="Record fields"
+          description="The registry's own record-keeping: who the row belongs to, whether it is still active, and when it was read. Omitted from the response entirely unless requested, so an empty table here means the server sent nothing — not that the values are null. Valid-time intervals are not among them: those belong to individual facts and edges, which are the rows that assert something that can later stop being true."
         >
           <DescriptionList
-            caption="Bitemporal fields"
+            caption="Record fields"
             hideCaption
             items={['tenant_id', 'is_active', 'superseded_facts_count', 'as_of']
               .filter((key) => key in data)
               .map((key) => ({
-                term: key,
+                term: termText(key),
                 detail: <AttributeValue value={data[key] ?? '\u2014'} />,
               }))}
           />

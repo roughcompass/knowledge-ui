@@ -28,7 +28,9 @@ export {
  * clear it.
  */
 export { adminSyncHandlers, resetAdminStore } from './msw/adminSync';
+export { ARC_READY_RECEIPT_ID, ARC_REDACTED_RECEIPT_ID, arcHandlers } from './msw/arc';
 export { consumerHandlers, resetConsumerStore, seedAdoption } from './msw/consumer';
+export { resetWorkspaceStore, workspaceHandlers } from './msw/workspaces';
 export { CLAIMS, impactHandlers, memoryHandlers } from './msw/memoryAndImpact';
 export { usageHandlers } from './msw/usage';
 export {

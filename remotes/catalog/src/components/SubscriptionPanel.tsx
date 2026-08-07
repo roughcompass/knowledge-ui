@@ -111,12 +111,16 @@ export function SubscriptionPanel({ handle }: { handle: string }) {
       banded
       flush
       footer={footer}
-      headingLevel="h3"
     >
       {rows.length === 0 ? (
         <EmptyState
           title="Not subscribed"
           description="You will not be told when this capability changes."
+          // Inside this card, so a level below its heading. Left at the default it
+          // rendered an `h2` under an `h3`, which put a transient status above the
+          // section containing it in the document outline: a reader navigating by
+          // heading met "Not subscribed" as a peer of "Impact" and "Facts".
+          headingLevel="h3"
         />
       ) : (
         <DataTable

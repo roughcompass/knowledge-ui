@@ -1,19 +1,27 @@
 import { HttpResponse, http } from 'msw';
 
 import { adminSyncHandlers } from './adminSync';
+import { arcHandlers } from './arc';
 import { consumerHandlers } from './consumer';
+import { graphHandlers } from './graph';
 import { roleFor, subjectOf } from './role';
 import { impactHandlers, memoryHandlers } from './memoryAndImpact';
 import { usageHandlers } from './usage';
+import { workspaceHandlers } from './workspaces';
 
 import {
   METRICS_TEXT,
+  catalogEntry,
+  dependentsOf,
+  filterCatalog,
   makeAuditRow,
   makeCapabilityDetail,
   makeEntityRef,
   makeErrorEnvelope,
   makeSearchHit,
   makeWhoami,
+  searchCatalog,
+  type CatalogEntry,
 } from '../fixtures';
 
 /**
@@ -29,8 +37,6 @@ import {
  * logic worth exercising. The cursor is an opaque base64 offset here, which
  * matches the contract the client must honour: it never parses one.
  */
-
-const TOTAL = 47;
 
 const encodeCursor = (offset: number) => btoa(JSON.stringify({ o: offset }));
 const decodeCursor = (cursor: string | null): number => {
@@ -82,32 +88,28 @@ export const capabilityHandlers = [
       });
     }
 
-    const lifecycle = url.searchParams.get('lifecycle');
-    const entityType = url.searchParams.get('entity_type');
+    // Narrowed here rather than in the browser, because the real endpoint
+    // narrows server-side. A lifecycle filter means every row below shares that
+    // value by construction, which is exactly why the list needs no lifecycle
+    // column.
+    const matching = filterCatalog({
+      lifecycle: url.searchParams.get('lifecycle'),
+      entityType: url.searchParams.get('entity_type'),
+    });
 
-    // A lifecycle filter narrows the set: with one applied, every row shares
-    // that value by construction, which is exactly why the list needs no
-    // lifecycle column.
-    const total = lifecycle ? Math.min(TOTAL, 12) : TOTAL;
-
-    const items = Array.from({ length: Math.min(pageSize, Math.max(0, total - offset)) }, (_, i) =>
-      makeEntityRef({
-        name: `capability-${offset + i + 1}`,
-        ...(entityType ? { entity_type: entityType } : {}),
-      }),
-    );
+    const items = matching.slice(offset, offset + pageSize).map(entityRefFor);
     const nextOffset = offset + items.length;
 
     return HttpResponse.json({
       items,
       // No `total` — the real response does not carry one.
-      next_cursor: nextOffset < total ? encodeCursor(nextOffset) : null,
+      next_cursor: nextOffset < matching.length ? encodeCursor(nextOffset) : null,
     });
   }),
 
   http.get('*/v1/capabilities/:handle', ({ params, request }) => {
     const url = new URL(request.url);
-    const detail = makeCapabilityDetail();
+    const detail = detailFor(String(params.handle));
     // `view=audit` adds the audit-only fields; without it the keys are absent,
     // not null, because the server excludes unset fields.
     //
@@ -126,12 +128,79 @@ export const capabilityHandlers = [
         as_of: '2026-01-01T00:00:00Z',
       });
     }
-    return HttpResponse.json({
-      ...detail,
-      entity: { ...detail.entity, name: String(params.handle) },
-    });
+    return HttpResponse.json(detail);
   }),
 ];
+
+/**
+ * A list row for a roster entry: exactly the seven fields the list resource
+ * carries, and no lifecycle, because the reference shape has none.
+ */
+function entityRefFor(row: CatalogEntry) {
+  return makeEntityRef({
+    name: row.name,
+    entity_type: row.entity_type,
+    external_id: row.external_id,
+  });
+}
+
+/**
+ * A detail response for a roster entry.
+ *
+ * An unknown handle still answers, with the same generated shape it always did:
+ * the detail page is reachable from links this mock does not own — a claim, an
+ * audit row, a workspace entry reference — and 404ing those would test the error
+ * path instead of the page.
+ */
+function detailFor(handle: string) {
+  const row = catalogEntry(handle);
+  const base = makeCapabilityDetail();
+  if (!row) {
+    return { ...base, entity: { ...base.entity, name: handle } };
+  }
+
+  return {
+    ...base,
+    entity: { ...base.entity, name: row.name, entity_type: row.entity_type },
+    lifecycle: row.lifecycle,
+    attributes: {
+      owner: row.owner,
+      tier: row.tier,
+      display_name: row.display_name,
+      // Kept in step with the top-level value on purpose: the two disagreeing is
+      // a real registry bug, and a fixture that shipped it would teach a page to
+      // tolerate the disagreement.
+      lifecycle: { state: row.lifecycle },
+    },
+    facts: [
+      {
+        fact_id: `${row.name}-overview`,
+        category: 'overview',
+        body: row.summary,
+        is_authoritative: true,
+      },
+    ],
+    edges_out: row.depends_on.map((dst, i) => ({
+      edge_id: `${row.name}-dep-${i + 1}`,
+      src_entity_id: row.name,
+      rel: 'depends_on',
+      dst_entity_id: dst,
+      properties: null,
+      valid_from: '2026-07-01T00:00:00Z',
+      valid_to: null,
+    })),
+    edges_in: dependentsOf(row.name).map((src, i) => ({
+      edge_id: `${row.name}-rdep-${i + 1}`,
+      src_entity_id: src,
+      rel: 'depends_on',
+      dst_entity_id: row.name,
+      properties: null,
+      valid_from: '2026-07-01T00:00:00Z',
+      valid_to: null,
+    })),
+    _links: { self: `/v1/capabilities/${row.name}` },
+  };
+}
 
 export const searchHandlers = [
   http.get('*/v1/search', ({ request }) => {
@@ -143,9 +212,28 @@ export const searchHandlers = [
       });
     }
     const topK = Number(url.searchParams.get('top_k') ?? 10);
-    const items = Array.from({ length: Math.min(topK, 5) }, (_, i) =>
-      makeSearchHit({ name: `${q}-match-${i + 1}`, score: 0.9 - i * 0.1 }),
-    );
+    // Real rows from the roster, so what comes back is recognisably about what
+    // was typed. A query matching nothing returns nothing, which is a state the
+    // page has to render and the old generated hits made unreachable.
+    const items = searchCatalog(q)
+      .slice(0, topK)
+      .map((row, i) =>
+        makeSearchHit({
+          entity_id: row.name,
+          name: row.name,
+          entity_type: row.entity_type,
+          score: Math.max(0.12, 0.94 - i * 0.07),
+          citations: [
+            {
+              fact_id: `${row.name}-overview`,
+              category: 'overview',
+              title: 'Overview',
+              created_at: '2026-06-01T00:00:00Z',
+              _links: { self: `/v1/capabilities/${row.name}` },
+            },
+          ],
+        }),
+      );
     return HttpResponse.json({ items, total: items.length, took_ms: 12 });
   }),
 ];
@@ -312,6 +400,9 @@ export const defaultHandlers = [
   ...auditHandlers,
   ...adminSyncHandlers,
   ...consumerHandlers,
+  ...workspaceHandlers,
+  ...graphHandlers,
+  ...arcHandlers,
   ...opsHandlers,
   ...idpHandlers,
 ];

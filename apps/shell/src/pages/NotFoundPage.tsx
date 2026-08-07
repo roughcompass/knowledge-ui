@@ -23,7 +23,7 @@ export function NotFoundPage() {
           // Salt's Button renders a button element, not an anchor, so this
           // navigates programmatically rather than pretending to be a link.
           <Button appearance="bordered" sentiment="neutral" onClick={() => navigate('/')}>
-            Back to Overview
+            Back to Dashboard
           </Button>
         }
       />

@@ -25,7 +25,7 @@ beforeEach(() => {
 describe('the inbox', () => {
   it('lists unread notifications by default', async () => {
     renderPage();
-    expect(await screen.findByText('salt-ds')).toBeInTheDocument();
+    expect(await screen.findByText('salt-design-system')).toBeInTheDocument();
     expect(screen.getByText('payments-api')).toBeInTheDocument();
   });
 
@@ -40,8 +40,8 @@ describe('the inbox', () => {
 
   it('links out to the capability, because that is where the change is', async () => {
     renderPage();
-    const link = await screen.findByRole('link', { name: 'salt-ds' });
-    expect(link).toHaveAttribute('href', expect.stringContaining('salt-ds'));
+    const link = await screen.findByRole('link', { name: 'salt-design-system' });
+    expect(link).toHaveAttribute('href', expect.stringContaining('salt-design-system'));
   });
 });
 
@@ -50,7 +50,7 @@ describe('mark read', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await screen.findByText('salt-ds');
+    await screen.findByText('salt-design-system');
     const rows = screen.getAllByRole('button', { name: 'Mark Read' });
     await user.click(rows[0] as HTMLElement);
 
@@ -58,7 +58,7 @@ describe('mark read', () => {
     // if the mutation invalidated the list and the refetch of `status=unread`
     // came back without it.
     await waitFor(() => {
-      expect(screen.queryByText('salt-ds')).not.toBeInTheDocument();
+      expect(screen.queryByText('salt-design-system')).not.toBeInTheDocument();
     });
     // The other one is untouched, which proves the invalidation refetched rather
     // than clearing the cache wholesale.
@@ -69,7 +69,7 @@ describe('mark read', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await screen.findByText('salt-ds');
+    await screen.findByText('salt-design-system');
     for (const button of screen.getAllByRole('button', { name: 'Mark Read' })) {
       await user.click(button);
     }
@@ -85,25 +85,15 @@ describe('the read filter', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await screen.findByText('salt-ds');
+    await screen.findByText('salt-design-system');
     await user.click(screen.getAllByRole('button', { name: 'Mark Read' })[0] as HTMLElement);
-    await waitFor(() => expect(screen.queryByText('salt-ds')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText('salt-design-system')).not.toBeInTheDocument());
 
     // Read state is a filter, not a deletion. If the mark-read invalidation had
     // only covered the active filter, this view would still be stale.
     await user.click(screen.getByRole('combobox'));
-    await user.click(await screen.findByRole('option', { name: 'all' }));
-    expect(await screen.findByText('salt-ds')).toBeInTheDocument();
-  });
-});
-
-describe('the named absence', () => {
-  it('says why there is no cross-capability adoption list, not merely that there is none', async () => {
-    renderPage();
-    // An empty panel would imply a list that will fill. The endpoint to fill it
-    // does not exist, so the notice has to say that rather than render nothing.
-    expect(await screen.findByText(/no list of everything you have adopted/i)).toBeInTheDocument();
-    expect(screen.getByText(/carries no version pin/)).toBeInTheDocument();
+    await user.click(await screen.findByRole('option', { name: 'All' }));
+    expect(await screen.findByText('salt-design-system')).toBeInTheDocument();
   });
 });
 

@@ -70,12 +70,12 @@ describe('the impact panel', () => {
     renderPanel();
     await screen.findByText('calls');
 
-    const depth = screen.getByRole('combobox', { name: /depth/i });
+    const depth = screen.getByRole('combobox', { name: /hops to follow/i });
     await userEvent.click(depth);
     await userEvent.click(screen.getByRole('option', { name: '2' }));
 
     // The handler returns a second edge only at depth 2 or more.
-    expect(await screen.findByText('payments-web')).toBeInTheDocument();
+    expect(await screen.findByText('trader-workbench-web')).toBeInTheDocument();
   });
 
   it('does not claim isolation when a traversal comes back empty', async () => {
@@ -87,7 +87,7 @@ describe('the impact panel', () => {
     renderPanel();
     await screen.findByText('calls');
 
-    const question = screen.getByRole('combobox', { name: /question/i });
+    const question = screen.getByRole('combobox', { name: /ask/i });
     await userEvent.click(question);
     await userEvent.click(screen.getByRole('option', { name: 'Blast radius' }));
 
@@ -102,7 +102,7 @@ describe('the impact panel', () => {
     renderPanel();
     await screen.findByText('calls');
 
-    const question = screen.getByRole('combobox', { name: /question/i });
+    const question = screen.getByRole('combobox', { name: /ask/i });
     await userEvent.click(question);
     await userEvent.click(screen.getByRole('option', { name: 'Depends on' }));
 
@@ -128,7 +128,7 @@ describe('the impact panel', () => {
     // apart.
     renderPanel();
     await screen.findByText('calls');
-    const table = screen.getByRole('table', { name: /Edges of type calls/i });
-    expect(within(table).getByText('checkout-web')).toBeInTheDocument();
+    const table = screen.getByRole('table', { name: /Entities related by calls/i });
+    expect(within(table).getByText('client-portal-web')).toBeInTheDocument();
   });
 });

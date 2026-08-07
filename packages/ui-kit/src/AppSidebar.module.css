@@ -207,3 +207,20 @@
   outline: var(--salt-focused-outline);
   outline-offset: 0;
 }
+
+/* The shell presents the rail as a full-screen dialog on narrow viewports. */
+@media (width <= 48rem) {
+  .rail {
+    inline-size: 100vw;
+    min-inline-size: 0;
+    max-inline-size: none;
+  }
+
+  .zoneDivided {
+    padding-inline-end: var(--salt-spacing-500);
+  }
+
+  .handle {
+    display: none;
+  }
+}

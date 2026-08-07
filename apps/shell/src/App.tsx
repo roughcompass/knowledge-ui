@@ -15,7 +15,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { AppFrame } from './chrome/AppFrame';
-import { HomePage } from './pages/HomePage';
+import { RouterLinks } from './chrome/RouterLinks';
+import { DashboardPage } from './pages/DashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SessionDebugPage } from './pages/SessionDebugPage';
 import { CatalogRemote, OperationsRemote } from './remotes/lazy';
@@ -290,73 +291,91 @@ function ShellRoutes({
   const catalog = remoteFor('catalog');
   const operations = remoteFor('operations');
 
+  /*
+   * Named once because two surfaces read it: the header's status dot and the
+   * dashboard's service tile. Deriving it twice is how the two come to disagree
+   * about what "unknown" means.
+   */
+  const readinessState =
+    readiness.data?.state === 'ready'
+      ? 'ready'
+      : readiness.data?.state === 'not-ready'
+        ? 'not-ready'
+        : 'unknown';
+
   return (
-    <Routes>
-      <Route
-        element={
-          <AppFrame
-            session={session}
-            personas={personas}
-            onSwitchPersona={onSwitchPersona}
-            mode={mode}
-            onToggleMode={onToggleMode}
-            readiness={
-              readiness.data?.state === 'ready'
-                ? 'ready'
-                : readiness.data?.state === 'not-ready'
-                  ? 'not-ready'
-                  : 'unknown'
+    <RouterLinks>
+      <Routes>
+        <Route
+          element={
+            <AppFrame
+              session={session}
+              personas={personas}
+              onSwitchPersona={onSwitchPersona}
+              mode={mode}
+              onToggleMode={onToggleMode}
+              readiness={readinessState}
+            />
+          }
+        >
+          <Route
+            index
+            element={
+              <DashboardPage
+                session={session}
+                personas={personas}
+                client={client}
+                readiness={readinessState}
+              />
             }
           />
-        }
-      >
-        <Route index element={<HomePage session={session} personas={personas} />} />
-        <Route path="_session" element={<SessionDebugPage session={session} />} />
+          <Route path="_session" element={<SessionDebugPage session={session} />} />
 
-        {/*
+          {/*
           A splat path is required for a remote: the remote renders its own
           <Routes> whose paths resolve relative to this mount point, which is
           what lets the same bundle mount at a different path without a rebuild.
         */}
-        <Route
-          path={`${catalog.mountPath.slice(1)}/*`}
-          element={
-            <RequireCapability
-              need={catalog.need}
-              // The section's own name, from the same descriptor the rail reads, so
-              // a refused section is titled exactly as its nav entry.
-              screen={catalog.label}
-              session={session}
-              personas={personas}
-              onSwitchPersona={onSwitchPersona}
-            >
-              <RemoteBoundary name="catalog">
-                <CatalogRemote {...mountProps(catalog.mountPath)} />
-              </RemoteBoundary>
-            </RequireCapability>
-          }
-        />
+          <Route
+            path={`${catalog.mountPath.slice(1)}/*`}
+            element={
+              <RequireCapability
+                need={catalog.need}
+                // The section's own name, from the same descriptor the rail reads, so
+                // a refused section is titled exactly as its nav entry.
+                screen={catalog.label}
+                session={session}
+                personas={personas}
+                onSwitchPersona={onSwitchPersona}
+              >
+                <RemoteBoundary name="catalog">
+                  <CatalogRemote {...mountProps(catalog.mountPath)} />
+                </RemoteBoundary>
+              </RequireCapability>
+            }
+          />
 
-        <Route
-          path={`${operations.mountPath.slice(1)}/*`}
-          element={
-            <RequireCapability
-              need={operations.need}
-              screen={operations.label}
-              session={session}
-              personas={personas}
-              onSwitchPersona={onSwitchPersona}
-            >
-              <RemoteBoundary name="operations">
-                <OperationsRemote {...mountProps(operations.mountPath)} />
-              </RemoteBoundary>
-            </RequireCapability>
-          }
-        />
+          <Route
+            path={`${operations.mountPath.slice(1)}/*`}
+            element={
+              <RequireCapability
+                need={operations.need}
+                screen={operations.label}
+                session={session}
+                personas={personas}
+                onSwitchPersona={onSwitchPersona}
+              >
+                <RemoteBoundary name="operations">
+                  <OperationsRemote {...mountProps(operations.mountPath)} />
+                </RemoteBoundary>
+              </RequireCapability>
+            }
+          />
 
-        <Route path="index.html" element={<Navigate to="/" replace />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+          <Route path="index.html" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </RouterLinks>
   );
 }

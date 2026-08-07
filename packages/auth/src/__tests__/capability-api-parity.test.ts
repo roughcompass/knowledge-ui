@@ -148,6 +148,36 @@ const GATES: Record<Capability, Gate> = {
     serverRoles: ['admin', 'producer'],
     note: '_admin_or_producer_required in usage.py — a producer is entitled to usage of what their tenant owns, which is why this cannot share an entry with the operator-scoped reads.',
   },
+  'workspace:read': {
+    endpoint: 'GET /v1/workspaces',
+    serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
+    note: 'require_roles([consumer, producer, admin, auditor]) in workspaces.py — every authenticated actor may call the endpoint, and which rows come back is decided per workspace by the service perceivability rule rather than by the role.',
+  },
+  'workspace:write:personal': {
+    endpoint: 'POST /v1/workspaces (owner_kind=actor)',
+    serverPath: '/v1/workspaces',
+    serverRoles: ['producer'],
+    note: 'The router admits any role, so the gate that matters is in the service: create raises WorkspaceOperationDenied unless the actor holds producer, and _assert_can_update_workspace / _assert_can_delete_workspace / _assert_can_write_entries additionally require the actor to be the owner. Admin is excluded deliberately — an admin cannot write to somebody else\u2019s personal notebook — which is why this cannot share an entry with the team write.',
+  },
+  'workspace:write:team': {
+    endpoint: 'POST /v1/workspaces (owner_kind=tenant)',
+    serverPath: '/v1/workspaces',
+    serverRoles: ['admin'],
+    note: 'Same service gates, other branch: creating, updating, archiving, deleting and writing entries on a tenant-owned workspace all require admin, and a producer is refused.',
+  },
+  'graph:read': {
+    endpoint: 'GET /v1/graph/provider, GET /v1/graph/consumer',
+    serverPath: '/v1/graph/provider',
+    serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
+    note: 'Neither projection route carries require_roles in graph.py — both take Depends(get_tenant_context) only, so any authenticated actor may read their own tenant’s projections. The _admin_required in that module applies to the edge-property-schema routes, which this capability does not cover.',
+  },
+  'ontology:read': {
+    endpoint:
+      'GET /v1/admin/vocabularies/{kind}, GET /v1/admin/capability-types, GET /v1/admin/edge-property-schemas',
+    serverPath: '/v1/admin/capability-types',
+    serverRoles: ['admin'],
+    note: 'All three are under the /v1/admin prefix behind _admin_required in _admin_common.py. Separate from admin:manage because it is a read of the schema surface rather than the operator write, and a screen that offered both would ship sync-source controls to a reader who only asked what an edge relation is.',
+  },
 };
 
 describe('the capability table against the API', () => {

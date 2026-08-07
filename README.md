@@ -7,7 +7,8 @@ The registry is a governed, multi-tenant memory of what a platform ships —
 capabilities, their interfaces, their owners, their dependencies, and claims about
 them carrying provenance and confidence. This app is where a human reads that
 memory: browsing capabilities, deciding whether changing one is safe, checking
-what the memory believes and how much to trust it, and running the service.
+what the memory believes and how much to trust it, probing whether retrieval
+supplies the context an agent needs, and running the service.
 
 ---
 
@@ -76,7 +77,7 @@ backend happens to be up is a repo whose tests stop being run.
 ```
 apps/shell                 session bootstrap, navigation rail, remote registry, error boundaries
 remotes/catalog            capability browse and detail, impact, adoption, subscriptions,
-                           notifications, claims
+                           notifications, claims, workspaces, context probes and ARC receipts
 remotes/operations         health, operational health, usage, audit log, sync connectors and runs
 packages/remote-contract   the typed host-to-remote handshake (types only, no runtime export)
 packages/auth              session, roles, the capability table, the dev persona roster
@@ -89,11 +90,13 @@ scripts/                   guards, the end-to-end build, persona seeding
 
 Two things about this layout are load-bearing rather than tidy:
 
-**The nav lives in the host.** `apps/shell/src/remotes/registry.ts` declares each
-remote's label, mount path, required capability and child pages — so the shell can
-decide whether to _offer_ a destination without downloading the remote that serves
-it. The alternative is fetching a bundle to discover whether you are allowed to
-see the link to it.
+**The nav lives in the host.** `apps/shell/src/remotes/registry.ts` declares remote
+mounts and the navigation sections that point into them. The shell can decide
+whether to _offer_ a destination without downloading the remote that serves it.
+Keeping those models separate also lets the Graph remain its own product area
+while the catalog remote continues to serve it. Context Lab works the same way:
+it is a first-class product area without becoming a separate deployment bundle,
+while Claims and Workspaces remain views within Catalog.
 
 **`packages/remote-contract` exports no runtime value.** It is not federated, so a
 value there would be duplicated into every bundle and identity comparisons across

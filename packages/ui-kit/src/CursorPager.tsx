@@ -11,6 +11,12 @@ import { Button, FlexLayout, Text } from '@salt-ds/core';
  *
  * Prev works off a client-side stack of cursors already visited, since the
  * server only ever hands out forward links.
+ *
+ * When there is neither a page behind nor a page ahead, the buttons are not
+ * rendered at all. Two permanently disabled controls under a single-row table
+ * are scaffolding rather than interface: they suggest the result is one page of
+ * several and invite a click that can never do anything. The count still
+ * renders, because "showing 1 row" is a fact about the response either way.
  */
 export function CursorPager({
   canPrev,
@@ -27,29 +33,34 @@ export function CursorPager({
   showingCount: number;
   isLoading?: boolean;
 }) {
+  const pageable = canPrev || canNext;
+
   return (
     <FlexLayout justify="space-between" align="center" gap={2}>
       <Text color="secondary" styleAs="notation">
         Showing {showingCount} {showingCount === 1 ? 'row' : 'rows'}
+        {pageable ? null : ' — this is the whole result'}
       </Text>
-      <FlexLayout gap={1}>
-        <Button
-          appearance="bordered"
-          sentiment="neutral"
-          disabled={!canPrev || isLoading}
-          onClick={onPrev}
-        >
-          Previous
-        </Button>
-        <Button
-          appearance="bordered"
-          sentiment="neutral"
-          disabled={!canNext || isLoading}
-          onClick={onNext}
-        >
-          Next
-        </Button>
-      </FlexLayout>
+      {pageable ? (
+        <FlexLayout gap={1}>
+          <Button
+            appearance="bordered"
+            sentiment="neutral"
+            disabled={!canPrev || isLoading}
+            onClick={onPrev}
+          >
+            Previous
+          </Button>
+          <Button
+            appearance="bordered"
+            sentiment="neutral"
+            disabled={!canNext || isLoading}
+            onClick={onNext}
+          >
+            Next
+          </Button>
+        </FlexLayout>
+      ) : null}
     </FlexLayout>
   );
 }

@@ -153,3 +153,22 @@ h6.saltText {
    */
   --saltDialog-borderRadius: var(--kui-radius-modal);
 }
+
+/*
+ * The hover underline for links that carry none at rest.
+ *
+ * A table whose primary column is a link renders one underline per row, which reads
+ * as a ruled form rather than a list. Salt's `underline="never"` removes it, and
+ * accent colour carries the affordance instead — but colour alone is not an
+ * affordance for a reader who cannot distinguish it, so the underline has to come
+ * back on hover. Salt publishes no variable for that state, and the rule is one
+ * declaration, so it lives here rather than in a module: this is the only global
+ * sheet, and a component stylesheet would have to be imported by every page that
+ * renders a link.
+ *
+ * `text-decoration` is outside stylelint's token allow-list, which covers colour,
+ * spacing, type and radius — so no token is involved and none is invented.
+ */
+.saltLink-underlineNever:hover {
+  text-decoration: underline;
+}

@@ -42,6 +42,11 @@
   min-block-size: 0;
 }
 
+.mobileNavigationButton,
+.mobileCloseButton {
+  display: none;
+}
+
 .column {
   flex: 1 1 auto;
 
@@ -78,6 +83,11 @@
   overflow: hidden;
 }
 
+.topBarContent {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
 /*
  * The only scroll container. Scrolling here rather than on the document is what
  * keeps the rail and the top bar fixed without `position: sticky` and without the
@@ -87,4 +97,41 @@
   flex: 1 1 auto;
   overflow-y: auto;
   min-block-size: 0;
+}
+
+/*
+ * A persistent 15rem rail leaves only 135px at the smallest supported viewport.
+ * On narrow screens it becomes a full-screen navigation dialog instead: content
+ * keeps the whole viewport, while identity, readiness and appearance controls
+ * remain available rather than disappearing behind a CSS-only hide.
+ */
+@media (width <= 48rem) {
+  .railSlot {
+    position: fixed;
+    inset: 0;
+    z-index: var(--salt-zIndex-drawer);
+    visibility: hidden;
+    background: var(--salt-container-secondary-background);
+  }
+
+  .railOpen {
+    visibility: visible;
+  }
+
+  .mobileNavigationButton,
+  .mobileCloseButton {
+    display: inline-flex;
+  }
+
+  .mobileCloseButton {
+    position: absolute;
+    inset-block-start: var(--salt-spacing-100);
+    inset-inline-end: var(--salt-spacing-100);
+    z-index: 2;
+  }
+
+  .topBar {
+    gap: var(--salt-spacing-100);
+    padding-inline: var(--salt-spacing-100);
+  }
 }

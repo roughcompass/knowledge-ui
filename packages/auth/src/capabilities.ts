@@ -152,6 +152,71 @@ export const CAPABILITIES = {
    */
   'usage:read:operator': ['admin'],
   'usage:read:owned': ['admin', 'producer'],
+
+  /**
+   * Workspaces — the notebooks beside the catalog — as three entries, because the
+   * server gates reading, personal writing and team writing differently.
+   *
+   * Reading admits every role: the router lets any authenticated actor call the
+   * workspace endpoints, and which workspaces come back is decided per row by the
+   * service's perceivability rule rather than by the caller's role.
+   *
+   * The two writes are the interesting part, and they cannot be one entry. A
+   * personal (`owner_kind='actor'`) workspace is created, renamed, archived and
+   * deleted by **its owning producer** — an admin cannot write to somebody's
+   * personal notebook, and the service says so in those words. A team
+   * (`owner_kind='tenant'`) workspace is the mirror image: **admin only**, and a
+   * producer is refused. Merged at the wider grant, each role would be offered
+   * half a screen the server refuses; merged at the narrower, nobody could write
+   * anything.
+   *
+   * Owner identity does not appear here, and does not need to. A producer only
+   * ever perceives their *own* personal workspaces, so any actor-owned row a
+   * producer can see is one they may write. The exception is the auditor, who
+   * perceives everyone's — and who holds neither write capability, so the controls
+   * are absent for them anyway.
+   *
+   * Safe from the `audit:read` trap in both directions: producer and admin both
+   * sit above consumer in the precedence order, so no principal collapses out of
+   * either grant.
+   */
+  'workspace:read': ['admin', 'producer', 'consumer', 'auditor'],
+  'workspace:write:personal': ['producer'],
+  'workspace:write:team': ['admin'],
+
+  /**
+   * GRAPH — the tenant's projections, and the ontology that constrains them.
+   *
+   * Two entries because the server draws the line in exactly one place, and it is
+   * not where the feature's navigation puts it.
+   *
+   * The projections (`/v1/graph/provider`, `/v1/graph/consumer`) take
+   * `Depends(get_tenant_context)` and no role check at all in `graph.py`: any
+   * authenticated actor may ask what their own tenant ships and consumes. So
+   * `graph:read` admits all four.
+   *
+   * The ontology is a different surface with a different gate. Vocabulary values,
+   * capability-type schemas and edge-property schemas are all served from
+   * `/v1/admin/*` behind `_admin_required`, so `ontology:read` is admin only —
+   * even though nothing about reading a list of edge relations feels
+   * administrative. The feeling is not the gate.
+   *
+   * This deliberately does not reuse `admin:manage`. That entry is the *write*
+   * capability for operator screens, and a reader who may only look at the
+   * ontology would be offered the sync-source controls along with it. Same roles
+   * today, different questions — and the parity test checks the question, not the
+   * row.
+   *
+   * Global claim predicates (`/v1/operator/claim-predicates`) are absent from this
+   * table on purpose. They are authorised by an exact `(issuer, subject)` pair in
+   * the deployment operator allowlist, which is explicitly **not a role** — the
+   * router's own words are that every role in this system is tenant-scoped, so no
+   * role can serve as the deployment trust root. There is therefore no honest
+   * mirror to write: any entry here would offer the screen to somebody the server
+   * may still refuse. The ontology page names that absence instead.
+   */
+  'graph:read': ['admin', 'producer', 'consumer', 'auditor'],
+  'ontology:read': ['admin'],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Capability = keyof typeof CAPABILITIES;

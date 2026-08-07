@@ -25,6 +25,6 @@ export default defineConfig({
     environment: 'jsdom',
     // Shared with the other jsdom projects rather than copied per workspace.
     setupFiles: ['../../vitest.setup.ts'],
-    include: ['src/**/*.test.tsx'],
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 });

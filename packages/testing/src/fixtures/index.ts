@@ -12,6 +12,9 @@
 export const LIFECYCLE = ['alpha', 'beta', 'ga', 'deprecated', 'retired'] as const;
 export type Lifecycle = (typeof LIFECYCLE)[number];
 
+/** The named catalog the mocked tenant publishes. */
+export * from './catalog';
+
 let seq = 0;
 const uuid = (prefix: string) => `${prefix}-0000-0000-0000-${String(++seq).padStart(12, '0')}`;
 
@@ -83,13 +86,13 @@ export function makeCapabilityDetail(overrides: Partial<Record<string, unknown>>
       {
         fact_id: uuid('fact'),
         category: 'overview',
-        body: 'Card payment authorisation and settlement.',
+        body: 'Initiation, status and recall for high-value and bulk payments across the bank’s clearing routes.',
         is_authoritative: true,
       },
     ],
     edges_out: [],
     edges_in: [],
-    _links: { self: '/v1/capabilities/capability-1' },
+    _links: { self: '/v1/capabilities/payments-api' },
     ...overrides,
   };
 }
@@ -108,7 +111,7 @@ export function makeSearchHit(overrides: Partial<Record<string, unknown>> = {}) 
   const entityId = uuid('entity');
   return {
     entity_id: entityId,
-    name: 'payments-service',
+    name: 'payments-api',
     entity_type: 'capability',
     score: 0.87,
     retrieval_arms: { semantic: 0.6, lexical: 0.25, graph: 0.02 },

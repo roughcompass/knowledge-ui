@@ -26,6 +26,7 @@ import {
   SectionCard,
   instantText,
   popoverOverlayProps,
+  termText,
   type Column,
 } from '@knowledge-ui/ui-kit';
 import { useMemo, useState } from 'react';
@@ -190,14 +191,14 @@ export function SyncRunsPage() {
         <FilterField label="Status" basis="11rem">
           <Dropdown
             bordered
-            value={status || 'Any'}
+            value={status ? termText(status) : 'Any'}
             onSelectionChange={(_event, selected) => setStatus(selected?.[0] ?? '')}
             OverlayProps={popoverOverlayProps}
           >
             <Option value="">Any</Option>
             {SYNC_RUN_STATUSES.map((value) => (
               <Option key={value} value={value}>
-                {value}
+                {termText(value)}
               </Option>
             ))}
           </Dropdown>

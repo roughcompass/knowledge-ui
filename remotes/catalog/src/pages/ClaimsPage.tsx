@@ -23,6 +23,7 @@ import {
   UnavailableNotice,
   isoDay,
   popoverOverlayProps,
+  termText,
 } from '@knowledge-ui/ui-kit';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -271,7 +272,7 @@ export function ClaimsPage() {
           */}
           <Dropdown
             bordered
-            value={persona}
+            value={termText(persona)}
             onSelectionChange={(_e, selected) =>
               set('persona', String(selected?.[0] ?? DEFAULT_CLAIM_PERSONA))
             }
@@ -279,7 +280,7 @@ export function ClaimsPage() {
           >
             {CLAIM_PERSONAS.map((value) => (
               <Option key={value} value={value}>
-                {value}
+                {termText(value)}
               </Option>
             ))}
           </Dropdown>
@@ -293,6 +294,11 @@ export function ClaimsPage() {
          * imply variance that does not exist — and an identical badge on every row
          * becomes chrome the eye stops seeing, which is the one state a safety
          * caveat must never reach.
+         *
+         * It stays at full weight on every visit. The obvious refinement — fade it
+         * to neutral once the reader has seen it — is a compliance marker quietly
+         * removing itself on a timer, and the reader it exists for is the one
+         * arriving at this page for the twentieth time about to act on a claim.
          */
         <Note label="Recalled Content" variant="warning">
           {caveat}
@@ -314,78 +320,103 @@ export function ClaimsPage() {
       {active.error ? <ErrorPanel error={active.error} title="Could not read claims" /> : null}
 
       {active.data ? (
-        <DataTable
-          card
-          caption="Claims"
-          hideCaption
-          zebra
-          columns={[
-            {
-              key: 'subject_entity_id',
-              header: 'Subject',
-              // First column, because a predicate and a value do not say what they
-              // are about. A list spanning entities without this is unreadable.
-              render: (row) => <Text>{row.subject_entity_id}</Text>,
-            },
-            {
-              key: 'predicate',
-              header: 'Predicate',
-              /*
-               * Carries the category beneath it. Both classify the claim, and at nine
-               * columns the table broke `salt-design-system` across three lines — so
-               * the two low-variance classifiers share a cell rather than each taking
-               * width from the subject, which is the field a reader scans first.
-               */
-              render: (row) => (
-                <StackLayout gap={0.5}>
-                  <Tag>{row.predicate}</Tag>
-                  <Text color="secondary" styleAs="label">
-                    {row.claim_category}
-                  </Text>
-                </StackLayout>
-              ),
-            },
-            { key: 'value', header: 'Value', render: (row) => <Text>{String(row.value)}</Text> },
-            {
-              key: 'confidence',
-              header: 'Confidence',
-              render: (row) => <ConfidenceCell claim={row} />,
-            },
-            {
-              key: 'human_confirmed',
-              header: 'Owner Confirmed',
-              // The ground-truth signal, and distinct from the model's own
-              // confidence: a confirmed low-confidence claim outranks an
-              // unconfirmed high-confidence one.
-              render: (row) =>
-                row.human_confirmed ? <Tag>confirmed</Tag> : <Text color="secondary">—</Text>,
-            },
-            { key: 'valid_from', header: 'Valid', render: (row) => <ValidityCell claim={row} /> },
-            {
-              key: 'citations',
-              header: 'Evidence',
-              // The authority sits with the citations because both answer "where did
-              // this come from", and separating them made two narrow columns out of
-              // one idea.
-              render: (row) => (
-                <StackLayout gap={0.5}>
-                  <Text color="secondary" styleAs="label">
-                    {row.authority}
-                  </Text>
-                  <Citations claim={row} />
-                </StackLayout>
-              ),
-            },
-          ]}
-          rows={claims}
-          getRowId={(row) => row.claim_id}
-          emptyTitle={searching ? 'No Claims Match That Search' : 'No Claims at This Threshold'}
-          emptyDescription={
-            searching
-              ? 'The memory holds nothing matching those words for this tenant. A claim can exist and be invisible here if its entity belongs to another tenant.'
-              : 'Nothing meets the confidence floor you set. Lower it to see weaker claims, which are excluded rather than absent.'
-          }
-        />
+        <>
+          {/*
+            What the number means, and what to do about a low one.
+            ------------------------------------------------------
+            A score between 0 and 1 rendered to two decimals beside a word like
+            "high" is read as a probability the statement is true. It is not one.
+            It is the extractor's confidence that it read the source correctly,
+            and a confident misreading of an authoritative document scores as
+            well as a careful reading of one. Left unsaid, the number is
+            pseudo-authority: it invites a reader to treat the claim as settled
+            without opening the citation sitting next to it.
+
+            Quiet text rather than a banner, and below the safety marker rather
+            than above it. This is guidance, not a warning — nothing on the page
+            is wrong — and a third bordered box at the top of a page that already
+            carries two would be the exact failure the marker above must avoid.
+            It sits against the table it explains, where the number is.
+          */}
+          <Text color="secondary">
+            Confidence is how sure the extractor is that it read the source correctly, not how
+            likely the statement is to be true. Owner-confirmed outranks it: a confirmed claim has
+            been checked by a person. Before acting on anything here, read the evidence and the date
+            it was last seen rather than the score.
+          </Text>
+          <DataTable
+            card
+            caption="Claims"
+            hideCaption
+            zebra
+            columns={[
+              {
+                key: 'subject_entity_id',
+                header: 'Subject',
+                // First column, because a predicate and a value do not say what they
+                // are about. A list spanning entities without this is unreadable.
+                render: (row) => <Text>{row.subject_entity_id}</Text>,
+              },
+              {
+                key: 'predicate',
+                header: 'Predicate',
+                /*
+                 * Carries the category beneath it. Both classify the claim, and at nine
+                 * columns the table broke `salt-design-system` across three lines — so
+                 * the two low-variance classifiers share a cell rather than each taking
+                 * width from the subject, which is the field a reader scans first.
+                 */
+                render: (row) => (
+                  <StackLayout gap={0.5}>
+                    <Tag>{row.predicate}</Tag>
+                    <Text color="secondary" styleAs="label">
+                      {row.claim_category}
+                    </Text>
+                  </StackLayout>
+                ),
+              },
+              { key: 'value', header: 'Value', render: (row) => <Text>{String(row.value)}</Text> },
+              {
+                key: 'confidence',
+                header: 'Confidence',
+                render: (row) => <ConfidenceCell claim={row} />,
+              },
+              {
+                key: 'human_confirmed',
+                header: 'Owner Confirmed',
+                // The ground-truth signal, and distinct from the model's own
+                // confidence: a confirmed low-confidence claim outranks an
+                // unconfirmed high-confidence one.
+                render: (row) =>
+                  row.human_confirmed ? <Tag>confirmed</Tag> : <Text color="secondary">—</Text>,
+              },
+              { key: 'valid_from', header: 'Valid', render: (row) => <ValidityCell claim={row} /> },
+              {
+                key: 'citations',
+                header: 'Evidence',
+                // The authority sits with the citations because both answer "where did
+                // this come from", and separating them made two narrow columns out of
+                // one idea.
+                render: (row) => (
+                  <StackLayout gap={0.5}>
+                    <Text color="secondary" styleAs="label">
+                      {row.authority}
+                    </Text>
+                    <Citations claim={row} />
+                  </StackLayout>
+                ),
+              },
+            ]}
+            rows={claims}
+            getRowId={(row) => row.claim_id}
+            emptyTitle={searching ? 'No Claims Match That Search' : 'No Claims at This Threshold'}
+            emptyDescription={
+              searching
+                ? 'The memory holds nothing matching those words for this tenant. A claim can exist and be invisible here if its entity belongs to another tenant.'
+                : 'Nothing meets the confidence floor you set. Lower it to see weaker claims, which are excluded rather than absent.'
+            }
+          />
+        </>
       ) : null}
     </StackLayout>
   );

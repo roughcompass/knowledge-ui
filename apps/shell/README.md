@@ -14,10 +14,11 @@ it, because two mounted instances must not share a token.
 
 ## Why the host owns the nav
 
-`src/remotes/registry.ts` declares each remote's label, mount path, required
-capability and child pages. The shell can therefore decide whether to _offer_ a
-destination without downloading the remote that serves it — the alternative is
-fetching a bundle to discover whether the reader may see the link to it.
+`src/remotes/registry.ts` declares remote mounts separately from the navigation
+sections that point into them. The shell can therefore decide whether to _offer_
+a destination without downloading the remote that serves it. A section can also
+own a page inside a broader bundle, as Graph and Context Lab do for pages served
+by the catalog remote.
 
 A child page may need a _different_ capability than its section, in both
 directions: the audit log needs more than the operations section, and the sync

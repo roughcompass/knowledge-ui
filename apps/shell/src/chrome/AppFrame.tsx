@@ -16,44 +16,52 @@ import {
   RailBrand,
   ScopeBreadcrumb,
   ScopeSwitcher,
-  SidebarBack,
+  KLink,
   type BreadcrumbSegment,
 } from '@knowledge-ui/ui-kit';
 import {
-  ChevronRightIcon,
+  ChatIcon,
   DarkIcon,
   DashboardIcon,
-  HomeIcon,
   LightIcon,
   ListIcon,
+  SettingsIcon,
+  TreeIcon,
 } from '@salt-ds/icons';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
-import { REMOTES, type RemoteDescriptor } from '../remotes/registry';
+import { NAVIGATION, navigationSectionForPath } from '../remotes/registry';
+import { GlobalSearch } from './GlobalSearch';
 
 /** Shared by the skip link and the main landmark it targets. */
 const MAIN_ID = 'main-content';
 
+/** Sits beside `kui:sidebar-width`, which the rail already persists. */
+const COLLAPSED_STORAGE_KEY = 'kui:nav-collapsed';
+
 /**
  * One icon per top-level destination.
  *
- * Top level only. A drilled panel's children deliberately have none — the section
- * name in the panel header already says where you are, and a second column of
- * icons at that depth reads as noise rather than orientation.
+ * Top level only. Children deliberately have none: the section they sit under is
+ * directly above them and indented against them, so a second column of icons at that
+ * depth reads as noise rather than orientation.
  */
-const NAV_ICON: Record<string, typeof HomeIcon> = {
+const NAV_ICON: Record<string, typeof ListIcon> = {
   catalog: ListIcon,
-  operations: DashboardIcon,
+  context: ChatIcon,
+  graph: TreeIcon,
+  operations: SettingsIcon,
 };
 
 /**
  * The application frame: a resizable navigation rail, a thin top bar, content.
  *
- * Navigation drills rather than nests. A section with child pages replaces the
- * rail's contents with its own list plus a back control, so the rail never
- * indents and never grows a second level of chrome. Which panel shows is derived
- * from the route, not from click state, so a deep link into a child page opens
- * with the correct panel already in place.
+ * Navigation nests rather than drills. Every section and every child it grants is on
+ * screen at once, so a lateral move is one click from anywhere. Sections are
+ * disclosures — collapsible, and remembered — while the leaves are the links. Which
+ * item is current is derived from the route rather than from click state, so a deep
+ * link opens with the rail already correct.
  *
  * The top bar carries the breadcrumb and the session controls, and nothing else.
  * Everything about *where you are* is in the rail and the breadcrumb; everything
@@ -76,33 +84,107 @@ export function AppFrame({
 }) {
   const location = useLocation();
 
-  const visible = REMOTES.filter((remote) => can(session, remote.need));
+  const visible = NAVIGATION.filter((section) => can(session, section.need));
 
   /*
-   * Which section owns the current route, if any. This is what makes the drill
-   * state a function of the URL: no click handler decides which panel is showing,
-   * so refreshing or pasting a link cannot desynchronise the rail from the page.
+   * Which section owns the current route, if any.
+   *
+   * The rail no longer needs this to decide what to show — everything is shown. It
+   * survives because the breadcrumb still has to name the section, and because a
+   * collapsed section that holds the current page is marked rather than left looking
+   * inert.
    */
-  const drilled = visible.find(
-    (remote) =>
-      remote.children !== undefined &&
-      (location.pathname === remote.mountPath ||
-        location.pathname.startsWith(`${remote.mountPath}/`)),
-  );
+  const currentSection = navigationSectionForPath(location.pathname, visible);
 
-  const childHref = (remote: RemoteDescriptor, path: string) =>
-    path === '' ? remote.mountPath : `${remote.mountPath}/${path}`;
+  /*
+   * Which sections the reader has closed.
+   *
+   * Stored as the collapsed set rather than the expanded one, so a section added
+   * later arrives open: a reader who has never expressed an opinion about it should
+   * see it, and an empty stored value means "nothing closed" rather than "everything
+   * closed". Read in an effect rather than a state initialiser for the reason the
+   * rail's own width is: the standalone prerender pass has no `window`.
+   */
+  const [collapsed, setCollapsed] = useState<readonly string[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(COLLAPSED_STORAGE_KEY);
+      if (raw) setCollapsed(JSON.parse(raw) as string[]);
+    } catch {
+      /* private browsing, or a value someone hand-edited — open everything */
+    }
+  }, []);
+
+  const toggleSection = useCallback((key: string) => {
+    setCollapsed((current) => {
+      const next = current.includes(key)
+        ? current.filter((entry) => entry !== key)
+        : [...current, key];
+      try {
+        window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* the choice simply will not outlive the tab */
+      }
+      return next;
+    });
+  }, []);
+
+  /*
+   * Where the reader is, to four segments: tenant, section, page, entity.
+   *
+   * It used to stop at two — tenant and section — so on a capability it read
+   * "dev / Catalog" and named neither the page nor the thing being looked at. No
+   * segment was a link, which meant the one control whose whole job is "go up" could
+   * not.
+   *
+   * Built from the path rather than reported by the page, because the pages that
+   * would report it live in remotes and a context does not cross that boundary. The
+   * URL already carries what is needed: the child whose href prefixes the current
+   * path names the page, and whatever remains is the entity's own handle. For a
+   * capability that handle is the slug, which is human-readable; where it is a UUID
+   * this shows the UUID, and resolving it to a name is the entity-reference work.
+   */
+  const currentChild = currentSection?.children
+    .filter((child) => child.need === undefined || can(session, child.need))
+    .filter((child) => location.pathname.startsWith(child.href))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+
+  const trailing =
+    currentChild && location.pathname.length > currentChild.href.length
+      ? decodeURIComponent(location.pathname.slice(currentChild.href.length).replace(/^\//, ''))
+      : undefined;
 
   const breadcrumb: BreadcrumbSegment[] = [
     { key: 'tenant', content: <Text color="secondary">{session.tenantDisplayName}</Text> },
-    ...(drilled
+    ...(currentSection
       ? [
           {
-            key: drilled.name,
-            content: <Text>{drilled.label}</Text>,
+            key: currentSection.key,
+            // Not a link: a section is a disclosure in the rail and owns no route of
+            // its own, so a link here would have to invent a destination.
+            content: <Text color="secondary">{currentSection.label}</Text>,
           },
         ]
       : []),
+    ...(currentChild
+      ? [
+          {
+            key: currentChild.href,
+            /*
+              No `aria-current` on the trail. The rail already marks the current
+              page, and an end-to-end invariant asserts that no two elements claim
+              it — a breadcrumb here is a location readout, not a second navigation.
+            */
+            content: trailing ? (
+              <KLink to={currentChild.href}>{currentChild.label}</KLink>
+            ) : (
+              <Text>{currentChild.label}</Text>
+            ),
+          },
+        ]
+      : []),
+    ...(trailing ? [{ key: 'entity', content: <Text>{trailing}</Text> }] : []),
   ];
 
   return (
@@ -118,10 +200,15 @@ export function AppFrame({
       <AppShell
         // Content only. `AppShell` owns the bar's element, height, padding and
         // hairline so it can hold the same height as the rail's header.
-        topBar={<ScopeBreadcrumb segments={breadcrumb} label="Location" />}
+        topBar={
+          <FlexLayout align="center" justify="space-between" gap={2}>
+            <ScopeBreadcrumb segments={breadcrumb} label="Location" />
+            <GlobalSearch session={session} />
+          </FlexLayout>
+        }
         rail={
           <AppSidebar
-            label={drilled ? `${drilled.label} pages` : 'Sections'}
+            label="Sections"
             header={<RailBrand name="Knowledge" badge={<Tag>{session.role}</Tag>} />}
             search={
               // The scope switcher, where the reference puts it. It was a bordered
@@ -174,74 +261,93 @@ export function AppFrame({
               </StackLayout>
             }
           >
-            {drilled ? (
-              <StackLayout gap={0}>
-                {/*
-                  Back leaves the section rather than returning to its index route.
-                  The drill state is derived from the path, so navigating to
-                  `/ops` would keep the panel exactly where it is — the only route
-                  that closes the panel is one outside every section, which is the
-                  overview. The label says so.
-                */}
-                <SidebarBack href="/" render={(props) => <Link to="/" {...props} />}>
-                  Overview
-                </SidebarBack>
-                {drilled.children
-                  ?.filter((child) => child.need === undefined || can(session, child.need))
-                  .map((child) => {
-                    const href = childHref(drilled, child.path);
-                    return (
-                      <NavigationItem
-                        key={child.path}
-                        href={href}
-                        // Exact match: the section index would otherwise stay
-                        // active on every child route, which is how two items
-                        // ended up claiming `aria-current` at once before.
-                        active={location.pathname === href}
-                        orientation="vertical"
-                        render={(props) => <Link to={href} {...props} />}
-                      >
-                        {child.label}
-                      </NavigationItem>
-                    );
-                  })}
-              </StackLayout>
-            ) : (
-              <StackLayout gap={0}>
-                <NavigationItem
-                  href="/"
-                  active={location.pathname === '/'}
-                  orientation="vertical"
-                  render={(props) => <Link to="/" {...props} />}
-                >
-                  <FlexLayout gap={1} align="center">
-                    <HomeIcon aria-hidden />
-                    Overview
-                  </FlexLayout>
-                </NavigationItem>
-                {visible.map((remote) => {
-                  const Icon = NAV_ICON[remote.name];
-                  return (
+            {/*
+              Every section, and every child of every section, on screen at once.
+
+              This used to be a drill-down: opening a section replaced the panel with
+              that section's children, and the only way out was a back link to the
+              dashboard. Reaching a sibling therefore cost three navigations, on every
+              lateral move — and no persona in this product works inside one section
+              for a session. A producer's loop is a capability, then its usage, which
+              lives in the other remote, then the change inbox. An auditor's crosses
+              all three sections. The drill optimised for a reader who does not exist.
+
+              Salt's `NavigationItem` has published `parent`, `expanded`, `level` and
+              `blurActive` the whole time; the replace-the-panel behaviour was not a
+              constraint of the component. An admin — the widest role — sees four
+              sections and eighteen leaves, which fits the rail's scroll container.
+              Every other role sees fewer, because capability gating already prunes
+              both levels.
+            */}
+            <StackLayout gap={0}>
+              <NavigationItem
+                href="/"
+                active={location.pathname === '/'}
+                orientation="vertical"
+                render={(props) => <Link to="/" {...props} />}
+              >
+                <FlexLayout gap={1} align="center">
+                  <DashboardIcon aria-hidden />
+                  Dashboard
+                </FlexLayout>
+              </NavigationItem>
+
+              {visible.map((section) => {
+                const Icon = NAV_ICON[section.key];
+                const children = section.children.filter(
+                  (child) => child.need === undefined || can(session, child.need),
+                );
+                const expanded = !collapsed.includes(section.key);
+                const holdsActive = children.some((child) => child.href === location.pathname);
+
+                return (
+                  <Fragment key={section.key}>
                     <NavigationItem
-                      key={remote.name}
-                      href={remote.mountPath}
-                      active={location.pathname.startsWith(remote.mountPath)}
+                      parent
+                      expanded={expanded}
                       orientation="vertical"
-                      render={(props) => <Link to={remote.mountPath} {...props} />}
+                      /*
+                        A section is a disclosure, not a destination. Every section's
+                        own href was its first child's, so "Catalog" and
+                        "Capabilities" went to the same place and only the child ever
+                        carried `aria-current`. Dropping the href removes the
+                        duplicate rather than papering over it.
+                      */
+                      onExpand={() => toggleSection(section.key)}
+                      /*
+                        Marks a collapsed section that contains the current page, so
+                        closing a section does not lose where you are. Salt only
+                        honours this when the group is collapsed.
+                      */
+                      blurActive={!expanded && holdsActive}
                     >
-                      <FlexLayout gap={1} align="center" justify="space-between">
-                        <FlexLayout gap={1} align="center">
-                          {Icon ? <Icon aria-hidden /> : null}
-                          {remote.label}
-                        </FlexLayout>
-                        {/* Signals "this drills in" rather than "this navigates". */}
-                        {remote.children ? <ChevronRightIcon aria-hidden /> : null}
+                      <FlexLayout gap={1} align="center">
+                        {Icon ? <Icon aria-hidden /> : null}
+                        {section.label}
                       </FlexLayout>
                     </NavigationItem>
-                  );
-                })}
-              </StackLayout>
-            )}
+
+                    {expanded
+                      ? children.map((child) => (
+                          <NavigationItem
+                            key={child.href}
+                            href={child.href}
+                            level={1}
+                            // Exact match: a prefix match would leave two items
+                            // claiming `aria-current` on a child route, which the
+                            // accessibility sweep asserts against.
+                            active={location.pathname === child.href}
+                            orientation="vertical"
+                            render={(props) => <Link to={child.href} {...props} />}
+                          >
+                            {child.label}
+                          </NavigationItem>
+                        ))
+                      : null}
+                  </Fragment>
+                );
+              })}
+            </StackLayout>
           </AppSidebar>
         }
       >

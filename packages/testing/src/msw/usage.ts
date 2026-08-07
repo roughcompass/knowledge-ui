@@ -146,8 +146,8 @@ export const usageHandlers = [
       ...WINDOW,
       capabilities: [
         { capability_id: 'salt-design-system', calls: 3110, actor_days: 71 },
-        { capability_id: 'identity', calls: 902, actor_days: 40 },
-        { capability_id: 'notifications', calls: 108, actor_days: 9 },
+        { capability_id: 'entitlements-service', calls: 902, actor_days: 40 },
+        { capability_id: 'notification-service', calls: 108, actor_days: 9 },
       ],
     });
   }),

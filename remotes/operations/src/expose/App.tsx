@@ -3,6 +3,7 @@ import type { RegistryClient } from '@knowledge-ui/api-client';
 import type { Session } from '@knowledge-ui/auth';
 import type { RemoteMountProps } from '@knowledge-ui/remote-contract';
 import { Route, Routes } from 'react-router-dom';
+import { RouterLinks } from '../RouterLinks';
 import type { ReactNode } from 'react';
 
 import { OperationsLayout } from '../pages/OperationsLayout';
@@ -34,35 +35,37 @@ export default function OperationsApp(props: RemoteMountProps<Session, RegistryC
         onSwitchPersona: props.onSwitchPersona,
       }}
     >
-      <Routes>
-        <Route element={<OperationsLayout />}>
-          <Route index element={<HealthPage />} />
-          <Route path="metrics" element={<MetricsPage />} />
-          <Route path="usage" element={<UsagePage />} />
-          <Route path="audit" element={<GuardedAuditLog />} />
-          {/*
+      <RouterLinks>
+        <Routes>
+          <Route element={<OperationsLayout />}>
+            <Route index element={<HealthPage />} />
+            <Route path="metrics" element={<MetricsPage />} />
+            <Route path="usage" element={<UsagePage />} />
+            <Route path="audit" element={<GuardedAuditLog />} />
+            {/*
             Relative paths, so the section can be remounted elsewhere without a
             rebuild. `sync/runs` is a sibling route rather than a nested one: it is
             a separate destination in the rail, not a detail view of `sync`.
           */}
-          <Route
-            path="sync"
-            element={
-              <GuardedAdmin screen="Sync connectors">
-                <SyncSourcesPage />
-              </GuardedAdmin>
-            }
-          />
-          <Route
-            path="sync/runs"
-            element={
-              <GuardedAdmin screen="Sync runs">
-                <SyncRunsPage />
-              </GuardedAdmin>
-            }
-          />
-        </Route>
-      </Routes>
+            <Route
+              path="sync"
+              element={
+                <GuardedAdmin screen="Sync connectors">
+                  <SyncSourcesPage />
+                </GuardedAdmin>
+              }
+            />
+            <Route
+              path="sync/runs"
+              element={
+                <GuardedAdmin screen="Sync runs">
+                  <SyncRunsPage />
+                </GuardedAdmin>
+              }
+            />
+          </Route>
+        </Routes>
+      </RouterLinks>
     </SessionProvider>
   );
 }

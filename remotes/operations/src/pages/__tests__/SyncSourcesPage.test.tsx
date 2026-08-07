@@ -95,7 +95,7 @@ describe('the create form', () => {
     await user.click(screen.getByRole('button', { name: 'Add Source' }));
     await user.type(screen.getByRole('textbox', { name: /display name/i }), 'nightly-adrs');
     await user.click(screen.getByRole('combobox', { name: /connector/i }));
-    await user.click(await screen.findByRole('option', { name: 'markdown_adr_rfc' }));
+    await user.click(await screen.findByRole('option', { name: 'Markdown ADR RFC' }));
     await user.click(screen.getByRole('button', { name: 'Save Connector' }));
 
     /*

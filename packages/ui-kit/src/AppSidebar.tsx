@@ -1,6 +1,4 @@
-import { FlexLayout, NavigationItem, Text } from '@salt-ds/core';
-import { ChevronLeftIcon } from '@salt-ds/icons';
-import { useCallback, useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import styles from './AppSidebar.module.css';
 
@@ -174,46 +172,5 @@ export function AppSidebar({
         }}
       />
     </div>
-  );
-}
-
-/**
- * The drilled panel's header: a back control and the section's name.
- *
- * Replaces the top-level list rather than nesting beside it, which is what keeps
- * a deep tree from indenting into an unreadable column. The back control is a
- * link, not a button, so the parent level is a real destination that can be
- * opened in a new tab — the panel state follows the route rather than the reverse.
- */
-export function SidebarBack({
-  href,
-  render,
-  children,
-}: {
-  href: string;
-  render: (props: Record<string, unknown>) => ReactElement;
-  /** The name of the destination, e.g. `'Overview'` — not of the current section. */
-  children: string;
-}) {
-  return (
-    // NavigationItem rather than a Button: Salt's Button has no `render` prop, so
-    // it cannot become a router link, and the parent level needs to be a real
-    // destination. This also inherits the rail's own hover and focus treatment.
-    <NavigationItem href={href} orientation="vertical" render={render}>
-      <FlexLayout gap={1} align="center">
-        <ChevronLeftIcon aria-hidden />
-        {/*
-          Shows "Overview", announces "Back to Overview". The chevron carries the
-          direction visually and is hidden from assistive tech, so without this the
-          control would be indistinguishable from a link *to* that destination.
-
-          `children` names where this goes, not where it is. It previously named the
-          section being drilled — announcing "Back to Operations" on a control whose
-          href was `/`, which is the one thing a back control must not get wrong.
-        */}
-        <Text className="salt-visuallyHidden">Back to </Text>
-        <Text styleAs="label">{children}</Text>
-      </FlexLayout>
-    </NavigationItem>
   );
 }

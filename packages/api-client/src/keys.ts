@@ -163,4 +163,63 @@ export const queryKeys = {
 
   ownedCapabilityUsage: (scope: KeyScope, params: Record<string, unknown> = {}) =>
     [...root(scope), 'usage', 'owned', params] as const,
+
+  /**
+   * WORKSPACES — the notebooks, and the entries inside them.
+   *
+   * The root segment is what every workspace write invalidates, and it has to be
+   * that blunt. Archiving changes which rows the list returns under *both* values
+   * of `include_archived`; deleting removes a workspace from the list and makes
+   * its detail and entries unfetchable; creating an entry changes a list that is
+   * keyed by `kind`. A precise invalidation would have to enumerate the views it
+   * affects, and the one it forgot would be the one left showing a workspace the
+   * server no longer serves.
+   */
+  workspacesRoot: (scope: KeyScope) => [...root(scope), 'workspaces'] as const,
+
+  workspaces: (scope: KeyScope, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'workspaces', 'list', params] as const,
+
+  workspace: (scope: KeyScope, workspaceId: string) =>
+    [...root(scope), 'workspaces', 'detail', workspaceId] as const,
+
+  workspaceEntries: (scope: KeyScope, workspaceId: string, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'workspaces', 'detail', workspaceId, 'entries', params] as const,
+
+  /**
+   * ARC — retained receipt reads only.
+   *
+   * Receipt and explanation are separate records. The explanation carries the
+   * event chain as recorded at run time, so sharing a key with the summary would
+   * let one response masquerade as the other.
+   */
+  arcReceipt: (scope: KeyScope, receiptId: string) =>
+    [...root(scope), 'arc', 'receipts', receiptId] as const,
+
+  arcReceiptExplanation: (scope: KeyScope, receiptId: string) =>
+    [...root(scope), 'arc', 'receipts', receiptId, 'explanation'] as const,
+
+  /**
+   * GRAPH — the tenant's projections, and the ontology behind them.
+   *
+   * Projections are keyed by direction and page, because provider and consumer
+   * are two endpoints rather than one parameterised view, and a cursor changes
+   * the answer completely.
+   *
+   * The three ontology keys sit under `'graph'` rather than `'admin'` even though
+   * their endpoints live under `/v1/admin/*`. The reason is what invalidation
+   * would mean: an operator write to a sync source has nothing to do with the
+   * edge relations that exist, and the blunt `'admin'` prefix that exists to
+   * refetch operator screens would drag the ontology along with it on every one.
+   */
+  graphProjection: (scope: KeyScope, direction: string, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'graph', 'projection', direction, params] as const,
+
+  vocabulary: (scope: KeyScope, kind: string) =>
+    [...root(scope), 'graph', 'vocabulary', kind] as const,
+
+  capabilityTypes: (scope: KeyScope) => [...root(scope), 'graph', 'capability-types'] as const,
+
+  edgePropertySchemas: (scope: KeyScope) =>
+    [...root(scope), 'graph', 'edge-property-schemas'] as const,
 } as const;
