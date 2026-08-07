@@ -171,18 +171,16 @@ function SavedCases({
     <StackLayout gap={2}>
       <StackLayout gap={1}>
         <Text as="h2" styleAs="h3">
-          Saved Regression Cases
+          Saved Cases
         </Text>
         <Text color="secondary">
-          Cases stay in this tab and this persona only. Copy the JSON to keep one beyond the
-          session.
+          Save a probe as a baseline, then rerun it to catch retrieval drift. Cases live in this
+          browser tab only — copy the JSON to keep one.
         </Text>
       </StackLayout>
 
       {cases.length === 0 ? (
-        <Text color="secondary">
-          No cases saved in this tab. Evaluate a completed probe to create one.
-        </Text>
+        <Text color="secondary">No cases saved yet.</Text>
       ) : (
         cases.map((saved) => (
           <SectionCard
@@ -250,6 +248,7 @@ function ContextLabSession({
 }) {
   const probe = useContextProbe(client);
   const [source, setSource] = useState<ContextProbeSource>(allowedSources[0]?.value ?? 'catalog');
+  const [allSources, setAllSources] = useState(false);
   const [claimPersona, setClaimPersona] = useState<ClaimPersona>(DEFAULT_CLAIM_PERSONA);
   const [query, setQuery] = useState('');
   const [queryError, setQueryError] = useState<string>();
@@ -263,7 +262,7 @@ function ContextLabSession({
   const focusedTurnId = useRef<string>();
   const selected = sourceOption(source);
 
-  const latestTurn = turns[turns.length - 1];
+  const latestTurn = turns[0];
   const latestAnnouncement = latestTurn
     ? latestTurn.state === 'pending'
       ? `Probing ${sourceOption(latestTurn.request.source).label}.`
@@ -273,7 +272,7 @@ function ContextLabSession({
     : '';
 
   useEffect(() => {
-    const latest = turns[turns.length - 1];
+    const latest = turns[0];
     if (!latest || latest.state === 'pending' || focusedTurnId.current === latest.id) return;
     focusedTurnId.current = latest.id;
     document.getElementById(`context-turn-${latest.id}`)?.focus();
@@ -286,8 +285,9 @@ function ContextLabSession({
   const executeProbe = async (request: ContextProbeRequest, saved?: SavedContextCase) => {
     const turnId = newTurnId();
     if (saved) setRunningCaseId(saved.case_id);
+    // Newest first: the result appears where the reader's eye already is — just
+    // below the composer — instead of below every previous turn.
     setTurns((current) => [
-      ...current,
       {
         id: turnId,
         request,
@@ -295,6 +295,7 @@ function ContextLabSession({
         evaluations: {},
         missingContext: '',
       },
+      ...current,
     ]);
 
     try {
@@ -313,18 +314,27 @@ function ContextLabSession({
     }
   };
 
-  const submitProbe = () => {
-    const trimmed = query.trim();
+  const submitProbe = (text?: string) => {
+    const trimmed = (text ?? query).trim();
     if (!trimmed) {
       setQueryError('Enter the task or query this source should retrieve context for.');
       return;
     }
     setQueryError(undefined);
-    void executeProbe({
-      source,
-      query: trimmed,
-      ...(source === 'claims' ? { claimPersona } : {}),
-    });
+    /*
+      "All Sources" fans out one probe per source the reader may use — the API takes
+      exactly one source per call, and the results stay in separate labeled turns
+      rather than being merged, because the service never claimed a cross-source
+      comparison was valid. One question, three labeled answers.
+    */
+    const targets = allSources ? allowedSources.map((option) => option.value) : [source];
+    for (const target of targets) {
+      void executeProbe({
+        source: target,
+        query: trimmed,
+        ...(target === 'claims' ? { claimPersona } : {}),
+      });
+    }
     setQuery('');
   };
 
@@ -374,18 +384,145 @@ function ContextLabSession({
         {latestAnnouncement}
       </Text>
 
+      <SectionCard
+        title="New Probe"
+        description="Pick a source, describe a task, and run it. Enter runs; Shift+Enter adds a line."
+      >
+        <StackLayout gap={2}>
+          <FlexLayout gap={2} align="start" wrap>
+            <FormRow
+              label="Source"
+              helperText={
+                allSources ? 'One probe per source, answered separately.' : selected.guidance
+              }
+            >
+              <Dropdown
+                bordered
+                value={allSources ? 'All Sources' : selected.label}
+                onSelectionChange={(_event, values) => {
+                  const next = values?.[0];
+                  if (next === 'all') {
+                    setAllSources(true);
+                    setQueryError(undefined);
+                    return;
+                  }
+                  if (allowedSources.some((option) => option.value === next)) {
+                    setAllSources(false);
+                    setSource(next as ContextProbeSource);
+                    setQueryError(undefined);
+                  }
+                }}
+                OverlayProps={popoverOverlayProps}
+              >
+                {allowedSources.length > 1 ? (
+                  <Option key="all" value="all">
+                    All Sources
+                  </Option>
+                ) : null}
+                {allowedSources.map((option) => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
+              </Dropdown>
+            </FormRow>
+
+            {source === 'claims' ||
+            (allSources && allowedSources.some((o) => o.value === 'claims')) ? (
+              <FormRow
+                label="Claim Persona"
+                helperText="Controls the retrieval depth the claims endpoint serves."
+              >
+                <Dropdown
+                  bordered
+                  value={termText(claimPersona)}
+                  onSelectionChange={(_event, values) => {
+                    const next = values?.[0];
+                    if (CLAIM_PERSONAS.includes(next as ClaimPersona)) {
+                      setClaimPersona(next as ClaimPersona);
+                    }
+                  }}
+                  OverlayProps={popoverOverlayProps}
+                >
+                  {CLAIM_PERSONAS.map((persona) => (
+                    <Option key={persona} value={persona}>
+                      {termText(persona)}
+                    </Option>
+                  ))}
+                </Dropdown>
+              </FormRow>
+            ) : null}
+          </FlexLayout>
+
+          <FormRow label="Task or Query" required error={queryError} helperText={selected.guidance}>
+            <MultilineInput
+              bordered
+              rows={4}
+              value={query}
+              placeholder={selected.example}
+              onChange={(event) => {
+                setQuery((event.target as HTMLTextAreaElement).value);
+                setQueryError(undefined);
+              }}
+              onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+                if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                  event.preventDefault();
+                  submitProbe();
+                }
+              }}
+            />
+          </FormRow>
+
+          <FlexLayout gap={1} align="center" justify="space-between" wrap>
+            {/*
+              Fills and runs in one click. It used to only fill the field, which
+              left a reader staring at pre-filled text wondering what it had done
+              for them — an example that still needs a second click is a form, not
+              an example.
+            */}
+            <Button
+              appearance="transparent"
+              disabled={probe.isPending}
+              onClick={() => {
+                setQueryError(undefined);
+                submitProbe(selected.example);
+              }}
+            >
+              Run Example
+            </Button>
+            <Button
+              appearance="solid"
+              sentiment="accented"
+              disabled={probe.isPending}
+              onClick={() => submitProbe()}
+            >
+              {probe.isPending ? 'Probing Context…' : 'Probe Context'}
+            </Button>
+          </FlexLayout>
+        </StackLayout>
+      </SectionCard>
+
+      {cases.length > 0 ? (
+        <>
+          {storageError ? (
+            <ErrorPanel title="Could not update saved cases" error={new Error(storageError)} />
+          ) : null}
+          <SavedCases
+            cases={cases}
+            busy={probe.isPending}
+            runningCaseId={runningCaseId}
+            onRerun={(saved) => void executeProbe(savedCaseRequest(saved), saved)}
+            onDelete={deleteCase}
+          />
+        </>
+      ) : null}
+
       <section aria-label="Context probe transcript">
         <StackLayout gap={3}>
           {turns.length === 0 ? (
-            <SectionCard
-              title="No Probes Yet"
-              description="Start with one source and a realistic task. Each completed turn remains an immutable retrieval snapshot."
-            >
-              <Text color="secondary">
-                Reformulate the next message or switch sources to inspect a different retrieval
-                contract.
-              </Text>
-            </SectionCard>
+            <Text color="secondary">
+              Results appear here — pick a source above, describe a task, and run your first probe.
+            </Text>
           ) : null}
 
           {turns.map((turn) => {
@@ -532,112 +669,6 @@ function ContextLabSession({
           })}
         </StackLayout>
       </section>
-
-      <SectionCard
-        title="Probe the Context Layer"
-        description="Send one source-specific message. Press Enter to run it, or Shift+Enter for a new line."
-      >
-        <StackLayout gap={2}>
-          <FlexLayout gap={2} align="start" wrap>
-            <FormRow label="Source" helperText={selected.guidance}>
-              <Dropdown
-                bordered
-                value={selected.label}
-                onSelectionChange={(_event, values) => {
-                  const next = values?.[0];
-                  if (allowedSources.some((option) => option.value === next)) {
-                    setSource(next as ContextProbeSource);
-                    setQueryError(undefined);
-                  }
-                }}
-                OverlayProps={popoverOverlayProps}
-              >
-                {allowedSources.map((option) => (
-                  <Option key={option.value} value={option.value}>
-                    {option.label}
-                  </Option>
-                ))}
-              </Dropdown>
-            </FormRow>
-
-            {source === 'claims' ? (
-              <FormRow
-                label="Claim Persona"
-                helperText="Controls the retrieval depth the claims endpoint serves."
-              >
-                <Dropdown
-                  bordered
-                  value={termText(claimPersona)}
-                  onSelectionChange={(_event, values) => {
-                    const next = values?.[0];
-                    if (CLAIM_PERSONAS.includes(next as ClaimPersona)) {
-                      setClaimPersona(next as ClaimPersona);
-                    }
-                  }}
-                  OverlayProps={popoverOverlayProps}
-                >
-                  {CLAIM_PERSONAS.map((persona) => (
-                    <Option key={persona} value={persona}>
-                      {termText(persona)}
-                    </Option>
-                  ))}
-                </Dropdown>
-              </FormRow>
-            ) : null}
-          </FlexLayout>
-
-          <FormRow label="Task or Query" required error={queryError} helperText={selected.guidance}>
-            <MultilineInput
-              bordered
-              rows={4}
-              value={query}
-              placeholder={selected.example}
-              onChange={(event) => {
-                setQuery((event.target as HTMLTextAreaElement).value);
-                setQueryError(undefined);
-              }}
-              onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
-                if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
-                  event.preventDefault();
-                  submitProbe();
-                }
-              }}
-            />
-          </FormRow>
-
-          <FlexLayout gap={1} align="center" justify="space-between" wrap>
-            <Button
-              appearance="transparent"
-              onClick={() => {
-                setQuery(selected.example);
-                setQueryError(undefined);
-              }}
-            >
-              Try {selected.label} Example
-            </Button>
-            <Button
-              appearance="solid"
-              sentiment="accented"
-              disabled={probe.isPending}
-              onClick={submitProbe}
-            >
-              {probe.isPending ? 'Probing Context…' : 'Probe Context'}
-            </Button>
-          </FlexLayout>
-        </StackLayout>
-      </SectionCard>
-
-      {storageError ? (
-        <ErrorPanel title="Could not update saved cases" error={new Error(storageError)} />
-      ) : null}
-
-      <SavedCases
-        cases={cases}
-        busy={probe.isPending}
-        runningCaseId={runningCaseId}
-        onRerun={(saved) => void executeProbe(savedCaseRequest(saved), saved)}
-        onDelete={deleteCase}
-      />
     </StackLayout>
   );
 }
@@ -651,13 +682,13 @@ export function ContextLabPage() {
     <StackLayout gap={3}>
       <PageHeader
         title="Context Lab"
-        description="Test whether one retrieval source supplies the evidence an agent needs for a concrete task."
-        actions={<KLink to="receipts">Inspect ARC Receipt</KLink>}
+        description="Test what evidence each source returns for a task — raw records, never generated answers."
+        actions={
+          <KLink to="receipts" color="accent" underline="never">
+            Inspect ARC Receipt
+          </KLink>
+        }
       />
-      <Note label="Retrieval Test" variant="neutral">
-        This tests retrieval context, not answer quality. The registry returns evidence; it does not
-        generate the agent’s answer.
-      </Note>
 
       {allowedSources.length > 0 ? (
         <ContextLabSession

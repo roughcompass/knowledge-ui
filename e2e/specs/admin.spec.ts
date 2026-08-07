@@ -162,13 +162,13 @@ test('the operational health page renders its data and passes axe as an admin', 
   page,
 }) => {
   /*
-   * The a11y sweep visits /ops/metrics as a consumer, which renders the
-   * role-refusal notice — a real surface, but not the one with the data in it.
-   * The populated state has a table, four stat tiles and a caveat, and none of
-   * that had ever been axe-checked.
+   * Operational health merged into /ops: probes for every role, queues and
+   * data quality below them for an admin. The populated state has a table, stat
+   * tiles and a caveat, and it is axe-checked here because the sweep only sees
+   * the consumer's one-line refusal.
    */
   await switchToAdmin(page);
-  await page.goto('/ops/metrics', { waitUntil: 'networkidle' });
+  await page.goto('/ops', { waitUntil: 'networkidle' });
 
   await expect(page.getByText('Embedding outbox')).toBeVisible();
   await expect(page.getByRole('table')).toBeVisible();

@@ -75,7 +75,7 @@ export function StatTile({
     <SectionCard>
       <StackLayout gap={1}>
         <FlexLayout gap={2} align="center" justify="space-between">
-          <Text styleAs="label" as={headingLevel}>
+          <Text styleAs="label" as={headingLevel} color="secondary">
             {label}
           </Text>
           {badge}
@@ -83,12 +83,22 @@ export function StatTile({
 
         <FlexLayout gap={2} align="center" justify="space-between">
           <StackLayout gap={1}>
+            {/*
+              The reading at display size. It rendered bare and inherited 14px body,
+              so a metric — the one thing a tile exists to show — was the same size
+              as its own caption. 24px is the only display number on a page, which
+              is what makes a row of tiles scannable.
+            */}
             {status === undefined ? (
-              value
+              <Text styleAs="h2" as="div">
+                {value}
+              </Text>
             ) : (
               <FlexLayout gap={1} align="center">
                 <StatusIndicator status={status} />
-                {value}
+                <Text styleAs="h2" as="div">
+                  {value}
+                </Text>
               </FlexLayout>
             )}
             {hint !== undefined ? (

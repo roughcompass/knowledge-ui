@@ -11,11 +11,9 @@ import {
   DataTable,
   ErrorPanel,
   LoadingPanel,
-  PageHeader,
   SectionCard,
   StatTile,
   TileGrid,
-  UnavailableNotice,
 } from '@knowledge-ui/ui-kit';
 /**
  * Operational state, read from the service itself.
@@ -40,7 +38,17 @@ import {
  * only one of them is true for the whole deployment.
  */
 
-export function MetricsPage() {
+/**
+ * The admin half of the merged Health page: queue depths and data-quality
+ * counters, below the probes every role can see.
+ *
+ * This was its own route, "Operational Health", beside "Health" in the rail — two
+ * nav entries answering one question, split by permission rather than by subject.
+ * Gating is a section concern, not a navigation concern: a non-admin now sees the
+ * probes and one quiet line saying what more an admin would see, instead of a
+ * second destination that mostly refused them.
+ */
+export function OperationalSections() {
   const { session, client } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
 
@@ -50,42 +58,18 @@ export function MetricsPage() {
   const permitted = can(session, 'ops:operate');
   const query = useOperationalHealth(client, scope, { enabled: permitted });
 
-  const header = (
-    <PageHeader
-      title="Operational health"
-      description="Conditions worth meeting here rather than going looking for."
-    />
-  );
-
   if (!permitted) {
     return (
-      <StackLayout gap={3}>
-        {header}
-        <UnavailableNotice
-          title="This summary needs the admin role"
-          reason="It reports the shared deployment's queue depths and identity data-quality counters rather than anything scoped to one tenant, so the service restricts it to administrators."
-          tracking="Health and readiness on the previous page are open to every role."
-        />
-      </StackLayout>
+      <Text color="secondary">
+        Queue depths and data-quality counters need the administrator role.
+      </Text>
     );
   }
 
-  if (query.isPending) {
-    return (
-      <StackLayout gap={3}>
-        {header}
-        <LoadingPanel label="Reading operational health" />
-      </StackLayout>
-    );
-  }
+  if (query.isPending) return <LoadingPanel label="Reading operational health" />;
 
   if (query.error || query.data === undefined) {
-    return (
-      <StackLayout gap={3}>
-        {header}
-        <ErrorPanel error={query.error} title="Could not read operational health" />
-      </StackLayout>
-    );
+    return <ErrorPanel error={query.error} title="Could not read operational health" />;
   }
 
   const { queues, data_quality: dataQuality } = query.data;
@@ -104,8 +88,6 @@ export function MetricsPage() {
 
   return (
     <StackLayout gap={3}>
-      {header}
-
       <SectionCard
         title="Queues"
         description="Counted from the database at read time, so these are correct however many replicas are running."
@@ -187,13 +169,13 @@ export function MetricsPage() {
         </StackLayout>
       </SectionCard>
 
-      <SectionCard title="Request rate, latency, and error rate">
-        <UnavailableNotice
-          title="Not available in this console"
-          reason="A rate or a percentile is computed over a window, which needs a time-series store. This console reads the service directly and holds no history, so it can show current state and cumulative totals but not a trend."
-          tracking="The service records these; querying them is a job for whatever time-series tooling a deployment runs, which this console does not require or assume."
-        />
-      </SectionCard>
+      {/*
+        One line where a whole card holding a notice stood: the absence is real,
+        the explanation of exposition formats was not the reader's problem.
+      */}
+      <Text styleAs="notation" color="secondary">
+        This console holds no history, so no rates or trends are shown.
+      </Text>
     </StackLayout>
   );
 }

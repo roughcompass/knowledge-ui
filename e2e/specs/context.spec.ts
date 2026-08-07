@@ -18,7 +18,8 @@ test('a context message returns source-labelled evidence rather than an answer',
   await expect(page.getByRole('heading', { name: 'Context Layer Returned' })).toBeVisible();
   await expect(page.getByText(/Exact records from the selected source/)).toBeVisible();
   await expect(page.getByText('Server Relevance').first()).toBeVisible();
-  await expect(page.getByText(/does not generate the agent’s answer/i)).toBeVisible();
+  // The promise moved from a banner into the page description.
+  await expect(page.getByText(/raw records, never generated answers/i)).toBeVisible();
 });
 
 test('a real retained ARC receipt can be inspected without browser signing controls', async ({

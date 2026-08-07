@@ -192,7 +192,6 @@ export const NAVIGATION: readonly NavigationSection[] = [
   },
   navigationForRemote('operations', [
     { href: '/ops', label: 'Health' },
-    { href: remoteChildHref('operations', 'metrics'), label: 'Operational Health' },
     // Usage needs a scope of its own. The section is open to every role because
     // the probes behind it are unauthenticated; the aggregate reads are not, so
     // reusing the section's capability would offer three roles a refusal. The
@@ -207,19 +206,19 @@ export const NAVIGATION: readonly NavigationSection[] = [
     // so an administrator who can see Operations still cannot see this page.
     {
       href: remoteChildHref('operations', 'audit'),
-      label: 'Audit log',
+      label: 'Audit Log',
       need: 'audit:read',
     },
     // Same pattern, other direction: every `/v1/admin/*` endpoint behind these
     // two is admin-only, while the section itself is open to every role.
     {
       href: remoteChildHref('operations', 'sync'),
-      label: 'Sync connectors',
+      label: 'Sync Connectors',
       need: 'admin:manage',
     },
     {
       href: remoteChildHref('operations', 'sync/runs'),
-      label: 'Sync runs',
+      label: 'Sync Runs',
       need: 'admin:manage',
     },
   ]),

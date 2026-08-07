@@ -74,7 +74,7 @@ function OntologyPanel({ session, client }: { session: Session; client: Registry
     return (
       <UnavailableNotice
         title="Ontology"
-        reason="The vocabulary and schema endpoints behind this panel are served under /v1/admin and admit administrators only. This session holds a different role, so the definitions are not readable here rather than shown incomplete."
+        reason="Viewing the ontology requires the admin role — switch persona in the header."
       />
     );
   }

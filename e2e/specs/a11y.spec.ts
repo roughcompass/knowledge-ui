@@ -28,7 +28,8 @@ const ROUTES = [
   { path: '/catalog', name: 'capability list' },
   { path: '/catalog?q=ledger', name: 'search results' },
   { path: '/ops', name: 'health' },
-  { path: '/ops/metrics', name: 'metrics' },
+  // Merged into /ops; the path survives as a redirect and is swept as one.
+  { path: '/ops/metrics', name: 'operational health (redirects to health)' },
   { path: '/ops/audit', name: 'audit log (gated for a consumer)' },
   // The lane boots as `consumer`, so this axe-checks the *refusal* — which is a real
   // rendered surface with a Banner and a persona-switch Button, not an empty page.
@@ -128,9 +129,7 @@ test('at most one navigation item is the current page', async ({ page }) => {
     // What must never happen is two siblings claiming the same thing, which is
     // what a prefix match on the index route produced.
     const labels = await current.allInnerTexts();
-    const opsTabs = labels.filter((t) =>
-      ['Health', 'Operational Health', 'Audit log'].includes(t.trim()),
-    );
+    const opsTabs = labels.filter((t) => ['Health', 'Audit Log'].includes(t.trim()));
     expect(opsTabs.length, `${route.path} marked ${opsTabs.length} ops tabs current`).toBeLessThan(
       2,
     );

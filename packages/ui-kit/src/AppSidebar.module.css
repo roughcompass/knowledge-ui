@@ -224,3 +224,31 @@
     display: none;
   }
 }
+
+/* stylelint-disable selector-class-pattern -- Salt-owned class names, as above. */
+
+/*
+ * Child rows share the parents' text column.
+ *
+ * Salt indents a nested item by whole 36px steps via `--saltNavigationItem-level`,
+ * while a parent's own text sits an icon-plus-gap from the edge — two near-miss
+ * left edges, which the eye reads as misalignment rather than structure. The
+ * override re-derives the indent from the same icon and gap the parent actually
+ * renders, so the two columns coincide by construction.
+ */
+.scroll :global(.saltNavigationItem-label) {
+  /* stylelint-disable-next-line declaration-property-value-allowed-list --
+     a calc of Salt's own tokens; the allow-list admits single tokens only. */
+  padding-inline-start: calc(
+    var(--saltNavigationItem-level, 0) * (var(--salt-size-icon) + var(--salt-spacing-100))
+  );
+}
+
+/*
+ * Cancels Salt's baseline nudge on icons. The rail centres each row with flex
+ * already, so Salt's own `top` offset double-corrects and the glyph rides high
+ * against its label.
+ */
+.scroll :global(.saltNavigationItem-label) :global(.saltIcon) {
+  top: 0;
+}

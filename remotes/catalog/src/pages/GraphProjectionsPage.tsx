@@ -7,6 +7,7 @@ import {
   type GraphEdge,
   type ProjectionDirection,
   type RegistryClient,
+  useEntityNames,
 } from '@knowledge-ui/api-client';
 import { can, useSession } from '@knowledge-ui/auth';
 import {
@@ -16,7 +17,6 @@ import {
   FilterBar,
   FilterField,
   LoadingPanel,
-  Note,
   PageHeader,
   SectionCard,
   UnavailableNotice,
@@ -25,6 +25,7 @@ import {
   termText,
   type Column,
   KLink,
+  EntityLink,
 } from '@knowledge-ui/ui-kit';
 import { Dropdown, Option } from '@salt-ds/core';
 import { useMemo, useRef, useState } from 'react';
@@ -110,28 +111,48 @@ export function GraphProjectionsPage() {
     { key: 'created_at', header: 'Created', render: (row) => instantText(row.created_at) },
   ];
 
+  /*
+    Three tiers of endpoint resolution, cheapest first: the name the response
+    already carries; the shared resolver for ids this page did not receive nodes
+    for (bounded by the visible rows, cache shared with the detail page); and only
+    then a shortened id with the full value one keystroke away. A raw
+    thirty-six-character id was the whole cell before, and two of them could not
+    be told apart.
+  */
+  const offPageIds = edges
+    .flatMap((edge) => [edge.src_entity_id, edge.dst_entity_id])
+    .filter((id) => !nameById.has(id));
+  const resolvedNames = useEntityNames(client, scope, offPageIds);
+  const endpointName = (id: string) => nameById.get(id) ?? resolvedNames[id];
+
   const edgeColumns: Column<GraphEdge>[] = [
     {
       key: 'src',
       header: 'From',
-      render: (row) => nameById.get(row.src_entity_id) ?? row.src_entity_id,
+      render: (row) => (
+        <EntityLink
+          id={row.src_entity_id}
+          name={endpointName(row.src_entity_id)}
+          to={`../${endpointName(row.src_entity_id) ?? row.src_entity_id}`}
+        />
+      ),
     },
     { key: 'rel', header: 'Relation', render: (row) => termText(row.rel) },
     {
       key: 'dst',
       header: 'To',
-      render: (row) =>
-        nameById.get(row.dst_entity_id) ?? (
-          // The id, plainly, plus why it is an id. The alternative — omitting the
-          // edge — would make the page under-report the connections it was given.
-          <Text color="secondary" title="Not on this page of the projection">
-            {row.dst_entity_id}
-          </Text>
-        ),
+      render: (row) => (
+        <EntityLink
+          id={row.dst_entity_id}
+          name={endpointName(row.dst_entity_id)}
+          to={`../${endpointName(row.dst_entity_id) ?? row.dst_entity_id}`}
+        />
+      ),
     },
     {
       key: 'properties',
       header: 'Properties',
+      wrap: true,
       render: (row) => {
         const entries = Object.entries(row.properties ?? {});
         if (entries.length === 0) return <Text color="secondary">None</Text>;
@@ -226,10 +247,9 @@ export function GraphProjectionsPage() {
                 emptyDescription="Nothing in this tenant declares a relationship in this direction yet. Edges arrive with the capabilities that declare them."
                 hideCaption
               />
-              <Note label="Why there is no count of the whole projection">
-                The response says whether another page follows and nothing more. It carries no
-                total, so this page reports what it was given rather than the size of the graph.
-              </Note>
+              <Text styleAs="notation" color="secondary">
+                No totals — results are paged.
+              </Text>
             </StackLayout>
           </SectionCard>
         </>

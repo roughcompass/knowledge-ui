@@ -8,6 +8,8 @@ export { AppSidebar } from './AppSidebar';
 export { ScopeSwitcher, RailBrand, type ScopeOption } from './ScopeSwitcher';
 export { ScopeBreadcrumb, type BreadcrumbSegment } from './ScopeBreadcrumb';
 export { SectionCard } from './SectionCard';
+export { SectionHeading } from './SectionHeading';
+export { LinkButton } from './LinkButton';
 export { StatTile } from './StatTile';
 export { NavCard } from './NavCard';
 

@@ -60,6 +60,13 @@ export interface Column<TRow> {
    */
   figures?: 'tabular';
   /**
+   * Let this column's values wrap.
+   *
+   * Cells hold their line by default — see the module CSS. Opt in for columns whose
+   * values are running text: a note body, a query, a failure message.
+   */
+  wrap?: boolean;
+  /**
    * Where this cell's value goes.
    *
    * The primary cell of a row that has a destination renders a real anchor, which is
@@ -157,15 +164,19 @@ export interface DataTableProps<TRow> {
  * over the row type and a parameter typed `Column<unknown>` will not accept one —
  * the row type is unrelated to how its digits are cut.
  */
-function cellProps({ align, figures }: Pick<Column<unknown>, 'align' | 'figures'>) {
+function cellProps({ align, figures, wrap }: Pick<Column<unknown>, 'align' | 'figures' | 'wrap'>) {
+  const classes = [
+    // `align: 'right'` implies tabular. A count wants both; a timestamp asks for
+    // figures alone and keeps its left edge.
+    align === 'right' || figures === 'tabular' ? styles.tabular : undefined,
+    wrap ? styles.wrap : undefined,
+  ].filter(Boolean);
   return {
     // Salt's prop rather than a class of ours: it emits `saltTable-td-align-right`,
     // which is the selector Salt's own `text-align` rule is keyed on. Anything else
     // is outranked by `table.saltTable td` and loses without ever saying so.
     ...(align === 'right' ? { textAlign: 'right' as const } : {}),
-    // `align: 'right'` implies tabular. A count wants both; a timestamp asks for
-    // figures alone and keeps its left edge.
-    className: align === 'right' || figures === 'tabular' ? styles.tabular : undefined,
+    className: classes.length > 0 ? classes.join(' ') : undefined,
   };
 }
 
@@ -296,7 +307,10 @@ export function DataTable<TRow>({
             className={columns.some((column) => column.href) ? styles.clickableRow : undefined}
           >
             {columns.map((column) => (
-              <TD key={column.key} {...cellProps({ align: column.align, figures: column.figures })}>
+              <TD
+                key={column.key}
+                {...cellProps({ align: column.align, figures: column.figures, wrap: column.wrap })}
+              >
                 {(() => {
                   const content = column.render
                     ? column.render(row)

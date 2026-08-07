@@ -1,4 +1,14 @@
-import { Button, Dropdown, FlexLayout, Input, Option, StackLayout, Tag, Text } from '@salt-ds/core';
+import {
+  Button,
+  Dropdown,
+  FlexLayout,
+  Input,
+  Option,
+  StackLayout,
+  Tag,
+  Text,
+  Tooltip,
+} from '@salt-ds/core';
 import {
   CursorStack,
   fieldErrors,
@@ -22,7 +32,6 @@ import {
   FilterField,
   FormRow,
   LoadingPanel,
-  Note,
   PageHeader,
   SectionCard,
   UnavailableNotice,
@@ -217,7 +226,7 @@ export function WorkspacesPage() {
   const header = (
     <PageHeader
       title="Workspaces"
-      description="Notes, decisions and open questions kept beside the catalog. A workspace holds the reasoning the catalog has no field for."
+      description="Keep notes, decisions, and open questions beside the catalog."
       actions={
         creatable.length > 0 ? (
           <Button
@@ -227,7 +236,19 @@ export function WorkspacesPage() {
           >
             {formOpen ? 'Cancel' : 'New Workspace'}
           </Button>
-        ) : undefined
+        ) : (
+          /*
+            The refusal lives on the control, not in a banner. A disabled button
+            in the same place other roles find the working one answers "can I?"
+            and "who can?" in one glance — a labeled banner above the list
+            answered it as an announcement.
+          */
+          <Tooltip content="Read-only for your role — producers and admins create workspaces.">
+            <Button appearance="solid" sentiment="accented" disabled focusableWhenDisabled>
+              New Workspace
+            </Button>
+          </Tooltip>
+        )
       }
     />
   );
@@ -277,16 +298,6 @@ export function WorkspacesPage() {
         error={remove.error}
         errorTitle="That workspace was not deleted"
       />
-
-      {creatable.length === 0 ? (
-        // Not an error and not a missing feature: reading is the whole of this
-        // role's entitlement here, and saying which role creates what is more
-        // use than an absent button nobody can ask about.
-        <Note label="Read-only for this role">
-          Creating a workspace needs the producer role for a personal one, or admin for a team one.
-          Everything below is readable from here.
-        </Note>
-      ) : null}
 
       {formOpen ? (
         <SectionCard

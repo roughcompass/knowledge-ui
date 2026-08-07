@@ -3,7 +3,7 @@ import { makeSession, renderWithProviders } from '@knowledge-ui/testing';
 import { screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { MetricsPage } from '../MetricsPage';
+import { OperationalSections } from '../MetricsPage';
 
 /**
  * The page reads one first-party endpoint and nothing else.
@@ -25,7 +25,7 @@ const tokenFor = (clientId: string) =>
   `header.${btoa(JSON.stringify({ sub: clientId, exp: 9999999999 }))}.signature`;
 
 const renderAs = (role: 'admin' | 'producer' | 'consumer' | 'auditor') =>
-  renderWithProviders(<MetricsPage />, {
+  renderWithProviders(<OperationalSections />, {
     session: makeSession({ role, personaKey: role }),
     client: createRegistryClient({
       baseUrl: 'http://localhost',
@@ -107,8 +107,7 @@ describe('as an administrator', () => {
      */
     renderAs('admin');
     await screen.findByText('Embedding outbox');
-    expect(screen.getByText(/Not available in this console/i)).toBeInTheDocument();
-    expect(screen.getByText(/needs a time-series store/i)).toBeInTheDocument();
+    expect(screen.getByText(/no rates or trends are shown/i)).toBeInTheDocument();
   });
 
   it('names no external dashboard tool as the place to go instead', async () => {
@@ -131,7 +130,9 @@ describe('as any other role', () => {
        * summary is not theirs to see.
        */
       renderAs(role);
-      await waitFor(() => expect(screen.getByText(/needs the admin role/i)).toBeInTheDocument());
+      await waitFor(() =>
+        expect(screen.getByText(/need the administrator role/i)).toBeInTheDocument(),
+      );
       expect(screen.queryByText('Embedding outbox')).not.toBeInTheDocument();
     },
   );

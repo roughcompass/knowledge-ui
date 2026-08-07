@@ -1,70 +1,67 @@
-import { FlowLayout, LinkCard, StackLayout, Tag, Text } from '@salt-ds/core';
-import type { MouseEvent, ReactNode } from 'react';
+import { Card, FlowLayout, StackLayout, Text } from '@salt-ds/core';
+import type { ReactNode } from 'react';
 
+import { KLink } from './LinkAdapter';
 import styles from './NavCard.module.css';
 
 /**
- * A card that is genuinely a link.
+ * A card-shaped destination whose contents are destinations too.
  *
- * `LinkCard` renders an anchor, so it gets a real `href` — that is what makes
- * middle-click, "copy link address" and the screen-reader link role work. A plain
- * click is handed to `onNavigate` for client-side routing; modified clicks are left
- * alone so the browser can do what the reader actually asked for.
+ * This was Salt's `LinkCard` — one big anchor — holding a row of `Tag` pills that
+ * *named* real pages while being inert decoration, because HTML forbids an anchor
+ * inside an anchor and the constraint was answered by faking the links instead of
+ * restructuring the card. A reader who clicked "Claims" got whatever the card's own
+ * destination was. That is the worst kind of wrong: it looks interactive, and it is,
+ * just not the interaction it promises.
  *
- * Lives in ui-kit rather than beside the one page that uses it, because ui-kit is
- * the only workspace permitted a stylesheet and the at-rest chrome needs one — see
- * the module CSS.
- *
- * Router-free by the same convention as `SidebarBack`: the caller resolves the
- * `href` and handles the navigation, so ui-kit takes no dependency on
- * react-router.
+ * Now: a plain `Card`, a title that is the card's anchor stretched over the whole
+ * surface (the `::after` overlay in the module CSS — one anchor, full hit area,
+ * middle-clickable), and each pill a real link raised above the overlay. Tab order
+ * is simply DOM order: title, then pills.
  */
 export function NavCard({
-  href,
-  onNavigate,
+  to,
   title,
   description,
-  tags,
+  links,
 }: {
-  /** Already resolved against the router basename by the caller. */
-  href: string;
-  /** Called for an unmodified left click, with `preventDefault` already applied. */
-  onNavigate: () => void;
+  /** Where the card itself goes. */
+  to: string;
   title: string;
   description?: ReactNode;
   /**
-   * What this destination holds, as short noun phrases.
+   * The pages inside this destination, each a real link.
    *
-   * A description says what a section is for; these say what is *in* it, which is
-   * the question a reader arriving cold actually has. Nouns rather than sentences,
-   * because a row of them is scanned rather than read — and capped by the caller,
-   * since a card that lists everything has told the reader nothing.
+   * Capped by the caller — a card that lists everything has told the reader
+   * nothing, and the rail is one glance away.
    */
-  tags?: readonly string[];
+  links?: readonly { label: string; to: string }[];
 }) {
   return (
-    <LinkCard
-      className={styles.card}
-      href={href}
-      onClick={(event: MouseEvent<HTMLAnchorElement>) => {
-        // Anything the browser has a better answer for — new tab, new window,
-        // download — is left to the browser.
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-        event.preventDefault();
-        onNavigate();
-      }}
-    >
+    <Card className={styles.card}>
       <StackLayout gap={1}>
-        <Text styleAs="label">{title}</Text>
+        <Text styleAs="h4" as="h3">
+          <KLink to={to} underline="never" color="primary" className={styles.titleLink}>
+            {title}
+          </KLink>
+        </Text>
         {description !== undefined ? <Text color="secondary">{description}</Text> : null}
-        {tags && tags.length > 0 ? (
+        {links && links.length > 0 ? (
           <FlowLayout gap={1}>
-            {tags.map((tag) => (
-              <Tag key={tag}>{tag}</Tag>
+            {links.map((link) => (
+              <KLink
+                key={link.to}
+                to={link.to}
+                underline="never"
+                color="accent"
+                className={styles.pillLink}
+              >
+                {link.label}
+              </KLink>
             ))}
           </FlowLayout>
         ) : null}
       </StackLayout>
-    </LinkCard>
+    </Card>
   );
 }

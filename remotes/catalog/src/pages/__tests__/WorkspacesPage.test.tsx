@@ -65,11 +65,19 @@ describe('who may create', () => {
     expect(screen.queryByRole('option', { name: 'Team' })).not.toBeInTheDocument();
   });
 
-  it('tells a consumer which role creates what, instead of hiding the button silently', async () => {
+  it('tells a consumer which role creates what, on the control itself', async () => {
+    /*
+      The refusal moved from a banner onto a disabled button in the same place
+      other roles find the working one — still present, still focusable, with the
+      who-can answer in its tooltip. The invariant under test is unchanged: the
+      button is never silently hidden.
+    */
     renderAs('consumer');
     await screen.findByText('Digital Enablement decisions');
-    expect(screen.queryByRole('button', { name: 'New Workspace' })).not.toBeInTheDocument();
-    expect(screen.getByText(/needs the producer role/i)).toBeInTheDocument();
+    const create = screen.getByRole('button', { name: 'New Workspace' });
+    // aria-disabled, not the attribute: the button stays focusable so keyboard
+    // users can reach the tooltip that says who can create.
+    expect(create).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('creates a workspace and says what its visibility means', async () => {

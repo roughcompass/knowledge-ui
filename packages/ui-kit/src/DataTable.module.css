@@ -113,3 +113,18 @@
 }
 
 /* stylelint-enable selector-class-pattern */
+
+/*
+ * Cells hold their line. Short values — a slug, a relationship name, a date — were
+ * wrapping to two lines the moment a neighbouring column stretched, which reads as
+ * a layout accident rather than a table. Columns whose values are sentences opt
+ * back in per column.
+ */
+.table:global(.saltTable) th,
+.table:global(.saltTable) td {
+  white-space: nowrap;
+}
+
+.wrap {
+  white-space: normal;
+}

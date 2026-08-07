@@ -36,7 +36,7 @@ test('every section and its pages are visible at once', async ({ page }) => {
   // Leaves from *different* sections are on screen together. Under the previous
   // drill-down each of these was three navigations from the other.
   await expect(rail.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible();
-  await expect(rail.getByRole('link', { name: 'Operational Health' })).toBeVisible();
+  await expect(rail.getByRole('link', { name: 'Health', exact: true })).toBeVisible();
   await expect(rail.getByRole('link', { name: 'Capabilities' })).toBeVisible();
 });
 
@@ -62,9 +62,14 @@ test('Context Lab is directly available from the dashboard and top-level rail', 
   // its own first child's.
   await expect(rail.getByRole('button', { name: 'Context Lab' })).toBeVisible();
 
+  /*
+    The card stopped being one big anchor when its pills became real links —
+    anchors cannot nest — so the accessible link is now the title alone, with the
+    description as the card's visible text beside it.
+  */
   const dashboardEntry = page
     .getByRole('main')
-    .getByRole('link', { name: /Context Lab.*Test retrieval evidence/i });
+    .getByRole('link', { name: 'Context Lab', exact: true });
   await expect(dashboardEntry).toBeVisible();
   await dashboardEntry.click();
 
@@ -77,32 +82,29 @@ test('Context Lab is directly available from the dashboard and top-level rail', 
 test('the current item is derived from the route, not from click state', async ({ page }) => {
   // Straight to a child route with no clicks. A pasted link has to land with the rail
   // already describing where the reader is.
-  await ready(page, '/ops/metrics');
+  await ready(page, '/catalog/claims');
 
   const rail = page.locator(RAIL);
-  await expect(rail.getByRole('link', { name: 'Operational Health' })).toHaveAttribute(
-    'aria-current',
-    'page',
-  );
+  await expect(rail.getByRole('link', { name: 'Claims' })).toHaveAttribute('aria-current', 'page');
   // And the rest of the app is still reachable from here.
   await expect(rail.getByRole('link', { name: 'Capabilities' })).toBeVisible();
 });
 
 test('a collapsed section still shows that it holds the current page', async ({ page }) => {
-  await ready(page, '/ops/metrics');
+  await ready(page, '/catalog/claims');
 
   const rail = page.locator(RAIL);
-  const operations = rail.getByRole('button', { name: 'Operations' });
+  const catalog = rail.getByRole('button', { name: 'Catalog' });
 
-  await operations.click();
+  await catalog.click();
   // Collapsing hides the leaf, so the section itself has to carry the signal —
   // otherwise closing a section loses where you are.
-  await expect(rail.getByRole('link', { name: 'Operational Health' })).toHaveCount(0);
-  await expect(operations).toHaveAttribute('aria-expanded', 'false');
+  await expect(rail.getByRole('link', { name: 'Claims' })).toHaveCount(0);
+  await expect(catalog).toHaveAttribute('aria-expanded', 'false');
 
   // And the choice survives a reload, beside the rail's own width.
   await page.reload({ waitUntil: 'networkidle' });
-  await expect(page.locator(RAIL).getByRole('button', { name: 'Operations' })).toHaveAttribute(
+  await expect(page.locator(RAIL).getByRole('button', { name: 'Catalog' })).toHaveAttribute(
     'aria-expanded',
     'false',
   );

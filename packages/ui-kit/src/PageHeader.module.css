@@ -16,3 +16,11 @@
 .title {
   --salt-text-letterSpacing: -0.04em;
 }
+
+/*
+ * The description at 16px, regular. `styleAs="h4"` buys the size, but h4 carries the
+ * heading weight, and a bold page description reads as a second title.
+ */
+.description {
+  font-weight: var(--salt-text-fontWeight);
+}

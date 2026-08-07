@@ -15,6 +15,7 @@ import {
   windowSubstituted,
   type RegistryClient,
   type TraversalDepth,
+  useEntityNames,
 } from '@knowledge-ui/api-client';
 import { can, useSession, type Session } from '@knowledge-ui/auth';
 import {
@@ -197,6 +198,16 @@ function ReachPanel({ session, client }: { session: Session; client: RegistryCli
 
       {!failed && direct.data && reach.data ? (
         <StackLayout gap={2}>
+          {caveats.length > 0 ? (
+            /*
+              Above the tiles it qualifies, not after them — a caveat read after
+              the number was already quoted arrives too late to change anything.
+            */
+            <Note label="What this walk could not settle" variant="warning">
+              {caveats.join(' ')}
+            </Note>
+          ) : null}
+
           <TileGrid columns={2}>
             {/*
               "Directly" and "within" are in the labels rather than in a footnote.
@@ -204,31 +215,35 @@ function ReachPanel({ session, client }: { session: Session; client: RegistryCli
               the graph by every reader who does not read the footnote.
             */}
             <StatTile
-              label="Entities that depend on it directly"
+              label="Direct Dependents"
               value={direct.data.nodes.length}
-              hint="A depth-one walk. This is the breadth of this root."
+              hint={`Depth-one walk from ${selected}.`}
               headingLevel="h3"
             />
             <StatTile
-              label={`Entities reached within depth ${depth}`}
+              label={`Reached at Depth ${depth}`}
               value={reach.data.nodes.length}
               hint={
                 reach.data.nodes.length === direct.data.nodes.length
-                  ? 'The same set as depth one — the walk stops here.'
-                  : 'Everything the walk found, at every depth up to this one.'
+                  ? 'No growth beyond depth one.'
+                  : `All entities within depth ${depth}.`
               }
               headingLevel="h3"
             />
             <StatTile
-              label={`Edges returned at depth ${depth}`}
+              label={`Edges at Depth ${depth}`}
               value={reach.data.edges.length}
               hint={`Across ${grouped.size} ${grouped.size === 1 ? 'relationship' : 'relationships'}.`}
               headingLevel="h3"
             />
             <StatTile
-              label="Served from cache"
+              label="Served From Cache"
               value={reach.data.cache_hit ? 'Yes' : 'No'}
-              hint="Whether the closure was recomputed for this request."
+              hint={
+                reach.data.cache_hit
+                  ? 'May lag edges written moments ago.'
+                  : 'Recomputed for this request.'
+              }
               headingLevel="h3"
             />
           </TileGrid>
@@ -253,22 +268,18 @@ function ReachPanel({ session, client }: { session: Session; client: RegistryCli
               count: edges.length,
             }))}
             getRowId={(row) => row.rel}
-            emptyTitle="Nothing Depends on This Entity"
-            emptyDescription="The walk completed and found no inbound edges within this depth. Nothing points here — which is different from a walk that was cut short, and this one was not."
+            emptyTitle="No Dependents Found"
+            emptyDescription={`Nothing depends on ${selected} within depth ${depth} — try a deeper walk or another root.`}
           />
 
-          {caveats.length > 0 ? (
-            <Note label="What this walk could not settle" variant="warning">
-              {caveats.join(' ')}
-            </Note>
-          ) : null}
-
-          <Note label="One root, one direction">
-            These figures describe {selected} only, walking inward — the entities that depend on it.
-            They are not a breadth or depth for the graph as a whole; the registry serves no such
-            figure, and deriving one would mean paging the whole graph into this browser. Roots are
-            offered from the first page of the catalog.
-          </Note>
+          {/*
+            One quiet line where an essay stood. The full defence of why no
+            graph-wide figure exists lives in this file's own docstring — the
+            reader needs the scope, not the argument.
+          */}
+          <Text styleAs="notation" color="secondary">
+            Counts describe {selected} only, not the whole graph.
+          </Text>
         </StackLayout>
       ) : null}
     </StackLayout>
@@ -291,11 +302,21 @@ function OperatorUsagePanel({
   const summary = useUsageSummary(client, scope, range, { enabled: allowed });
   const ranking = useUsageByCapability(client, scope, range, { enabled: allowed });
 
+  /*
+    The ranking answers with ids and no names, so the one table naming what is
+    actually used was unreadable. Resolved from the visible page only.
+  */
+  const names = useEntityNames(
+    client,
+    scope,
+    (ranking.data?.capabilities ?? []).map((row) => row.capability_id),
+  );
+
   if (!allowed) {
     return (
       <UnavailableNotice
         title="Deployment-wide usage"
-        reason="The aggregate usage endpoints are served under /v1/admin and admit administrators only. This session holds a different role, so the deployment totals are not readable here rather than shown partial."
+        reason="Requires the admin role — switch persona in the header."
       />
     );
   }
@@ -349,7 +370,13 @@ function OperatorUsagePanel({
              * fetched and matched by this page and could silently mismatch.
              */
             header: 'Capability Id',
-            render: (row) => <EntityLink id={row.capability_id} to={`../${row.capability_id}`} />,
+            render: (row) => (
+              <EntityLink
+                id={row.capability_id}
+                name={names[row.capability_id]}
+                to={`../${row.capability_id}`}
+              />
+            ),
           },
           {
             key: 'calls',
@@ -397,7 +424,7 @@ function OwnedUsagePanel({
     return (
       <UnavailableNotice
         title="Usage of what you publish"
-        reason="This read reports the capabilities your tenant owns, and is granted to the roles that publish them. This identity holds no owner scope, so there is nothing it may be shown for."
+        reason="Shown only to roles that publish capabilities."
       />
     );
   }
@@ -466,12 +493,7 @@ function LatencyPanel({
   const summary = useUsageSummary(client, scope, range, { enabled: allowed });
 
   if (!allowed) {
-    return (
-      <UnavailableNotice
-        title="Response times"
-        reason="Response times are reported by the aggregate usage endpoint, which is served under /v1/admin and admits administrators only."
-      />
-    );
+    return <UnavailableNotice title="Response times" reason="Requires the admin role." />;
   }
 
   if (summary.error) return <ErrorPanel error={summary.error} title="Could not read latency" />;
@@ -518,11 +540,9 @@ function LatencyPanel({
         {WORST_DAILY_P95_CAVEAT}
       </Text>
 
-      <Note label="Counts, not rates">
-        Successes and failures are shown as the counts the service sent. This page does not divide
-        them into a failure rate: the two counts are auditable against the service and a percentage
-        computed here would not be.
-      </Note>
+      <Text styleAs="notation" color="secondary">
+        Counts as reported — no rates computed here.
+      </Text>
     </StackLayout>
   );
 }
@@ -536,66 +556,70 @@ export function GraphAnalyticsPage() {
 
   return (
     <StackLayout gap={3}>
+      {/*
+        The header carries no control, matching every other route. The window
+        dropdown used to sit in the actions slot, which claimed page-wide scope —
+        but it never governed Reach, only the three usage sections. It now sits
+        directly above the first section it actually applies to.
+      */}
       <PageHeader
         title="Graph analytics"
-        description="How far the graph reaches from a given entity, how much of it is actually called, and how quickly it answers."
-        actions={
-          <FilterBar label="Usage window">
-            <FilterField label="Window" basis="13rem">
-              <Dropdown
-                bordered
-                value={selectedWindow.label}
-                onSelectionChange={(_e, chosen) => setWindowId((chosen?.[0] as WindowId) ?? '7d')}
-                OverlayProps={popoverOverlayProps}
-              >
-                {WINDOWS.map((w) => (
-                  <Option key={w.id} value={w.id}>
-                    {w.label}
-                  </Option>
-                ))}
-              </Dropdown>
-            </FilterField>
-          </FilterBar>
-        }
+        description="Reach, usage, and response times for the capability graph."
       />
 
       <SectionCard
-        title="Breadth and depth"
-        description="Measured by walking inward from one entity. Each walk returns everything within the depth it was asked for, so what is counted here is a complete answer rather than a sample."
+        title="Reach"
+        description="How many entities depend on the chosen root, at each depth."
       >
         <ReachPanel session={session} client={client} />
       </SectionCard>
 
+      <FilterBar label="Usage window">
+        <FilterField label="Window" basis="13rem">
+          <Dropdown
+            bordered
+            value={selectedWindow.label}
+            onSelectionChange={(_e, chosen) => setWindowId((chosen?.[0] as WindowId) ?? '7d')}
+            OverlayProps={popoverOverlayProps}
+          >
+            {WINDOWS.map((w) => (
+              <Option key={w.id} value={w.id}>
+                {w.label}
+              </Option>
+            ))}
+          </Dropdown>
+        </FilterField>
+      </FilterBar>
+
       <SectionCard
-        title="What is consulted"
+        title="Most-called capabilities"
         description="Which parts of the graph are actually called, over the window above."
       >
         <OperatorUsagePanel session={session} client={client} range={range} />
       </SectionCard>
 
       <SectionCard
-        title="What you publish"
-        description="Usage of the capabilities your own tenant owns, including calls from other tenants."
+        title="Usage of your capabilities"
+        description="Calls against what your tenant owns, including from other tenants."
       >
         <OwnedUsagePanel session={session} client={client} range={range} />
       </SectionCard>
 
       <SectionCard
-        title="Latency"
-        description="How quickly each surface answered, in the only form the service reports it."
+        title="Response times"
+        description="How quickly each surface answered, over the window above."
       >
         <LatencyPanel session={session} client={client} range={range} />
       </SectionCard>
 
-      <UnavailableNotice
-        title="Service level objectives"
-        // Quiet, for the same reason as the graph totals: nothing here is gated,
-        // nothing is coming, and the reader has no move to make. Loud would put
-        // it level with the traversal caveats above, which are decisions.
-        tone="quiet"
-        reason="The registry publishes no objectives. Nothing it serves carries a target, a threshold or an error budget — the operational health endpoint returns readings with a value and a scope and deliberately no target to compare them against, and the Prometheus endpoint is exposition text this console does not parse in a browser. The measurements above are therefore shown without objectives rather than against ones invented here."
-        tracking="An objective belongs to whoever is accountable for meeting it. Until the service publishes one, a target on this page would be this console's opinion wearing the service's authority."
-      />
+      {/*
+        One line where two paragraphs stood. The argument for why this console
+        invents no targets is real, and it belongs in the design docs — a reader
+        scanning response times needs only the fact.
+      */}
+      <Text styleAs="notation" color="secondary">
+        No targets shown — the registry publishes no service objectives.
+      </Text>
     </StackLayout>
   );
 }

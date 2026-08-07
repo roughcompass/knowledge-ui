@@ -2,14 +2,13 @@ import { RequireCapability, SessionProvider, useSession } from '@knowledge-ui/au
 import type { RegistryClient } from '@knowledge-ui/api-client';
 import type { Session } from '@knowledge-ui/auth';
 import type { RemoteMountProps } from '@knowledge-ui/remote-contract';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { RouterLinks } from '../RouterLinks';
 import type { ReactNode } from 'react';
 
 import { OperationsLayout } from '../pages/OperationsLayout';
 import { AuditLogPage } from '../pages/AuditLogPage';
 import { HealthPage } from '../pages/HealthPage';
-import { MetricsPage } from '../pages/MetricsPage';
 import { SyncRunsPage } from '../pages/SyncRunsPage';
 import { SyncRunDetailPage } from '../pages/SyncRunDetailPage';
 import { SyncSourcesPage } from '../pages/SyncSourcesPage';
@@ -41,7 +40,11 @@ export default function OperationsApp(props: RemoteMountProps<Session, RegistryC
         <Routes>
           <Route element={<OperationsLayout />}>
             <Route index element={<HealthPage />} />
-            <Route path="metrics" element={<MetricsPage />} />
+            {/*
+              "Operational Health" merged into Health — one page, one question.
+              The route survives as a redirect so deep links keep working.
+            */}
+            <Route path="metrics" element={<Navigate to=".." replace />} />
             <Route path="usage" element={<UsagePage />} />
             <Route path="audit" element={<GuardedAuditLog />} />
             {/*

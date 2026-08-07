@@ -65,7 +65,7 @@ describe('the two gates, mirrored separately', () => {
   it('names the ontology as unreadable for a non-admin rather than offering a refusal', async () => {
     renderAs(<GraphDashboardPage />, 'consumer');
     await screen.findByText('What this tenant ships');
-    expect(screen.getByText(/admit administrators only/)).toBeInTheDocument();
+    expect(screen.getByText(/requires the admin role/)).toBeInTheDocument();
     // No count is shown alongside the notice — an incomplete panel would be worse
     // than an absent one.
     expect(screen.queryByText('Edge relations')).not.toBeInTheDocument();
@@ -100,12 +100,14 @@ describe('the ontology page', () => {
 describe('the projections page', () => {
   it('renders the roster the rest of the app shows, not a graph-only cast', async () => {
     renderAs(<GraphProjectionsPage />, 'producer');
-    expect(await screen.findByRole('link', { name: 'salt-design-system' })).toBeInTheDocument();
+    // More than one: the node table links it, and now so does every edge endpoint
+    // that resolves to it — the multiplicity is the feature under test.
+    expect((await screen.findAllByRole('link', { name: 'salt-design-system' })).length).toBeGreaterThan(0);
   });
 
   it('shows an unresolved edge target as its id instead of dropping the edge', async () => {
     renderAs(<GraphProjectionsPage />, 'producer');
-    await screen.findByRole('link', { name: 'salt-design-system' });
+    await screen.findAllByRole('link', { name: 'salt-design-system' });
     // Every edge on the page is rendered; the ones pointing past it keep the id.
     expect(screen.getByText('Edges')).toBeInTheDocument();
   });

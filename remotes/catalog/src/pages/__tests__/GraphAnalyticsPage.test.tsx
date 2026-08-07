@@ -33,22 +33,24 @@ const renderAs = (page: React.ReactElement, role: Role) =>
 describe('the measurements this page refuses to invent', () => {
   it('names the absence of service level objectives rather than showing a target', async () => {
     renderAs(<GraphAnalyticsPage />, 'admin');
-    expect(await screen.findByText('Service level objectives')).toBeInTheDocument();
-    expect(screen.getByText(/publishes no objectives/)).toBeInTheDocument();
+    /*
+      The two-paragraph essay became one quiet line; the fact it stated survives.
+    */
+    expect(await screen.findByText(/publishes no service objectives/)).toBeInTheDocument();
   });
 
   it('reports failures as a count and never as a rate', async () => {
     renderAs(<GraphAnalyticsPage />, 'admin');
-    expect(await screen.findByText('Counts, not rates')).toBeInTheDocument();
+    expect(await screen.findByText(/no rates computed here/)).toBeInTheDocument();
     // A percentage anywhere on this page would be one this browser computed.
     expect(screen.queryByText(/\d+(\.\d+)?%/)).not.toBeInTheDocument();
   });
 
   it('scopes breadth and depth to one root instead of to the graph', async () => {
     renderAs(<GraphAnalyticsPage />, 'admin');
-    expect(await screen.findByText('One root, one direction')).toBeInTheDocument();
+    expect(await screen.findByText(/Counts describe .* only, not the whole graph/)).toBeInTheDocument();
     expect(
-      screen.getByText('Entities that depend on it directly', { exact: false }),
+      screen.getByText('Direct Dependents', { exact: false }),
     ).toBeInTheDocument();
     // The unqualified label would be the graph-wide claim the API cannot support.
     expect(screen.queryByText('Entities')).not.toBeInTheDocument();
@@ -82,15 +84,17 @@ describe('the two usage gates, mirrored separately', () => {
     expect(await screen.findByText('Deployment-wide usage')).toBeInTheDocument();
     expect(await screen.findByText('Usage of what you publish')).toBeInTheDocument();
     // The traversal endpoints admit every role, so this half must survive.
-    expect(await screen.findByText('One root, one direction')).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Counts describe .* only, not the whole graph/),
+    ).toBeInTheDocument();
   });
 
   it('tells an auditor that latency is an administrator read', async () => {
     renderAs(<GraphAnalyticsPage />, 'auditor');
-    expect(await screen.findByText('Response times')).toBeInTheDocument();
-    // Two panels refuse an auditor for the same reason, so the phrase is expected
-    // more than once rather than exactly once.
-    expect((await screen.findAllByText(/admits administrators only/)).length).toBeGreaterThan(0);
+    // The section title appears in the card and its refusal, so all-by rather
+    // than by. Two panels refuse an auditor for the same reason.
+    expect((await screen.findAllByText('Response times')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText(/[Rr]equires the admin role/)).length).toBeGreaterThan(0);
   });
 });
 
@@ -104,6 +108,6 @@ describe('the reach panel', () => {
   it('offers a depth control across the range the server accepts', async () => {
     renderAs(<GraphAnalyticsPage />, 'admin');
     expect(await screen.findByText('Depth')).toBeInTheDocument();
-    expect(await screen.findByText('Entities reached within depth 2')).toBeInTheDocument();
+    expect(await screen.findByText('Reached at Depth 2')).toBeInTheDocument();
   });
 });

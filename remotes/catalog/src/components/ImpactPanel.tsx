@@ -138,7 +138,7 @@ function EdgeGroups({ edges }: { edges: readonly EdgeRef[] }) {
     return (
       <EmptyState
         title="Nothing Connected at This Depth"
-        description="No edges the current identity can see. A capability with no relationships is not the same as one whose relationships are private to another tenant, and this view cannot tell you which — try a greater depth before concluding it stands alone."
+        description="No connections visible at this depth — try a greater one. Relationships private to another tenant stay hidden."
         headingLevel="h3"
       />
     );

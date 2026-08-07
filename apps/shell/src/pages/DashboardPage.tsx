@@ -1,5 +1,5 @@
-import { Button, FlexLayout, FlowLayout, StackLayout, Tag, Text } from '@salt-ds/core';
-import { useEffect, useState, type ReactNode } from 'react';
+import { FlexLayout, FlowLayout, StackLayout, Tag, Text } from '@salt-ds/core';
+import { useEffect, useState } from 'react';
 import {
   describeWindow,
   useNotifications,
@@ -8,22 +8,22 @@ import {
   useUsageSummary,
   type RegistryClient,
 } from '@knowledge-ui/api-client';
-import { can, capabilitiesFor, type Persona, type Session } from '@knowledge-ui/auth';
+import { can, type Persona, type Session } from '@knowledge-ui/auth';
 import {
   DataTable,
   ErrorPanel,
   NavCard,
   Note,
   PageHeader,
-  Prose,
   SectionCard,
   StatTile,
   TileGrid,
   instantText,
   isoDay,
   KLink,
+  LinkButton,
+  SectionHeading,
 } from '@knowledge-ui/ui-kit';
-import { useHref, useNavigate } from 'react-router-dom';
 
 import {
   NAVIGATION,
@@ -44,11 +44,6 @@ const READINESS_TEXT = {
  * a finding about the service, and colouring it as one would report a fault the
  * probe never observed.
  */
-const READINESS_STATUS = {
-  ready: 'success',
-  'not-ready': 'error',
-  unknown: 'info',
-} as const;
 
 /**
  * The landing page: what this is, where to go, what arrived, then who you are.
@@ -85,24 +80,6 @@ const READINESS_STATUS = {
  * the browser knows, and being wrong about it is the kind of small dishonesty that
  * makes a greeting feel automated rather than addressed.
  */
-/**
- * A section title with the one link that belongs beside it.
- *
- * The reference pairs every section with a single destination on the same line —
- * the place a reader goes when the summary is not enough. Distinct from a card's
- * own action: this is about the whole section, and there is never more than one,
- * because two makes it a toolbar and the eye stops reading either.
- */
-function SectionHeading({ title, action }: { title: string; action?: ReactNode }) {
-  return (
-    <FlexLayout gap={2} align="center" justify="space-between">
-      <Text styleAs="h4" as="h2">
-        {title}
-      </Text>
-      {action}
-    </FlexLayout>
-  );
-}
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -133,7 +110,7 @@ function personName(displayName: string | null | undefined): string | undefined 
 
 export function DashboardPage({
   session,
-  personas,
+  personas: _personas,
   client,
   readiness,
 }: {
@@ -147,10 +124,7 @@ export function DashboardPage({
    */
   readiness: 'ready' | 'not-ready' | 'unknown';
 }) {
-  const navigate = useNavigate();
   const available = NAVIGATION.filter((section) => can(session, section.need));
-  const unavailable = NAVIGATION.filter((section) => !can(session, section.need));
-  const auditorPersona = personas.find((p) => p.expectedRole === 'auditor');
 
   return (
     <StackLayout gap={3}>
@@ -172,7 +146,7 @@ export function DashboardPage({
           const name = personName(session.actorDisplayName);
           return name ? `${greeting()}, ${name}` : greeting();
         })()}
-        description="Everything a team at this bank publishes for other teams to build on — what exists, who depends on it, and how much it is used. Search from the bar above, or start with a section below."
+        description="Everything teams here publish for others to build on."
         metadata={
           <FlexLayout gap={1} wrap>
             <Tag bordered>{session.tenantDisplayName}</Tag>
@@ -181,25 +155,15 @@ export function DashboardPage({
         }
         actions={
           <FlexLayout gap={1} align="center">
-            <Button
-              appearance="bordered"
-              sentiment="neutral"
-              onClick={() => navigate(remoteChildHref('catalog', 'claims'))}
-            >
-              Browse Claims
-            </Button>
             {/*
-              The one primary action on the page. A console's landing surface should
-              have exactly one obvious next move, and for every role here that move
-              is the catalog — it is the only destination no role is refused.
+              Anchors, not buttons with click handlers — these navigate, so
+              middle-click and "copy link address" must work. The one solid action
+              on the page stays the catalog: the only destination no role is refused.
             */}
-            <Button
-              appearance="solid"
-              sentiment="accented"
-              onClick={() => navigate(remoteFor('catalog').mountPath)}
-            >
+            <LinkButton to={remoteChildHref('catalog', 'claims')}>Browse Claims</LinkButton>
+            <LinkButton to={remoteFor('catalog').mountPath} appearance="solid">
               Browse Capabilities
-            </Button>
+            </LinkButton>
           </FlexLayout>
         }
       />
@@ -221,8 +185,8 @@ export function DashboardPage({
           variant={readiness === 'not-ready' ? 'error' : 'warning'}
         >
           {readiness === 'not-ready'
-            ? 'The readiness probe reports a dependency the API needs to answer at all. Anything below may be stale, partial or missing for reasons that are not about the catalog.'
-            : 'The readiness probe has not answered. Whether the API can serve is unknown rather than bad — this is the absence of a reading, not a fault it reported.'}
+            ? 'A dependency the API needs is down — everything below may be stale or missing.'
+            : 'The readiness probe has not answered, so freshness below is unknown.'}
         </Note>
       ) : null}
 
@@ -231,20 +195,52 @@ export function DashboardPage({
           title="At a glance"
           action={
             can(session, 'usage:read:owned') ? (
-              <KLink to={remoteChildHref('operations', 'usage')}>Full usage</KLink>
+              <KLink to={remoteChildHref('operations', 'usage')} color="accent" underline="never">
+                Full Usage
+              </KLink>
             ) : undefined
           }
         />
         <SummaryRow client={client} session={session} />
       </StackLayout>
 
+      {/*
+        Learn the registry sits ABOVE the destination grid, not at the foot.
+
+        It was last, on the theory that orientation is a first-visit need. The user
+        audit reversed that: for a reader who does not yet know what the product is,
+        these three cards answer the question the destination grid assumes — so they
+        outrank it. A reader who already knows scrolls one card-height past them.
+      */}
       <StackLayout gap={1}>
-        <Text styleAs="h4" as="h2">
-          Start here
-        </Text>
+        <SectionHeading title="Learn the registry" />
+        <TileGrid columns={3}>
+          <ResourceCard
+            title="Retrieval and trust"
+            description="How the catalog, claims and your notes answer separately, each with a trust label."
+            actionLabel="Open Context Lab"
+            to={remoteChildHref('catalog', 'context')}
+          />
+          <ResourceCard
+            title="What depends on what"
+            description="See dependents and blast radius before you ship a breaking change."
+            actionLabel="Open Graph"
+            to={remoteChildHref('catalog', 'graph')}
+          />
+          <ResourceCard
+            title="Keep your own notes"
+            description="Decisions and open questions, private to you or your tenant."
+            actionLabel="Open Workspaces"
+            to={remoteChildHref('catalog', 'workspaces')}
+          />
+        </TileGrid>
+      </StackLayout>
+
+      <StackLayout gap={1}>
+        <SectionHeading title="Explore" />
         <TileGrid columns={2}>
           {available.map((section) => (
-            <SectionNavCard key={section.key} section={section} onNavigate={navigate} />
+            <SectionNavCard key={section.key} section={section} />
           ))}
         </TileGrid>
       </StackLayout>
@@ -263,117 +259,14 @@ export function DashboardPage({
         <WhatYouPublish client={client} session={session} />
       ) : null}
 
-      <SectionCard
-        title="Your access"
-        description="Who the registry resolved this session to, and what that carries. Switching persona in the header changes all of it."
-      >
-        <StackLayout gap={2}>
-          <TileGrid columns={3}>
-            <StatTile
-              label="Service"
-              status={READINESS_STATUS[readiness]}
-              value={<Text>{READINESS_TEXT[readiness]}</Text>}
-              hint="GET /readyz — dependencies the API needs to answer at all"
-            />
-            <StatTile
-              label="Signed in as"
-              value={<Text>{session.actorDisplayName ?? session.actorId}</Text>}
-              hint={session.actorEmail ?? session.actorId}
-            />
-            <StatTile
-              label="Role"
-              value={<Text>{session.role}</Text>}
-              // Said here because it is the fact behind every refusal in the app:
-              // roles do not combine, so holding two entitlements grants the higher
-              // one and not the union.
-              hint="Resolved by the registry from your entitlements. One role per session."
-            />
-          </TileGrid>
-
-          <StackLayout gap={1}>
-            <Text styleAs="label" as="h3">
-              Permissions
-            </Text>
-            <Text styleAs="notation" color="secondary">
-              {capabilitiesFor(session.role).join(' · ')}
-            </Text>
-          </StackLayout>
-
-          {unavailable.length > 0 ? (
-            <StackLayout gap={1}>
-              <Text styleAs="label" as="h3">
-                Not available to this role
-              </Text>
-              {unavailable.map((section) => (
-                <Text key={section.key} color="secondary">
-                  <strong>{section.label}</strong> — {section.description}
-                </Text>
-              ))}
-            </StackLayout>
-          ) : null}
-
-          {/*
-            Asked as the missing capability rather than as "not the auditor role".
-            The two are equivalent today because that capability is auditor-only, but
-            the note exists *because* the reader cannot read the audit log — so that
-            is the condition worth writing, and it keeps the role list in the one
-            place that is tested against the API.
-          */}
-          {!can(session, 'audit:read') && auditorPersona ? (
-            <StackLayout gap={1}>
-              <Text styleAs="label" as="h3">
-                About the audit log
-              </Text>
-              <Prose>
-                <Text color="secondary">
-                  The registry grants exactly one role per session and resolves it by precedence,
-                  with administrator above auditor. The audit endpoint requires the auditor role
-                  specifically, so an identity holding both is resolved to administrator and
-                  refused. Reading the audit log means signing in as{' '}
-                  <strong>{auditorPersona.label}</strong> — the switcher in the header does that in
-                  one step.
-                </Text>
-              </Prose>
-            </StackLayout>
-          ) : null}
-        </StackLayout>
-      </SectionCard>
-
       {/*
-        Resources, after the reader's own work rather than before it.
-
-        The reference puts a row of capability cards near the foot of its dashboard —
-        the things a reader wants once, on their first visit, and rarely again. That
-        is the right place for them: above the fold they compete with the destinations
-        someone came here to use, and below it they are still findable by the person
-        who has not found their footing yet.
-
-        Each is a real destination this app or its docs already serve. Nothing here
-        links to a feature that does not exist.
+        "Your access" is gone from this page. Identity already lives in the rail
+        badge and the persona switcher; the capability list and the one-role rule
+        moved to Session Details, which the footer links — reference material
+        belongs where a reader goes to look things up, not on the page they land on.
+        The audit-log explainer went with it: the audit route's own refusal state
+        already names the auditor role and offers the switch.
       */}
-      <StackLayout gap={1}>
-        <SectionHeading title="Learn the registry" />
-        <TileGrid columns={3}>
-          <ResourceCard
-            title="Retrieval and trust"
-            description="Why the catalog, claims and your own notes are answered separately, and how to read the trust label on each."
-            actionLabel="Open Context Lab"
-            to={remoteChildHref('catalog', 'context')}
-          />
-          <ResourceCard
-            title="What depends on what"
-            description="Follow a capability's dependents and blast radius before shipping a change that would break one of them."
-            actionLabel="Open Graph"
-            to={remoteChildHref('catalog', 'graph')}
-          />
-          <ResourceCard
-            title="Keep your own notes"
-            description="Decisions, open questions and saved queries, kept beside the catalog and private to you or your tenant."
-            actionLabel="Open Workspaces"
-            to={remoteChildHref('catalog', 'workspaces')}
-          />
-        </TileGrid>
-      </StackLayout>
 
       {/*
         The reference closes with a quiet row of links rather than a card. These are
@@ -382,7 +275,6 @@ export function DashboardPage({
       */}
       <FlexLayout gap={3} justify="center" wrap>
         <KLink to="/ops">API Status</KLink>
-        <KLink to={remoteChildHref('catalog', 'context')}>Context Lab</KLink>
         <KLink to="/_session">Session Details</KLink>
       </FlexLayout>
     </StackLayout>
@@ -412,7 +304,7 @@ function ResourceCard({
   return (
     <SectionCard title={title} description={description}>
       <FlexLayout justify="start">
-        <KLink to={to}>{actionLabel}</KLink>
+        <LinkButton to={to}>{actionLabel}</LinkButton>
       </FlexLayout>
     </SectionCard>
   );
@@ -447,7 +339,11 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
     <SectionCard
       banded
       title="What you publish"
-      action={<KLink to={usagePage}>Full usage</KLink>}
+      action={
+        <KLink to={usagePage} color="accent" underline="never">
+          Full Usage
+        </KLink>
+      }
       description={
         window
           ? `Capabilities your tenant owns that were called between ${window}, the window the service reports. Absence from this list means no calls were recorded, not that the capability is gone.`
@@ -555,10 +451,7 @@ function RecentActivity({ session }: { session: Session }) {
   if (recents.length === 0) {
     return (
       <Text color="secondary">
-        Nothing to summarise yet. This role holds none of the aggregate reads, and the catalog
-        endpoints serve a page and a cursor rather than a total — so rather than a count that would
-        only mean &ldquo;as many as fit on one page&rdquo;, your recent searches appear here once
-        you have made some.
+        Your recent searches will appear here — search the catalog to start.
       </Text>
     );
   }
@@ -677,8 +570,12 @@ function RecentChanges({ client, session }: { client: RegistryClient; session: S
     <SectionCard
       banded
       title="Recent changes"
-      action={<KLink to={inbox}>View all</KLink>}
-      description="Unread changes to the capabilities your tenant subscribes to. The entry carries the fact of a change; the capability carries what changed."
+      action={
+        <KLink to={inbox} color="accent" underline="never">
+          View All
+        </KLink>
+      }
+      description="Unread changes to the capabilities your tenant subscribes to."
     >
       {query.error ? (
         <ErrorPanel error={query.error} title="Could not load recent changes" />
@@ -728,26 +625,18 @@ function RecentChanges({ client, session }: { client: RegistryClient; session: S
  * resolving the path against the basename and performing the navigation are the
  * host's job. That is the whole of this adapter.
  */
-function SectionNavCard({
-  section,
-  onNavigate,
-}: {
-  section: NavigationSection;
-  onNavigate: (to: string) => void;
-}) {
+function SectionNavCard({ section }: { section: NavigationSection }) {
   return (
     <NavCard
-      href={useHref(section.href)}
-      onNavigate={() => onNavigate(section.href)}
+      to={section.href}
       title={section.label}
       description={section.description}
       /*
-        What is actually in there, taken from the section's own children rather
-        than written again here — so a card cannot drift from the rail beside it,
-        and adding a page adds its own tag. Capped at four: a card that lists
-        everything has told the reader nothing, and the rail is one glance away.
+        The pages inside, as real links — taken from the section's own children so a
+        card cannot drift from the rail beside it. Capped at four: a card that lists
+        everything has told the reader nothing.
       */
-      tags={section.children.slice(0, 4).map((child) => child.label)}
+      links={section.children.slice(0, 4).map((child) => ({ label: child.label, to: child.href }))}
     />
   );
 }

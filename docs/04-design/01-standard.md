@@ -96,6 +96,45 @@ close is fine and a value that is close while claiming to be exact is not.
 **Elevation is reserved for things that genuinely float.** A card gets a border
 _or_ a shadow, never both — Salt's default is both.
 
+## Hierarchy, corrected
+
+A user audit found the scale inverted: card and tile titles rendered at 12px label
+size under 14px body copy, section headings at 16px, stat values inheriting body —
+so the elements that govern structure were quieter than the prose inside them, and
+whole pages read as an undifferentiated wall. The root cause was systemic, not any
+one choice: the `as`/`styleAs` split let every compact component quiet its own
+title independently, and nothing required the scale to stay monotonic across roles.
+
+The contract, now baked into the kit components rather than re-chosen per screen:
+
+| Role                    | Size          | Where it lives                       |
+| ----------------------- | ------------- | ------------------------------------ |
+| Page title              | 32            | `PageHeader` (`styleAs="h1"`)        |
+| Page description        | 16 regular    | `PageHeader`                         |
+| Section heading         | 20            | `SectionHeading` (`styleAs="h3"`)    |
+| Card / band title       | 20            | `SectionCard`                        |
+| Nav-card / tile title   | 16            | `NavCard`, `EmptyState`              |
+| Stat value              | 24            | `StatTile` — the only display number |
+| Body                    | 14            | —                                    |
+| Label / hint / notation | 12, secondary | —                                    |
+
+An earlier revision of this document held the page title at 24px as a reading of
+the reference; in practice, against 14px body and compressed card titles, it
+flattened. The correction is recorded rather than silently swapped, per this
+document's own rule about values that are close while claiming to be exact.
+
+**Buttons and links now follow one litmus**: "Open / View / Browse + noun"
+navigates and is an anchor — as `LinkButton` when it needs button prominence, as
+an accent `KLink` when it is a section action, as the dense table register
+otherwise. "Save / Delete / Run + noun" mutates and is a real `Button`. A `Button`
+with an `onClick` that only navigates is the defect this rule exists to prevent.
+
+**Notices are calm and placed where they change behaviour**: `UnavailableNotice`
+renders secondary, not filled; a caveat that changes what the reader should do
+sits above the content it qualifies; one that explains how to read a number is a
+hint or a notation line, never a banner; one that is true on every visit is one
+quiet foot line, or deleted. One callout per section, maximum.
+
 ## Type: a named scale, set as a unit
 
 The reference names each style by role and size — heading, copy, label — and each

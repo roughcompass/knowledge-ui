@@ -11,10 +11,11 @@ import styles from './PageHeader.module.css';
  * Salt's Text carries the type scale, and a bare heading element would render
  * outside it.
  *
- * The title draws `styleAs="h2"` while staying an `<h1>` element. That is a token
- * choice, not an override: at this density `h2` resolves to 24px/32px, which is
- * exactly the reference's page title, where `h1` is 32px/42px and noticeably
- * oversized against 14px body text.
+ * The title is a full `h1` at 32px/42px. It was `styleAs="h2"` (24px) on a reading
+ * of the reference that turned out too quiet in practice: with body at 14px and
+ * every card title compressed, the whole page flattened and a user audit called the
+ * hierarchy inverted. The description is promoted with it — a page's one-sentence
+ * purpose is not fine print.
  *
  * `description` and `metadata` are separate props rather than one polymorphic slot.
  * There was one slot, branching on `typeof description === 'string'` to decide
@@ -46,7 +47,7 @@ export function PageHeader({
   return (
     <StackLayout gap={1}>
       <FlexLayout gap={2} align="center" justify="space-between">
-        <Text className={styles.title} styleAs="h2" as="h1">
+        <Text className={styles.title} styleAs="h1" as="h1">
           {title}
         </Text>
         {actions}
@@ -55,7 +56,9 @@ export function PageHeader({
         // Measured, because several callers pass a full sentence of explanation and
         // it otherwise ran the width of the viewport.
         <Prose>
-          <Text color="secondary">{description}</Text>
+          <Text className={styles.description} styleAs="h4" as="p" color="secondary">
+            {description}
+          </Text>
         </Prose>
       ) : null}
       {metadata}

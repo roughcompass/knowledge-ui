@@ -58,10 +58,11 @@ describe('the context probe conversation', () => {
     const user = userEvent.setup();
     renderPage();
 
-    expect(
-      screen.getByText(/This tests retrieval context, not answer quality/i),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/it does not generate the agent’s answer/i)).toBeInTheDocument();
+    /*
+      The framing moved from a banner into the page description — same promise,
+      one surface: evidence, never generated answers.
+    */
+    expect(screen.getByText(/raw records, never generated answers/i)).toBeInTheDocument();
 
     await user.type(screen.getByRole('textbox', { name: /task or query/i }), 'Salt components');
     await user.keyboard('{Enter}');
@@ -121,7 +122,7 @@ describe('the context probe conversation', () => {
     expect(saved[0]?.missing_context).toBe('Expected the migration guidance.');
     expect(loadSavedContextCases({ personaKey: 'producer', tenantSlug: 'dev' })).toEqual([]);
 
-    const savedSection = screen.getByText('Saved Regression Cases').parentElement?.parentElement;
+    const savedSection = screen.getByText('Saved Cases').parentElement?.parentElement;
     expect(savedSection).toBeTruthy();
     expect(
       within(savedSection as HTMLElement).getByText('Salt retrieval baseline'),

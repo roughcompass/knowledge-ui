@@ -70,8 +70,13 @@ export function UnavailableNotice({
 
   if (tone === 'quiet') return body;
 
+  /*
+   * `variant="secondary"`: a refusal is information, not an alarm. The filled
+   * primary banner made every gated panel the loudest thing on its page — a
+   * reader who cannot act on a notice should not be shouted at by it.
+   */
   return (
-    <Banner status="info">
+    <Banner status="info" variant="secondary">
       <BannerContent>{body}</BannerContent>
     </Banner>
   );

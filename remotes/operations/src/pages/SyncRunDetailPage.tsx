@@ -56,7 +56,7 @@ export function SyncRunDetailPage() {
       </StackLayout>
     );
 
-  const run = (query.data ?? {});
+  const run = query.data ?? {};
   const failure = typeof run.error_message === 'string' ? run.error_message : undefined;
 
   return (

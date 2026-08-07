@@ -3,6 +3,8 @@ import { apiBaseUrl, useSession } from '@knowledge-ui/auth';
 import { useLiveness, useReadiness } from '@knowledge-ui/api-client';
 import { PageHeader, StatTile } from '@knowledge-ui/ui-kit';
 
+import { OperationalSections } from './MetricsPage';
+
 /**
  * Liveness and readiness, polled.
  *
@@ -41,34 +43,33 @@ export function HealthPage() {
 
   return (
     <StackLayout gap={3}>
-      <PageHeader
-        title="Health"
-        description="Polled every ten seconds. These endpoints are unauthenticated — they are grouped here for convenience, not because they need a role."
-      />
+      <PageHeader title="Health" description="Polled every ten seconds." />
 
       <FlowLayout gap={2}>
         <StatTile
           label="Liveness"
           status={livenessStatus}
           value={<Text>{describeLiveness(liveness)}</Text>}
-          hint="GET /healthz"
+          hint="Whether the process answers."
         />
         <StatTile
           label="Readiness"
           status={readinessStatus}
           value={<Text>{describeReadiness(readiness)}</Text>}
-          hint="GET /readyz — plain text, no content type"
+          hint="Whether its dependencies answer."
         />
         <StatTile
-          label="Round trip"
+          label="Round Trip"
           value={
             <Text>
               {liveness.dataUpdatedAt ? new Date(liveness.dataUpdatedAt).toLocaleTimeString() : '—'}
             </Text>
           }
-          hint="last successful response, measured in this browser"
+          hint="Last successful probe, from this browser."
         />
       </FlowLayout>
+
+      <OperationalSections />
     </StackLayout>
   );
 }
