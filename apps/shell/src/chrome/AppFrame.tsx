@@ -9,6 +9,7 @@ import {
   Text,
 } from '@salt-ds/core';
 import { can, type Persona, type Session } from '@knowledge-ui/auth';
+import type { RegistryClient } from '@knowledge-ui/api-client';
 import {
   AppShell,
   AppSidebar,
@@ -74,6 +75,7 @@ export function AppFrame({
   mode,
   onToggleMode,
   readiness,
+  client,
 }: {
   session: Session;
   personas: readonly Persona[];
@@ -81,6 +83,8 @@ export function AppFrame({
   mode: 'light' | 'dark';
   onToggleMode: () => void;
   readiness: 'ready' | 'not-ready' | 'unknown';
+  /** For the search field's suggestions; the shell owns the one client. */
+  client: RegistryClient;
 }) {
   const location = useLocation();
 
@@ -203,7 +207,7 @@ export function AppFrame({
         topBar={
           <FlexLayout align="center" justify="space-between" gap={2}>
             <ScopeBreadcrumb segments={breadcrumb} label="Location" />
-            <GlobalSearch session={session} />
+            <GlobalSearch session={session} client={client} />
           </FlexLayout>
         }
         rail={

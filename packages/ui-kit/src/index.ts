@@ -28,6 +28,8 @@ export { KLink, LinkAdapterProvider, type KLinkProps } from './LinkAdapter';
  */
 export { EntityLink } from './EntityLink';
 
+export { SuggestionField } from './SuggestionPanel';
+
 export { PageHeader } from './PageHeader';
 export { FilterBar, FilterField, popoverOverlayProps } from './FilterBar';
 

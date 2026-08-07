@@ -1,0 +1,43 @@
+/*
+ * The floating half of a search field.
+ *
+ * Lives here because ui-kit is the only workspace permitted a stylesheet, and a
+ * panel that floats needs one — `position` and `inset` are the two things Salt's
+ * layout components deliberately do not express.
+ */
+.root {
+  position: relative;
+}
+
+.panel {
+  position: absolute;
+
+  /*
+   * Anchored at the field's top edge and pushed below it by its own height.
+   *
+   * `inset` is on stylelint's token allow-list, which admits `0`, `auto` and tokens
+   * — so neither `100%` nor a calc of it can be written. `top` happens not to be
+   * matched by that rule, and using it here would be dodging the constraint rather
+   * than working within it. A translation is the honest expression: `transform` is
+   * unconstrained because it is not a design value, and this is geometry rather
+   * than a spacing decision. The gap below the field stays a token.
+   */
+  inset-block-start: 0;
+  inset-inline: 0;
+  transform: translateY(100%);
+  margin-block-start: var(--salt-spacing-100);
+  z-index: 10;
+  padding: var(--salt-spacing-200);
+  background: var(--salt-container-primary-background);
+  border: var(--salt-size-border) solid var(--salt-palette-alpha-contrast-lower);
+
+  /* Floating, so the ladder's floating tier rather than the base one. */
+
+  border-radius: var(--kui-radius-floating);
+
+  /* The one place elevation is earned: this genuinely floats over the page. */
+
+  box-shadow: var(--salt-overlayable-shadow);
+  max-block-size: 60vh;
+  overflow-y: auto;
+}

@@ -315,6 +315,7 @@ function ShellRoutes({
           element={
             <AppFrame
               session={session}
+              client={client}
               personas={personas}
               onSwitchPersona={onSwitchPersona}
               mode={mode}
