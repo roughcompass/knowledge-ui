@@ -48,6 +48,10 @@ const ROUTES = [
   { path: '/catalog/salt-design-system/interface', name: 'capability interface' },
   { path: '/catalog/salt-design-system/impact', name: 'capability impact' },
   { path: '/catalog/salt-design-system/record', name: 'capability record fields' },
+  {
+    path: '/catalog/salt-design-system?as_of=2026-01-01T00:00:00Z',
+    name: 'capability as it stood (historical view)',
+  },
 ];
 
 /** The session bootstrap has to finish before the page means anything. */

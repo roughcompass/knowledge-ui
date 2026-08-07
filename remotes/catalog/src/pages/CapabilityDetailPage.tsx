@@ -21,6 +21,7 @@ import {
   PageHeader,
   SectionCard,
   termText,
+  Note,
 } from '@knowledge-ui/ui-kit';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
@@ -105,10 +106,21 @@ export function CapabilityDetailPage() {
   const [searchParams] = useSearchParams();
   const from = searchParams.get('from') ?? undefined;
 
+  /*
+    Time travel, from the URL.
+
+    Four endpoints accept `as_of` and three hooks already take the parameter; no page
+    passed it, so a capability's history was reachable by the API and not by anyone
+    reading the console. It lives in the query string because a past view is exactly
+    the kind of thing a colleague is sent a link to.
+  */
+  const asOf = searchParams.get('as_of') ?? undefined;
+
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
   const query = useCapability(client, scope, handle, {
     include: ['components', 'depends_on', 'external_ids'],
     ...(auditView ? { view: 'audit' as const } : {}),
+    ...(asOf ? { asOf } : {}),
   });
 
   const data = query.data ?? {};
@@ -178,7 +190,14 @@ export function CapabilityDetailPage() {
             being hidden behind the page's, since the page has already loaded by
             the time this matters.
           */}
-          {handle ? <AdoptionControl handle={handle} /> : null}
+          {/*
+            No writing against a past view. Adopting from a historical read would
+            record a decision made about a state that is not current, and the reader
+            has no way to see that from the control itself — so the control goes away
+            and the notice below says why. Offering a write here would be worse than
+            not offering time travel at all.
+          */}
+          {handle && !asOf ? <AdoptionControl handle={handle} /> : null}
           {/*
             Carries the search back with it. This was `navigate('..')`, which dropped
             the query, the lifecycle filter and the type filter — so a reader who
@@ -255,6 +274,12 @@ export function CapabilityDetailPage() {
           </TabList>
         </TabBar>
       </Tabs>
+
+      {asOf ? (
+        <Note label="Historical view" variant="warning">
+          {`Showing this capability as it stood at ${asOf}. Write controls are hidden, because a decision recorded against a past state would not say that it was. Remove the as_of parameter to return to the current view.`}
+        </Note>
+      ) : null}
 
       {tab === 'impact' && handle ? <ImpactPanel handle={handle} /> : null}
       {tab === 'interface' && handle ? <InterfacePanel handle={handle} /> : null}

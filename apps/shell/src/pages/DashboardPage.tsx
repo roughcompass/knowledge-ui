@@ -1,7 +1,10 @@
 import { FlexLayout, StackLayout, Tag, Text } from '@salt-ds/core';
 import {
+  describeWindow,
   useNotifications,
+  useOperationalHealth,
   useOwnedCapabilityUsage,
+  useUsageSummary,
   type RegistryClient,
 } from '@knowledge-ui/api-client';
 import { can, capabilitiesFor, type Persona, type Session } from '@knowledge-ui/auth';
@@ -124,6 +127,13 @@ export function DashboardPage({
             : 'The readiness probe has not answered. Whether the API can serve is unknown rather than bad — this is the absence of a reading, not a fault it reported.'}
         </Note>
       ) : null}
+
+      <StackLayout gap={1}>
+        <Text styleAs="h4" as="h2">
+          At a glance
+        </Text>
+        <SummaryRow client={client} session={session} />
+      </StackLayout>
 
       <StackLayout gap={1}>
         <Text styleAs="h4" as="h2">
@@ -310,6 +320,110 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
         />
       )}
     </SectionCard>
+  );
+}
+
+/**
+ * What the reader can actually be told a number about.
+ *
+ * The dashboard deliberately carried no tiles, and the reasoning behind that still
+ * holds in full: the list endpoints serve a page and a cursor, not a total, so a tile
+ * reading "42 capabilities" could only ever mean "42 on the first page". That has not
+ * changed and no tile here counts a list.
+ *
+ * What changed is the observation that four endpoints *do* serve aggregates — the
+ * usage summary, the owned-capability usage, operational health — and none of them
+ * was on the landing page, so a reader arriving cold got navigation cards and two
+ * five-row teasers. The row below draws only on those, states its window inline, and
+ * links each tile to the page that owns the detail.
+ *
+ * **It shrinks by role rather than showing zeros.** A tile whose source this identity
+ * cannot read is absent, and the row says once, in a sentence, that it is. For a
+ * consumer or an auditor that means no tiles at all, and that is the honest answer:
+ * their dashboard is a dispatch page, and what fixes it is destinations and search,
+ * not invented numbers.
+ *
+ * The one derived figure is the sum over owned capabilities, and it is defensible
+ * only because that list is complete and uncursored — summing it is reporting the
+ * response rather than deriving a metric the API did not serve. It says so in the
+ * tile's own hint.
+ */
+function SummaryRow({ client, session }: { client: RegistryClient; session: Session }) {
+  const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
+
+  const canOperator = can(session, 'usage:read:operator');
+  const canOwned = can(session, 'usage:read:owned');
+  const canOps = can(session, 'ops:operate');
+
+  const summary = useUsageSummary(client, scope, {}, { enabled: canOperator });
+  const owned = useOwnedCapabilityUsage(client, scope, undefined, { enabled: canOwned });
+  const health = useOperationalHealth(client, scope, { enabled: canOps });
+
+  const tiles: Array<{ key: string; label: string; value: string; hint: string; href: string }> =
+    [];
+
+  if (canOperator && summary.data) {
+    const calls = summary.data.surfaces.reduce((total, s) => total + (s.calls ?? 0), 0);
+    const failed = summary.data.surfaces.reduce((total, s) => total + (s.error_calls ?? 0), 0);
+    const window = describeWindow(summary.data);
+    tiles.push({
+      key: 'calls',
+      label: 'Calls',
+      value: calls.toLocaleString(),
+      hint: `Summed across every surface, ${window}.`,
+      href: '/ops/usage',
+    });
+    tiles.push({
+      key: 'failed',
+      label: 'Failed Calls',
+      value: failed.toLocaleString(),
+      hint: `Counted, not rated — a rate over one reading would be invented. ${window}.`,
+      href: '/ops/usage',
+    });
+  }
+
+  if (canOwned && owned.data) {
+    const rows = owned.data.capabilities ?? [];
+    tiles.push({
+      key: 'owned',
+      label: 'Capabilities You Own',
+      value: rows.length.toLocaleString(),
+      hint: `A count of the response, which is complete rather than paged. ${describeWindow(owned.data)}.`,
+      href: '/ops/usage',
+    });
+  }
+
+  if (canOps && health.data) {
+    const deepest = health.data.queues.reduce(
+      (worst, reading) => Math.max(worst, Number(reading.value ?? 0)),
+      0,
+    );
+    tiles.push({
+      key: 'queue',
+      label: 'Deepest Queue',
+      value: deepest.toLocaleString(),
+      hint: 'The largest backlog reported in the latest snapshot, not a trend.',
+      href: '/ops/metrics',
+    });
+  }
+
+  if (tiles.length === 0) {
+    return (
+      <Text color="secondary">
+        No summary figures are readable by this role. Nothing here is being hidden: the catalog
+        endpoints serve a page and a cursor rather than a total, so the only counts this console can
+        state honestly come from the usage and operational reads, which this identity is not
+        granted.
+      </Text>
+    );
+  }
+
+  return (
+    <TileGrid columns={3}>
+      {tiles.map((tile) => (
+        <StatTile key={tile.key} label={tile.label} value={tile.value} hint={tile.hint} />
+      ))}
+    </TileGrid>
   );
 }
 
