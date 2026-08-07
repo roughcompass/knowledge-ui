@@ -37,7 +37,7 @@ import {
   type Column,
 } from '@knowledge-ui/ui-kit';
 import { useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 /**
  * The capability catalog: one page, two modes.
@@ -71,7 +71,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
  */
 export function CapabilityListPage() {
   const { session, client } = useSession<RegistryClient>();
-  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
 
   const q = params.get('q') ?? '';
@@ -119,6 +118,16 @@ export function CapabilityListPage() {
         key: 'name',
         header: 'Name',
         render: (row) => <Text>{row.name}</Text>,
+        /*
+          A real anchor, not a row handler. The row used to be the control, which gave
+          up middle-click, "copy link address" and the link role a screen reader
+          announces. The filters ride along so the detail page's back control can
+          restore them.
+        */
+        href: (row) =>
+          `${encodeURIComponent(row.name)}${
+            params.toString() ? `?from=${encodeURIComponent(params.toString())}` : ''
+          }`,
       },
       {
         key: 'entity_type',
@@ -167,14 +176,28 @@ export function CapabilityListPage() {
         ),
       },
     ],
-    [],
+    [params],
   );
 
   const [showScores, setShowScores] = useState(false);
 
   const searchColumns: Array<Column<SearchHit>> = useMemo(
     () => [
-      { key: 'name', header: 'Name', render: (row) => <Text>{row.name}</Text> },
+      {
+        key: 'name',
+        header: 'Name',
+        render: (row) => <Text>{row.name}</Text>,
+        /*
+          A real anchor, not a row handler. The row used to be the control, which gave
+          up middle-click, "copy link address" and the link role a screen reader
+          announces. The filters ride along so the detail page's back control can
+          restore them.
+        */
+        href: (row) =>
+          `${encodeURIComponent(row.name)}${
+            params.toString() ? `?from=${encodeURIComponent(params.toString())}` : ''
+          }`,
+      },
       {
         key: 'entity_type',
         header: 'Type',
@@ -209,7 +232,7 @@ export function CapabilityListPage() {
           ]
         : []),
     ],
-    [showScores],
+    [showScores, params],
   );
 
   const error = isSearching ? search.error : browse.error;
@@ -366,17 +389,6 @@ export function CapabilityListPage() {
             hasError={Boolean(error)}
             emptyTitle="No matches"
             emptyDescription={`Nothing in this tenant matched “${q}”. Search covers names and the text recorded against each capability; try a broader word, or clear the lifecycle and type filters.`}
-            /*
-              Carries the reader's filters forward, so the detail page's back control
-              can hand them back. Without it a reader who arrived from a filtered
-              search returned to an unfiltered browse and rebuilt it by hand.
-            */
-            onRowClick={(row) =>
-              navigate({
-                pathname: row.name,
-                search: params.toString() ? `?from=${encodeURIComponent(params.toString())}` : '',
-              })
-            }
           />
         </>
       ) : (
@@ -400,17 +412,6 @@ export function CapabilityListPage() {
             hasError={Boolean(error)}
             emptyTitle="No capabilities"
             emptyDescription="Nothing has been published in this tenant yet."
-            /*
-              Carries the reader's filters forward, so the detail page's back control
-              can hand them back. Without it a reader who arrived from a filtered
-              search returned to an unfiltered browse and rebuilt it by hand.
-            */
-            onRowClick={(row) =>
-              navigate({
-                pathname: row.name,
-                search: params.toString() ? `?from=${encodeURIComponent(params.toString())}` : '',
-              })
-            }
           />
           <CursorPager
             showingCount={rows.length}

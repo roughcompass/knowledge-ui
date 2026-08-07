@@ -6,6 +6,7 @@ import styles from './DataTable.module.css';
 import { EmptyState } from './EmptyState';
 import { displayText } from './displayText';
 import { SkeletonBar } from './Skeleton';
+import { KLink } from './LinkAdapter';
 
 /**
  * A thin generic wrapper over Salt's table primitives.
@@ -58,6 +59,19 @@ export interface Column<TRow> {
    * there is no rule of its own to be outranked by.
    */
   figures?: 'tabular';
+  /**
+   * Where this cell's value goes.
+   *
+   * The primary cell of a row that has a destination renders a real anchor, which is
+   * what makes middle-click, "copy link address" and the screen-reader link role
+   * work. A row-level click handler gives all three up, and this component carried
+   * one for exactly as long as the kit had no way to build an href — see the note on
+   * `onRowClick`, which this replaces.
+   *
+   * Returning `undefined` renders the value as plain text, for the rows in a list
+   * that genuinely have nowhere to go.
+   */
+  href?: (row: TRow) => string | undefined;
 }
 
 export interface DataTableProps<TRow> {
@@ -133,7 +147,6 @@ export interface DataTableProps<TRow> {
    * would announce as a sibling of the section that contains it.
    */
   emptyHeadingLevel?: 'h2' | 'h3';
-  onRowClick?: (row: TRow) => void;
 }
 
 /** Left is the default and needs no class. */
@@ -170,7 +183,6 @@ export function DataTable<TRow>({
   emptyTitle = 'Nothing to show',
   emptyDescription,
   emptyHeadingLevel = 'h2',
-  onRowClick,
 }: DataTableProps<TRow>) {
   /*
    * Error before empty.
@@ -269,40 +281,38 @@ export function DataTable<TRow>({
           <TR
             key={getRowId(row, index)}
             /*
-             * A clickable row must be reachable and activatable from the
-             * keyboard, or the interaction exists only for pointer users.
+             * The row is not the control; the link in its primary cell is.
              *
-             * Deliberately no `role="button"`. It was here, and it takes the row
-             * out of the table's row set — the cells inside then lose their
-             * association with the column headers, which is a worse outcome than
-             * the affordance it was buying. Deliberately no `aria-label` either:
-             * on a row it replaces the announcement of the cell contents.
+             * This carried a row-level click handler with a tab stop and a key
+             * handler, because the correct pattern needs an href and this package
+             * takes no router dependency. It does now, through the kit's own link
+             * adapter — so the handler is gone rather than kept beside the link,
+             * which would have left two ways to activate a row, one of them a
+             * focusable div wrapping an anchor.
              *
-             * The genuinely correct pattern is a real link in the row's primary
-             * cell. That needs an href, which means the router, which this
-             * package does not depend on — so it belongs to the caller. Until
-             * then this keeps keyboard parity and the hover class supplies the
-             * visual affordance.
+             * The hover treatment stays, keyed on the table having a linked column
+             * at all, so a row that goes somewhere still looks like it does.
              */
-            {...(onRowClick
-              ? {
-                  onClick: () => onRowClick(row),
-                  tabIndex: 0,
-                  className: styles.clickableRow,
-                  onKeyDown: (event: React.KeyboardEvent) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      onRowClick(row);
-                    }
-                  },
-                }
-              : {})}
+            className={columns.some((column) => column.href) ? styles.clickableRow : undefined}
           >
             {columns.map((column) => (
               <TD key={column.key} {...cellProps({ align: column.align, figures: column.figures })}>
-                {column.render
-                  ? column.render(row)
-                  : displayText((row as Record<string, unknown>)[column.key])}
+                {(() => {
+                  const content = column.render
+                    ? column.render(row)
+                    : displayText((row as Record<string, unknown>)[column.key]);
+                  const href = column.href?.(row);
+                  // Dense by default: a column of links reads as a ruled form if each
+                  // one carries its own underline. Accent supplies the affordance and
+                  // the underline returns on hover.
+                  return href ? (
+                    <KLink to={href} underline="never" color="primary">
+                      {content}
+                    </KLink>
+                  ) : (
+                    content
+                  );
+                })()}
               </TD>
             ))}
           </TR>
