@@ -69,7 +69,14 @@ describe('the context probe conversation', () => {
 
     expect(await screen.findByText('Context Layer Returned')).toBeInTheDocument();
     expect(screen.getByText(/Exact records from the selected source/i)).toBeInTheDocument();
-    expect(screen.getByText('Server Relevance')).toBeInTheDocument();
+    /*
+      This text is served by ContextProbeResults, which the page loads with
+      React.lazy behind a Suspense boundary. "Context Layer Returned" commits
+      outside that boundary, in the same pass as the loading fallback, so it can
+      be visible before the lazy chunk resolves. Only a find query observes the
+      chunk's own arrival instead of assuming it is already there.
+    */
+    expect(await screen.findByText('Server Relevance')).toBeInTheDocument();
     expect(
       screen.getByText(/Catalog probe completed. Context is ready for review/i),
     ).toBeInTheDocument();
@@ -105,7 +112,10 @@ describe('the context probe conversation', () => {
     await user.click(screen.getByRole('button', { name: 'Probe Context' }));
     await screen.findByText('Context Layer Returned');
 
-    await user.click(screen.getByRole('combobox', { name: 'Evaluation for salt-design-system' }));
+    // Same lazily-loaded results chunk as above: wait for its own arrival.
+    await user.click(
+      await screen.findByRole('combobox', { name: 'Evaluation for salt-design-system' }),
+    );
     await user.click(await screen.findByRole('option', { name: 'Expected' }));
     await user.type(
       screen.getByRole('textbox', { name: /missing context/i }),
