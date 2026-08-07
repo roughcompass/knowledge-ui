@@ -1,4 +1,4 @@
-import { LinkCard, StackLayout, Text } from '@salt-ds/core';
+import { FlowLayout, LinkCard, StackLayout, Tag, Text } from '@salt-ds/core';
 import type { MouseEvent, ReactNode } from 'react';
 
 import styles from './NavCard.module.css';
@@ -24,6 +24,7 @@ export function NavCard({
   onNavigate,
   title,
   description,
+  tags,
 }: {
   /** Already resolved against the router basename by the caller. */
   href: string;
@@ -31,6 +32,15 @@ export function NavCard({
   onNavigate: () => void;
   title: string;
   description?: ReactNode;
+  /**
+   * What this destination holds, as short noun phrases.
+   *
+   * A description says what a section is for; these say what is *in* it, which is
+   * the question a reader arriving cold actually has. Nouns rather than sentences,
+   * because a row of them is scanned rather than read — and capped by the caller,
+   * since a card that lists everything has told the reader nothing.
+   */
+  tags?: readonly string[];
 }) {
   return (
     <LinkCard
@@ -47,6 +57,13 @@ export function NavCard({
       <StackLayout gap={1}>
         <Text styleAs="label">{title}</Text>
         {description !== undefined ? <Text color="secondary">{description}</Text> : null}
+        {tags && tags.length > 0 ? (
+          <FlowLayout gap={1}>
+            {tags.map((tag) => (
+              <Tag key={tag}>{tag}</Tag>
+            ))}
+          </FlowLayout>
+        ) : null}
       </StackLayout>
     </LinkCard>
   );

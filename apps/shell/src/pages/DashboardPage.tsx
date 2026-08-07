@@ -1,5 +1,5 @@
-import { FlexLayout, FlowLayout, StackLayout, Tag, Text } from '@salt-ds/core';
-import { useEffect, useState } from 'react';
+import { Button, FlexLayout, FlowLayout, StackLayout, Tag, Text } from '@salt-ds/core';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   describeWindow,
   useNotifications,
@@ -25,7 +25,12 @@ import {
 } from '@knowledge-ui/ui-kit';
 import { useHref, useNavigate } from 'react-router-dom';
 
-import { NAVIGATION, remoteChildHref, type NavigationSection } from '../remotes/registry';
+import {
+  NAVIGATION,
+  remoteChildHref,
+  remoteFor,
+  type NavigationSection,
+} from '../remotes/registry';
 
 /** The probe's three host-visible states, as a reader would say them. */
 const READINESS_TEXT = {
@@ -73,6 +78,59 @@ const READINESS_STATUS = {
  * nobody can be taught or supported on — and the persona switcher means one
  * person sees all four in a minute.
  */
+/**
+ * Morning, afternoon or evening, by the reader's own clock.
+ *
+ * There is no server-side notion of the reader's day and no reason to invent one —
+ * the browser knows, and being wrong about it is the kind of small dishonesty that
+ * makes a greeting feel automated rather than addressed.
+ */
+/**
+ * A section title with the one link that belongs beside it.
+ *
+ * The reference pairs every section with a single destination on the same line —
+ * the place a reader goes when the summary is not enough. Distinct from a card's
+ * own action: this is about the whole section, and there is never more than one,
+ * because two makes it a toolbar and the eye stops reading either.
+ */
+function SectionHeading({ title, action }: { title: string; action?: ReactNode }) {
+  return (
+    <FlexLayout gap={2} align="center" justify="space-between">
+      <Text styleAs="h4" as="h2">
+        {title}
+      </Text>
+      {action}
+    </FlexLayout>
+  );
+}
+
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+/**
+ * Greet by name only when the server gave one a person would answer to.
+ *
+ * Under the client-credentials grant the actor's display name *is* the client id, so
+ * this rendered "Good morning, knowledge-ui-consumer" — which is worse than not
+ * greeting at all, because the entire value of addressing someone is that it reads as
+ * addressed rather than generated. A real identity provider sends a human name and
+ * this passes it through unchanged.
+ *
+ * The test is shape, not a list: a machine identifier here is lower-case and
+ * hyphen-or-dot separated with no spaces, and a name a person answers to is not. It
+ * errs toward dropping the name, because a bare "Good morning" is unremarkable and a
+ * greeting aimed at a service account is not.
+ */
+function personName(displayName: string | null | undefined): string | undefined {
+  if (!displayName) return undefined;
+  const machineShaped = /^[a-z0-9]+([-._][a-z0-9]+)+$/.test(displayName);
+  return machineShaped ? undefined : displayName;
+}
+
 export function DashboardPage({
   session,
   personas,
@@ -96,13 +154,52 @@ export function DashboardPage({
 
   return (
     <StackLayout gap={3}>
+      {/*
+        Greeted by name, and by time of day.
+
+        The page opened "Capability Registry" — the product's own name, to a reader
+        who had just clicked its logo to get here. A console is somewhere a person
+        arrives repeatedly during a working day, and naming them is the cheapest
+        thing it can do to read as somewhere they work rather than a document they
+        landed on. The tenant and role stay as metadata, because those genuinely do
+        change what the page will show them.
+
+        Local time, since the reader's clock is the only one that makes "morning"
+        true, and there is no server-side notion of their day.
+      */}
       <PageHeader
-        title="Capability Registry"
+        title={(() => {
+          const name = personName(session.actorDisplayName);
+          return name ? `${greeting()}, ${name}` : greeting();
+        })()}
         description="Everything a team at this bank publishes for other teams to build on — what exists, who depends on it, and how much it is used. Search from the bar above, or start with a section below."
         metadata={
           <FlexLayout gap={1} wrap>
             <Tag bordered>{session.tenantDisplayName}</Tag>
             <Tag bordered>{session.role}</Tag>
+          </FlexLayout>
+        }
+        actions={
+          <FlexLayout gap={1} align="center">
+            <Button
+              appearance="bordered"
+              sentiment="neutral"
+              onClick={() => navigate(remoteChildHref('catalog', 'claims'))}
+            >
+              Browse Claims
+            </Button>
+            {/*
+              The one primary action on the page. A console's landing surface should
+              have exactly one obvious next move, and for every role here that move
+              is the catalog — it is the only destination no role is refused.
+            */}
+            <Button
+              appearance="solid"
+              sentiment="accented"
+              onClick={() => navigate(remoteFor('catalog').mountPath)}
+            >
+              Browse Capabilities
+            </Button>
           </FlexLayout>
         }
       />
@@ -130,9 +227,14 @@ export function DashboardPage({
       ) : null}
 
       <StackLayout gap={1}>
-        <Text styleAs="h4" as="h2">
-          At a glance
-        </Text>
+        <SectionHeading
+          title="At a glance"
+          action={
+            can(session, 'usage:read:owned') ? (
+              <KLink to={remoteChildHref('operations', 'usage')}>Full usage</KLink>
+            ) : undefined
+          }
+        />
         <SummaryRow client={client} session={session} />
       </StackLayout>
 
@@ -236,7 +338,83 @@ export function DashboardPage({
           ) : null}
         </StackLayout>
       </SectionCard>
+
+      {/*
+        Resources, after the reader's own work rather than before it.
+
+        The reference puts a row of capability cards near the foot of its dashboard —
+        the things a reader wants once, on their first visit, and rarely again. That
+        is the right place for them: above the fold they compete with the destinations
+        someone came here to use, and below it they are still findable by the person
+        who has not found their footing yet.
+
+        Each is a real destination this app or its docs already serve. Nothing here
+        links to a feature that does not exist.
+      */}
+      <StackLayout gap={1}>
+        <SectionHeading title="Learn the registry" />
+        <TileGrid columns={3}>
+          <ResourceCard
+            title="Retrieval and trust"
+            description="Why the catalog, claims and your own notes are answered separately, and how to read the trust label on each."
+            actionLabel="Open Context Lab"
+            to={remoteChildHref('catalog', 'context')}
+          />
+          <ResourceCard
+            title="What depends on what"
+            description="Follow a capability's dependents and blast radius before shipping a change that would break one of them."
+            actionLabel="Open Graph"
+            to={remoteChildHref('catalog', 'graph')}
+          />
+          <ResourceCard
+            title="Keep your own notes"
+            description="Decisions, open questions and saved queries, kept beside the catalog and private to you or your tenant."
+            actionLabel="Open Workspaces"
+            to={remoteChildHref('catalog', 'workspaces')}
+          />
+        </TileGrid>
+      </StackLayout>
+
+      {/*
+        The reference closes with a quiet row of links rather than a card. These are
+        the three a reader wants when something is wrong or unclear, and none of them
+        deserves a destination card competing with the sections above.
+      */}
+      <FlexLayout gap={3} justify="center" wrap>
+        <KLink to="/ops">API Status</KLink>
+        <KLink to={remoteChildHref('catalog', 'context')}>Context Lab</KLink>
+        <KLink to="/_session">Session Details</KLink>
+      </FlexLayout>
     </StackLayout>
+  );
+}
+
+/**
+ * A destination with a sentence of why, and one control.
+ *
+ * The same shape as the navigation cards above, deliberately: a reader should not
+ * have to learn two card idioms on one page. What differs is the job — those are the
+ * sections of the product, these are the things worth understanding once. Kept as a
+ * local component rather than a kit export because nothing else needs it yet, and a
+ * primitive invented for one page is one nobody else can find.
+ */
+function ResourceCard({
+  title,
+  description,
+  actionLabel,
+  to,
+}: {
+  title: string;
+  description: string;
+  actionLabel: string;
+  to: string;
+}) {
+  return (
+    <SectionCard title={title} description={description}>
+      <FlexLayout justify="start">
+        <KLink to={to}>{actionLabel}</KLink>
+      </FlexLayout>
+    </SectionCard>
   );
 }
 
@@ -563,6 +741,13 @@ function SectionNavCard({
       onNavigate={() => onNavigate(section.href)}
       title={section.label}
       description={section.description}
+      /*
+        What is actually in there, taken from the section's own children rather
+        than written again here — so a card cannot drift from the rail beside it,
+        and adding a page adds its own tag. Capped at four: a card that lists
+        everything has told the reader nothing, and the rail is one glance away.
+      */
+      tags={section.children.slice(0, 4).map((child) => child.label)}
     />
   );
 }

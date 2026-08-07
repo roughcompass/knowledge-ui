@@ -29,6 +29,9 @@ export function StatTile({
   value,
   hint,
   status,
+  badge,
+  visual,
+  action,
   headingLevel = 'h2',
 }: {
   label: string;
@@ -41,28 +44,64 @@ export function StatTile({
   hint?: ReactNode;
   /** Renders an indicator beside the value. Omit when the reading is not a verdict. */
   status?: 'success' | 'warning' | 'error' | 'info';
+  /**
+   * A qualifier on the reading, top-right of the label row.
+   *
+   * For the thing a reader checks in the same glance as the number itself — a
+   * proportion of a limit, a hit rate, a direction of travel. It sits opposite the
+   * label rather than beneath the value because it qualifies *what this is*, not
+   * what it says; putting it under the number makes it read as a second reading.
+   *
+   * Not a place for a status verdict. That is `status`, which draws an indicator
+   * the design system already gives a meaning to.
+   */
+  badge?: ReactNode;
+  /**
+   * A small mark to the right of the value — a spark, a ring, a set of bars.
+   *
+   * Shape only. It carries no labels and no axis, because at this size it cannot
+   * carry them legibly, and a chart that cannot be read precisely must not be the
+   * only place a value appears. The number beside it is the reading; this is the
+   * direction of travel. Anything a reader needs to *compare* belongs in a figure
+   * with its data table, which is a different component and a hard rule.
+   */
+  visual?: ReactNode;
+  /** One control, for the action the reading most obviously prompts. */
+  action?: ReactNode;
   /** Set to `h3` when the tile sits under a section heading rather than the page title. */
   headingLevel?: 'h2' | 'h3';
 }) {
   return (
     <SectionCard>
       <StackLayout gap={1}>
-        <Text styleAs="label" as={headingLevel}>
-          {label}
-        </Text>
-        {status === undefined ? (
-          value
-        ) : (
-          <FlexLayout gap={1} align="center">
-            <StatusIndicator status={status} />
-            {value}
-          </FlexLayout>
-        )}
-        {hint !== undefined ? (
-          <Text styleAs="notation" color="secondary">
-            {hint}
+        <FlexLayout gap={2} align="center" justify="space-between">
+          <Text styleAs="label" as={headingLevel}>
+            {label}
           </Text>
-        ) : null}
+          {badge}
+        </FlexLayout>
+
+        <FlexLayout gap={2} align="center" justify="space-between">
+          <StackLayout gap={1}>
+            {status === undefined ? (
+              value
+            ) : (
+              <FlexLayout gap={1} align="center">
+                <StatusIndicator status={status} />
+                {value}
+              </FlexLayout>
+            )}
+            {hint !== undefined ? (
+              <Text styleAs="notation" color="secondary">
+                {hint}
+              </Text>
+            ) : null}
+          </StackLayout>
+          {/* Beside the reading, not under it: the eye reads value then trend on one line. */}
+          {visual}
+        </FlexLayout>
+
+        {action}
       </StackLayout>
     </SectionCard>
   );
