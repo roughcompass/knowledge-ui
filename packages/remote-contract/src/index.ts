@@ -53,6 +53,20 @@ export interface RemoteMountProps<TSession = unknown, TClient = unknown> {
   navigateAbsolute: (to: string) => void;
 
   /**
+   * The path another remote is mounted at, optionally with a child appended.
+   *
+   * `navigateAbsolute` above can move the reader across the boundary but cannot
+   * produce an `href`, so a cross-remote reference could only ever be a click
+   * handler — which is why the entire operations remote emitted no links at all and
+   * rendered raw ids where it meant "this capability". A real anchor needs a path,
+   * and only the host knows where each remote is mounted.
+   *
+   * Resolved by the host from the same descriptor the rail reads, so a remote still
+   * does not know or hard-code where any other one lives.
+   */
+  hrefForRemote: (remote: RemoteName, childPath?: string) => string;
+
+  /**
    * Who the reader could become, and how to become them.
    *
    * Part of the handshake because a remote cannot work this out for itself: the

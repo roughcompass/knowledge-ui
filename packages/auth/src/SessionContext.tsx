@@ -20,6 +20,11 @@ export interface SessionContextValue<TClient = unknown> {
   mountPath: string;
   /** Host-owned navigation, for links into a different remote. */
   navigateAbsolute: (to: string) => void;
+  /**
+   * Where another remote is mounted, so a page can build a real anchor across the
+   * boundary rather than a click handler. Only the host knows the mount paths.
+   */
+  hrefForRemote?: (remote: 'catalog' | 'operations', childPath?: string) => string;
 
   /**
    * The identities available to switch to. Empty in a production build.

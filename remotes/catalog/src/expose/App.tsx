@@ -62,6 +62,7 @@ export default function CatalogApp(props: RemoteMountProps<Session, RegistryClie
         client: props.client,
         mountPath: props.mountPath,
         navigateAbsolute: props.navigateAbsolute,
+        hrefForRemote: props.hrefForRemote,
         personas: props.personas,
         onSwitchPersona: props.onSwitchPersona,
       }}

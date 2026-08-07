@@ -29,6 +29,7 @@ import {
   TileGrid,
   UnavailableNotice,
   popoverOverlayProps,
+  EntityLink,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 
@@ -127,7 +128,7 @@ function ReachCell({ surface }: { surface: SurfaceSummary }) {
 }
 
 export function UsagePage() {
-  const { session, client } = useSession<RegistryClient>();
+  const { session, client, hrefForRemote } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
 
   const [windowId, setWindowId] = useState<WindowId>('7d');
@@ -393,7 +394,24 @@ export function UsagePage() {
                 hideCaption
                 zebra
                 columns={[
-                  { key: 'capability_id', header: 'Capability' },
+                  {
+                    key: 'capability_id',
+                    header: 'Capability',
+                    /*
+                      The operations remote emitted no links at all, and this column
+                      is the one a producer follows most: "which capability is this
+                      traffic against". It rendered a bare id. The host supplies the
+                      catalog's mount path, so this can be a real anchor rather than
+                      a click handler — a remote still does not hard-code where
+                      another one lives.
+                    */
+                    render: (row) => (
+                      <EntityLink
+                        id={row.capability_id}
+                        to={hrefForRemote?.('catalog', row.capability_id)}
+                      />
+                    ),
+                  },
                   {
                     key: 'calls',
                     header: 'Calls',

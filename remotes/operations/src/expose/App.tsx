@@ -31,6 +31,7 @@ export default function OperationsApp(props: RemoteMountProps<Session, RegistryC
         client: props.client,
         mountPath: props.mountPath,
         navigateAbsolute: props.navigateAbsolute,
+        hrefForRemote: props.hrefForRemote,
         personas: props.personas,
         onSwitchPersona: props.onSwitchPersona,
       }}

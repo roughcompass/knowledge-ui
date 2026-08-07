@@ -20,7 +20,7 @@ import {
   displayText,
   isoDay,
   termText,
-  KLink,
+  EntityLink,
 } from '@knowledge-ui/ui-kit';
 
 const EVALUATION_OPTIONS: ReadonlyArray<{ value: EvaluationMark; label: string }> = [
@@ -123,14 +123,14 @@ function CatalogResultCard({
           items={[
             {
               term: 'Entity ID',
+              /*
+                The id, shortened, with the whole value one keystroke away. This
+                rendered the full thirty-six characters as the link text while the
+                capability's name sat in the card title directly above it — so the
+                longest string in the row carried the least information in it.
+              */
               detail: (
-                <KLink
-                  underline="never"
-                  color="primary"
-                  to={`../${encodeURIComponent(hit.entity_id)}`}
-                >
-                  {hit.entity_id}
-                </KLink>
+                <EntityLink id={hit.entity_id} to={`../${encodeURIComponent(hit.entity_id)}`} />
               ),
             },
             { term: 'Server Relevance', detail: hit.score.toFixed(2) },

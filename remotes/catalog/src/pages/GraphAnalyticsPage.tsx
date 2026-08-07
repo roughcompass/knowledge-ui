@@ -31,6 +31,7 @@ import {
   UnavailableNotice,
   popoverOverlayProps,
   termText,
+  EntityLink,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 
@@ -348,7 +349,7 @@ function OperatorUsagePanel({
              * fetched and matched by this page and could silently mismatch.
              */
             header: 'Capability Id',
-            render: (row) => <Text>{row.capability_id}</Text>,
+            render: (row) => <EntityLink id={row.capability_id} to={`../${row.capability_id}`} />,
           },
           {
             key: 'calls',

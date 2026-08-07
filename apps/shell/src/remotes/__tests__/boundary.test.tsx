@@ -48,6 +48,8 @@ function mountProps(
     }),
     mountPath,
     navigateAbsolute: () => {},
+  hrefForRemote: (remote: string, childPath?: string) =>
+    childPath === undefined ? `/${remote}` : `/${remote}/${childPath}`,
     // Empty, as in a production build where the switcher does not exist. A remote
     // must render with an empty roster rather than assuming one is present.
     personas: [],

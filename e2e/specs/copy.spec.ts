@@ -155,3 +155,34 @@ test('every table header is a Title Case noun, not a sentence', async ({ page })
   expect(checked.size, 'the sweep must actually find headers').toBeGreaterThan(10);
   expect(offences, `Table headers are Title Case nouns:\n${offences.join('\n')}`).toEqual([]);
 });
+
+test('no table cell renders a bare identifier', async ({ page }) => {
+  /*
+   * Nine surfaces used to answer "which one" with a bare thirty-six-character UUID
+   * and no destination — the impact panel's related-entity column, every claim's
+   * subject, the usage and audit tables, a workspace entry's references. Those are
+   * the places a reader is most likely to want to go next, and none of them went
+   * anywhere or could be told apart at a glance.
+   *
+   * A reference now renders as a name where one is known, and otherwise as the first
+   * eight characters with the whole value in a tooltip and a copy control. So a full
+   * UUID standing alone as a cell's text is the regression, and this is the shape of
+   * it rather than a list of the nine places it happened to be.
+   */
+  await asAdmin(page);
+
+  const offences: string[] = [];
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  for (const route of ROUTES) {
+    await page.goto(route, { waitUntil: 'networkidle' });
+    await expect(page.getByRole('main')).toBeVisible();
+
+    for (const text of await page.locator('td').allInnerTexts()) {
+      const value = text.trim();
+      if (uuid.test(value)) offences.push(`${route}: ${value}`);
+    }
+  }
+
+  expect(offences, `Bare identifiers in table cells:\n  ${offences.join('\n  ')}`).toEqual([]);
+});

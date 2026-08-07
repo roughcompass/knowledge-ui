@@ -44,6 +44,7 @@ import {
   popoverOverlayProps,
   termText,
   KLink,
+  EntityLink,
 } from '@knowledge-ui/ui-kit';
 import { useRef, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
@@ -152,7 +153,7 @@ function EntryRow({
               References
             </Text>
             {entry.reference_ids.map((id) => (
-              <Tag key={id}>{id}</Tag>
+              <EntityLink key={id} id={id} to={`../../${id}`} />
             ))}
           </FlexLayout>
         ) : null}

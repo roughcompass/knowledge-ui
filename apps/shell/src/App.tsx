@@ -21,7 +21,8 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { SessionDebugPage } from './pages/SessionDebugPage';
 import { CatalogRemote, OperationsRemote } from './remotes/lazy';
 import { RemoteBoundary } from './remotes/RemoteBoundary';
-import { remoteFor } from './remotes/registry';
+import type { RemoteName } from '@knowledge-ui/remote-contract';
+import { remoteChildHref, remoteFor } from './remotes/registry';
 import { SessionBootstrap } from './session/SessionBootstrap';
 import { AppProviders } from './app/providers';
 import { resolveBasename } from './app/basename';
@@ -274,6 +275,10 @@ function ShellRoutes({
     client,
     mountPath,
     navigateAbsolute: (to: string) => navigate(to),
+    // Lets a remote build a real anchor into another one without knowing where it
+    // is mounted. Resolved from the same descriptor the rail reads.
+    hrefForRemote: (remote: RemoteName, childPath?: string) =>
+      childPath === undefined ? remoteFor(remote).mountPath : remoteChildHref(remote, childPath),
     // The host gates a remote's *mount*; only the remote knows which of its own
     // child routes need more. Handing over the roster is what lets it gate those
     // and still offer the switch, instead of rendering an unexplained empty page.

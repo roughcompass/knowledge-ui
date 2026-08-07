@@ -24,6 +24,7 @@ import {
   isoDay,
   popoverOverlayProps,
   termText,
+  EntityLink,
 } from '@knowledge-ui/ui-kit';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -355,7 +356,20 @@ export function ClaimsPage() {
                 header: 'Subject',
                 // First column, because a predicate and a value do not say what they
                 // are about. A list spanning entities without this is unreadable.
-                render: (row) => <Text>{row.subject_entity_id}</Text>,
+                /*
+                  A claim names its subject by id, and this rendered it as plain
+                  text — so the first column of a claims browser, the one that says
+                  what each row is about, was thirty-six characters of hex that led
+                  nowhere. An unlinked claim has no subject at all, which is a real
+                  state the curation queue exists for, so that case says so instead
+                  of rendering an empty reference.
+                */
+                render: (row) =>
+                  row.subject_entity_id ? (
+                    <EntityLink id={row.subject_entity_id} to={`../${row.subject_entity_id}`} />
+                  ) : (
+                    <Text color="secondary">Unlinked</Text>
+                  ),
               },
               {
                 key: 'predicate',

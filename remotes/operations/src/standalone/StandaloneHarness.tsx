@@ -55,6 +55,9 @@ export function StandaloneHarness() {
       client={client}
       mountPath="/"
       navigateAbsolute={(to) => navigate(to)}
+      hrefForRemote={(remote, childPath) =>
+        childPath === undefined ? `/${remote}` : `/${remote}/${childPath}`
+      }
       personas={personas ?? []}
     />
   );

@@ -25,6 +25,7 @@ import {
   UnavailableNotice,
   isoDay,
   popoverOverlayProps,
+  EntityLink,
 } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 
@@ -141,7 +142,23 @@ function EdgeGroups({ edges }: { edges: readonly EdgeRef[] }) {
             caption={`Entities related by ${relationship}`}
             hideCaption
             columns={[
-              { key: 'dst_entity_id', header: 'Entity' },
+              {
+                key: 'dst_entity_id',
+                header: 'Entity',
+                /*
+                  This column was the whole answer to "what does this depend on", and
+                  it rendered a bare thirty-six-character id that went nowhere. The
+                  traversal endpoints send no name — the comment on the analytics
+                  page says the same of its own column — so the id is shortened to
+                  something two rows apart can be told apart by, with the full value
+                  in a tooltip and one keystroke away, and it now links to the entity
+                  it names. Cross-tenant edges are real, so an id this tenant cannot
+                  open still renders rather than being treated as an error.
+                */
+                render: (row) => (
+                  <EntityLink id={row.dst_entity_id} to={`../${row.dst_entity_id}`} />
+                ),
+              },
               {
                 key: 'valid_from',
                 header: 'Valid From',

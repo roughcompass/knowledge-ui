@@ -29,6 +29,7 @@ import {
   PageHeader,
   instantText,
   type Column,
+  EntityLink,
 } from '@knowledge-ui/ui-kit';
 import { useMemo, useRef, useState, type ChangeEvent } from 'react';
 
@@ -43,7 +44,7 @@ import { useMemo, useRef, useState, type ChangeEvent } from 'react';
  * investigation fast, and it is unusable unless it can be copied.
  */
 export function AuditLogPage() {
-  const { session, client } = useSession<RegistryClient>();
+  const { session, client, hrefForRemote } = useSession<RegistryClient>();
   const [actorId, setActorId] = useState('');
   const [action, setAction] = useState('');
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -75,11 +76,37 @@ export function AuditLogPage() {
       {
         key: 'target',
         header: 'Target',
-        render: (row) => (
-          <Text styleAs="notation" color="secondary">
-            {String(row.target_type)} · {String(row.target_id ?? '—')}
-          </Text>
-        ),
+        /*
+          The audit log names what an action was performed on, and rendered it as
+          type-and-id text. An auditor reading a row wants the thing itself; only a
+          capability target has a page today, so only that one links — the rest keep
+          the short id and its copy control rather than pretending to a destination.
+        */
+        render: (row) => {
+          const targetId = row.target_id ? String(row.target_id) : null;
+          const type = String(row.target_type);
+          if (!targetId)
+            return (
+              <Text styleAs="notation" color="secondary">
+                {type}
+              </Text>
+            );
+          return (
+            <FlexLayout gap={1} align="center">
+              <Text styleAs="notation" color="secondary">
+                {type}
+              </Text>
+              <EntityLink
+                id={targetId}
+                to={
+                  type === 'capability' || type === 'entity'
+                    ? hrefForRemote?.('catalog', targetId)
+                    : undefined
+                }
+              />
+            </FlexLayout>
+          );
+        },
       },
       {
         key: 'error_code',
@@ -122,7 +149,7 @@ export function AuditLogPage() {
         ),
       },
     ],
-    [expanded],
+    [expanded, hrefForRemote],
   );
 
   const rows = query.data?.items ?? [];
