@@ -234,6 +234,7 @@ export {
   useCreateWorkspaceEntry,
   useDeleteWorkspace,
   useDeleteWorkspaceEntry,
+  useUpdateWorkspaceEntry,
   useUpdateWorkspace,
   useWorkspace,
   useWorkspaceEntries,
@@ -272,3 +273,5 @@ export {
 } from './graph';
 
 export { useCurationQueue, useCurationCounts } from './curation';
+
+export { useEntityNames } from './entityNames';

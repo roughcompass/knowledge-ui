@@ -10,6 +10,7 @@ import {
   type Claim,
   type ClaimPersona,
   type RegistryClient,
+  useEntityNames,
 } from '@knowledge-ui/api-client';
 import { can, useSession } from '@knowledge-ui/auth';
 import {
@@ -192,6 +193,17 @@ export function ClaimsPage() {
 
   const active = searching ? searched : filtered;
   const claims = active.data ?? [];
+
+  /*
+    A claim names its subject by id. The first column of a claims browser — the one
+    that says what each row is about — was thirty-six characters of hex, so the page
+    listed observations about things a reader could not identify.
+  */
+  const subjectNames = useEntityNames(
+    client,
+    scope,
+    claims.map((claim) => claim.subject_entity_id).filter((id): id is string => Boolean(id)),
+  );
   const caveat = recallCaveat(claims);
   const uncited = uncitedClaims(claims);
 
@@ -366,7 +378,11 @@ export function ClaimsPage() {
                 */
                 render: (row) =>
                   row.subject_entity_id ? (
-                    <EntityLink id={row.subject_entity_id} to={`../${row.subject_entity_id}`} />
+                    <EntityLink
+                      id={row.subject_entity_id}
+                      name={subjectNames[row.subject_entity_id]}
+                      to={`../${row.subject_entity_id}`}
+                    />
                   ) : (
                     <Text color="secondary">Unlinked</Text>
                   ),

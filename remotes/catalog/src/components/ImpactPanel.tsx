@@ -13,6 +13,7 @@ import {
   type TraversalDepth,
 } from '@knowledge-ui/api-client';
 import { can, useSession } from '@knowledge-ui/auth';
+import { useEntityNames } from '@knowledge-ui/api-client';
 import {
   DataTable,
   EmptyState,
@@ -113,6 +114,19 @@ function isTraversal(data: Dependencies | Traversal): data is Traversal {
 function EdgeGroups({ edges }: { edges: readonly EdgeRef[] }) {
   const grouped = [...edgesByRelationship(edges).entries()];
 
+  /*
+    The traversal answers with ids and no names, so a table of them was a table
+    nobody could read — two rows could not be told apart, and the one thing that
+    would identify them was the one thing absent. Resolved from what is on screen
+    only, so the fan-out is bounded by the page rather than the tenant.
+  */
+  const { session, client } = useSession<RegistryClient>();
+  const names = useEntityNames(
+    client,
+    { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug },
+    edges.map((edge) => edge.dst_entity_id),
+  );
+
   if (grouped.length === 0) {
     /*
      * Three things could produce an empty result and they are not the same: this
@@ -156,7 +170,11 @@ function EdgeGroups({ edges }: { edges: readonly EdgeRef[] }) {
                   open still renders rather than being treated as an error.
                 */
                 render: (row) => (
-                  <EntityLink id={row.dst_entity_id} to={`../${row.dst_entity_id}`} />
+                  <EntityLink
+                    id={row.dst_entity_id}
+                    name={names[row.dst_entity_id]}
+                    to={`../${row.dst_entity_id}`}
+                  />
                 ),
               },
               {

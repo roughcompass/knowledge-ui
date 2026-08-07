@@ -288,6 +288,38 @@ export function useCreateWorkspaceEntry(
   });
 }
 
+/**
+ * Edit an entry in place.
+ *
+ * The endpoint has existed the whole time with no client, so an entry could be
+ * created and deleted and never corrected — a typo in a decision record meant
+ * deleting it and writing it again, which loses the entry's own identity and its
+ * place in the feed. Workspaces are the one surface in this console a reader owns
+ * outright; being unable to edit their own note is the sharpest version of the
+ * read-mostly problem.
+ */
+export function useUpdateWorkspaceEntry(
+  client: RegistryClient,
+  scope: KeyScope,
+): UseMutationResult<
+  WorkspaceEntry,
+  RegistryError,
+  { workspaceId: string; entryId: string; body_md: string }
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ workspaceId, entryId, body_md }) =>
+      client.request<WorkspaceEntry>(
+        `/v1/workspaces/${encodeURIComponent(workspaceId)}/entries/${encodeURIComponent(entryId)}`,
+        { method: 'PATCH', body: { body_md } },
+      ),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workspacesRoot(scope) });
+    },
+  });
+}
+
 export function useDeleteWorkspaceEntry(
   client: RegistryClient,
   scope: KeyScope,

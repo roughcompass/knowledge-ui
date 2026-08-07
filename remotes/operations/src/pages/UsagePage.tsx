@@ -13,6 +13,7 @@ import {
   windowSubstituted,
   type RegistryClient,
   type SurfaceSummary,
+  useEntityNames,
 } from '@knowledge-ui/api-client';
 import { can, useSession } from '@knowledge-ui/auth';
 import {
@@ -152,6 +153,18 @@ export function UsagePage() {
     { enabled: operatorScoped },
   );
   const capabilities = useUsageByCapability(client, scope, range, { enabled: operatorScoped });
+
+  /*
+    The ranking answers with ids and no names — its own column comment says so — so
+    "which capabilities callers asked about" was a list nobody could read. The owned
+    view is different: those rows carry a name already, and passing it means this
+    never fires for them.
+  */
+  const capabilityNames = useEntityNames(
+    client,
+    scope,
+    (capabilities.data?.capabilities ?? []).map((row) => row.capability_id),
+  );
   const tools = useUsageByTool(client, scope, range, { enabled: operatorScoped });
   const owned = useOwnedCapabilityUsage(client, scope, range, { enabled: ownerScoped });
 
@@ -408,6 +421,7 @@ export function UsagePage() {
                     render: (row) => (
                       <EntityLink
                         id={row.capability_id}
+                        name={capabilityNames[row.capability_id]}
                         to={hrefForRemote?.('catalog', row.capability_id)}
                       />
                     ),

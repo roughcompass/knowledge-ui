@@ -90,7 +90,13 @@ describe('the claims page', () => {
     // about nothing in particular.
     renderPage();
     const table = await screen.findByRole('table', { name: /claims/i });
-    expect(within(table).getAllByText('salt-design-system').length).toBeGreaterThan(0);
+    /*
+      The display name, not the slug or the id. A claims browser whose subject column
+      says `salt-design-system` — or worse, a UUID — is a list of assertions about
+      things the reader cannot identify, which is what this column existed to fix and
+      did not. The resolver prefers a name the server sent and falls back to the id.
+    */
+    expect(within(table).getAllByText('Salt Design System').length).toBeGreaterThan(0);
   });
 
   it('shows the interval a claim was true for, and when it was last seen', async () => {

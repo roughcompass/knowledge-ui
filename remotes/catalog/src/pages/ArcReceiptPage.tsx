@@ -14,6 +14,7 @@ import {
   PageHeader,
   SectionCard,
   KLink,
+  UnavailableNotice,
 } from '@knowledge-ui/ui-kit';
 import { Button, FlexLayout, Input, StackLayout, Text } from '@salt-ds/core';
 import { lazy, Suspense, useEffect, useState } from 'react';
@@ -100,10 +101,26 @@ export function ArcReceiptPage() {
       </SectionCard>
 
       {!receiptId ? (
-        <EmptyState
-          title="No Receipt Open"
-          description="Enter a receipt UUID above. The inspector reads retained history; it does not construct or submit an ARC manifest."
-        />
+        /*
+          A form asking for a UUID with no way to obtain one is a dead end, and this
+          page was exactly that: nothing in the console produces a receipt id, and the
+          registry publishes no list endpoint for receipts — only read-by-id. So the
+          honest thing is to say where an id comes from rather than leave a reader
+          guessing that they have missed a link somewhere.
+
+          The named absence is the list itself. When a receipts index exists this
+          becomes a table and the paste box becomes the fallback.
+        */
+        <StackLayout gap={3}>
+          <EmptyState
+            title="No Receipt Open"
+            description="Paste a receipt UUID above. The inspector reads retained history; it does not construct or submit an ARC manifest."
+          />
+          <UnavailableNotice
+            title="Receipts cannot be browsed"
+            reason="The registry serves a receipt by id and publishes no index of them, so this console cannot offer a list to pick from. An id comes from the agent host that performed the resolution, or from the audit record of the request that produced it — not from anywhere in this app."
+          />
+        </StackLayout>
       ) : null}
 
       {/*

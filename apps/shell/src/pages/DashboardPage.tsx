@@ -1,4 +1,5 @@
-import { FlexLayout, StackLayout, Tag, Text } from '@salt-ds/core';
+import { FlexLayout, FlowLayout, StackLayout, Tag, Text } from '@salt-ds/core';
+import { useEffect, useState } from 'react';
 import {
   describeWindow,
   useNotifications,
@@ -348,6 +349,53 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
  * response rather than deriving a metric the API did not serve. It says so in the
  * tile's own hint.
  */
+/**
+ * What a reader did, for the reader who can be told no numbers.
+ *
+ * Recents are the only "at a glance" available to a consumer: the catalog endpoints
+ * serve pages and cursors rather than totals, and the aggregate reads are gated. This
+ * makes no claim about the tenant at all — it is the reader's own trail, which is
+ * what a dispatch page should carry.
+ *
+ * Read from the same per-persona key the search field writes, so switching identity
+ * does not surface a search whose results that identity cannot see.
+ */
+function RecentActivity({ session }: { session: Session }) {
+  const [recents, setRecents] = useState<readonly string[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(
+        `kui:recent-searches:${session.personaKey ?? 'unknown'}`,
+      );
+      if (raw) setRecents(JSON.parse(raw) as string[]);
+    } catch {
+      /* private browsing — no trail to show */
+    }
+  }, [session.personaKey]);
+
+  if (recents.length === 0) {
+    return (
+      <Text color="secondary">
+        Nothing to summarise yet. This role holds none of the aggregate reads, and the catalog
+        endpoints serve a page and a cursor rather than a total — so rather than a count that would
+        only mean &ldquo;as many as fit on one page&rdquo;, your recent searches appear here once
+        you have made some.
+      </Text>
+    );
+  }
+
+  return (
+    <FlowLayout gap={1}>
+      {recents.map((entry: string) => (
+        <KLink key={entry} to={`/catalog?q=${encodeURIComponent(entry)}`}>
+          {entry}
+        </KLink>
+      ))}
+    </FlowLayout>
+  );
+}
+
 function SummaryRow({ client, session }: { client: RegistryClient; session: Session }) {
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
 
@@ -407,16 +455,13 @@ function SummaryRow({ client, session }: { client: RegistryClient; session: Sess
     });
   }
 
-  if (tiles.length === 0) {
-    return (
-      <Text color="secondary">
-        No summary figures are readable by this role. Nothing here is being hidden: the catalog
-        endpoints serve a page and a cursor rather than a total, so the only counts this console can
-        state honestly come from the usage and operational reads, which this identity is not
-        granted.
-      </Text>
-    );
-  }
+  /*
+    A consumer holds none of the aggregate reads, so this row would be empty for the
+    most common reader on the most-visited page — which is most of why the dashboard
+    read as plain. An empty row is not the honest answer; the honest answer is that
+    the useful thing for that reader is not a number, it is their own trail.
+  */
+  if (tiles.length === 0) return <RecentActivity session={session} />;
 
   return (
     <TileGrid columns={3}>

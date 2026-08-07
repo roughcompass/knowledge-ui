@@ -150,7 +150,13 @@ describe('demand, as distinct from the catalogue', () => {
      */
     renderPage();
     const table = await screen.findByRole('table', { name: /usage by capability/i });
-    expect(within(table).getByText('salt-design-system')).toBeInTheDocument();
+    /*
+      The name, not the id. This ranking answers with `capability_id` and no name —
+      its own column comment says so — so the table read as a list of identifiers
+      nobody could match to a capability. The resolver fills that in and the cell
+      links across into the catalog.
+    */
+    expect(within(table).getByText('Salt Design System')).toBeInTheDocument();
     expect(within(table).getByRole('columnheader', { name: 'Actor-Days' })).toBeInTheDocument();
   });
 });

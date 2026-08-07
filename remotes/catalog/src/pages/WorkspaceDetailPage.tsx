@@ -17,6 +17,7 @@ import {
   filterSignature,
   useCreateWorkspaceEntry,
   useDeleteWorkspaceEntry,
+  useUpdateWorkspaceEntry,
   useUpdateWorkspace,
   useWorkspace,
   useWorkspaceEntries,
@@ -108,11 +109,25 @@ function EntryRow({
   entry,
   canWrite,
   onDelete,
+  onSave,
+  saving,
 }: {
   entry: WorkspaceEntry;
   canWrite: boolean;
   onDelete: () => void;
+  onSave: (body: string) => void;
+  saving: boolean;
 }) {
+  /*
+    Editing in place, because the endpoint has existed the whole time with no
+    client. An entry could be created and deleted and never corrected, so fixing a
+    typo in a decision record meant deleting it and writing it again — which loses
+    the entry's identity and its place in the feed. A workspace is the one surface
+    in this console a reader owns outright.
+  */
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(entry.body_md);
+
   return (
     <StackLayout gap={1.5}>
       <FlexLayout gap={2} align="center" justify="space-between">
@@ -125,11 +140,47 @@ function EntryRow({
           </Text>
         </FlexLayout>
         {canWrite ? (
-          <Button appearance="transparent" sentiment="neutral" onClick={onDelete}>
-            Delete
-          </Button>
+          <FlexLayout gap={1} align="center">
+            <Button
+              appearance="transparent"
+              sentiment="neutral"
+              onClick={() => {
+                setDraft(entry.body_md);
+                setEditing((open) => !open);
+              }}
+            >
+              {editing ? 'Cancel Edit' : 'Edit Entry'}
+            </Button>
+            <Button appearance="transparent" sentiment="neutral" onClick={onDelete}>
+              Delete
+            </Button>
+          </FlexLayout>
         ) : null}
       </FlexLayout>
+
+      {editing ? (
+        <StackLayout gap={1}>
+          <MultilineInput
+            bordered
+            value={draft}
+            aria-label="Entry body"
+            onChange={(event) => setDraft((event.target as HTMLTextAreaElement).value)}
+          />
+          <FlexLayout justify="end" gap={1}>
+            <Button
+              appearance="solid"
+              sentiment="accented"
+              disabled={saving || draft.trim().length === 0 || draft === entry.body_md}
+              onClick={() => {
+                onSave(draft);
+                setEditing(false);
+              }}
+            >
+              {saving ? 'Saving…' : 'Save Entry'}
+            </Button>
+          </FlexLayout>
+        </StackLayout>
+      ) : null}
 
       <StackLayout gap={2}>
         {entry.warnings && entry.warnings.length > 0 ? (
@@ -197,6 +248,7 @@ export function WorkspaceDetailPage() {
   const [entryBody, setEntryBody] = useState('');
   const [entryFormOpen, setEntryFormOpen] = useState(false);
   const [deletingEntry, setDeletingEntry] = useState<WorkspaceEntry | null>(null);
+  const updateEntry = useUpdateWorkspaceEntry(client, scope);
   const [receipt, setReceipt] = useState<string | null>(null);
 
   /*
@@ -551,6 +603,14 @@ export function WorkspaceDetailPage() {
                   {rows.map((entry) => (
                     <EntryRow
                       key={entry.entry_id}
+                      onSave={(body) =>
+                        updateEntry.mutate({
+                          workspaceId: workspaceId as string,
+                          entryId: entry.entry_id,
+                          body_md: body,
+                        })
+                      }
+                      saving={updateEntry.isPending}
                       entry={entry}
                       canWrite={mayWriteEntries}
                       onDelete={() => {
