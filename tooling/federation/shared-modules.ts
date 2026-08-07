@@ -26,8 +26,8 @@
 export const PINNED = {
   react: '18.3.1',
   'react-dom': '18.3.1',
-  'react-router': '6.30.1',
-  'react-router-dom': '6.30.1',
+  'react-router': '6.30.4',
+  'react-router-dom': '6.30.4',
   '@tanstack/react-query': '5.90.2',
   '@salt-ds/core': '1.67.0',
   '@salt-ds/icons': '1.18.0',

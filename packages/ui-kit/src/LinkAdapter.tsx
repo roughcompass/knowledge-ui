@@ -101,8 +101,35 @@ export type KLinkProps = Omit<LinkProps, 'href'> & {
  *   carries the affordance at rest, and the underline returns on hover, from one
  *   declaration in the global sheet.
  */
-export function KLink({ to, relative, onClick, ...rest }: KLinkProps) {
+/**
+ * A destination inside this application, and demonstrably not somewhere else.
+ *
+ * Most link targets here are built from values the registry served — a
+ * capability's name, a resolved endpoint, a workspace id — and the registry
+ * ingests from sync connectors, so a name is upstream content rather than
+ * something this app chose. A backslash in one of those is enough to matter: a
+ * router that reads `\\host` as protocol-relative sends the reader off-site from
+ * what looks like an internal link, and the same characters in a `<Link>` are
+ * how the published open-redirect against this router version works.
+ *
+ * Encoded rather than rejected, because a name is data and refusing to render a
+ * row because of a character in it would be a worse failure than linking to an
+ * escaped version of it. No route in this app contains a backslash, so nothing
+ * legitimate changes. A protocol-relative `//host` is treated the same way, for
+ * the same reason.
+ *
+ * Applied here rather than at each call site because there are a dozen of those
+ * and there will be more; a rule about what may reach the router belongs at the
+ * one place every link already passes through.
+ */
+function withinApp(to: string): string {
+  const escaped = to.replace(/\\/g, '%5C');
+  return escaped.startsWith('//') ? `/${escaped.replace(/^\/+/, '')}` : escaped;
+}
+
+export function KLink({ to: rawTo, relative, onClick, ...rest }: KLinkProps) {
   const { useResolveHref, navigate } = useContext(LinkAdapterContext);
+  const to = withinApp(rawTo);
   const href = useResolveHref(to, { relative });
 
   return (
