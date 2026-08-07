@@ -17,6 +17,13 @@ import { Button, FlexLayout, Text } from '@salt-ds/core';
  * are scaffolding rather than interface: they suggest the result is one page of
  * several and invite a click that can never do anything. The count still
  * renders, because "showing 1 row" is a fact about the response either way.
+ *
+ * Except at zero on the first page, where the whole component steps aside. An
+ * empty first page is already announced by the empty state directly above it,
+ * and "Showing 0 rows — this is the whole result" beneath "No workspaces" says
+ * the same fact twice in two registers. Zero *after paging forward* keeps the
+ * caption: there the reader walked past the end, the empty state is absent, and
+ * the count plus the Previous button are the way back.
  */
 export function CursorPager({
   canPrev,
@@ -34,6 +41,8 @@ export function CursorPager({
   isLoading?: boolean;
 }) {
   const pageable = canPrev || canNext;
+
+  if (showingCount === 0 && !canPrev && !canNext) return null;
 
   return (
     <FlexLayout justify="space-between" align="center" gap={2}>

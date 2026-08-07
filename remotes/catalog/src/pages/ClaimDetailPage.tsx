@@ -1,4 +1,4 @@
-import { StackLayout, Tag, Text } from '@salt-ds/core';
+import { FlexLayout, StackLayout, StatusIndicator, Tag, Text } from '@salt-ds/core';
 import { useClaim, type RegistryClient } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
 import {
@@ -94,7 +94,15 @@ export function ClaimDetailPage() {
             { term: 'Value', detail: <Text>{displayText(claim.value)}</Text> },
             {
               term: 'Trust',
-              detail: <Tag>{displayText(claim.trust ?? 'untrusted')}</Tag>,
+              // A caution, not a category. In the same calm pill as the Kind
+              // tags it reads as one more classification, and "untrusted" is
+              // the one value on the page a reader must not skim past.
+              detail: (
+                <FlexLayout gap={1} align="center">
+                  <StatusIndicator status="warning" />
+                  <Text>{displayText(claim.trust ?? 'untrusted')}</Text>
+                </FlexLayout>
+              ),
             },
             { term: 'Valid From', detail: <Text>{instantText(claim.valid_from)}</Text> },
             { term: 'Valid To', detail: <Text>{instantText(claim.valid_to)}</Text> },
@@ -104,7 +112,10 @@ export function ClaimDetailPage() {
 
       <SectionCard
         title="Citations"
-        description="The evidence this claim was staged from. The serving path refuses to return a claim without any, so an empty table here is a contract violation rather than an ordinary absence."
+        // The contract-violation explanation lives in the empty state, which is
+        // the only place it is true: a card of healthy rows led with
+        // "violation" reads as a warning about the evidence it introduces.
+        description="The evidence this claim was staged from. Every claim the registry serves arrives with its citations."
         banded
         flush
       >

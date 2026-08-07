@@ -1,5 +1,5 @@
 import { TBody, TD, TH, THead, TR, Table, Text } from '@salt-ds/core';
-import type { ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useRef, type ReactNode } from 'react';
 
 import { SectionCard } from './SectionCard';
 import styles from './DataTable.module.css';
@@ -79,6 +79,17 @@ export interface Column<TRow> {
    * that genuinely have nowhere to go.
    */
   href?: (row: TRow) => string | undefined;
+  /**
+   * This column's `render` returns its own anchors.
+   *
+   * The row-hover treatment is keyed on the table having a linked column, and
+   * `href` is how the table knows. A column that builds links inside `render` —
+   * an `EntityLink` with a destination, a composed cell — is invisible to that
+   * test, so its rows looked static while being the most clickable thing on the
+   * page. The table cannot inspect a `ReactNode` for anchors; the column has to
+   * say so.
+   */
+  linked?: boolean;
 }
 
 export interface DataTableProps<TRow> {
@@ -154,6 +165,22 @@ export interface DataTableProps<TRow> {
    * would announce as a sibling of the section that contains it.
    */
   emptyHeadingLevel?: 'h2' | 'h3';
+  /**
+   * A full-width panel beneath one row, for the change a row is too narrow to
+   * show: an audit entry's diff, a sync run's failure detail.
+   *
+   * Rendered directly under the row whose id matches `expandedRowId`, spanning
+   * every column — beneath the row a reader clicked, not beneath the table,
+   * where an expansion lands off-screen for any row above the fold and appears
+   * to do nothing.
+   *
+   * The caller owns which row is open, because the toggle lives in one of its
+   * cells. One row at a time: a second expansion is a comparison, and rows this
+   * panel suits are compared by opening their pages.
+   */
+  renderDetail?: (row: TRow) => ReactNode;
+  /** The `getRowId` value of the row whose detail panel is open. */
+  expandedRowId?: string | null;
 }
 
 /** Left is the default and needs no class. */
@@ -180,6 +207,55 @@ function cellProps({ align, figures, wrap }: Pick<Column<unknown>, 'align' | 'fi
   };
 }
 
+/** Fade depth, capped so a long overflow does not swallow half a column. */
+const FADE_MAX = 24;
+
+/**
+ * A wide table scrolls inside its container instead of clipping.
+ *
+ * The container clips silently otherwise: `white-space: nowrap` on every cell
+ * means columns past the card's right edge simply vanish, value clipped
+ * mid-number, with nothing on screen saying more exists. The cue is an edge
+ * fade rather than a permanent scrollbar, matching the rail: it appears only on
+ * an edge with content beyond it, so a table that fits shows nothing.
+ *
+ * CSS cannot ask whether the table overflows, so the mask stops are written
+ * here from the scroll position — the same reasoning as the rail's vertical
+ * fade. The wrapper also becomes focusable only while it actually scrolls,
+ * because a keyboard reader has no other way to reach the hidden columns, and
+ * a tab stop on a table that fits is a stop with nothing behind it.
+ */
+function OverflowScroll({ children }: { children: ReactNode }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const syncFade = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    const cap = (n: number) => `${Math.min(FADE_MAX, Math.max(0, n))}px`;
+    el.style.setProperty('--fadeStart', cap(el.scrollLeft));
+    el.style.setProperty('--fadeEnd', cap(max - el.scrollLeft));
+    el.tabIndex = max > 0 ? 0 : -1;
+  }, []);
+
+  // Also on mount and on resize: whether the table overflows depends on the
+  // container's width, which changes without any scrolling.
+  useEffect(() => {
+    syncFade();
+    const el = scrollRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(syncFade);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [syncFade, children]);
+
+  return (
+    <div ref={scrollRef} className={styles.scroll} onScroll={syncFade}>
+      {children}
+    </div>
+  );
+}
+
 export function DataTable<TRow>({
   columns,
   rows,
@@ -194,6 +270,8 @@ export function DataTable<TRow>({
   emptyTitle = 'Nothing to show',
   emptyDescription,
   emptyHeadingLevel = 'h2',
+  renderDetail,
+  expandedRowId,
 }: DataTableProps<TRow>) {
   /*
    * Error before empty.
@@ -222,37 +300,39 @@ export function DataTable<TRow>({
         <Text className="salt-visuallyHidden" role="status" aria-live="polite">
           {`Loading ${caption}`}
         </Text>
-        <Table className={styles.table} zebra={zebra} divider={zebra ? 'none' : 'tertiary'}>
-          <caption className={hideCaption ? 'salt-visuallyHidden' : undefined}>
-            <Text color="secondary" styleAs="notation">
-              {caption}
-            </Text>
-          </caption>
-          <THead>
-            <TR>
-              {columns.map((column) => (
-                <TH
-                  key={column.key}
-                  scope="col"
-                  {...cellProps({ align: column.align, figures: column.figures })}
-                >
-                  {column.header}
-                </TH>
-              ))}
-            </TR>
-          </THead>
-          <TBody>
-            {Array.from({ length: skeletonRows }, (_, rowIndex) => (
-              <TR key={rowIndex}>
-                {columns.map((column, columnIndex) => (
-                  <TD key={column.key}>
-                    <SkeletonBar index={rowIndex + columnIndex} />
-                  </TD>
+        <OverflowScroll>
+          <Table className={styles.table} zebra={zebra} divider={zebra ? 'none' : 'tertiary'}>
+            <caption className={hideCaption ? 'salt-visuallyHidden' : undefined}>
+              <Text color="secondary" styleAs="notation">
+                {caption}
+              </Text>
+            </caption>
+            <THead>
+              <TR>
+                {columns.map((column) => (
+                  <TH
+                    key={column.key}
+                    scope="col"
+                    {...cellProps({ align: column.align, figures: column.figures })}
+                  >
+                    {column.header}
+                  </TH>
                 ))}
               </TR>
-            ))}
-          </TBody>
-        </Table>
+            </THead>
+            <TBody>
+              {Array.from({ length: skeletonRows }, (_, rowIndex) => (
+                <TR key={rowIndex}>
+                  {columns.map((column, columnIndex) => (
+                    <TD key={column.key}>
+                      <SkeletonBar index={rowIndex + columnIndex} />
+                    </TD>
+                  ))}
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+        </OverflowScroll>
       </div>
     );
 
@@ -288,52 +368,83 @@ export function DataTable<TRow>({
         </TR>
       </THead>
       <TBody>
-        {rows.map((row, index) => (
-          <TR
-            key={getRowId(row, index)}
-            /*
-             * The row is not the control; the link in its primary cell is.
-             *
-             * This carried a row-level click handler with a tab stop and a key
-             * handler, because the correct pattern needs an href and this package
-             * takes no router dependency. It does now, through the kit's own link
-             * adapter — so the handler is gone rather than kept beside the link,
-             * which would have left two ways to activate a row, one of them a
-             * focusable div wrapping an anchor.
-             *
-             * The hover treatment stays, keyed on the table having a linked column
-             * at all, so a row that goes somewhere still looks like it does.
-             */
-            className={columns.some((column) => column.href) ? styles.clickableRow : undefined}
-          >
-            {columns.map((column) => (
-              <TD
-                key={column.key}
-                {...cellProps({ align: column.align, figures: column.figures, wrap: column.wrap })}
+        {rows.map((row, index) => {
+          const rowId = getRowId(row, index);
+          const detailOpen =
+            renderDetail !== undefined && expandedRowId != null && expandedRowId === rowId;
+          return (
+            <Fragment key={rowId}>
+              <TR
+                /*
+                 * The row is not the control; the link in its primary cell is.
+                 *
+                 * This carried a row-level click handler with a tab stop and a key
+                 * handler, because the correct pattern needs an href and this package
+                 * takes no router dependency. It does now, through the kit's own link
+                 * adapter — so the handler is gone rather than kept beside the link,
+                 * which would have left two ways to activate a row, one of them a
+                 * focusable div wrapping an anchor.
+                 *
+                 * The hover treatment stays, keyed on the table having a linked column
+                 * at all, so a row that goes somewhere still looks like it does.
+                 * `linked` is how a column whose `render` builds its own anchors
+                 * counts — the table cannot see inside a `ReactNode`.
+                 */
+                className={
+                  columns.some((column) => column.href || column.linked)
+                    ? styles.clickableRow
+                    : undefined
+                }
               >
-                {(() => {
-                  const content = column.render
-                    ? column.render(row)
-                    : displayText((row as Record<string, unknown>)[column.key]);
-                  const href = column.href?.(row);
-                  // Dense by default: a column of links reads as a ruled form if each
-                  // one carries its own underline. Accent supplies the affordance and
-                  // the underline returns on hover.
-                  return href ? (
-                    <KLink to={href} underline="never" color="primary">
-                      {content}
-                    </KLink>
-                  ) : (
-                    content
-                  );
-                })()}
-              </TD>
-            ))}
-          </TR>
-        ))}
+                {columns.map((column) => (
+                  <TD
+                    key={column.key}
+                    {...cellProps({
+                      align: column.align,
+                      figures: column.figures,
+                      wrap: column.wrap,
+                    })}
+                  >
+                    {(() => {
+                      const content = column.render
+                        ? column.render(row)
+                        : displayText((row as Record<string, unknown>)[column.key]);
+                      const href = column.href?.(row);
+                      // Dense by default: a column of links reads as a ruled form if
+                      // each one carries its own underline. Accent supplies the
+                      // affordance and the underline returns on hover.
+                      return href ? (
+                        <KLink to={href} underline="never" color="accent">
+                          {content}
+                        </KLink>
+                      ) : (
+                        content
+                      );
+                    })()}
+                  </TD>
+                ))}
+              </TR>
+              {detailOpen ? (
+                <TR>
+                  {/*
+                    One cell across every column, so the panel sits beneath the row
+                    it belongs to rather than in any one column's width. Wrapping is
+                    opted back in: detail content is running text or a diff, and the
+                    table-wide nowrap would push it into the horizontal scroll.
+                  */}
+                  <TD colSpan={columns.length} className={styles.wrap}>
+                    {renderDetail(row)}
+                  </TD>
+                </TR>
+              ) : null}
+            </Fragment>
+          );
+        })}
       </TBody>
     </Table>
   );
 
-  return card ? <SectionCard flush>{table}</SectionCard> : table;
+  const scrollable = <OverflowScroll>{table}</OverflowScroll>;
+
+  return card ? <SectionCard flush>{scrollable}</SectionCard> : scrollable;
 }

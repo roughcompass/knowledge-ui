@@ -9,7 +9,7 @@ import {
   Text,
 } from '@salt-ds/core';
 import { can, type Persona, type Session } from '@knowledge-ui/auth';
-import type { RegistryClient } from '@knowledge-ui/api-client';
+import { useCapability, useWorkspace, type RegistryClient } from '@knowledge-ui/api-client';
 import {
   AppShell,
   AppSidebar,
@@ -40,6 +40,68 @@ const MAIN_ID = 'main-content';
 
 /** Sits beside `kui:sidebar-width`, which the rail already persists. */
 const COLLAPSED_STORAGE_KEY = 'kui:nav-collapsed';
+
+/** The full 36-character form. Anything shorter is already a human-usable handle. */
+const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * The entity segment of the breadcrumb: a display name where one exists, never a
+ * bare 36-character UUID.
+ *
+ * The pages that know the entity's name live in remotes, and neither a React
+ * context nor props cross the federation boundary — but the query cache does. The
+ * share contract pins one `@tanstack/react-query` for the whole graph and the shell
+ * provides the one `QueryClient`, so asking the same hook for the same key here
+ * reads the row the page below is already fetching, deduplicated into a single
+ * request rather than issued twice.
+ *
+ * Names exist for two of the entities a crumb can land on — workspaces and
+ * capabilities — so those two resolve. A claim is id-only by design (its page's own
+ * title is just "Claim"), so for it, and for any name still on its way or refused,
+ * the first eight characters stand in: the same short face every table cell in the
+ * product gives an unresolved reference.
+ */
+function EntityCrumb({
+  base,
+  trailing,
+  session,
+  client,
+}: {
+  /** The owning nav child's href, which says what kind of entity the handle names. */
+  base: string;
+  trailing: string;
+  session: Session;
+  client: RegistryClient;
+}) {
+  const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
+  const [head = '', ...rest] = trailing.split('/');
+  const isUuid = UUID_SHAPE.test(head);
+
+  // Hooks run unconditionally; an `undefined` handle disables the query, so at most
+  // one of these ever asks the network for anything.
+  const workspace = useWorkspace(
+    client,
+    scope,
+    isUuid && base.endsWith('/workspaces') ? head : undefined,
+  );
+  const capability = useCapability(client, scope, isUuid && base === '/catalog' ? head : undefined);
+
+  const resolvedName =
+    typeof workspace.data?.name === 'string'
+      ? workspace.data.name
+      : typeof capability.data?.name === 'string'
+        ? capability.data.name
+        : undefined;
+
+  const headLabel = isUuid ? (resolvedName ?? head.slice(0, 8)) : head;
+  // Deeper segments are a page's own sub-route (a capability tab, for instance) and
+  // stay as written — but an id among them still gets the short face.
+  const restLabel = rest
+    .map((segment) => (UUID_SHAPE.test(segment) ? segment.slice(0, 8) : segment))
+    .join('/');
+
+  return <Text>{restLabel ? `${headLabel}/${restLabel}` : headLabel}</Text>;
+}
 
 /**
  * One icon per top-level destination.
@@ -91,16 +153,6 @@ export function AppFrame({
   const visible = NAVIGATION.filter((section) => can(session, section.need));
 
   /*
-   * Which section owns the current route, if any.
-   *
-   * The rail no longer needs this to decide what to show — everything is shown. It
-   * survives because the breadcrumb still has to name the section, and because a
-   * collapsed section that holds the current page is marked rather than left looking
-   * inert.
-   */
-  const currentSection = navigationSectionForPath(location.pathname, visible);
-
-  /*
    * Which sections the reader has closed.
    *
    * Stored as the collapsed set rather than the expanded one, so a section added
@@ -142,53 +194,79 @@ export function AppFrame({
    * segment was a link, which meant the one control whose whole job is "go up" could
    * not.
    *
+   * Resolved against the FULL registry, not the capability-filtered `visible`. The
+   * crumb is a location readout: a consumer standing on the audit log's refusal is
+   * still standing on the audit log, and filtering that entry out left the longest
+   * surviving prefix — Health's own `/ops` — claiming a page it does not own, with
+   * the raw path fragment "audit" standing in for the page's name. Nothing here
+   * grants access: only labels are read, and a segment the reader cannot enter is
+   * rendered as text rather than a link.
+   *
    * Built from the path rather than reported by the page, because the pages that
-   * would report it live in remotes and a context does not cross that boundary. The
-   * URL already carries what is needed: the child whose href prefixes the current
-   * path names the page, and whatever remains is the entity's own handle. For a
-   * capability that handle is the slug, which is human-readable; where it is a UUID
-   * this shows the UUID, and resolving it to a name is the entity-reference work.
+   * would name it live in remotes and a React context does not cross the federation
+   * boundary. The child whose href prefixes the current path names the page, and
+   * whatever remains is the entity's own handle, which `EntityCrumb` resolves.
    */
-  const currentChild = currentSection?.children
-    .filter((child) => child.need === undefined || can(session, child.need))
+  const crumbSection = navigationSectionForPath(location.pathname);
+  const crumbChild = crumbSection?.children
     .filter((child) => location.pathname.startsWith(child.href))
     .sort((a, b) => b.href.length - a.href.length)[0];
 
   const trailing =
-    currentChild && location.pathname.length > currentChild.href.length
-      ? decodeURIComponent(location.pathname.slice(currentChild.href.length).replace(/^\//, ''))
+    crumbChild && location.pathname.length > crumbChild.href.length
+      ? decodeURIComponent(location.pathname.slice(crumbChild.href.length).replace(/^\//, ''))
       : undefined;
+
+  const crumbChildAllowed =
+    crumbChild !== undefined && crumbSection !== undefined
+      ? can(session, crumbChild.need ?? crumbSection.need)
+      : false;
 
   const breadcrumb: BreadcrumbSegment[] = [
     { key: 'tenant', content: <Text color="secondary">{session.tenantDisplayName}</Text> },
-    ...(currentSection
+    ...(crumbSection
       ? [
           {
-            key: currentSection.key,
+            key: crumbSection.key,
             // Not a link: a section is a disclosure in the rail and owns no route of
             // its own, so a link here would have to invent a destination.
-            content: <Text color="secondary">{currentSection.label}</Text>,
+            content: <Text color="secondary">{crumbSection.label}</Text>,
           },
         ]
       : []),
-    ...(currentChild
+    ...(crumbChild
       ? [
           {
-            key: currentChild.href,
+            key: crumbChild.href,
             /*
               No `aria-current` on the trail. The rail already marks the current
               page, and an end-to-end invariant asserts that no two elements claim
               it — a breadcrumb here is a location readout, not a second navigation.
             */
-            content: trailing ? (
-              <KLink to={currentChild.href}>{currentChild.label}</KLink>
-            ) : (
-              <Text>{currentChild.label}</Text>
+            content:
+              trailing && crumbChildAllowed ? (
+                <KLink to={crumbChild.href}>{crumbChild.label}</KLink>
+              ) : (
+                <Text>{crumbChild.label}</Text>
+              ),
+          },
+        ]
+      : []),
+    ...(trailing && crumbChild
+      ? [
+          {
+            key: 'entity',
+            content: (
+              <EntityCrumb
+                base={crumbChild.href}
+                trailing={trailing}
+                session={session}
+                client={client}
+              />
             ),
           },
         ]
       : []),
-    ...(trailing ? [{ key: 'entity', content: <Text>{trailing}</Text> }] : []),
   ];
 
   return (

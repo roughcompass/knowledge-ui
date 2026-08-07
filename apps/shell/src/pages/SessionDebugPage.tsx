@@ -17,6 +17,16 @@ import { CopyButton, DataTable, PageHeader, SectionCard } from '@knowledge-ui/ui
  * the section heading.
  */
 export function SessionDebugPage({ session }: { session: Session }) {
+  /*
+   * Role and Persona are one row when they carry the same word. The persona is the
+   * dev roster identity that was picked; the role is what the server resolved it
+   * to \u2014 but every roster key matches its resolved role, so two rows both reading
+   * "admin" distinguished nothing and read as a stutter. They split again the
+   * moment the two values actually differ, because that difference is precisely
+   * the debugging fact this page exists to surface.
+   */
+  const personaDiffers = session.personaKey != null && session.personaKey !== session.role;
+
   const rows: Array<{ field: string; value: string }> = [
     { field: 'Actor', value: session.actorId },
     { field: 'Display name', value: session.actorDisplayName ?? '\u2014' },
@@ -24,7 +34,7 @@ export function SessionDebugPage({ session }: { session: Session }) {
     { field: 'Tenant', value: `${session.tenantDisplayName} (${session.tenantSlug})` },
     { field: 'Tenant id', value: session.tenantId },
     { field: 'Role', value: session.role },
-    { field: 'Persona', value: session.personaKey ?? '\u2014' },
+    ...(personaDiffers ? [{ field: 'Persona', value: session.personaKey ?? '\u2014' }] : []),
     {
       field: 'API origin',
       value: apiBaseUrl() === '' ? 'same origin (proxied)' : apiBaseUrl(),
@@ -33,7 +43,7 @@ export function SessionDebugPage({ session }: { session: Session }) {
 
   return (
     <StackLayout gap={3}>
-      <PageHeader title="Session" description="Resolved from the registry, not from local state." />
+      <PageHeader title="Session" description="What the server currently knows about you." />
 
       <SectionCard title="Current session" banded flush>
         <DataTable
@@ -50,9 +60,12 @@ export function SessionDebugPage({ session }: { session: Session }) {
               key: 'copy',
               header: 'Copy',
               align: 'right',
-              render: (row) => (
-                <CopyButton value={row.value} label="Copy" aria-label={`Copy ${row.field}`} />
-              ),
+              // No control on an absent value: copying the em dash puts a
+              // placeholder on the clipboard, which is worse than no button.
+              render: (row) =>
+                row.value === '\u2014' ? null : (
+                  <CopyButton value={row.value} label="Copy" aria-label={`Copy ${row.field}`} />
+                ),
             },
           ]}
           rows={rows}

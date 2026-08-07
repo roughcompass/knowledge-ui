@@ -57,11 +57,19 @@ export function CurationQueuePage() {
         />
       ) : (
         <>
+          {/*
+            The actions are absent deliberately, not forgotten: linking, discarding
+            and adjudicating are writes against untrusted observations, and each
+            needs its own authorization entry read from the router plus a
+            confirmation naming the effect. Offering them before that exists would
+            be a button that fails when pressed. The note keeps the reader's half —
+            what they can do now, and that acting is coming — without the wire
+            vocabulary.
+          */}
           <Note label="Read-only view">
-            The queue can be read here and not worked. Linking, discarding and adjudicating are
-            writes against untrusted observations, and each needs its own authorization entry and a
-            confirmation that names the effect — so they are deliberately absent rather than offered
-            and refused by the server.
+            You can read everything waiting here and open each claim. Acting on the queue — linking,
+            discarding, adjudicating — is not offered yet, so nothing on this page changes an
+            observation.
           </Note>
 
           {query.error ? (
@@ -89,6 +97,7 @@ export function CurationQueuePage() {
                 {
                   key: 'claim_id',
                   header: 'Claim',
+                  linked: true,
                   render: (row) =>
                     row.claim_id ? (
                       <EntityLink

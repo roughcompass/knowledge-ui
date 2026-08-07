@@ -1,7 +1,10 @@
 import { createRegistryClient } from '@knowledge-ui/api-client';
+import type { Persona } from '@knowledge-ui/auth';
 import { makeSession, renderWithProviders } from '@knowledge-ui/testing';
+import { server } from '@knowledge-ui/testing/server';
 import { screen, waitFor } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { HttpResponse, http } from 'msw';
+import { describe, expect, it, vi } from 'vitest';
 
 import { OperationalSections } from '../MetricsPage';
 
@@ -24,13 +27,17 @@ import { OperationalSections } from '../MetricsPage';
 const tokenFor = (clientId: string) =>
   `header.${btoa(JSON.stringify({ sub: clientId, exp: 9999999999 }))}.signature`;
 
-const renderAs = (role: 'admin' | 'producer' | 'consumer' | 'auditor') =>
+const renderAs = (
+  role: 'admin' | 'producer' | 'consumer' | 'auditor',
+  extras: { personas?: readonly Persona[]; onSwitchPersona?: (key: string) => void } = {},
+) =>
   renderWithProviders(<OperationalSections />, {
     session: makeSession({ role, personaKey: role }),
     client: createRegistryClient({
       baseUrl: 'http://localhost',
       getToken: () => tokenFor(`knowledge-ui-${role}`),
     }),
+    ...extras,
   });
 
 describe('as an administrator', () => {
@@ -40,21 +47,22 @@ describe('as an administrator', () => {
     expect(screen.getByText('12')).toBeInTheDocument();
   });
 
-  it('labels cluster-counted and process-local readings differently', async () => {
+  it('labels cluster-counted and process-local readings differently, once per section', async () => {
     /*
      * The load-bearing assertion. A queue depth is true for the deployment; a
      * data-quality counter is one replica's tally since it restarted. Rendered
      * side by side they are the same shape, so the qualifier is the only thing
      * standing between a reader and a wrong conclusion.
      *
-     * Where each qualifier appears differs by section — per tile for the queues,
-     * once beneath the table for the counters, since every row there shares a
-     * scope. What matters is that both are stated, not where.
+     * Each qualifier is stated once, in its section's description — every
+     * reading in each section shares a scope, and a fact repeated under all six
+     * tiles becomes chrome the eye stops seeing. The per-tile hint returns only
+     * when a section's readings disagree about their scope.
      */
     renderAs('admin');
     await screen.findByText('Embedding outbox');
 
-    expect(screen.getAllByText(/Counted across the deployment/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Counted across the deployment/i)).toHaveLength(1);
     expect(screen.getByText(/does not prove zero everywhere/i)).toBeInTheDocument();
   });
 
@@ -110,6 +118,37 @@ describe('as an administrator', () => {
     expect(screen.getByText(/no rates or trends are shown/i)).toBeInTheDocument();
   });
 
+  it('renders a seconds-keyed reading as a length of time, not a count', async () => {
+    /*
+     * The response model carries no unit field; the key suffix is the only
+     * signal the server sends. Rendered through the count path, a day-and-a-half
+     * age gauge read as a hundred and fifty thousand of something.
+     */
+    server.use(
+      http.get('*/v1/admin/operational-health', () =>
+        HttpResponse.json({
+          observed_at: '2026-08-03T18:00:00Z',
+          queues: [
+            {
+              key: 'oldest_open_proposal_age_seconds',
+              label: 'Oldest open proposal age',
+              value: 150604.244,
+              scope: 'cluster',
+              kind: 'gauge',
+              instance: null,
+              actionable: null,
+            },
+          ],
+          data_quality: [],
+        }),
+      ),
+    );
+
+    renderAs('admin');
+    expect(await screen.findByText('1d 17h')).toBeInTheDocument();
+    expect(screen.queryByText(/150,604/)).not.toBeInTheDocument();
+  });
+
   it('names no external dashboard tool as the place to go instead', async () => {
     // The regression test for the second wrong version. A deployment without
     // that tool must not be told to go and use it.
@@ -127,13 +166,37 @@ describe('as any other role', () => {
       /*
        * The server gates this on admin. Asking anyway would render a 403 as a
        * failure the reader could act on, when the honest answer is that this
-       * summary is not theirs to see.
+       * summary is not theirs to see. The refusal names the role that can act,
+       * in the same boxed idiom every gated section uses.
        */
       renderAs(role);
       await waitFor(() =>
-        expect(screen.getByText(/need the administrator role/i)).toBeInTheDocument(),
+        expect(screen.getByText(/read with the admin role only/i)).toBeInTheDocument(),
       );
       expect(screen.queryByText('Embedding outbox')).not.toBeInTheDocument();
     },
   );
+
+  it('offers the persona that would succeed, when the roster has one', async () => {
+    // The refusal's next step is a control, not a sentence pointing elsewhere.
+    const onSwitchPersona = vi.fn();
+    renderAs('consumer', {
+      personas: [
+        {
+          key: 'admin',
+          label: 'Platform — Admin',
+          description: '',
+          clientId: 'knowledge-ui-admin',
+          clientSecret: '',
+          entitlements: [],
+          expectedRole: 'admin',
+        },
+      ],
+      onSwitchPersona,
+    });
+
+    const button = await screen.findByRole('button', { name: /Switch to Platform — Admin/ });
+    button.click();
+    expect(onSwitchPersona).toHaveBeenCalledWith('admin');
+  });
 });

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { CAPABILITIES, can, capabilitiesFor, rolesGranting } from '../capabilities';
+import {
+  CAPABILITIES,
+  can,
+  capabilitiesFor,
+  refusalSuggestion,
+  rolesGranting,
+} from '../capabilities';
 import { PERSONA_ROSTER } from '../personaRoster';
 import { ROLES, isRole, toSession, type Role, type Session, type WhoamiResponse } from '../types';
 
@@ -70,6 +76,34 @@ describe('capabilitiesFor()', () => {
     expect(capabilitiesFor('auditor')).toContain('audit:read');
     expect(capabilitiesFor('consumer')).not.toContain('audit:read');
     expect(capabilitiesFor('consumer')).toContain('catalog:browse');
+  });
+});
+
+describe('refusalSuggestion()', () => {
+  it('names the granting roles and a persona that would actually succeed', () => {
+    const { grantingRoles, persona } = refusalSuggestion('audit:read', PERSONA_ROSTER);
+
+    expect(grantingRoles).toEqual(rolesGranting('audit:read'));
+    expect(persona?.expectedRole).toBe('auditor');
+  });
+
+  it('suggests nobody when no persona holds a granting role', () => {
+    // Offering a persona that would also be refused is worse than offering
+    // nothing: the reader switches identity and lands on the same wall.
+    const consumerOnly = PERSONA_ROSTER.filter((p) => p.expectedRole === 'consumer');
+    const { grantingRoles, persona } = refusalSuggestion('admin:manage', consumerOnly);
+
+    expect(grantingRoles).toEqual(['admin']);
+    expect(persona).toBeUndefined();
+  });
+
+  it('gives every surface the same answer the route guard gives', () => {
+    // A section-level refusal and the route guard must never name different
+    // roles for the same capability.
+    for (const capability of Object.keys(CAPABILITIES) as Array<keyof typeof CAPABILITIES>) {
+      const { grantingRoles } = refusalSuggestion(capability, PERSONA_ROSTER);
+      expect(grantingRoles).toEqual(rolesGranting(capability));
+    }
   });
 });
 

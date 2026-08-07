@@ -1,4 +1,4 @@
-import { Text } from '@salt-ds/core';
+import { StackLayout, Text } from '@salt-ds/core';
 import { useCapabilityInterface, type RegistryClient } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
 import {
@@ -29,8 +29,20 @@ import {
  *   absence of a declaration, not a failure and not an empty contract.
  * - **Not readable by this role.** A refusal, said as one.
  * - **The read failed.** An error, said as one.
+ *
+ * `recordedInterface` is the capability's own `interface` attribute, handed down
+ * from the detail response the page already holds. The registry has two sources
+ * for a contract — canonical published interface text, and an attribute recorded
+ * on the capability — and they stay labelled apart here, because a reader
+ * deciding whether to depend on something needs to know which one they read.
  */
-export function InterfacePanel({ handle }: { handle: string }) {
+export function InterfacePanel({
+  handle,
+  recordedInterface,
+}: {
+  handle: string;
+  recordedInterface?: unknown;
+}) {
   const { session, client } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
   const query = useCapabilityInterface(client, scope, handle);
@@ -63,6 +75,10 @@ export function InterfacePanel({ handle }: { handle: string }) {
 
   const data = query.data ?? {};
   const canonical = typeof data.interface_canonical === 'string' ? data.interface_canonical : '';
+  const hasRecorded =
+    recordedInterface !== undefined &&
+    recordedInterface !== null &&
+    (typeof recordedInterface !== 'string' || recordedInterface.trim() !== '');
 
   const provenance = (
     [
@@ -103,10 +119,29 @@ export function InterfacePanel({ handle }: { handle: string }) {
         // literally — reformatting it here would mean the console and the registry
         // disagree about what was declared.
         <Text styleAs="code">{canonical}</Text>
-      ) : (
+      ) : hasRecorded ? (
+        // The recorded attribute is still the server's value, rendered literally —
+        // compact JSON when it is structured — with its source said first, so it
+        // cannot be mistaken for published interface text.
+        <StackLayout gap={1}>
+          <Text color="secondary">
+            No canonical interface text was published. What follows is the interface attribute
+            recorded on the capability itself.
+          </Text>
+          <Text styleAs="code">
+            {typeof recordedInterface === 'string'
+              ? recordedInterface
+              : JSON.stringify(recordedInterface)}
+          </Text>
+        </StackLayout>
+      ) : provenance.length > 0 ? (
         <Text color="secondary">
           The response carried no canonical interface text. The provenance above is what was
           published.
+        </Text>
+      ) : (
+        <Text color="secondary">
+          The registry has no interface text recorded for this capability.
         </Text>
       )}
     </SectionCard>

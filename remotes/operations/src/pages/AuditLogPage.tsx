@@ -1,14 +1,12 @@
 import {
   Button,
-  Collapsible,
-  CollapsiblePanel,
-  CollapsibleTrigger,
   FlexLayout,
   Input,
   StackLayout,
   Tag,
   StatusAdornment,
   Text,
+  Tooltip,
 } from '@salt-ds/core';
 import {
   CursorStack,
@@ -74,8 +72,39 @@ export function AuditLogPage() {
       },
       { key: 'action', header: 'Action', render: (row) => <Tag>{String(row.action)}</Tag> },
       {
+        key: 'actor_id',
+        header: 'Actor',
+        /*
+          A principal, not an entity: no endpoint resolves a principal id to a
+          display name, so the short code face is the whole rendering — the same
+          treatment the Target column gives an id without a page. The click
+          filters rather than navigates, because a principal has no page either;
+          it is the only way this screen offers to discover a value the Actor
+          filter otherwise demands be pasted in from somewhere else.
+        */
+        render: (row) => {
+          if (!row.actor_id) return <Text color="secondary">—</Text>;
+          const actor = String(row.actor_id);
+          return (
+            <FlexLayout gap={1} align="center">
+              <Tooltip content={actor}>
+                <Button
+                  appearance="transparent"
+                  sentiment="neutral"
+                  onClick={() => setActorId(actor)}
+                >
+                  <Text styleAs="code">{shortPrincipal(actor)}</Text>
+                </Button>
+              </Tooltip>
+              <CopyButton value={actor} label="Copy Id" />
+            </FlexLayout>
+          );
+        },
+      },
+      {
         key: 'target',
         header: 'Target',
+        linked: true,
         /*
           The audit log names what an action was performed on, and rendered it as
           type-and-id text. An auditor reading a row wants the thing itself; only a
@@ -153,7 +182,6 @@ export function AuditLogPage() {
   );
 
   const rows = query.data?.items ?? [];
-  const expandedRow = rows.find((row) => String(row.audit_id) === expanded);
 
   return (
     <StackLayout gap={3}>
@@ -194,10 +222,13 @@ export function AuditLogPage() {
         />
       ) : null}
 
+      {/*
+        Not zebra: an open change panel occupies a striped row slot of its own,
+        which flips the stripe phase of every row beneath it.
+      */}
       <DataTable
         card
         caption="Audit entries"
-        zebra
         hideCaption
         columns={columns}
         rows={rows}
@@ -206,24 +237,11 @@ export function AuditLogPage() {
         hasError={Boolean(query.error)}
         emptyTitle="No audit entries"
         emptyDescription="Nothing matching those filters has been recorded."
+        expandedRowId={expanded}
+        renderDetail={(row) => (
+          <JsonDiff before={row.before_jsonb} after={row.after_jsonb} hideUnchanged />
+        )}
       />
-
-      {expandedRow ? (
-        <Collapsible open>
-          <CollapsibleTrigger>
-            <Button appearance="transparent" sentiment="neutral">
-              Change Detail
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsiblePanel>
-            <JsonDiff
-              before={expandedRow.before_jsonb}
-              after={expandedRow.after_jsonb}
-              hideUnchanged
-            />
-          </CollapsiblePanel>
-        </Collapsible>
-      ) : null}
 
       <CursorPager
         showingCount={rows.length}
@@ -238,4 +256,15 @@ export function AuditLogPage() {
       />
     </StackLayout>
   );
+}
+
+/*
+ * The same shape rule the entity reference uses: an opaque UUID carries nothing
+ * in its first eight characters beyond telling two rows apart, while any other
+ * principal id — a client id, a service account slug — may be the most readable
+ * name the row will ever have, and cutting it destroys that.
+ */
+function shortPrincipal(id: string): string {
+  const opaque = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  return opaque ? id.slice(0, 8) : id;
 }

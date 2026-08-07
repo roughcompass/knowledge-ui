@@ -89,8 +89,9 @@ export function GraphProjectionsPage() {
     {
       key: 'name',
       header: 'Name',
+      linked: true,
       render: (row) => (
-        <KLink underline="never" color="primary" to={`../${row.name}`}>
+        <KLink underline="never" color="accent" to={`../${row.name}`}>
           {row.name}
         </KLink>
       ),
@@ -129,6 +130,7 @@ export function GraphProjectionsPage() {
     {
       key: 'src',
       header: 'From',
+      linked: true,
       render: (row) => (
         <EntityLink
           id={row.src_entity_id}
@@ -141,6 +143,7 @@ export function GraphProjectionsPage() {
     {
       key: 'dst',
       header: 'To',
+      linked: true,
       render: (row) => (
         <EntityLink
           id={row.dst_entity_id}
@@ -175,9 +178,14 @@ export function GraphProjectionsPage() {
 
   return (
     <StackLayout gap={3}>
+      {/*
+        Provider and consumer are two endpoints, not one direction parameter —
+        which is why the control below switches result sets rather than
+        filtering one. The description keeps to what a reader is choosing.
+      */}
       <PageHeader
         title="Projections"
-        description="What this tenant ships, and what it depends on. Two endpoints, paged by cursor."
+        description="What this tenant ships, and what it depends on — one page at a time."
       />
 
       <FilterBar label="Choose a projection">

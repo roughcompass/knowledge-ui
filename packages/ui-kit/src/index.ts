@@ -56,6 +56,16 @@ export { displayText } from './displayText';
 export { instantText } from './instantText';
 export { isoDay } from './isoDay';
 export { termText } from './termText';
+
+/**
+ * Display formatting for served quantities. Rounding and unit conversion are
+ * presentation of a value the API served — never derivation of one it did not.
+ * Each returns `undefined` for a value it cannot honestly render, so the caller
+ * keeps its own absence marker instead of showing a fake zero.
+ */
+export { countText } from './countText';
+export { durationText } from './durationText';
+export { bytesText } from './bytesText';
 export { TileGrid } from './TileGrid';
 
 /**

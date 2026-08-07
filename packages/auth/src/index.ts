@@ -13,8 +13,10 @@ export {
   CAPABILITIES,
   can,
   capabilitiesFor,
+  refusalSuggestion,
   rolesGranting,
   type Capability,
+  type RefusalSuggestion,
 } from './capabilities';
 
 export { findPersona, loadPersonas, personaSwitcherEnabled, type Persona } from './personas';

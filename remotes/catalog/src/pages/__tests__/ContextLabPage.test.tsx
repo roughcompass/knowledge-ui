@@ -188,6 +188,14 @@ describe('the context probe conversation', () => {
     expect(screen.getByText('No Context Matched This Probe')).toBeInTheDocument();
   });
 
+  it('says the source guidance once, and gives the task field its own helper', () => {
+    // The same sentence under two adjacent fields is a stutter the eye learns
+    // to skip; the source describes itself, the task row says what to type.
+    renderPage();
+    expect(screen.getAllByText(/cited facts that made each result match/)).toHaveLength(1);
+    expect(screen.getByText(/Describe the task in your own words/)).toBeInTheDocument();
+  });
+
   it('uses Shift+Enter for a newline and Enter to submit', async () => {
     const user = userEvent.setup();
     renderPage();

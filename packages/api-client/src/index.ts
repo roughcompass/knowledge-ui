@@ -104,6 +104,7 @@ export { useAuditLog, type AuditParams, type AuditResponse, type AuditRow } from
 
 export {
   describeScope,
+  isSecondsReading,
   processScopeCaveat,
   useLiveness,
   useOperationalHealth,

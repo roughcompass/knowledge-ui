@@ -251,10 +251,10 @@ reimplement four states and the screen-reader text, badly.
 
 Two presentations, both from Salt's own API rather than a stylesheet:
 
-| Context                                | Form                                |
-| -------------------------------------- | ----------------------------------- |
-| Prose, a card action, a header control | the default — underlined at rest    |
-| A table cell, a list of ids            | `underline="never" color="primary"` |
+| Context                                | Form                               |
+| -------------------------------------- | ---------------------------------- |
+| Prose, a card action, a header control | the default — underlined at rest   |
+| A table cell, a list of ids            | `underline="never" color="accent"` |
 
 A table whose primary column is a link renders one underline per row, which reads as
 a ruled form rather than a list; accent colour carries the affordance instead. Colour
@@ -286,6 +286,10 @@ frame, where a `Link` handed to Salt's `render` prop _is_ the anchor Salt render
   them. So `align` decides where a column sits and `figures` decides how its digits are
   cut; a count asks for both, a timestamp for one.
 - **Sortable headers are real buttons**, with the sort direction shown.
+- **A row that goes somewhere shows it on hover.** The hover cue keys on the table
+  having a linked column: `href` on the column, or `linked: true` when the column's
+  own `render` builds the anchors — the table cannot see inside a rendered node, so
+  the column says so.
 - **Tables are for tabular data**: rows sharing a shape, with at least one column
   comparable across rows. A single descriptive row with an action is an entity
   row; a block of metadata is a description list, **not** a two-column table.

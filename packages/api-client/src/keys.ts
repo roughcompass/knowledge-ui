@@ -38,11 +38,8 @@ export const queryKeys = {
    * does not drop the other — a reader flipping between the overview and the
    * contract should not re-fetch what they just looked at.
    */
-  capabilityInterface: (
-    scope: KeyScope,
-    handle: string,
-    params: Record<string, unknown> = {},
-  ) => [...root(scope), 'capabilities', 'interface', handle, params] as const,
+  capabilityInterface: (scope: KeyScope, handle: string, params: Record<string, unknown> = {}) =>
+    [...root(scope), 'capabilities', 'interface', handle, params] as const,
 
   curationQueue: (scope: KeyScope, params: Record<string, unknown> = {}) =>
     [...root(scope), 'memory', 'curation-queue', params] as const,

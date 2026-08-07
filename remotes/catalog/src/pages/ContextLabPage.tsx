@@ -454,7 +454,17 @@ function ContextLabSession({
             ) : null}
           </FlexLayout>
 
-          <FormRow label="Task or Query" required error={queryError} helperText={selected.guidance}>
+          {/*
+            The source's guidance sentence belongs to the Source control above;
+            repeated verbatim here it reads as a page stutter rather than help.
+            This row's own question is what to type.
+          */}
+          <FormRow
+            label="Task or Query"
+            required
+            error={queryError}
+            helperText="Describe the task in your own words, or paste the query an agent would send."
+          >
             <MultilineInput
               bordered
               rows={4}

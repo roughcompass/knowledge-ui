@@ -44,6 +44,19 @@ describe('what the list shows', () => {
     expect(await screen.findByText('Vendor grid evaluation')).toBeInTheDocument();
   });
 
+  it('navigates through the workspace name, with no duplicate row action', async () => {
+    /*
+     * The name is a real anchor — middle-click and "copy link address" work —
+     * and it is the only way in. The "Open" button beside it was the same
+     * journey twice, and navigation as a button breaks the anchor rule.
+     */
+    renderAs('producer');
+    await screen.findByText('Digital Enablement decisions');
+
+    expect(screen.getByRole('link', { name: 'Digital Enablement decisions' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open' })).not.toBeInTheDocument();
+  });
+
   it('names ownership in the reader’s words rather than the wire’s', async () => {
     renderAs('admin');
     await screen.findByText('Digital Enablement decisions');

@@ -21,16 +21,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const HTTP_METHODS = new Set([
-  'get',
-  'put',
-  'post',
-  'delete',
-  'patch',
-  'head',
-  'options',
-  'trace',
-]);
+const HTTP_METHODS = new Set(['get', 'put', 'post', 'delete', 'patch', 'head', 'options', 'trace']);
 
 const target = process.env.KUI_API_TARGET ?? 'http://localhost:8000';
 
@@ -47,7 +38,9 @@ function operations(spec) {
 const vendored = operations(
   JSON.parse(
     readFileSync(
-      fileURLToPath(new URL('../packages/api-client/openapi/registry.openapi.json', import.meta.url)),
+      fileURLToPath(
+        new URL('../packages/api-client/openapi/registry.openapi.json', import.meta.url),
+      ),
       'utf8',
     ),
   ),

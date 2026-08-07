@@ -1,7 +1,9 @@
 import { createRegistryClient } from '@knowledge-ui/api-client';
+import type { Persona } from '@knowledge-ui/auth';
 import { makeSession, renderWithProviders } from '@knowledge-ui/testing';
 import { screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
 
 import { GraphDashboardPage } from '../GraphDashboardPage';
 import { GraphOntologyPage } from '../GraphOntologyPage';
@@ -12,13 +14,28 @@ const tokenFor = (clientId: string) =>
 
 type Role = 'producer' | 'admin' | 'consumer' | 'auditor';
 
-const renderAs = (page: React.ReactElement, role: Role) =>
+const ADMIN_PERSONA: Persona = {
+  key: 'admin',
+  label: 'Platform — Admin',
+  description: '',
+  clientId: 'client-admin',
+  clientSecret: '',
+  entitlements: ['dev'],
+  expectedRole: 'admin',
+};
+
+const renderAs = (
+  page: React.ReactElement,
+  role: Role,
+  extras?: { personas?: readonly Persona[]; onSwitchPersona?: (key: string) => void },
+) =>
   renderWithProviders(page, {
     session: makeSession({ role, personaKey: role }),
     client: createRegistryClient({
       baseUrl: 'http://localhost',
       getToken: () => tokenFor(`knowledge-ui-${role}`),
     }),
+    ...(extras ?? {}),
   });
 
 /**
@@ -65,10 +82,46 @@ describe('the two gates, mirrored separately', () => {
   it('names the ontology as unreadable for a non-admin rather than offering a refusal', async () => {
     renderAs(<GraphDashboardPage />, 'consumer');
     await screen.findByText('What this tenant ships');
-    expect(screen.getByText(/requires the admin role/)).toBeInTheDocument();
+    expect(screen.getByText(/need the admin role/)).toBeInTheDocument();
     // No count is shown alongside the notice — an incomplete panel would be worse
     // than an absent one.
     expect(screen.queryByText('Edge relations')).not.toBeInTheDocument();
+  });
+
+  it('disables the ontology detail action for a role the page would refuse', async () => {
+    /*
+     * The action is gated on the same capability as the page it opens. Ungated,
+     * it walked a consumer straight into a refusal; hidden, it would leave no
+     * answer to "who can?". Disabled-with-tooltip is the one idiom for both.
+     */
+    renderAs(<GraphDashboardPage />, 'consumer');
+    await screen.findByText('What this tenant ships');
+    expect(screen.queryByRole('link', { name: 'Ontology Detail' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ontology Detail' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+  });
+
+  it('links an admin to the ontology detail', async () => {
+    renderAs(<GraphDashboardPage />, 'admin');
+    await screen.findByText('What this tenant ships');
+    expect(screen.getByRole('link', { name: 'Ontology Detail' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ontology Detail' })).not.toBeInTheDocument();
+  });
+
+  it('offers the persona that would succeed, from the refusal itself', async () => {
+    // Same suggestion logic as the route guard, so the section-level refusal
+    // names the same way out instead of pointing vaguely at the header.
+    const onSwitchPersona = vi.fn();
+    renderAs(<GraphDashboardPage />, 'consumer', {
+      personas: [ADMIN_PERSONA],
+      onSwitchPersona,
+    });
+    await screen.findByText('What this tenant ships');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Switch to Platform — Admin' }));
+    expect(onSwitchPersona).toHaveBeenCalledWith('admin');
   });
 
   it('shows an admin the ontology counts', async () => {
@@ -102,7 +155,9 @@ describe('the projections page', () => {
     renderAs(<GraphProjectionsPage />, 'producer');
     // More than one: the node table links it, and now so does every edge endpoint
     // that resolves to it — the multiplicity is the feature under test.
-    expect((await screen.findAllByRole('link', { name: 'salt-design-system' })).length).toBeGreaterThan(0);
+    expect(
+      (await screen.findAllByRole('link', { name: 'salt-design-system' })).length,
+    ).toBeGreaterThan(0);
   });
 
   it('shows an unresolved edge target as its id instead of dropping the edge', async () => {

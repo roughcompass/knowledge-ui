@@ -17,10 +17,17 @@ describe('makeEntityRef — the list item shape', () => {
       'entity_id',
       'entity_type',
       'external_id',
-      'is_active',
       'name',
       'tenant_id',
     ]);
+  });
+
+  it('carries NO is_active', () => {
+    // Audit-only on this shape: a list response has already filtered inactive
+    // rows out and omits the field. A fixture that filled it in let a page
+    // coerce the real endpoint's absence into "every row is inactive".
+    expect(makeEntityRef()).not.toHaveProperty('is_active');
+    expect(makeEntityRef({ is_active: false })).toHaveProperty('is_active', false);
   });
 
   it('carries NO lifecycle', () => {

@@ -1,4 +1,4 @@
-import { Banner, BannerContent, StackLayout, Text } from '@salt-ds/core';
+import { Banner, BannerContent, FlexLayout, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 /**
@@ -44,6 +44,8 @@ export function UnavailableNotice({
   reason,
   tracking,
   tone = 'notice',
+  hideTitle = false,
+  action,
 }: {
   /** What is missing, in the reader's terms. Not "no data". */
   title: string;
@@ -57,14 +59,40 @@ export function UnavailableNotice({
    * its way down to quiet rather than start there.
    */
   tone?: 'notice' | 'quiet';
+  /**
+   * Keep the title for assistive technology but take it off screen.
+   *
+   * For a notice sitting directly under a card heading that says the same
+   * words — the third "Ontology" inside ninety pixels is the point at which the
+   * eye stops reading any of them. The title stays required and stays in the
+   * accessibility tree, because a notice announced without its subject is just
+   * "unavailable"; only the visual duplicate goes. The reason always renders.
+   */
+  hideTitle?: boolean;
+  /**
+   * The one step the reader can take, as a real control: a persona switch, a
+   * link to where the capability lives. A refusal that names a next step and
+   * then makes the reader hunt for it elsewhere on the page has only done half
+   * its job.
+   */
+  action?: ReactNode;
 }) {
   const body = (
     <StackLayout gap={1}>
-      <Text styleAs="label" color={tone === 'quiet' ? 'secondary' : undefined}>
+      <Text
+        styleAs="label"
+        color={tone === 'quiet' ? 'secondary' : undefined}
+        className={hideTitle ? 'salt-visuallyHidden' : undefined}
+      >
         {title}
       </Text>
       <Text color={tone === 'quiet' ? 'secondary' : undefined}>{reason}</Text>
       {tracking !== undefined ? <Text color="secondary">{tracking}</Text> : null}
+      {action !== undefined ? (
+        // Start-aligned so the control sizes to its label: a block-level flex
+        // child of the stack would stretch to the panel's full width.
+        <FlexLayout justify="start">{action}</FlexLayout>
+      ) : null}
     </StackLayout>
   );
 

@@ -49,4 +49,32 @@ describe('UnavailableNotice', () => {
     const { container } = render(<UnavailableNotice title="Something" reason="Because." />);
     expect(container.querySelector('.saltBanner')).not.toBeNull();
   });
+
+  it('keeps a hidden title in the accessibility tree, and always renders the reason', () => {
+    // For a notice directly under a card heading saying the same words: the
+    // visual duplicate goes, the announced subject does not.
+    render(<UnavailableNotice hideTitle title="Ontology" reason="Not readable by this role." />);
+
+    const title = screen.getByText('Ontology');
+    expect(title).toBeInTheDocument();
+    expect(title.className).toContain('salt-visuallyHidden');
+    expect(screen.getByText('Not readable by this role.')).toBeVisible();
+  });
+
+  it('shows the title by default', () => {
+    render(<UnavailableNotice title="Ontology" reason="Not readable by this role." />);
+    expect(screen.getByText('Ontology').className).not.toContain('salt-visuallyHidden');
+  });
+
+  it('renders the action control when the refusal has a next step', () => {
+    render(
+      <UnavailableNotice
+        title="Usage across the deployment"
+        reason="Only an administrator can read deployment-wide usage."
+        action={<button type="button">Switch To Platform Admin</button>}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Switch To Platform Admin' })).toBeInTheDocument();
+  });
 });

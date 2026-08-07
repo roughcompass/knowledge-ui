@@ -43,9 +43,14 @@ export function makeWhoami(
 /**
  * A capabilities LIST item.
  *
- * Exactly the seven fields the endpoint returns. No `lifecycle`, no
- * `attributes`, no `facts` — those live on the detail resource only, which is
+ * Exactly the fields the endpoint returns on a plain list read. No `lifecycle`,
+ * no `attributes`, no `facts` — those live on the detail resource only, which is
  * why the list screen filters by lifecycle rather than showing a column for it.
+ *
+ * No `is_active` either: the field is audit-only on this shape, because every
+ * list surface has already filtered inactive rows out and the server omits what
+ * it did not compute. A fixture that filled it in taught pages to coerce the
+ * absent field into "inactive" — pass a boolean explicitly for audit-view rows.
  */
 export function makeEntityRef(overrides: Partial<Record<string, unknown>> = {}) {
   const n = ++seq;
@@ -55,7 +60,6 @@ export function makeEntityRef(overrides: Partial<Record<string, unknown>> = {}) 
     entity_type: 'capability',
     name: `capability-${n}`,
     external_id: null,
-    is_active: true,
     created_at: '2026-06-01T00:00:00Z',
     ...overrides,
   };

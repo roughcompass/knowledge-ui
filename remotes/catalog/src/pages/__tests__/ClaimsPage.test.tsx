@@ -125,6 +125,34 @@ describe('the claims page', () => {
     expect(notes).toHaveLength(1);
   });
 
+  it('marks the link columns so their rows carry the hover cue', async () => {
+    /*
+     * Subject and claim are built inside `render`, which the table cannot
+     * inspect for anchors — the column has to declare itself linked. Without
+     * the flag the rows of the most clickable table in the app looked static.
+     */
+    renderPage();
+    const table = await screen.findByRole('table', { name: /claims/i });
+    const [, firstDataRow] = within(table).getAllByRole('row');
+    expect(firstDataRow?.className).toMatch(/clickableRow/);
+  });
+
+  it('lets the value and evidence cells wrap rather than deciding the table width', async () => {
+    /*
+     * The two prose columns. Held to one line they pushed Owner Confirmed,
+     * Valid and Evidence — the columns the intro tells a reader to judge by —
+     * past the edge of the card.
+     */
+    renderPage();
+    const table = await screen.findByRole('table', { name: /claims/i });
+    const valueCell = within(table).getByText('Dropdown').closest('td');
+    const evidenceCell = within(table)
+      .getByText(/ev-9001/)
+      .closest('td');
+    expect(valueCell?.className).toMatch(/wrap/);
+    expect(evidenceCell?.className).toMatch(/wrap/);
+  });
+
   it('shows every citation without a click', async () => {
     // A citation behind a disclosure is a citation nobody checks.
     renderPage();
@@ -246,9 +274,23 @@ describe('the claims page', () => {
     await screen.findByRole('table', { name: /claims/i });
 
     await userEvent.click(screen.getByRole('combobox', { name: /^persona$/i }));
-    for (const persona of ['L1 responder', 'L3 engineer', 'Architect', 'Agent']) {
+    for (const persona of ['L1 responder', 'L3 engineer', 'Architect', 'Agent — default']) {
       expect(screen.getByRole('option', { name: persona })).toBeInTheDocument();
     }
+  });
+
+  it('names the server default in the persona control instead of posing as a neutral filter', async () => {
+    /*
+     * The neighbours default to "Any" and this one cannot: the endpoint answers
+     * at agent depth when the parameter is omitted, so there is no unfiltered
+     * reading to offer. Unmarked, a first-time reader had no way to know their
+     * first view of claims was already the machine-depth variant.
+     */
+    renderPage();
+    await screen.findByRole('table', { name: /claims/i });
+    expect(screen.getByRole('combobox', { name: /^persona$/i })).toHaveTextContent(
+      'Agent — default',
+    );
   });
 
   it('reads claims for every role the API admits', async () => {

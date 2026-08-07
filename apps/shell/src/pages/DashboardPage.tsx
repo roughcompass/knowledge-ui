@@ -1,7 +1,8 @@
-import { FlexLayout, FlowLayout, StackLayout, Tag, Text } from '@salt-ds/core';
+import { FlexLayout, FlowLayout, StackLayout, Text } from '@salt-ds/core';
 import { useEffect, useState } from 'react';
 import {
   describeWindow,
+  isSecondsReading,
   useNotifications,
   useOperationalHealth,
   useOwnedCapabilityUsage,
@@ -10,6 +11,7 @@ import {
 } from '@knowledge-ui/api-client';
 import { can, type Persona, type Session } from '@knowledge-ui/auth';
 import {
+  countText,
   DataTable,
   ErrorPanel,
   NavCard,
@@ -92,10 +94,14 @@ function greeting(): string {
  * Greet by name only when the server gave one a person would answer to.
  *
  * Under the client-credentials grant the actor's display name *is* the client id, so
- * this rendered "Good morning, knowledge-ui-consumer" — which is worse than not
- * greeting at all, because the entire value of addressing someone is that it reads as
+ * this greeted the reader by a machine identifier — which is worse than not greeting
+ * at all, because the entire value of addressing someone is that it reads as
  * addressed rather than generated. A real identity provider sends a human name and
  * this passes it through unchanged.
+ *
+ * The identifier is described rather than quoted: a sourcemap carries every module's
+ * original text, so an example here reaches `dist/**.map` and trips the build's own
+ * search for development credentials.
  *
  * The test is shape, not a list: a machine identifier here is lower-case and
  * hyphen-or-dot separated with no spaces, and a name a person answers to is not. It
@@ -148,9 +154,21 @@ export function DashboardPage({
         })()}
         description="Everything teams here publish for others to build on."
         metadata={
+          /*
+            Neutral, not accent: these two chips are readouts, and the accent
+            register is reserved for things a reader can click. Styled as the
+            bluest elements on the page they read as filters, and got clicked.
+          */
           <FlexLayout gap={1} wrap>
-            <Tag bordered>{session.tenantDisplayName}</Tag>
-            <Tag bordered>{session.role}</Tag>
+            {/*
+              Text, not `Tag`. Salt's `secondary` variant fills the chip rather
+              than quietening it, so the readouts came back louder than the
+              actions beside them — and any pill at all in this position reads as
+              a filter the reader can remove.
+            */}
+            <Text color="secondary">{session.tenantDisplayName}</Text>
+            <Text color="secondary">·</Text>
+            <Text color="secondary">{session.role}</Text>
           </FlexLayout>
         }
         actions={
@@ -190,19 +208,22 @@ export function DashboardPage({
         </Note>
       ) : null}
 
-      <StackLayout gap={1}>
-        <SectionHeading
-          title="At a glance"
-          action={
-            can(session, 'usage:read:owned') ? (
-              <KLink to={remoteChildHref('operations', 'usage')} color="accent" underline="never">
-                Full Usage
-              </KLink>
-            ) : undefined
-          }
+      <AtAGlance client={client} session={session} />
+
+      {/*
+        The auditor's one destination, where they can see it without scrolling.
+        `audit:read` is granted to exactly one role — the registry collapses a
+        principal to one role, so even an admin is refused there — which makes
+        this card the auditor's dispatch rather than a duplicate for everyone.
+      */}
+      {can(session, 'audit:read') ? (
+        <ResourceCard
+          title="Review what changed"
+          description="Every change to the registry, newest first, with what each one touched."
+          actionLabel="Open Audit Log"
+          to={remoteChildHref('operations', 'audit')}
         />
-        <SummaryRow client={client} session={session} />
-      </StackLayout>
+      ) : null}
 
       {/*
         Learn the registry sits ABOVE the destination grid, not at the foot.
@@ -227,12 +248,27 @@ export function DashboardPage({
             actionLabel="Open Graph"
             to={remoteChildHref('catalog', 'graph')}
           />
-          <ResourceCard
-            title="Keep your own notes"
-            description="Decisions and open questions, private to you or your tenant."
-            actionLabel="Open Workspaces"
-            to={remoteChildHref('catalog', 'workspaces')}
-          />
+          {/*
+            Two write scopes, and holding either makes "keep your own" true.
+            A reader with neither can still open every team workspace — the
+            read admits all four roles — so the card promises reading instead
+            of a write the server would refuse.
+          */}
+          {can(session, 'workspace:write:personal') || can(session, 'workspace:write:team') ? (
+            <ResourceCard
+              title="Keep your own notes"
+              description="Decisions and open questions, private to you or your tenant."
+              actionLabel="Open Workspaces"
+              to={remoteChildHref('catalog', 'workspaces')}
+            />
+          ) : (
+            <ResourceCard
+              title="Read your tenant's notes"
+              description="Decisions and open questions other teams keep beside the catalog. Your role can read them, not write them."
+              actionLabel="Open Workspaces"
+              to={remoteChildHref('catalog', 'workspaces')}
+            />
+          )}
         </TileGrid>
       </StackLayout>
 
@@ -367,10 +403,11 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
             {
               key: 'name',
               header: 'Capability',
+              linked: true,
               render: (row) => (
                 <KLink
                   underline="never"
-                  color="primary"
+                  color="accent"
                   to={remoteChildHref('catalog', encodeURIComponent(row.capability_id))}
                 >
                   {row.name}
@@ -467,7 +504,7 @@ function RecentActivity({ session }: { session: Session }) {
   );
 }
 
-function SummaryRow({ client, session }: { client: RegistryClient; session: Session }) {
+function AtAGlance({ client, session }: { client: RegistryClient; session: Session }) {
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
 
   const canOperator = can(session, 'usage:read:operator');
@@ -477,6 +514,34 @@ function SummaryRow({ client, session }: { client: RegistryClient; session: Sess
   const summary = useUsageSummary(client, scope, {}, { enabled: canOperator });
   const owned = useOwnedCapabilityUsage(client, scope, undefined, { enabled: canOwned });
   const health = useOperationalHealth(client, scope, { enabled: canOps });
+
+  /*
+    A consumer or an auditor holds none of the aggregate reads, so the row would be
+    empty for the most common reader on the most-visited page. An empty row is not
+    the honest answer; the honest answer is that the useful thing for that reader is
+    not a number, it is their own trail — and the heading says so, because a trail
+    titled "At a glance" promises figures that are not coming.
+  */
+  if (!canOperator && !canOwned && !canOps) {
+    return (
+      <StackLayout gap={1}>
+        <SectionHeading title="Pick up where you left off" />
+        <RecentActivity session={session} />
+      </StackLayout>
+    );
+  }
+
+  /*
+    The usage summary and the owned-capability read are separate endpoints and each
+    reports the window it covered, so the two can disagree. When they agree the
+    window is a fact about the whole row and is said once, under the heading; only
+    when they differ does each tile carry its own, because collapsing two different
+    windows into one sentence would put the wrong dates under somebody's number.
+  */
+  const windows = new Set<string>();
+  if (canOperator && summary.data) windows.add(describeWindow(summary.data));
+  if (canOwned && owned.data) windows.add(describeWindow(owned.data));
+  const sharedWindow = windows.size === 1 ? [...windows][0] : undefined;
 
   const tiles: Array<{ key: string; label: string; value: string; hint: string; href: string }> =
     [];
@@ -489,14 +554,18 @@ function SummaryRow({ client, session }: { client: RegistryClient; session: Sess
       key: 'calls',
       label: 'Calls',
       value: calls.toLocaleString(),
-      hint: `Summed across every surface, ${window}.`,
+      hint: sharedWindow
+        ? 'Summed across every surface.'
+        : `Summed across every surface, ${window}.`,
       href: '/ops/usage',
     });
     tiles.push({
       key: 'failed',
       label: 'Failed Calls',
       value: failed.toLocaleString(),
-      hint: `Counted, not rated — a rate over one reading would be invented. ${window}.`,
+      hint: sharedWindow
+        ? 'Counted, not rated — a rate over one reading would be invented.'
+        : `Counted, not rated — a rate over one reading would be invented. ${window}.`,
       href: '/ops/usage',
     });
   }
@@ -507,39 +576,60 @@ function SummaryRow({ client, session }: { client: RegistryClient; session: Sess
       key: 'owned',
       label: 'Capabilities You Own',
       value: rows.length.toLocaleString(),
-      hint: `A count of the response, which is complete rather than paged. ${describeWindow(owned.data)}.`,
+      hint: sharedWindow
+        ? 'A count of the response, which is complete rather than paged.'
+        : `A count of the response, which is complete rather than paged. ${describeWindow(owned.data)}.`,
       href: '/ops/usage',
     });
   }
 
   if (canOps && health.data) {
-    const deepest = health.data.queues.reduce(
-      (worst, reading) => Math.max(worst, Number(reading.value ?? 0)),
-      0,
+    /*
+      The health feed mixes queue depths with seconds-valued age gauges, and a max
+      over both compares seconds to items — the age is the biggest number in the
+      snapshot, so it always won. Only depth readings compete for this tile, and if
+      the snapshot carries none the tile is absent rather than a zero over nothing.
+    */
+    const depths = health.data.queues.filter((reading) => !isSecondsReading(reading));
+    const deepest = countText(
+      depths.reduce((worst, reading) => Math.max(worst, Number(reading.value ?? 0)), 0),
     );
-    tiles.push({
-      key: 'queue',
-      label: 'Deepest Queue',
-      value: deepest.toLocaleString(),
-      hint: 'The largest backlog reported in the latest snapshot, not a trend.',
-      href: '/ops/metrics',
-    });
+    if (depths.length > 0 && deepest !== undefined) {
+      tiles.push({
+        key: 'queue',
+        label: 'Deepest Queue',
+        value: deepest,
+        hint: 'The largest queue backlog in the latest snapshot, not a trend.',
+        href: '/ops',
+      });
+    }
   }
 
-  /*
-    A consumer holds none of the aggregate reads, so this row would be empty for the
-    most common reader on the most-visited page — which is most of why the dashboard
-    read as plain. An empty row is not the honest answer; the honest answer is that
-    the useful thing for that reader is not a number, it is their own trail.
-  */
-  if (tiles.length === 0) return <RecentActivity session={session} />;
-
   return (
-    <TileGrid columns={3}>
-      {tiles.map((tile) => (
-        <StatTile key={tile.key} label={tile.label} value={tile.value} hint={tile.hint} />
-      ))}
-    </TileGrid>
+    <StackLayout gap={1}>
+      <SectionHeading
+        title="At a glance"
+        action={
+          canOwned ? (
+            <KLink to={remoteChildHref('operations', 'usage')} color="accent" underline="never">
+              Full Usage
+            </KLink>
+          ) : undefined
+        }
+      />
+      {sharedWindow ? (
+        <Text color="secondary">
+          Usage figures cover {sharedWindow}, the window the service reports.
+        </Text>
+      ) : null}
+      {tiles.length > 0 ? (
+        <TileGrid columns={3}>
+          {tiles.map((tile) => (
+            <StatTile key={tile.key} label={tile.label} value={tile.value} hint={tile.hint} />
+          ))}
+        </TileGrid>
+      ) : null}
+    </StackLayout>
   );
 }
 
@@ -594,10 +684,11 @@ function RecentChanges({ client, session }: { client: RegistryClient; session: S
             {
               key: 'slug',
               header: 'Capability',
+              linked: true,
               render: (row) => (
                 <KLink
                   underline="never"
-                  color="primary"
+                  color="accent"
                   to={remoteChildHref('catalog', encodeURIComponent(row.slug))}
                 >
                   {row.slug}

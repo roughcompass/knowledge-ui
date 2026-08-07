@@ -1,3 +1,4 @@
+import type { Persona } from './personaRoster';
 import type { Role, Session } from './types';
 
 /**
@@ -242,4 +243,33 @@ export function capabilitiesFor(role: Role): Capability[] {
  */
 export function rolesGranting(capability: Capability): readonly Role[] {
   return CAPABILITIES[capability];
+}
+
+export interface RefusalSuggestion {
+  /** The roles that would be allowed, for the sentence naming them. */
+  grantingRoles: readonly Role[];
+  /** A persona that would succeed, when the roster carries one. */
+  persona: Persona | undefined;
+}
+
+/**
+ * What a refusal should offer: the roles that would work, and a persona that
+ * holds one.
+ *
+ * One computation for every surface that refuses — the route guard, and any
+ * section that refuses inside an otherwise-allowed page. Each surface deriving
+ * its own suggestion is how two refusals for the same capability come to name
+ * different roles, and only a persona that would actually succeed is ever
+ * suggested: offering one that also lacks the capability is worse than
+ * offering nothing.
+ */
+export function refusalSuggestion(
+  need: Capability,
+  personas: readonly Persona[],
+): RefusalSuggestion {
+  const grantingRoles = rolesGranting(need);
+  return {
+    grantingRoles,
+    persona: personas.find((p) => grantingRoles.includes(p.expectedRole)),
+  };
 }

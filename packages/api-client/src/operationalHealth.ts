@@ -121,6 +121,20 @@ export function describeScope(reading: Pick<OperationalReading, 'scope'>): strin
  * once per row: repeating it against every reading turns the qualifier into
  * chrome the eye skips, which is the state it is meant to prevent.
  */
+/**
+ * Whether a reading's value is a number of seconds rather than a count.
+ *
+ * The response model carries no unit field — the key suffix is the one signal
+ * the server sends, so this reads it rather than inferring anything. The two
+ * kinds must not share a rendering: a seconds-valued age formatted as a count
+ * reads as a hundred and fifty thousand of something, and a queue-depth
+ * aggregate that includes an age reading is comparing seconds to items.
+ */
+export function isSecondsReading(reading: Pick<OperationalReading, 'key'> | string): boolean {
+  const key = typeof reading === 'string' ? reading : reading.key;
+  return key.endsWith('_seconds');
+}
+
 export function processScopeCaveat(instances: readonly string[]): string {
   const from = instances.length > 0 ? `Read from ${instances.join(', ')}. ` : '';
   return `${from}A request reaches one replica, so a zero here does not prove zero everywhere. These counters reset when a process restarts.`;

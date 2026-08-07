@@ -70,6 +70,11 @@ import { useSearchParams } from 'react-router-dom';
  * paste into a review — which for a page about evidence is most of the point.
  */
 
+/** The reading of a persona value, with the server's default named as one. */
+function personaLabel(value: ClaimPersona): string {
+  return value === DEFAULT_CLAIM_PERSONA ? `${termText(value)} — default` : termText(value);
+}
+
 function ConfidenceCell({ claim }: { claim: Claim }) {
   const band = confidenceBand(claim.confidence);
   return (
@@ -282,10 +287,16 @@ export function ClaimsPage() {
             has a control genuinely called Depth, holding the traversal depths 1 to 5.
             Two unrelated controls under one word in one app is how a reader learns to
             distrust both.
+
+            The default is marked in the control. There is no neutral setting to
+            offer: the endpoint answers at agent depth when the parameter is
+            omitted, so an "Any" option would send nothing and change nothing.
+            Unmarked, the control reads as a filter the reader has not touched,
+            when their first view of claims is already the machine-depth variant.
           */}
           <Dropdown
             bordered
-            value={termText(persona)}
+            value={personaLabel(persona)}
             onSelectionChange={(_e, selected) =>
               set('persona', String(selected?.[0] ?? DEFAULT_CLAIM_PERSONA))
             }
@@ -293,7 +304,7 @@ export function ClaimsPage() {
           >
             {CLAIM_PERSONAS.map((value) => (
               <Option key={value} value={value}>
-                {termText(value)}
+                {personaLabel(value)}
               </Option>
             ))}
           </Dropdown>
@@ -313,7 +324,12 @@ export function ClaimsPage() {
          * removing itself on a timer, and the reader it exists for is the one
          * arriving at this page for the twentieth time about to act on a claim.
          */
-        <Note label="Recalled Content" variant="warning">
+        /*
+         * One word for the label, because the body — the server's own trust
+         * note — already opens with "Recalled". A label that repeats the body's
+         * first word is read once and skipped forever after.
+         */
+        <Note label="Trust" variant="warning">
           {caveat}
         </Note>
       ) : null}
@@ -366,6 +382,7 @@ export function ClaimsPage() {
               {
                 key: 'subject_entity_id',
                 header: 'Subject',
+                linked: true,
                 // First column, because a predicate and a value do not say what they
                 // are about. A list spanning entities without this is unreadable.
                 /*
@@ -390,6 +407,7 @@ export function ClaimsPage() {
               {
                 key: 'claim_id',
                 header: 'Claim',
+                linked: true,
                 /*
                   The way into the citation drill-in. Evidence counts were listed on
                   this page with nothing to open — the detail hook existed and no
@@ -417,7 +435,15 @@ export function ClaimsPage() {
                   </StackLayout>
                 ),
               },
-              { key: 'value', header: 'Value', render: (row) => <Text>{String(row.value)}</Text> },
+              {
+                key: 'value',
+                header: 'Value',
+                // Running text, and the widest field in the row. Held to one line
+                // it pushes the trust columns — the ones the intro tells a reader
+                // to judge by — past the card edge.
+                wrap: true,
+                render: (row) => <Text>{String(row.value)}</Text>,
+              },
               {
                 key: 'confidence',
                 header: 'Confidence',
@@ -439,6 +465,9 @@ export function ClaimsPage() {
                 // The authority sits with the citations because both answer "where did
                 // this come from", and separating them made two narrow columns out of
                 // one idea.
+                // Excerpts are prose. One-lined, a single long citation decides the
+                // width of the whole table.
+                wrap: true,
                 render: (row) => (
                   <StackLayout gap={0.5}>
                     <Text color="secondary" styleAs="label">

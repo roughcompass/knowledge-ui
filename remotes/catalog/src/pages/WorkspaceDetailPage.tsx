@@ -9,6 +9,7 @@ import {
   StackLayout,
   Tag,
   Text,
+  Tooltip,
 } from '@salt-ds/core';
 import {
   CursorStack,
@@ -44,7 +45,6 @@ import {
   instantText,
   popoverOverlayProps,
   termText,
-  KLink,
   EntityLink,
 } from '@knowledge-ui/ui-kit';
 import { useRef, useState, type ChangeEvent } from 'react';
@@ -291,6 +291,17 @@ export function WorkspaceDetailPage() {
   const mayWriteEntries = mayWrite && !archived;
   const entryFields = fieldErrors(addEntry.error);
 
+  // Who can, decided by ownership rather than role alone: a personal workspace
+  // is its owning producer's, a team one is an admin's — an admin cannot write
+  // in someone's personal workspace and a producer cannot touch the team's.
+  const writeRefusal =
+    ws.owner_kind === 'tenant'
+      ? 'Read-only for your role — an admin can edit a team workspace.'
+      : 'Read-only for your role — only the producer who owns a personal workspace can edit it.';
+  const entryRefusal = mayWrite
+    ? 'Archived — un-archive this workspace to write in it.'
+    : writeRefusal;
+
   const rows = entries.data?.items ?? [];
   const nextCursor = entries.data?.next_cursor ?? null;
 
@@ -363,10 +374,11 @@ export function WorkspaceDetailPage() {
         title={ws.name}
         description={ws.description ?? undefined}
         metadata={
+          // No "All workspaces" link: the breadcrumb above already goes there,
+          // and two adjacent controls for one journey read as two journeys.
           <FlexLayout gap={1} align="center">
             <Tag>{OWNERSHIP_LABEL[ws.owner_kind]}</Tag>
             {archived ? <Tag>Archived</Tag> : null}
-            <KLink to="..">All workspaces</KLink>
           </FlexLayout>
         }
         actions={
@@ -389,7 +401,25 @@ export function WorkspaceDetailPage() {
                 {archived ? 'Un-archive' : 'Archive'}
               </Button>
             </FlexLayout>
-          ) : undefined
+          ) : (
+            /*
+              Refused, not removed. The controls stay where a writer finds the
+              working ones, disabled and focusable, with who-can in the tooltip —
+              a control that vanishes reads as a permission the reader lost.
+            */
+            <FlexLayout gap={1}>
+              <Tooltip content={writeRefusal}>
+                <Button appearance="bordered" sentiment="neutral" disabled focusableWhenDisabled>
+                  Edit Details
+                </Button>
+              </Tooltip>
+              <Tooltip content={writeRefusal}>
+                <Button appearance="bordered" sentiment="neutral" disabled focusableWhenDisabled>
+                  {archived ? 'Un-archive' : 'Archive'}
+                </Button>
+              </Tooltip>
+            </FlexLayout>
+          )
         }
       />
 
@@ -428,11 +458,23 @@ export function WorkspaceDetailPage() {
             ]}
           />
 
-          <UnavailableNotice
-            title="Visibility cannot be changed after creation"
-            reason="The workspace update endpoint accepts a name, a description and an archive timestamp. Ownership — which is what decides who can see this — is not part of that body, so there is no request this screen could send."
-            tracking="Moving content between a personal and a team workspace means creating the other kind and adding the entries to it."
-          />
+          {mayWrite ? (
+            /*
+              Only for a reader who can edit, because it explains the shape of the
+              edit form — the one control they might come looking for. A reader
+              with no write access has no missing control to be told about.
+
+              The absence is the API's shape, not a permission: the update body
+              carries name, description and archive state, and owner_kind is not
+              in it, so no session could send the change. Said in the reader's
+              words on screen so nobody goes asking for a grant that cannot help.
+            */
+            <UnavailableNotice
+              title="Visibility cannot be changed after creation"
+              reason="Who can see this workspace was decided when it was created, and no edit here can change it."
+              tracking="To move content between a personal and a team workspace, create the other kind and add the entries to it."
+            />
+          ) : null}
         </StackLayout>
       </SectionCard>
 
@@ -493,7 +535,16 @@ export function WorkspaceDetailPage() {
             >
               {entryFormOpen ? 'Cancel' : 'Add Entry'}
             </Button>
-          ) : undefined
+          ) : (
+            // Same rule as the header actions: the refusal lives on the control.
+            // The tooltip distinguishes "your role cannot" from "this workspace
+            // is archived", which call for different next steps.
+            <Tooltip content={entryRefusal}>
+              <Button appearance="solid" sentiment="accented" disabled focusableWhenDisabled>
+                Add Entry
+              </Button>
+            </Tooltip>
+          )
         }
       >
         <StackLayout gap={2}>

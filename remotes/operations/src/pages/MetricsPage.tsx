@@ -1,7 +1,8 @@
-import { StackLayout, Text } from '@salt-ds/core';
-import { can, useSession } from '@knowledge-ui/auth';
+import { Button, StackLayout, Text } from '@salt-ds/core';
+import { can, refusalSuggestion, useSession } from '@knowledge-ui/auth';
 import {
   describeScope,
+  isSecondsReading,
   processScopeCaveat,
   useOperationalHealth,
   type OperationalReading,
@@ -14,6 +15,9 @@ import {
   SectionCard,
   StatTile,
   TileGrid,
+  UnavailableNotice,
+  countText,
+  durationText,
 } from '@knowledge-ui/ui-kit';
 /**
  * Operational state, read from the service itself.
@@ -49,7 +53,7 @@ import {
  * second destination that mostly refused them.
  */
 export function OperationalSections() {
-  const { session, client } = useSession<RegistryClient>();
+  const { session, client, personas, onSwitchPersona } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
 
   // Gated before the request, not after: this endpoint is admin-only on the
@@ -59,10 +63,21 @@ export function OperationalSections() {
   const query = useOperationalHealth(client, scope, { enabled: permitted });
 
   if (!permitted) {
+    const { grantingRoles, persona } = refusalSuggestion('ops:operate', personas);
     return (
-      <Text color="secondary">
-        Queue depths and data-quality counters need the administrator role.
-      </Text>
+      <UnavailableNotice
+        title="Queues and data quality"
+        reason={`The probes above are open to every role. Queue depths and data-quality counters are read with ${grantingRoles
+          .map((role) => `the ${role} role`)
+          .join(' or ')} only.`}
+        action={
+          persona && onSwitchPersona ? (
+            <Button sentiment="accented" onClick={() => onSwitchPersona(persona.key)}>
+              Switch to {persona.label}
+            </Button>
+          ) : undefined
+        }
+      />
     );
   }
 
@@ -86,11 +101,18 @@ export function OperationalSections() {
   const scopesDiffer = new Set(dataQuality.map((r) => r.scope)).size > 1;
   const instances = [...new Set(dataQuality.map((r) => r.instance).filter(Boolean))];
 
+  /*
+   * Same rule as the table's provenance column: a qualifier every tile shares
+   * belongs to the section, not to each tile. The per-tile hint comes back by
+   * itself the moment one queue reading arrives with a different scope.
+   */
+  const queueScopesDiffer = new Set(queues.map((r) => r.scope)).size > 1;
+
   return (
     <StackLayout gap={3}>
       <SectionCard
         title="Queues"
-        description="Counted from the database at read time, so these are correct however many replicas are running."
+        description="Counted across the deployment from the database at read time, so these are correct however many replicas are running."
       >
         <TileGrid>
           {queues.map((reading) => (
@@ -98,14 +120,16 @@ export function OperationalSections() {
               key={reading.key}
               label={reading.label}
               status={(reading.value ?? 0) > 0 && reading.actionable ? 'warning' : undefined}
-              value={<Text styleAs="h3">{formatValue(reading.value)}</Text>}
+              value={<Text styleAs="h3">{formatValue(reading)}</Text>}
               // The consequence text explains why a *non-zero* value is bad.
               // Shown against a zero it reads as a live problem, so a healthy
               // queue would permanently claim subscribers are missing events.
               hint={
                 (reading.value ?? 0) > 0 && reading.actionable
                   ? reading.actionable
-                  : describeScope(reading)
+                  : queueScopesDiffer
+                    ? describeScope(reading)
+                    : undefined
               }
             />
           ))}
@@ -135,7 +159,7 @@ export function OperationalSections() {
                 key: 'value',
                 header: 'Count',
                 align: 'right' as const,
-                render: (row: OperationalReading) => <Text>{formatValue(row.value)}</Text>,
+                render: (row: OperationalReading) => <Text>{formatValue(row)}</Text>,
               },
               ...(scopesDiffer
                 ? [
@@ -180,9 +204,15 @@ export function OperationalSections() {
   );
 }
 
-function formatValue(value: number | null): string {
+function formatValue(reading: Pick<OperationalReading, 'key' | 'value'>): string {
   // Null and zero are different facts, and the gap between them matters most
   // here: null means the table could not be read, which is not an empty queue.
-  if (value === null) return 'unavailable';
-  return value.toLocaleString();
+  if (reading.value === null) return 'unavailable';
+  /*
+   * The key suffix is the only unit the server sends, and the two kinds must
+   * not share a rendering: a seconds-valued age shown as a count reads as a
+   * hundred and fifty thousand of something.
+   */
+  const text = isSecondsReading(reading) ? durationText(reading.value) : countText(reading.value);
+  return text ?? 'unavailable';
 }

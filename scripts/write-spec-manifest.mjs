@@ -19,16 +19,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const HTTP_METHODS = new Set([
-  'get',
-  'put',
-  'post',
-  'delete',
-  'patch',
-  'head',
-  'options',
-  'trace',
-]);
+const HTTP_METHODS = new Set(['get', 'put', 'post', 'delete', 'patch', 'head', 'options', 'trace']);
 
 const specPath = fileURLToPath(
   new URL('../packages/api-client/openapi/registry.openapi.json', import.meta.url),
@@ -48,4 +39,6 @@ const entries = Object.entries(spec.paths ?? {})
   .sort();
 
 writeFileSync(manifestPath, `${JSON.stringify(entries, null, 2)}\n`);
-console.log(`write-spec-manifest: ${entries.length} operations across ${Object.keys(spec.paths ?? {}).length} paths`);
+console.log(
+  `write-spec-manifest: ${entries.length} operations across ${Object.keys(spec.paths ?? {}).length} paths`,
+);

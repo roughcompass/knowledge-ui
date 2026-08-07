@@ -48,10 +48,10 @@ describe('the measurements this page refuses to invent', () => {
 
   it('scopes breadth and depth to one root instead of to the graph', async () => {
     renderAs(<GraphAnalyticsPage />, 'admin');
-    expect(await screen.findByText(/Counts describe .* only, not the whole graph/)).toBeInTheDocument();
     expect(
-      screen.getByText('Direct Dependents', { exact: false }),
+      await screen.findByText(/Counts describe .* only, not the whole graph/),
     ).toBeInTheDocument();
+    expect(screen.getByText('Direct Dependents', { exact: false })).toBeInTheDocument();
     // The unqualified label would be the graph-wide claim the API cannot support.
     expect(screen.queryByText('Entities')).not.toBeInTheDocument();
   });

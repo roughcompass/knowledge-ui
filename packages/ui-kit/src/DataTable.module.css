@@ -7,6 +7,28 @@
  */
 
 /*
+ * A wide table scrolls inside its container rather than clipping at the card
+ * edge, where the columns past it simply vanish — nowrap cells mean the cut
+ * lands mid-value, and nothing on screen says more exists.
+ *
+ * The cue is an edge fade, the same treatment as the rail's vertical scroll: a
+ * pure-CSS mask cannot know whether the table overflows, so the component
+ * writes the two stops from the scroll position and a table that fits shows no
+ * fade at all. A permanently faded edge on a table that fits would read as a
+ * rendering fault.
+ */
+.scroll {
+  overflow-x: auto;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black var(--fadeStart, 0),
+    black calc(100% - var(--fadeEnd, 0px)),
+    transparent 100%
+  );
+}
+
+/*
  * A row that responds to a click has to look like one. Without this a clickable
  * row and a static row were pixel-identical, so the only way to discover the
  * interaction was to try it.
@@ -125,6 +147,26 @@
   white-space: nowrap;
 }
 
-.wrap {
+/*
+ * Compound with the same table selector as the rule above, and with `td`, so it
+ * carries more specificity than the line it has to beat. `.wrap` alone lost to
+ * `.table:global(.saltTable) td` — the class applied and nothing moved, which is
+ * invisible to jsdom because it computes no styles.
+ */
+.table:global(.saltTable) td.wrap {
   white-space: normal;
+}
+
+/*
+ * A link's colour reaches its content.
+ *
+ * A column supplies its own `render`, and the natural thing to return is Salt
+ * `Text` — which sets `--salt-content-primary` on itself. Nested inside the
+ * anchor this table wraps link cells in, that turns every one of them black: the
+ * anchor computed accent, the text inside it did not, and the affordance was
+ * gone. Making it the cell's rule rather than each column's means no page has to
+ * remember.
+ */
+.table:global(.saltTable) td a :global(.saltText) {
+  color: inherit;
 }

@@ -23,7 +23,7 @@ import {
   termText,
   Note,
 } from '@knowledge-ui/ui-kit';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { AdoptionControl } from '../components/AdoptionControl';
 import { ImpactPanel } from '../components/ImpactPanel';
@@ -92,6 +92,9 @@ function overviewOf(facts: ReadonlyArray<Record<string, unknown>>): string | und
   return typeof overview?.body === 'string' ? overview.body : undefined;
 }
 
+/** The tab segments this page defines. Anything else in the URL is a dead address. */
+const TAB_VALUES = ['overview', 'interface', 'impact', 'record'] as const;
+
 export function CapabilityDetailPage() {
   const { handle } = useParams<{ handle: string; tab: string }>();
   const { session, client } = useSession<RegistryClient>();
@@ -122,6 +125,19 @@ export function CapabilityDetailPage() {
     ...(auditView ? { view: 'audit' as const } : {}),
     ...(asOf ? { asOf } : {}),
   });
+
+  /*
+   * A tab segment this page does not define redirects to the overview rather
+   * than rendering four unselected tabs above an empty body. The URL is a link
+   * someone was sent, so it has to land somewhere readable — and `replace`
+   * keeps the dead address out of the back stack.
+   */
+  if (handle && tabParam && !TAB_VALUES.some((value) => value === tabParam)) {
+    const search = searchParams.toString();
+    return (
+      <Navigate to={{ pathname: `../${handle}`, search: search ? `?${search}` : '' }} replace />
+    );
+  }
 
   const data = query.data ?? {};
   const entity = (data.entity ?? {}) as Record<string, unknown>;
@@ -282,7 +298,14 @@ export function CapabilityDetailPage() {
       ) : null}
 
       {tab === 'impact' && handle ? <ImpactPanel handle={handle} /> : null}
-      {tab === 'interface' && handle ? <InterfacePanel handle={handle} /> : null}
+      {/*
+        The recorded `interface` attribute rides along from the detail response
+        already in hand, so the panel can answer "what is the contract" when the
+        interface endpoint carries no canonical text — without a second fetch.
+      */}
+      {tab === 'interface' && handle ? (
+        <InterfacePanel handle={handle} recordedInterface={attributes.interface} />
+      ) : null}
 
       {tab === 'overview' ? (
         <>

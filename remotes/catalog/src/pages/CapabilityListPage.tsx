@@ -28,9 +28,11 @@ import {
   ErrorPanel,
   FilterBar,
   FilterField,
+  Note,
   PageHeader,
   RetrievalArmsBar,
   RetrievalArmsLegend,
+  countText,
   isoDay,
   popoverOverlayProps,
   termText,
@@ -48,19 +50,20 @@ import { useSearchParams } from 'react-router-dom';
  * paste to a colleague.
  *
  * There is no lifecycle column, and that is not an omission. The list endpoint
- * returns entity references only: id, tenant, type, name, external id, active
- * flag and creation time. Lifecycle lives on the detail resource, so a column
- * would cost one request per row. It is offered as a filter instead — and when
- * a filter is applied every visible row carries that value by construction,
- * which is the same information without the waterfall.
+ * returns entity references only: id, tenant, type, name, external id and
+ * creation time, plus an active flag on audit reads. Lifecycle lives on the
+ * detail resource, so a column would cost one request per row. It is offered as
+ * a filter instead — and when a filter is applied every visible row carries
+ * that value by construction, which is the same information without the
+ * waterfall.
  *
  * ## Columns that say the same thing on every row are collapsed
  *
- * Of the five fields the list resource does return, three are usually identical
- * down the whole page: a tenant publishes mostly capabilities, mostly active,
- * seeded on one day. The table was therefore four-fifths constant, and the one
- * discriminating column — the name — competed for width with three that could
- * not tell any two rows apart.
+ * Of the fields the list resource does return, several are usually identical
+ * down the whole page: a tenant publishes mostly capabilities, seeded on one
+ * day. The table was therefore mostly constant, and the one discriminating
+ * column — the name — competed for width with columns that could not tell any
+ * two rows apart.
  *
  * So a column is dropped when every row on the page shares its value, and the
  * shared value is stated once above the table instead. Nothing is hidden: the
@@ -76,6 +79,12 @@ export function CapabilityListPage() {
   const q = params.get('q') ?? '';
   const lifecycle = (params.get('lifecycle') ?? '') as Lifecycle | '';
   const entityType = params.get('type') ?? '';
+  /*
+    Time travel, from the URL. The list endpoint accepts `as_of`, and a link
+    carrying it is a claim about what the reader is seeing — so it is read and
+    passed through rather than dropped, and the view says it is historical.
+  */
+  const asOf = params.get('as_of') ?? undefined;
   const isSearching = q.trim().length > 0;
 
   const scope = {
@@ -85,8 +94,9 @@ export function CapabilityListPage() {
 
   // The stack resets whenever the filters change. Paging back with cursors from
   // a different result set silently shows the wrong rows, which is worse than
-  // losing the history.
-  const signature = filterSignature({ q, lifecycle, entityType });
+  // losing the history — and `as_of` is part of the result set's identity, since
+  // a cursor minted against the current catalog does not page a historical one.
+  const signature = filterSignature({ q, lifecycle, entityType, asOf });
   const stack = useRef(new CursorStack(signature));
   const [cursor, setCursor] = useState<string | null>(null);
   if (stack.current.syncSignature(signature) && cursor !== null) setCursor(null);
@@ -95,6 +105,7 @@ export function CapabilityListPage() {
     cursor,
     ...(lifecycle ? { lifecycle } : {}),
     ...(entityType ? { entityType } : {}),
+    ...(asOf ? { asOf } : {}),
   });
 
   const search = useSearch(
@@ -152,12 +163,19 @@ export function CapabilityListPage() {
       {
         key: 'is_active',
         header: 'Active',
-        render: (row) => (
-          <FlexLayout gap={1} align="center">
-            <StatusAdornment status={row.is_active ? 'success' : 'warning'} />
-            <Text styleAs="notation">{row.is_active ? 'active' : 'inactive'}</Text>
-          </FlexLayout>
-        ),
+        /*
+          `is_active` is audit-only on this shape: a response that omits it has
+          already filtered inactive rows out. An absent field is not a value, so
+          the cell only renders for a served boolean — coercing the absence would
+          declare every row inactive while the detail page says the opposite.
+        */
+        render: (row) =>
+          typeof row.is_active === 'boolean' ? (
+            <FlexLayout gap={1} align="center">
+              <StatusAdornment status={row.is_active ? 'success' : 'warning'} />
+              <Text styleAs="notation">{row.is_active ? 'active' : 'inactive'}</Text>
+            </FlexLayout>
+          ) : null,
       },
       {
         key: 'created_at',
@@ -262,18 +280,29 @@ export function CapabilityListPage() {
   /*
    * Which browse columns tell two rows apart, and what the others all said.
    *
-   * Only the three low-cardinality fields are candidates. `name` is the row's
-   * identity and never collapses, and `external_id` genuinely varies — collapsing
-   * it would mean hiding a package coordinate on the one page where every entry
-   * happened to have none, which is a fact worth a column of its own.
+   * Only the low-cardinality fields are candidates. `name` is the row's identity
+   * and never collapses. `external_id` collapses only when every row on the page
+   * lacks one — a page of package coordinates keeps its column, and with keyset
+   * paging and no totals the sentence can only speak for the page it describes.
    */
   const browseRows = useMemo(
     () => (isSearching ? [] : (browse.data?.items ?? [])),
     [isSearching, browse.data],
   );
-  const { visibleBrowseColumns, sharedFacts } = useMemo(() => {
+  const { visibleBrowseColumns, sharedFacts, inactivePageFact } = useMemo(() => {
     const constants: Record<string, string> = {};
+    const hidden = new Set<string>();
+    let inactive: string | undefined;
     const [first] = browseRows;
+
+    /*
+     * `is_active` is audit-only on the list shape, and a response that omits it
+     * has already filtered inactive rows out — so absence carries nothing worth
+     * a column, and is never a value a sentence may claim.
+     */
+    if (!browseRows.some((row) => typeof row.is_active === 'boolean')) {
+      hidden.add('is_active');
+    }
 
     if (first && browseRows.length > 1) {
       const distinct = <T,>(read: (row: EntityRef) => T) =>
@@ -282,8 +311,19 @@ export function CapabilityListPage() {
       if (distinct((row) => row.entity_type)) {
         constants.entity_type = `${termText(first.entity_type)}`;
       }
-      if (distinct((row) => row.is_active)) {
-        constants.is_active = first.is_active ? 'active' : 'inactive';
+      if (!hidden.has('is_active') && distinct((row) => row.is_active)) {
+        if (first.is_active) {
+          constants.is_active = 'active';
+        } else {
+          // Named in full and carried with warning weight below, because a page
+          // of registry-inactive entries is a state worth stopping on.
+          hidden.add('is_active');
+          inactive = 'Every entry on this page is marked inactive in the registry.';
+        }
+      }
+      if (browseRows.every((row) => !row.external_id)) {
+        hidden.add('external_id');
+        constants.external_id = 'not published to a registry';
       }
       if (distinct((row) => isoDay(row.created_at))) {
         const day = isoDay(first.created_at);
@@ -292,10 +332,20 @@ export function CapabilityListPage() {
     }
 
     return {
-      visibleBrowseColumns: browseColumns.filter((column) => !(column.key in constants)),
+      visibleBrowseColumns: browseColumns.filter(
+        (column) => !(column.key in constants) && !hidden.has(column.key),
+      ),
       sharedFacts: Object.values(constants),
+      inactivePageFact: inactive,
     };
   }, [browseRows, browseColumns]);
+
+  /*
+   * The timing rounded to whole milliseconds — presentation of a served value,
+   * not a derived one. When the value is not an honest number the clause is
+   * dropped rather than rendered as a fake zero.
+   */
+  const tookMs = countText(search.data?.took_ms);
 
   return (
     <StackLayout gap={3}>
@@ -303,7 +353,9 @@ export function CapabilityListPage() {
         title="Capabilities"
         description={
           isSearching
-            ? `Ranked results for “${q}”${search.data ? ` — ${search.data.total} in ${search.data.took_ms} ms` : ''}`
+            ? `Ranked results for “${q}”${
+                search.data ? ` — ${search.data.total}${tookMs ? ` in ${tookMs} ms` : ''}` : ''
+              }`
             : browseFraming
         }
       />
@@ -393,8 +445,18 @@ export function CapabilityListPage() {
         </>
       ) : (
         <>
+          {asOf ? (
+            <Note label="Historical view" variant="warning">
+              {`Showing this catalog as it stood at ${asOf}. Remove the as_of parameter to return to the current view.`}
+            </Note>
+          ) : null}
+          {inactivePageFact ? (
+            <Note label="Marked inactive" variant="warning">
+              {inactivePageFact}
+            </Note>
+          ) : null}
           {sharedFacts.length > 0 ? (
-            // Said once instead of repeated down three columns. It names the page
+            // Said once instead of repeated down whole columns. It names the page
             // it describes, because the next one may not share these values.
             <Text styleAs="notation" color="secondary">
               Every row on this page is {sharedFacts.join(', ')}.

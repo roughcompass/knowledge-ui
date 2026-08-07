@@ -153,6 +153,28 @@ export function GlobalSearch({ session, client }: { session: Session; client: Re
   const showRecents = debounced.length <= 1 && recents.length > 0;
   const showPanel = open && (hits.length > 0 || showRecents);
 
+  /*
+   * One line about the state of the suggestions, for the moments the panel has no
+   * links to offer. Silence after a keystroke is indistinguishable from broken, and
+   * the three empty states are different facts needing different words: still
+   * fetching, resolved to nothing, and failed. `isFetching` rather than `isPending`,
+   * because a query disabled below two characters reports pending forever — a
+   * loading line that never resolves would be the same lie as the silence was.
+   * With no query and no recents, the field says what typing will do, so the
+   * keyboard shortcut lands on an answer rather than on a bare focus ring.
+   */
+  let status: string | undefined;
+  if (open) {
+    if (debounced.length > 1) {
+      if (suggestions.isError) status = 'Suggestions unavailable — press Enter to search';
+      else if (suggestions.isFetching) status = 'Searching…';
+      else if (suggestions.isSuccess && hits.length === 0)
+        status = 'No capabilities match — press Enter for the full search';
+    } else if (!showRecents) {
+      status = 'Type to search the catalog';
+    }
+  }
+
   const panel = showPanel ? (
     <StackLayout gap={1}>
       <Text styleAs="notation" color="secondary">
@@ -217,13 +239,21 @@ export function GlobalSearch({ session, client }: { session: Session; client: Re
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <SuggestionField panel={panel}>
+      <SuggestionField panel={panel} status={status}>
         <Input
           bordered
           inputRef={inputRef}
           value={value}
-          placeholder="Search capabilities…   /"
-          aria-label="Search capabilities"
+          /*
+            Not "Search capabilities…", which is word-for-word the catalog page's own
+            filter placeholder — two identical boxes with different scopes is a
+            coin-flip. This one keeps "search" because Enter genuinely submits the
+            full catalog search rather than only jumping somewhere.
+          */
+          placeholder="Search from anywhere…   /"
+          // Through `inputProps`, because Salt spreads top-level rest props onto
+          // its wrapper div — a label there names nothing a screen reader visits.
+          inputProps={{ 'aria-label': 'Search from anywhere' }}
           startAdornment={<SearchIcon aria-hidden />}
           onChange={(event: ChangeEvent<HTMLInputElement>) => setValue(event.target.value)}
         />

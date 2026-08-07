@@ -35,9 +35,31 @@ describe('visibility', () => {
     expect(
       await screen.findByText('Visibility cannot be changed after creation'),
     ).toBeInTheDocument();
-    // The reason has to be the API's shape, not a permission — a reader who
-    // thinks it is a permission will go and ask someone for it.
-    expect(screen.getByText(/accepts a name, a description and an archive/i)).toBeInTheDocument();
+    // In the reader's words, and still not a permission — a reader who thinks
+    // it is a permission will go and ask someone for it.
+    expect(
+      screen.getByText(/decided when it was created, and no edit here can change it/i),
+    ).toBeInTheDocument();
+  });
+
+  it('spares readers who cannot edit the explanation of a missing edit control', async () => {
+    // The notice explains the shape of the edit form. A reader with no write
+    // access has no missing control to be told about, so it does not render.
+    renderAs('producer', 'ws-team');
+    await screen.findByText('Digital Enablement decisions');
+    expect(
+      screen.queryByText('Visibility cannot be changed after creation'),
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('the header', () => {
+  it('does not duplicate the breadcrumb with an "All workspaces" link', async () => {
+    // The shell's breadcrumb already carries the way back; a second control
+    // for the same journey reads as two journeys.
+    renderAs('admin', 'ws-team');
+    await screen.findByText('Digital Enablement decisions');
+    expect(screen.queryByRole('link', { name: /all workspaces/i })).not.toBeInTheDocument();
   });
 });
 
@@ -92,7 +114,12 @@ describe('archived workspaces', () => {
 
     await screen.findByText('Vendor grid evaluation');
     expect(screen.getByText(/Nothing more can be written in here/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Add Entry' })).not.toBeInTheDocument();
+    // The control stays where a writer expects it, disabled and focusable, so
+    // the tooltip can say the refusal is the archive state rather than the role.
+    expect(screen.getByRole('button', { name: 'Add Entry' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
     // Renaming is not gated on archive state server-side — it cannot be, or an
     // archived workspace could never be un-archived.
     expect(screen.getByRole('button', { name: 'Edit Details' })).toBeInTheDocument();
@@ -110,13 +137,18 @@ describe('archived workspaces', () => {
 });
 
 describe('who may write', () => {
-  it('gives a producer no write controls on the team’s workspace', async () => {
+  it('shows a producer the team workspace’s write controls disabled, with who-can on each', async () => {
+    /*
+      Refused rather than removed: a control that silently vanishes reads as a
+      permission the reader lost, and gives no answer to "who can?". The
+      buttons stay focusable so a keyboard reader can reach the tooltip.
+    */
     renderAs('producer', 'ws-team');
 
     await screen.findByText('Digital Enablement decisions');
-    expect(screen.queryByRole('button', { name: 'Add Entry' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Edit Details' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Archive' })).not.toBeInTheDocument();
+    for (const name of ['Add Entry', 'Edit Details', 'Archive']) {
+      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-disabled', 'true');
+    }
   });
 
   it('gives a producer write controls on their own workspace', async () => {

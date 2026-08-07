@@ -52,7 +52,7 @@ export function EntityLink({
 }) {
   if (name) {
     return to ? (
-      <KLink to={to} underline="never" color="primary">
+      <KLink to={to} underline="never" color="accent">
         {name}
       </KLink>
     ) : (
@@ -74,7 +74,7 @@ export function EntityLink({
 
   if (!opaque) {
     return to ? (
-      <KLink to={to} underline="never" color="primary">
+      <KLink to={to} underline="never" color="accent">
         {id}
       </KLink>
     ) : (
@@ -89,7 +89,7 @@ export function EntityLink({
     <FlexLayout gap={1} align="center">
       <Tooltip content={label}>
         {to ? (
-          <KLink to={to} underline="never" color="primary" styleAs="code">
+          <KLink to={to} underline="never" color="accent" styleAs="code">
             {short}
           </KLink>
         ) : (

@@ -24,6 +24,7 @@ import {
   PageHeader,
   Prose,
   SectionCard,
+  durationText,
   instantText,
   popoverOverlayProps,
   termText,
@@ -104,8 +105,9 @@ export function SyncRunsPage() {
           and no destination, so reading what a connector actually reported meant
           going to the server logs.
         */
+        linked: true,
         render: (row) => (
-          <KLink to={`runs/${String(row.sync_run_id)}`} underline="never" color="primary">
+          <KLink to={`runs/${String(row.sync_run_id)}`} underline="never" color="accent">
             {instantText(row.started_at) ?? '—'}
           </KLink>
         ),
@@ -135,7 +137,7 @@ export function SyncRunsPage() {
           row.duration_s === null ? (
             <Text color="secondary">—</Text>
           ) : (
-            <Text>{row.duration_s}s</Text>
+            <Text>{durationText(row.duration_s) ?? '—'}</Text>
           ),
       },
       {
@@ -172,13 +174,12 @@ export function SyncRunsPage() {
   );
 
   const rows = runs.data ?? [];
-  const expandedRun = rows.find((row) => row.sync_run_id === expanded);
 
   return (
     <StackLayout gap={3}>
       <PageHeader
         title="Sync runs"
-        description={`Every connector run in the last ${DEFAULT_WINDOW_DAYS} days, newest first. This endpoint returns no page limit, so the window is applied here rather than by the server.`}
+        description={`Connector runs from the last ${DEFAULT_WINDOW_DAYS} days, newest first — older runs exist but are not shown.`}
       />
 
       <FilterBar label="Filter sync runs">
@@ -218,10 +219,13 @@ export function SyncRunsPage() {
       {runs.error ? <ErrorPanel error={runs.error} title="Could not list sync runs" /> : null}
 
       <SectionCard title="Runs" banded flush>
+        {/*
+          Not zebra: an open failure panel occupies a striped row slot of its
+          own, which flips the stripe phase of every row beneath it.
+        */}
         <DataTable
           caption="Connector runs"
           hideCaption
-          zebra
           columns={columns}
           rows={rows}
           getRowId={(row) => row.sync_run_id}
@@ -230,23 +234,21 @@ export function SyncRunsPage() {
           emptyTitle="No runs in this window"
           emptyDescription="Nothing has run in the last week under these filters. A source with no schedule only runs when triggered by hand."
           emptyHeadingLevel="h3"
+          expandedRowId={expanded}
+          renderDetail={(row) => (
+            <StackLayout gap={2}>
+              <Prose>
+                <Text color="secondary">
+                  Reported by the connector. A high superseded count right after a configuration
+                  change is expected; a high count on a steady source usually means the connector
+                  stopped discovering artifacts it used to find.
+                </Text>
+              </Prose>
+              <Text styleAs="code">{row.error_summary}</Text>
+            </StackLayout>
+          )}
         />
       </SectionCard>
-
-      {expandedRun ? (
-        <SectionCard title={`Failure detail — ${nameOf(expandedRun.source_id)}`} headingLevel="h2">
-          <StackLayout gap={2}>
-            <Prose>
-              <Text color="secondary">
-                Reported by the connector. A high superseded count right after a configuration
-                change is expected; a high count on a steady source usually means the connector
-                stopped discovering artifacts it used to find.
-              </Text>
-            </Prose>
-            <Text styleAs="code">{expandedRun.error_summary}</Text>
-          </StackLayout>
-        </SectionCard>
-      ) : null}
     </StackLayout>
   );
 }

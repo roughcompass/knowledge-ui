@@ -191,6 +191,116 @@ test('the resize mark is a hairline, not the width of its hit area', async ({ pa
   expect(measured?.mark).toBe('1px');
 });
 
+test('a column that opts into wrapping actually wraps', async ({ page }) => {
+  /*
+   * The cells-hold-their-line rule is a compound selector carrying a class and an
+   * element, so the plain `.wrap` opt-out lost to it: the class landed on the cell
+   * and the text still ran off the side. A claims table that should have measured
+   * 1369px measured 1841px against a 1198px column, hiding four of its eight
+   * columns behind a scroll nobody had reason to attempt.
+   *
+   * jsdom computes no styles, and stylelint checks form rather than effect, so
+   * neither lane can see this. It is the same failure numeric alignment had.
+   */
+  await ready(page, '/catalog/claims');
+
+  const measured = await page.evaluate(() => {
+    const cells = [...document.querySelectorAll('td')];
+    const wrapped = cells.find((td) => [...td.classList].some((c) => c.includes('wrap')));
+    const plain = cells.find((td) => ![...td.classList].some((c) => c.includes('wrap')));
+    return {
+      wrapped: wrapped ? getComputedStyle(wrapped).whiteSpace : null,
+      plain: plain ? getComputedStyle(plain).whiteSpace : null,
+    };
+  });
+
+  expect(measured.wrapped, 'a wrapping column must exist on this page').not.toBeNull();
+  expect(measured.wrapped).toBe('normal');
+  expect(measured.plain).toBe('nowrap');
+});
+
+test('the search panel is visible, not merely present', async ({ page }) => {
+  /*
+   * The panel used to be an absolutely-positioned child of the search field, and
+   * the top bar clips its children so a long breadcrumb cannot spill across the
+   * field. So it was rendered, positioned, populated — and clipped out of
+   * existence for its whole life. `toBeVisible` alone would have passed: the
+   * element had size and no `display: none`. What it did not have was a place on
+   * the screen, which is why this asserts the panel is what the reader's cursor
+   * would actually hit at its own coordinates.
+   */
+  await ready(page, '/');
+
+  const field = page.getByRole('textbox', { name: 'Search from anywhere' });
+  await field.click();
+  await field.type('sa', { delay: 40 });
+
+  const panel = page.getByText('Press Enter for all results');
+  await expect(panel).toBeVisible();
+
+  const hit = await page.evaluate(() => {
+    const el = [...document.querySelectorAll('div')].find(
+      (d) => typeof d.className === 'string' && d.className.includes('panel'),
+    );
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    const topmost = document.elementFromPoint(r.x + r.width / 2, r.y + 10);
+    return { insideClippedBar: !!el.closest('header'), ownsItsPixels: el.contains(topmost) };
+  });
+
+  expect(hit, 'the suggestion panel must be in the document').not.toBeNull();
+  expect(hit?.insideClippedBar).toBe(false);
+  expect(hit?.ownsItsPixels).toBe(true);
+});
+
+test('a link in a table cell is the colour of a link', async ({ page }) => {
+  /*
+   * The table wraps a link column's content in an anchor, but a column renders its
+   * own content and the natural thing to return is Salt `Text`, which sets its own
+   * foreground. Nested inside the anchor that produced black text under a teal
+   * anchor — the affordance was in the DOM and not on the screen. Asserted by
+   * computed colour rather than by class, because the class was always right.
+   */
+  await ready(page, '/catalog');
+
+  const measured = await page.evaluate(() => {
+    const anchor = document.querySelector('tbody td a');
+    if (!anchor) return null;
+    const inner = anchor.querySelector('*');
+    return {
+      anchor: getComputedStyle(anchor).color,
+      inner: inner ? getComputedStyle(inner).color : null,
+      body: getComputedStyle(document.body).color,
+    };
+  });
+
+  expect(measured, 'the catalog must render at least one link cell').not.toBeNull();
+  expect(measured?.anchor).not.toBe(measured?.body);
+  if (measured?.inner !== null) expect(measured?.inner).toBe(measured?.anchor);
+});
+
+test('a table wider than its column scrolls instead of clipping', async ({ page }) => {
+  // Eight columns do not fit a 1200px measure at any type size. The answer is a
+  // scroller the keyboard can reach, not columns that silently leave the page.
+  await ready(page, '/catalog/claims');
+
+  const measured = await page.evaluate(() => {
+    const table = document.querySelector('table');
+    let el = table?.parentElement ?? null;
+    while (el && el !== document.body) {
+      if (getComputedStyle(el).overflowX === 'auto') {
+        return { overflows: el.scrollWidth > el.clientWidth, tabIndex: el.tabIndex };
+      }
+      el = el.parentElement;
+    }
+    return null;
+  });
+
+  expect(measured, 'the table must sit inside a horizontal scroller').not.toBeNull();
+  expect(measured?.overflows).toBe(true);
+  expect(measured?.tabIndex).toBe(0);
+});
+
 test('a mistyped address still has a page heading', async ({ page }) => {
   await ready(page, '/no-such-section');
   await expect(page.locator('h1')).toHaveCount(1);

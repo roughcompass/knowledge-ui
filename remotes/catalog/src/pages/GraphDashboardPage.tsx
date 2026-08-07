@@ -1,5 +1,5 @@
-import { StackLayout, Text } from '@salt-ds/core';
-import { can, useSession, type Session } from '@knowledge-ui/auth';
+import { Button, StackLayout, Text, Tooltip } from '@salt-ds/core';
+import { can, refusalSuggestion, useSession, type Session } from '@knowledge-ui/auth';
 import {
   useCapabilityTypes,
   useEdgePropertySchemas,
@@ -62,6 +62,7 @@ import {
 
 /** The heading and the reason for each half, kept beside the panel they title. */
 function OntologyPanel({ session, client }: { session: Session; client: RegistryClient }) {
+  const { personas, onSwitchPersona } = useSession();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
   const allowed = can(session, 'ontology:read');
 
@@ -71,10 +72,28 @@ function OntologyPanel({ session, client }: { session: Session; client: Registry
   const edgeSchemas = useEdgePropertySchemas(client, scope, { enabled: allowed });
 
   if (!allowed) {
+    /*
+      The same suggestion the route guard computes, so this refusal names the
+      same roles and only ever offers a persona that would succeed. The title is
+      required for assistive technology but visually hidden: the enclosing card
+      is already titled "Ontology", and a third repeat in ninety pixels is where
+      the eye stops reading any of them.
+    */
+    const { grantingRoles, persona } = refusalSuggestion('ontology:read', personas);
     return (
       <UnavailableNotice
         title="Ontology"
-        reason="Viewing the ontology requires the admin role — switch persona in the header."
+        hideTitle
+        reason={`The projections below read with your current role. These definitions need ${grantingRoles
+          .map((role) => `the ${role} role`)
+          .join(' or ')}.`}
+        action={
+          persona && onSwitchPersona ? (
+            <Button sentiment="accented" onClick={() => onSwitchPersona(persona.key)}>
+              Switch to {persona.label}
+            </Button>
+          ) : undefined
+        }
       />
     );
   }
@@ -187,6 +206,7 @@ function ProjectionPanel({
 
 export function GraphDashboardPage() {
   const { session, client } = useSession<RegistryClient>();
+  const canReadOntology = can(session, 'ontology:read');
 
   return (
     <StackLayout gap={3}>
@@ -198,14 +218,32 @@ export function GraphDashboardPage() {
       <SectionCard
         title="Ontology"
         description="The definitions the graph is built from — what a node may be, how two entities may be related, and which of those shapes are enforced."
-        action={<KLink to="ontology">Ontology detail</KLink>}
+        action={
+          canReadOntology ? (
+            <KLink to="ontology">Ontology Detail</KLink>
+          ) : (
+            /*
+              Gated on the same capability as the page it opens. Ungated, the
+              action walks a consumer straight into a refusal — an invitation to
+              a door that does not open is worse than a visibly locked door.
+            */
+            <Tooltip content="The ontology detail page needs the admin role.">
+              <Button appearance="transparent" sentiment="neutral" disabled focusableWhenDisabled>
+                Ontology Detail
+              </Button>
+            </Tooltip>
+          )
+        }
       >
         <OntologyPanel session={session} client={client} />
       </SectionCard>
 
       <SectionCard
         title="Projections"
-        description="The first page of each projection. Both endpoints page with a cursor and neither reports how many rows lie beyond it."
+        // The unstated half — the two directions are two endpoints, each paged
+        // by cursor — is machinery; what a reader needs is that these are first
+        // pages and the registry does not say how much follows.
+        description="The first page of each projection. More may follow, and the registry does not say how much."
       >
         <StackLayout gap={3}>
           <ProjectionPanel

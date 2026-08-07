@@ -1,4 +1,4 @@
-import { Dropdown, Option, StackLayout, Tag, Text } from '@salt-ds/core';
+import { Button, Dropdown, Option, StackLayout, Tag, Text } from '@salt-ds/core';
 import {
   WORST_DAILY_P95_CAVEAT,
   WORST_DAILY_P95_LABEL,
@@ -15,7 +15,7 @@ import {
   type SurfaceSummary,
   useEntityNames,
 } from '@knowledge-ui/api-client';
-import { can, useSession } from '@knowledge-ui/auth';
+import { can, refusalSuggestion, useSession } from '@knowledge-ui/auth';
 import {
   BarFigure,
   DataTable,
@@ -29,6 +29,7 @@ import {
   StatTile,
   TileGrid,
   UnavailableNotice,
+  bytesText,
   popoverOverlayProps,
   EntityLink,
 } from '@knowledge-ui/ui-kit';
@@ -129,7 +130,8 @@ function ReachCell({ surface }: { surface: SurfaceSummary }) {
 }
 
 export function UsagePage() {
-  const { session, client, hrefForRemote } = useSession<RegistryClient>();
+  const { session, client, hrefForRemote, personas, onSwitchPersona } =
+    useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
 
   const [windowId, setWindowId] = useState<WindowId>('7d');
@@ -168,6 +170,43 @@ export function UsagePage() {
   const tools = useUsageByTool(client, scope, range, { enabled: operatorScoped });
   const owned = useOwnedCapabilityUsage(client, scope, range, { enabled: ownerScoped });
 
+  /*
+   * A reader with neither scope is told so once, rather than meeting four refused
+   * panels. Both are checked because they are separate server gates: a producer
+   * holds the owner-scoped read and not the operator one, and sees only their own
+   * section below.
+   *
+   * The refused page carries no window control: the dropdown governs queries this
+   * session cannot make, and a live control above a refusal implies there is
+   * something for it to act on.
+   */
+  if (!operatorScoped && !ownerScoped) {
+    const { grantingRoles, persona } = refusalSuggestion('usage:read:owned', personas);
+    return (
+      <StackLayout gap={3}>
+        <PageHeader
+          title="Usage"
+          description="Whether the registry is called, through which surface, and by how many — over a window the service itself reports back."
+        />
+        <UnavailableNotice
+          title="Usage is not available to this role"
+          reason={`Only ${grantingRoles
+            .map((role) => `the ${role} role`)
+            .join(
+              ' or ',
+            )} can read usage. The admin role sees the whole deployment; the producer role sees the capabilities its tenant owns.`}
+          action={
+            persona && onSwitchPersona ? (
+              <Button sentiment="accented" onClick={() => onSwitchPersona(persona.key)}>
+                Switch to {persona.label}
+              </Button>
+            ) : undefined
+          }
+        />
+      </StackLayout>
+    );
+  }
+
   const header = (
     <PageHeader
       title="Usage"
@@ -193,26 +232,15 @@ export function UsagePage() {
     />
   );
 
-  /*
-   * A reader with neither scope is told so once, rather than meeting four refused
-   * panels. Both are checked because they are separate server gates: a producer
-   * holds the owner-scoped read and not the operator one, and sees only their own
-   * section below.
-   */
-  if (!operatorScoped && !ownerScoped) {
-    return (
-      <StackLayout gap={3}>
-        {header}
-        <UnavailableNotice
-          title="Usage is not available to this role"
-          reason="Reading usage needs either the operator scope, which reports the whole deployment, or the owner scope, which reports the capabilities your tenant owns. This identity holds neither."
-        />
-      </StackLayout>
-    );
-  }
-
   const substitution = summary.data ? windowSubstituted(summary.data, range) : null;
   const gaps = series.data ? daysWithoutTraffic(series.data) : [];
+
+  // The same suggestion the route guard would compute, so the section-level
+  // refusal names the same roles and offers only a persona that would succeed.
+  const operatorRefusal = operatorScoped
+    ? null
+    : refusalSuggestion('usage:read:operator', personas);
+  const operatorPersona = operatorRefusal?.persona;
 
   return (
     <StackLayout gap={3}>
@@ -410,6 +438,7 @@ export function UsagePage() {
                   {
                     key: 'capability_id',
                     header: 'Capability',
+                    linked: true,
                     /*
                       The operations remote emitted no links at all, and this column
                       is the one a producer follows most: "which capability is this
@@ -504,13 +533,21 @@ export function UsagePage() {
             ) : null}
           </SectionCard>
         </>
-      ) : (
-        <Note label="Operator Scope">
-          The per-surface, daily and tool panels report the whole deployment and are gated on the
-          operator scope, which this identity does not hold. Usage of the capabilities your tenant
-          owns is below.
-        </Note>
-      )}
+      ) : operatorRefusal ? (
+        <UnavailableNotice
+          title="Usage across the deployment"
+          reason={`Usage of the capabilities your tenant owns is below. Only ${operatorRefusal.grantingRoles
+            .map((role) => `the ${role} role`)
+            .join(' or ')} can read usage across the whole deployment.`}
+          action={
+            operatorPersona && onSwitchPersona ? (
+              <Button sentiment="accented" onClick={() => onSwitchPersona(operatorPersona.key)}>
+                Switch to {operatorPersona.label}
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : null}
 
       {ownerScoped ? (
         <SectionCard
@@ -559,7 +596,9 @@ export function UsagePage() {
                       // Null means nothing measured it, which is not zero bytes.
                       <Text color="secondary">Not measured</Text>
                     ) : (
-                      <Text>{(row.payload_bytes / 1_000_000).toFixed(1)} MB</Text>
+                      // Adaptive units: a fixed megabyte divisor rendered every
+                      // real kilobyte-sized payload as a measured zero.
+                      <Text>{bytesText(row.payload_bytes) ?? '—'}</Text>
                     ),
                 },
               ]}
@@ -576,12 +615,16 @@ export function UsagePage() {
         Neutral, not a warning. This is context about what the page deliberately does
         not claim, and dressing it as a problem would train the reader to skip it —
         which is the fate of every caveat that cries wolf.
+
+        Short on purpose. The reasoning — a rate needs a denominator this console
+        does not hold, one derived in a browser cannot be checked, and the API
+        classifies none of its fields as measured or merely correlated — belongs
+        here, not on the screen: the reader needs the fact, not the argument.
       */}
       <Note label="Reading These Numbers">
-        Every figure here is a count over the window the service reported, and none is a rate — a
-        rate needs a denominator this console does not hold, and one derived in a browser cannot be
-        checked. The API also classifies none of these fields as measured or merely correlated, so
-        nothing is badged as a proxy: that absence is stated rather than filled in with a guess.
+        Each figure is a count over the window stated beside it. The service reports no rates, so
+        none are shown — and it does not say how directly each figure was measured, so none carries
+        a badge.
       </Note>
     </StackLayout>
   );

@@ -41,7 +41,6 @@ import {
   KLink,
 } from '@knowledge-ui/ui-kit';
 import { useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import {
   OWNERSHIP_LABEL,
@@ -100,7 +99,6 @@ type ArchiveView = keyof typeof ARCHIVE_VIEWS;
 export function WorkspacesPage() {
   const { session, client } = useSession<RegistryClient>();
   const scope = { personaKey: session.personaKey ?? 'unknown', tenantSlug: session.tenantSlug };
-  const navigate = useNavigate();
 
   const [view, setView] = useState<ArchiveView>('Active');
   const includeArchived = ARCHIVE_VIEWS[view];
@@ -159,9 +157,13 @@ export function WorkspacesPage() {
       {
         key: 'name',
         header: 'Workspace',
+        // The name is the way in, and the only control for it: anything that
+        // navigates is an anchor, and a second row action for the same journey
+        // reads as two journeys while leaving the real link unmarked.
+        linked: true,
         render: (row) => (
           <StackLayout gap={0.5}>
-            <KLink underline="never" color="primary" to={row.workspace_id}>
+            <KLink underline="never" color="accent" to={row.workspace_id}>
               {row.name}
             </KLink>
             {row.description ? <Text color="secondary">{row.description}</Text> : null}
@@ -197,13 +199,6 @@ export function WorkspacesPage() {
         align: 'right',
         render: (row) => (
           <FlexLayout gap={1} justify="end">
-            <Button
-              appearance="transparent"
-              sentiment="neutral"
-              onClick={() => navigate(row.workspace_id)}
-            >
-              Open
-            </Button>
             {canWriteWorkspace(session, row) ? (
               <Button
                 appearance="transparent"
@@ -220,7 +215,7 @@ export function WorkspacesPage() {
         ),
       },
     ],
-    [navigate, session],
+    [session],
   );
 
   const header = (
@@ -323,7 +318,7 @@ export function WorkspacesPage() {
               label="Name"
               required
               error={fields.name?.[0]}
-              helperText="What this notebook is for. For example, Payments migration."
+              helperText="What this workspace is for. For example, Payments migration."
             >
               <Input
                 bordered
@@ -339,8 +334,9 @@ export function WorkspacesPage() {
               required
               error={fields.owner_kind?.[0]}
               // The sentence a reader most needs before submitting, because this
-              // is the one field the API will not let them change afterwards.
-              helperText={`Chosen once — the API has no way to change it later. ${
+              // is the one field the API will not let them change afterwards —
+              // the update body carries name, description and archive state only.
+              helperText={`Chosen once — it cannot be changed after the workspace is created. ${
                 draft.owner_kind ? OWNERSHIP_MEANING[draft.owner_kind] : ''
               }`}
             >

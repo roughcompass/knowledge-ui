@@ -1,7 +1,7 @@
 import { Banner, BannerContent, Button, FlexLayout, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
-import { can, rolesGranting, type Capability } from './capabilities';
+import { can, refusalSuggestion, type Capability } from './capabilities';
 import type { Persona } from './personas';
 import type { Session } from './types';
 
@@ -59,10 +59,7 @@ export function RequireCapability({
 }) {
   if (can(session, need)) return <>{children}</>;
 
-  const grantingRoles = rolesGranting(need);
-  // Only offer a persona that would actually succeed. Suggesting one that also
-  // lacks the capability would be worse than suggesting nothing.
-  const suggestion = personas.find((p) => grantingRoles.includes(p.expectedRole));
+  const { grantingRoles, persona: suggestion } = refusalSuggestion(need, personas);
 
   return (
     <StackLayout gap={3}>
@@ -82,7 +79,13 @@ export function RequireCapability({
               This screen needs {grantingRoles.map((r) => `the ${r} role`).join(' or ')}. You are
               signed in with the <strong>{session.role}</strong> role.
             </Text>
-            {need === 'audit:read' ? (
+            {/*
+              Only for the reader it is about. The role-collapse explanation answers
+              "why is an administrator refused" — shown to a consumer or producer it
+              describes somebody else's session and reads as a non sequitur. The
+              role-literal comparison is legal in this package only.
+            */}
+            {need === 'audit:read' && session.role === 'admin' ? (
               <Text color="secondary">
                 The registry grants exactly one role per session, and the audit log requires the
                 auditor role specifically — so an administrator is refused here by design, not by

@@ -82,6 +82,112 @@ describe('column alignment', () => {
   });
 });
 
+describe('link cells', () => {
+  it('renders an href column as an accent link with no rest underline', async () => {
+    render([
+      { key: 'name', header: 'Capability', href: (row) => `/catalog/${row.id}` },
+      { key: 'calls', header: 'Calls' },
+    ]);
+
+    const link = await screen.findByRole('link', { name: 'salt-design-system' });
+    // Salt's own color API: accent is what separates the one clickable thing in
+    // the row from the plain text beside it.
+    expect(link.className).toContain('saltLink-accent');
+    expect(link.className).toContain('saltLink-underlineNever');
+  });
+
+  it('gives rows the hover treatment when a column carries an href', async () => {
+    render([{ key: 'name', header: 'Capability', href: (row) => `/catalog/${row.id}` }]);
+
+    const table = await screen.findByRole('table', { name: /usage/i });
+    const [, ...bodyRows] = within(table).getAllByRole('row');
+    for (const row of bodyRows) expect(row.className).toContain('clickableRow');
+  });
+
+  it('gives rows the hover treatment when a render-based column declares `linked`', async () => {
+    // The table cannot see inside a ReactNode, so a column whose `render` builds
+    // its own anchors has to say so to get the same affordance href columns get.
+    render([
+      {
+        key: 'name',
+        header: 'Capability',
+        linked: true,
+        render: (row) => <a href={`/catalog/${row.id}`}>{row.name}</a>,
+      },
+    ]);
+
+    const table = await screen.findByRole('table', { name: /usage/i });
+    const [, ...bodyRows] = within(table).getAllByRole('row');
+    for (const row of bodyRows) expect(row.className).toContain('clickableRow');
+  });
+
+  it('leaves rows static when no column links anywhere', async () => {
+    render([{ key: 'name', header: 'Capability' }]);
+
+    const table = await screen.findByRole('table', { name: /usage/i });
+    const [, ...bodyRows] = within(table).getAllByRole('row');
+    for (const row of bodyRows) expect(row.className).not.toContain('clickableRow');
+  });
+});
+
+describe('the horizontal overflow container', () => {
+  it('wraps the table in a scroll container instead of letting a card clip it', async () => {
+    render([{ key: 'name', header: 'Capability' }]);
+
+    const table = await screen.findByRole('table', { name: /usage/i });
+    // nowrap cells make a wide table clip mid-value at the card edge with
+    // nothing saying more exists; the container is what lets it scroll.
+    expect(table.parentElement?.className).toContain('scroll');
+  });
+});
+
+describe('the detail row', () => {
+  const detailColumns: Array<Column<Row>> = [
+    { key: 'name', header: 'Capability' },
+    { key: 'calls', header: 'Calls' },
+  ];
+
+  it('renders the panel directly beneath the matching row, spanning every column', async () => {
+    renderWithProviders(
+      <DataTable
+        caption="Usage"
+        columns={detailColumns}
+        rows={ROWS}
+        getRowId={(row) => row.id}
+        renderDetail={(row) => <span>{`Detail for ${row.name}`}</span>}
+        expandedRowId="a"
+      />,
+    );
+
+    const table = await screen.findByRole('table', { name: /usage/i });
+    const rows = within(table).getAllByRole('row');
+    // Header, row a, its detail, row b.
+    expect(rows).toHaveLength(4);
+    const detailRow = rows[2];
+    if (!detailRow) throw new Error('detail row missing');
+    expect(detailRow).toHaveTextContent('Detail for salt-design-system');
+    const cell = within(detailRow).getByRole('cell');
+    expect(cell).toHaveAttribute('colspan', String(detailColumns.length));
+  });
+
+  it('renders no detail row while none is expanded', async () => {
+    renderWithProviders(
+      <DataTable
+        caption="Usage"
+        columns={detailColumns}
+        rows={ROWS}
+        getRowId={(row) => row.id}
+        renderDetail={(row) => <span>{`Detail for ${row.name}`}</span>}
+        expandedRowId={null}
+      />,
+    );
+
+    const table = await screen.findByRole('table', { name: /usage/i });
+    expect(within(table).getAllByRole('row')).toHaveLength(3);
+    expect(screen.queryByText(/Detail for/)).not.toBeInTheDocument();
+  });
+});
+
 describe('the default cell', () => {
   it('renders a value with no `render` as text, and an object as its data', async () => {
     // `String(someObject)` is `[object Object]`, which a reader cannot tell from a

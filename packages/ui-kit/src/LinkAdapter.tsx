@@ -97,8 +97,9 @@ export type KLinkProps = Omit<LinkProps, 'href'> & {
  *
  * - prose and standalone links take the default, underlined at rest.
  * - dense contexts — a table cell, a list of ids — pass `underline="never"` with
- *   `color="primary"`, so a column of links does not become a wall of rules. The
- *   underline returns on hover, from one declaration in the global sheet.
+ *   `color="accent"`, so a column of links does not become a wall of rules. Accent
+ *   carries the affordance at rest, and the underline returns on hover, from one
+ *   declaration in the global sheet.
  */
 export function KLink({ to, relative, onClick, ...rest }: KLinkProps) {
   const { useResolveHref, navigate } = useContext(LinkAdapterContext);

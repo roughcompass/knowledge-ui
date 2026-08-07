@@ -2,7 +2,7 @@ import { createRegistryClient } from '@knowledge-ui/api-client';
 import { makeSession, renderWithProviders, scenarios } from '@knowledge-ui/testing';
 import { server } from '@knowledge-ui/testing/server';
 import { screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { UsagePage } from '../UsagePage';
 
@@ -181,17 +181,50 @@ describe('the two usage scopes are separate gates', () => {
     expect(
       await screen.findByRole('table', { name: /usage of owned capabilities/i }),
     ).toBeInTheDocument();
-    // Rendered as a note rather than a card, since it qualifies the panels around it
-    // rather than being a section of its own.
-    expect(screen.getByText('Operator Scope')).toBeInTheDocument();
-    expect(screen.getByText(/gated on\s+the operator scope/i)).toBeInTheDocument();
+    // The refusal leads with what a producer *can* see, then names the role that
+    // could see more — the same boxed idiom every gated section uses.
+    expect(screen.getByText('Usage across the deployment')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Only the admin role can read usage across the whole deployment/i),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('table', { name: /usage by surface/i })).not.toBeInTheDocument();
   });
 
   it('tells a consumer once rather than refusing four panels', async () => {
     renderPage('consumer');
     expect(await screen.findByText(/Usage is not available to this role/i)).toBeInTheDocument();
+    expect(screen.getByText(/Only the admin role or the producer role/i)).toBeInTheDocument();
     expect(screen.queryByRole('table', { name: /usage by surface/i })).not.toBeInTheDocument();
+    // No window control above a refusal: the dropdown would govern queries this
+    // session cannot make.
+    expect(screen.queryByText('Window')).not.toBeInTheDocument();
+  });
+
+  it('offers a refused consumer the persona that would succeed', async () => {
+    const onSwitchPersona = vi.fn();
+    renderWithProviders(<UsagePage />, {
+      session: makeSession({ role: 'consumer', personaKey: 'consumer' }),
+      client: createRegistryClient({
+        baseUrl: 'http://localhost',
+        getToken: () => tokenFor('knowledge-ui-consumer'),
+      }),
+      personas: [
+        {
+          key: 'producer',
+          label: 'Tenant — Producer',
+          description: '',
+          clientId: 'knowledge-ui-producer',
+          clientSecret: '',
+          entitlements: [],
+          expectedRole: 'producer',
+        },
+      ],
+      onSwitchPersona,
+    });
+
+    const button = await screen.findByRole('button', { name: /Switch to Tenant — Producer/ });
+    button.click();
+    expect(onSwitchPersona).toHaveBeenCalledWith('producer');
   });
 });
 
@@ -201,10 +234,29 @@ describe('what the page refuses to say', () => {
      * The API classifies none of its fields, so a strength badge would be a claim
      * the response does not make. Saying that plainly is the alternative to either
      * inventing one or leaving the reader to assume every number is equally solid.
+     * One or two user-voice sentences: the reasoning lives beside the note in the
+     * source, not on the screen.
      */
     renderPage();
-    expect(await screen.findByText(/none is\s+a rate/i)).toBeInTheDocument();
-    expect(screen.getByText(/classifies none of these fields/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/The service reports no rates, so\s+none are shown/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/does not say how directly each figure was measured/i),
+    ).toBeInTheDocument();
+  });
+
+  it('renders a measured payload in a unit that keeps it visible', async () => {
+    /*
+     * A fixed megabyte divisor rendered every real kilobyte-scale payload as
+     * "0.0 MB" — a measured value shown as zero, which the honesty rules call a
+     * defect. The unit adapts instead, and null still says nothing measured it.
+     */
+    renderPage('producer');
+    const table = await screen.findByRole('table', { name: /usage of owned capabilities/i });
+    expect(within(table).getByText('61 MB')).toBeInTheDocument();
+    expect(within(table).getByText('Not measured')).toBeInTheDocument();
+    expect(within(table).queryByText(/0\.0 MB/)).not.toBeInTheDocument();
   });
 
   it('reports the window the service returned, not the one requested', async () => {
