@@ -402,6 +402,9 @@ is the same defect as a number claiming a strength it cannot bear.
 | Every route has exactly one page heading, including the ones that refuse             | end-to-end sweep over all routes                       | **Enforced**    |
 | Button labels are Title Case, table headers are Title Case nouns                     | end-to-end sweep over all routes as an admin           | **Enforced**    |
 | Numeric columns are right-aligned with tabular figures                               | asserted on the classes Salt's own rule is keyed on    | **Enforced**    |
+| A wrapping column wraps, and a wide table scrolls rather than clipping               | computed `white-space` and measured overflow           | **Enforced**    |
+| A link in a table cell renders in the link colour, content included                  | computed colour against the body colour                | **Enforced**    |
+| The search panel occupies screen, not only the document                              | `elementFromPoint` at the panel's own coordinates      | **Enforced**    |
 | One idiom per interaction, slot usage, radius by surface class, noun choice          | review                                                 | **Agreed only** |
 
 The bottom row is the honest gap. Three deviations once passed lint, typecheck, the
@@ -435,3 +438,33 @@ time. A stylesheet declaration that loses a specificity contest is invisible to
 stylelint, to the token guard, and to jsdom — which computes no styles at all — so
 the assertion had to be about the mechanism Salt keys its rule on rather than about
 the declaration or the pixels.
+
+### Correct in the DOM, absent from the screen
+
+Alignment was not an isolated case, and treating it as one cost three more. A
+walkthrough of the built console found, in one pass:
+
+- **A column that opted into wrapping did not wrap.** The opt-out class lost to the
+  compound cell rule beside it, so the class applied and the text still ran off the
+  side — one table carried 470px of width nobody could see it carry.
+- **A link cell was a link the colour of body text.** The table wraps link columns
+  in an anchor, but a column renders its own content and Salt `Text` sets its own
+  foreground, so the affordance died one element inside the thing that provided it.
+- **A floating panel that never once appeared.** It was positioned correctly,
+  populated correctly, and clipped by an ancestor's `overflow` — which `z-index`
+  cannot escape, because it is not a stacking problem.
+
+The shared shape is worth naming, because it will happen again: **every one of them
+had the right markup, the right class, and the right computed intent, and a reader
+could not see any of them.** A component test asserts that a class is applied. A
+review reads the source. Neither is looking at the only thing that matters, which is
+whether the rule won.
+
+So the rule for this class: when a change depends on a declaration beating another
+declaration, on an element escaping an ancestor, or on a value inherited across a
+component boundary, assert the **effect** in the end-to-end lane — computed style,
+measured geometry, or what `elementFromPoint` returns — not the form in a unit test.
+Four such assertions now exist beside the alignment one, and each was written after
+watching it fail.
+
+The cheapest way to find this class is still to open the app and look at it.
