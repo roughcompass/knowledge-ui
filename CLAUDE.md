@@ -107,6 +107,18 @@ be there. Where the server guarantees an invariant — every claim carries
 citations, every served claim is uniformly untrusted — the fixtures encode it, so
 a component cannot be right for the wrong reason.
 
+**Two mocked endpoints do not agree on entity ids.** The catalog list generates
+its ids from a counter, and the graph derives them from the entry's name, so the
+same entity has two ids depending on which endpoint answered. A screen that joins
+those two responses by id therefore resolves nothing under test while working
+against the real service, which is the worst direction for a mock to be wrong in:
+it fails the change rather than the defect.
+
+Prefer resolving within one response — the projection carries the nodes its own
+edges point at — and treat a cross-endpoint join as the fallback. Where a join is
+unavoidable, the fixtures have to be unified first; the graph's scheme is the one
+that does not resemble what the API returns.
+
 ---
 
 ## Bundle economics

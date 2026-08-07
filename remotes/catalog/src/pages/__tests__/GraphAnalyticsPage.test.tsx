@@ -110,4 +110,21 @@ describe('the reach panel', () => {
     expect(await screen.findByText('Depth')).toBeInTheDocument();
     expect(await screen.findByText('Reached at Depth 2')).toBeInTheDocument();
   });
+
+  it('opens on a root something depends on, not on the first row of the catalog', async () => {
+    /*
+     * The catalog's first entry is a leaf of the reverse walk — things it depends
+     * on, nothing depending on it — so defaulting to it opened the page on four
+     * zeros and an empty state. An edge's destination is the depended-upon side,
+     * so the first destination the catalog page also names is a root the walk
+     * reaches. Asserted through the hint, which names the chosen root, and
+     * through the absence of the empty state that made the old default read as a
+     * broken page.
+     */
+    renderAs(<GraphAnalyticsPage />, 'admin');
+
+    expect(await screen.findByText(/Depth-one walk from design-tokens\./)).toBeInTheDocument();
+    expect(screen.queryByText(/Depth-one walk from salt-design-system\./)).not.toBeInTheDocument();
+    expect(screen.queryByText('No Dependents Found')).not.toBeInTheDocument();
+  });
 });

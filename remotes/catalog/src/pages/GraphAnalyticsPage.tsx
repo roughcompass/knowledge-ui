@@ -9,6 +9,7 @@ import {
   traversalCaveats,
   useCapabilities,
   useDependents,
+  useGraphProjection,
   useOwnedCapabilityUsage,
   useUsageByCapability,
   useUsageSummary,
@@ -131,7 +132,34 @@ function ReachPanel({ session, client }: { session: Session; client: RegistryCli
    */
   const roster = useCapabilities(client, scope, { pageSize: 50 });
   const candidates = roster.data?.items ?? [];
-  const selected = root ?? candidates[0]?.name;
+
+  /*
+   * The default root is one the graph actually reaches.
+   *
+   * It used to be whichever entity the catalog happened to list first, which is
+   * creation order and says nothing about connectedness — so the page opened on
+   * four zeros and an empty state, and read as broken rather than as a leaf.
+   *
+   * An edge's destination is the depended-upon side, so a destination this page
+   * can name is an entity with at least one dependent. That is the server's own
+   * edge list choosing the default, not a ranking computed here: nothing is
+   * counted, sorted or scored in the browser, and the first usable answer wins.
+   *
+   * Names come from the projection's own nodes before the catalog's, because one
+   * response is internally consistent and two responses joined by id are only as
+   * good as their agreement — the roster is the fallback for a destination that
+   * sits beyond the projection's page.
+   */
+  const projection = useGraphProjection(client, scope, 'provider', { pageSize: 50 });
+  const nameById = new Map([
+    ...candidates.map((item) => [item.entity_id, item.name] as const),
+    ...(projection.data?.nodes ?? []).map((node) => [node.entity_id, node.name] as const),
+  ]);
+  const connected = (projection.data?.edges ?? [])
+    .map((edge) => nameById.get(edge.dst_entity_id))
+    .find(Boolean);
+
+  const selected = root ?? connected ?? candidates[0]?.name;
 
   const direct = useDependents(client, scope, selected, { depth: 1 });
   const reach = useDependents(client, scope, selected, { depth });
@@ -172,7 +200,13 @@ function ReachPanel({ session, client }: { session: Session; client: RegistryCli
   );
 
   if (roster.error) return <ErrorPanel error={roster.error} title="Could not list roots" />;
-  if (roster.isPending) return <LoadingPanel label="Loading roots" />;
+  /*
+   * Waits for the edge list too, so the panel opens once on its default rather
+   * than measuring the catalog's first entry and then visibly re-measuring when
+   * the better root arrives. A failed edge list is not fatal — the fallback is
+   * the old default, so only `isPending` gates.
+   */
+  if (roster.isPending || projection.isPending) return <LoadingPanel label="Loading roots" />;
 
   if (!selected) {
     return (
