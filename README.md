@@ -23,6 +23,10 @@ npm run dev            # shell :5170, catalog :5171, operations :5172
 
 Open <http://localhost:5170>.
 
+**No backend to hand?** `npm run dev:mock` runs the same app against the request
+handlers the tests use, and needs none of the three services below — skip
+`doctor` too. See [If you have no backend](#if-you-have-no-backend).
+
 **Run `doctor` first, and re-run it after restarting the backing services.** The
 entitlement store is in memory, so a restarted container answers every request
 with a bare `403` that looks exactly like a broken permission and is a lost seed.
@@ -47,8 +51,28 @@ repo root so one file serves the workspace.
 
 ### If you have no backend
 
-You do not need one. The end-to-end lane compiles the request mocks into the
-bundle:
+You do not need one — to run the app, or to test it.
+
+```bash
+npm run dev:mock       # same three servers, no backend, no doctor
+```
+
+Open <http://localhost:5170>. Every request the app makes is answered by the
+same handlers the tests assert against, including the token endpoint — so the
+persona switcher works with no identity provider running, and switching persona
+changes what the app refuses exactly as it does against a real registry.
+
+What you are looking at is fixture data. It is deliberately not a copy of any
+seed: names like `pattern-library` exist only here, which is also how you can
+tell at a glance which lane you are in.
+
+Two things worth knowing. The remote harnesses served directly on `:5171` and
+`:5172` are separate documents and are **not** intercepted, so those still need a
+backend. And the interceptor is a service worker, which outlives the run that
+registered it — switching back to `npm run dev` in the same browser is safe
+anyway, because the handlers only answer for a page that asked for them.
+
+The test lane is the same handlers compiled into the built artefacts:
 
 ```bash
 npm run build:e2e && npm run e2e -- --project=mocked
@@ -110,6 +134,7 @@ the session — travel as props.
 | Command              | What it does                                                      |
 | -------------------- | ----------------------------------------------------------------- |
 | `npm run dev`        | All three servers, with the API proxy wired                       |
+| `npm run dev:mock`   | The same servers against intercepted requests — no backend at all |
 | `npm run doctor`     | Seed the persona entitlements, then verify they resolve           |
 | `npm run ci`         | The whole pipeline. Identical to what CI runs                     |
 | `npm run ci:static`  | Lint, stylelint, typecheck, guards, format                        |

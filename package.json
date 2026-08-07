@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "dev": "concurrently -n shell,catalog,ops -c cyan,green,magenta \"npm:dev:shell\" \"npm:dev:catalog\" \"npm:dev:ops\"",
+    "dev:mock": "node scripts/dev-mock.mjs",
     "dev:shell": "npm run dev -w @knowledge-ui/shell",
     "dev:catalog": "npm run dev -w @knowledge-ui/remote-catalog",
     "dev:ops": "npm run dev -w @knowledge-ui/remote-operations",
