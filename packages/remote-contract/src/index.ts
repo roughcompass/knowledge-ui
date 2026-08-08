@@ -32,7 +32,7 @@ export type RemoteName = 'catalog' | 'operations';
 export interface RemoteMountProps<TSession = unknown, TClient = unknown> {
   /**
    * Server-resolved identity. The role here comes from the API, never from the
-   * persona registry — a UI that decided its own permissions would offer
+   * persona contextplane — a UI that decided its own permissions would offer
    * actions the server then rejects.
    */
   session: TSession;
@@ -73,7 +73,7 @@ export interface RemoteMountProps<TSession = unknown, TClient = unknown> {
    * roster is a host concern, and a remote that guessed at it would offer to
    * switch to an identity the host does not have. It is here so a remote can
    * gate its own sub-routes and still explain the way out — the audit log is the
-   * case that forces it, since the registry resolves a session to one role and
+   * case that forces it, since the contextplane resolves a session to one role and
    * requires `auditor` specifically, so being refused is normal and the fix is
    * to authenticate as someone else.
    *

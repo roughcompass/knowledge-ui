@@ -1104,7 +1104,7 @@
         "type": "object"
       },
       "ArtifactKind": {
-        "description": "Mirrors the `ck_arc_artifacts_kind` CHECK constraint on\n`arc_artifacts.kind` (`registry/storage/migrations/versions/\n0001_baseline_schema.py`) -- today's only source for this vocabulary.\nTranscribed rather than imported: that constraint is a raw SQL string\nin a migration, not an importable Python constant. This phase adds no\nnew kind.",
+        "description": "Mirrors the `ck_arc_artifacts_kind` CHECK constraint on\n`arc_artifacts.kind` (`contextplane/storage/migrations/versions/\n0001_baseline_schema.py`) -- today's only source for this vocabulary.\nTranscribed rather than imported: that constraint is a raw SQL string\nin a migration, not an importable Python constant. This phase adds no\nnew kind.",
         "enum": [
           "standard",
           "policy",
@@ -4992,7 +4992,7 @@
         "type": "object"
       },
       "ExternalIdItem": {
-        "description": "One row of the entity_external_ids registry, surfaced via ``?include=external_ids``.",
+        "description": "One row of the entity_external_ids contextplane, surfaced via ``?include=external_ids``.",
         "properties": {
           "external_id": {
             "title": "External Id",
@@ -7049,7 +7049,7 @@
         "type": "object"
       },
       "ProjectionResponse": {
-        "description": "HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.\n\nMaps one-to-one to ``registry.service.platform.projections.Projection``.\n``next_cursor`` is None when no further pages exist; pass it as ``cursor=``\non the next request to retrieve the following page.",
+        "description": "HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.\n\nMaps one-to-one to ``contextplane.service.platform.projections.Projection``.\n``next_cursor`` is None when no further pages exist; pass it as ``cursor=``\non the next request to retrieve the following page.",
         "properties": {
           "edges": {
             "items": {
@@ -10834,15 +10834,15 @@
     "securitySchemes": {
       "bearerAuth": {
         "bearerFormat": "JWT",
-        "description": "Paste a JWT issued by an OpenID Connect provider.\n\n- **Local development:** run `make dev-token` to seed the dev tenant + mock-IDP client, then exchange the client credentials for a JWT via `POST {MOCK_OIDC_URL}/default/token` with `grant_type=client_credentials` and `scope=registry`.\n- **Production:** present a JWT from the IdP at `OIDC_DISCOVERY_URL`. The entitlement service resolves grants from the JWT's `sub` claim; the tenant + actor are JIT-materialised on first sight.",
+        "description": "Paste a JWT issued by an OpenID Connect provider.\n\n- **Local development:** run `make dev-token` to seed the dev tenant + mock-IDP client, then exchange the client credentials for a JWT via `POST {MOCK_OIDC_URL}/default/token` with `grant_type=client_credentials` and `scope=contextplane`.\n- **Production:** present a JWT from the IdP at `OIDC_DISCOVERY_URL`. The entitlement service resolves grants from the JWT's `sub` claim; the tenant + actor are JIT-materialised on first sight.",
         "scheme": "bearer",
         "type": "http"
       }
     }
   },
   "info": {
-    "description": "**registry** \u2014 semantic + temporal retrieval of an organisation's\nengineering capabilities, with cross-tenant adoption, subscriptions,\nnotifications, and a breaking-change advisor.\n\n### Authentication & tenancy\n\nEvery endpoint is **tenant-scoped**. The calling tenant is resolved\nfrom the `Authorization: Bearer <JWT>` header: the JWT is validated\nagainst the OIDC discovery URL and the entitlement service returns the\ngrants that anchor the `TenantContext`. No endpoint ever returns data\nfrom a tenant other than the caller's \u2014 cross-tenant relationships go\nthrough explicit adoption events (see the `adoptions` section).\n\n### Roles within a tenant\n\n| Role       | Typical use                                                     |\n|------------|-----------------------------------------------------------------|\n| `consumer` | Read capabilities, subscribe to events, list notifications.     |\n| `producer` | Create / update / publish capabilities owned by this tenant.    |\n| `admin`    | Manage this tenant's vocabulary, schemas, PII policies, RBAC.   |\n| `auditor`  | Read-only access to the audit log + notification history.       |\n\n### `admin: \u2026` endpoints are tenant-admin, not service-admin\n\nSections tagged `admin: \u2026` require the **`admin` role within the calling\ntenant**. They are NOT service-operator surfaces. There is no cross-tenant\nadmin surface in the API. Service operators (the people running the\ndeployment) interact with the system through environment variables, helm\nvalues, and Alembic migrations \u2014 not REST.\n\n### HTTP method conventions\n\nStandard verbs (`PATCH`, `DELETE`) are the canonical surface. Operators\nbehind enterprise gateways that strip non-GET/POST verbs can opt into\nPOST-tunneled aliases (`POST .../{id}:update`, `:delete`, etc.) by\nsetting `REGISTRY_HTTP_METHODS_MODE=both`. The aliases are disabled by\ndefault.\n",
-    "title": "registry",
+    "description": "**contextplane** \u2014 semantic + temporal retrieval of an organisation's\nengineering capabilities, with cross-tenant adoption, subscriptions,\nnotifications, and a breaking-change advisor.\n\n### Authentication & tenancy\n\nEvery endpoint is **tenant-scoped**. The calling tenant is resolved\nfrom the `Authorization: Bearer <JWT>` header: the JWT is validated\nagainst the OIDC discovery URL and the entitlement service returns the\ngrants that anchor the `TenantContext`. No endpoint ever returns data\nfrom a tenant other than the caller's \u2014 cross-tenant relationships go\nthrough explicit adoption events (see the `adoptions` section).\n\n### Roles within a tenant\n\n| Role       | Typical use                                                     |\n|------------|-----------------------------------------------------------------|\n| `consumer` | Read capabilities, subscribe to events, list notifications.     |\n| `producer` | Create / update / publish capabilities owned by this tenant.    |\n| `admin`    | Manage this tenant's vocabulary, schemas, PII policies, RBAC.   |\n| `auditor`  | Read-only access to the audit log + notification history.       |\n\n### `admin: \u2026` endpoints are tenant-admin, not service-admin\n\nSections tagged `admin: \u2026` require the **`admin` role within the calling\ntenant**. They are NOT service-operator surfaces. There is no cross-tenant\nadmin surface in the API. Service operators (the people running the\ndeployment) interact with the system through environment variables, helm\nvalues, and Alembic migrations \u2014 not REST.\n\n### HTTP method conventions\n\nStandard verbs (`PATCH`, `DELETE`) are the canonical surface. Operators\nbehind enterprise gateways that strip non-GET/POST verbs can opt into\nPOST-tunneled aliases (`POST .../{id}:update`, `:delete`, etc.) by\nsetting `REGISTRY_HTTP_METHODS_MODE=both`. The aliases are disabled by\ndefault.\n",
+    "title": "contextplane",
     "version": "0.1.0"
   },
   "openapi": "3.1.0",
@@ -14712,7 +14712,7 @@
     },
     "/v1/arc/metadata": {
       "get": {
-        "description": "Published key history, so an external verifier can check a receipt.\n\nDeliberately unauthenticated: it carries only public keys and profile\nnames, and a verifier holding a receipt may not be a registry caller at\nall. Retired and compromised keys stay listed -- a receipt signed two\nyears ago must remain verifiable, and dropping a compromised key would\nboth break that and hide the compromise.",
+        "description": "Published key history, so an external verifier can check a receipt.\n\nDeliberately unauthenticated: it carries only public keys and profile\nnames, and a verifier holding a receipt may not be a contextplane caller at\nall. Retired and compromised keys stay listed -- a receipt signed two\nyears ago must remain verifiable, and dropping a compromised key would\nboth break that and hide the compromise.",
         "operationId": "get_verification_metadata_v1_arc_metadata_get",
         "responses": {
           "200": {
@@ -19127,7 +19127,7 @@
     },
     "/v1/memory/claims/{claim_id}": {
       "get": {
-        "description": "One claim, or 404.\n\nA claim the caller may not see is absent rather than forbidden. Telling them it\nexists but is not theirs is an existence oracle over every claim in the\ndeployment, and the subject of a claim is often the sensitive part.\n\nA bare single-segment GET like this one matches any literal sibling under\n`/claims/` too -- exactly the reason `/claims/search` above is declared\nfirst in this same file. The curation-surface router\n(`api/routers/memory_curation.py`) has since grown its own literal\nsibling, `GET /claims/believed`, in a different router entirely; that one\nstays reachable only because `registry.wiring.routes` registers that\nrouter before this one. Moving this route ahead of that registration\nwould silently swallow it the same way an unordered `/claims/search`\nwould swallow itself here.",
+        "description": "One claim, or 404.\n\nA claim the caller may not see is absent rather than forbidden. Telling them it\nexists but is not theirs is an existence oracle over every claim in the\ndeployment, and the subject of a claim is often the sensitive part.\n\nA bare single-segment GET like this one matches any literal sibling under\n`/claims/` too -- exactly the reason `/claims/search` above is declared\nfirst in this same file. The curation-surface router\n(`api/routers/memory_curation.py`) has since grown its own literal\nsibling, `GET /claims/believed`, in a different router entirely; that one\nstays reachable only because `contextplane.wiring.routes` registers that\nrouter before this one. Moving this route ahead of that registration\nwould silently swallow it the same way an unordered `/claims/search`\nwould swallow itself here.",
         "operationId": "get_claim_v1_memory_claims__claim_id__get",
         "parameters": [
           {

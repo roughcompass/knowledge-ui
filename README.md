@@ -1,9 +1,9 @@
 # knowledge-ui
 
-The Salt Design System interface to the capability registry. A host shell owns
+The Salt Design System interface to the capability contextplane. A host shell owns
 identity, navigation and the API client; federated remotes own their own screens.
 
-The registry is a governed, multi-tenant memory of what a platform ships —
+The contextplane is a governed, multi-tenant memory of what a platform ships —
 capabilities, their interfaces, their owners, their dependencies, and claims about
 them carrying provenance and confidence. This app is where a human reads that
 memory: browsing capabilities, deciding whether changing one is safe, checking
@@ -34,13 +34,13 @@ with a bare `403` that looks exactly like a broken permission and is a lost seed
 ### What has to be running
 
 Three services, none of them in this repo. All requests are relative and go
-through a proxy on the dev and preview servers, because the registry publishes no
+through a proxy on the dev and preview servers, because the contextplane publishes no
 CORS headers — a cross-origin call fails at the preflight before the app sees a
 response.
 
 | Service                | Default | Override              |
 | ---------------------- | ------- | --------------------- |
-| Registry API           | `:8000` | `KUI_API_TARGET`      |
+| Contextplane API       | `:8000` | `KUI_API_TARGET`      |
 | Mock identity provider | `:8090` | `KUI_IDP_TARGET`      |
 | Entitlement service    | `:8091` | `KUI_ENTITLEMENT_URL` |
 
@@ -60,7 +60,7 @@ npm run dev:mock       # same three servers, no backend, no doctor
 Open <http://localhost:5170>. Every request the app makes is answered by the
 same handlers the tests assert against, including the token endpoint — so the
 persona switcher works with no identity provider running, and switching persona
-changes what the app refuses exactly as it does against a real registry.
+changes what the app refuses exactly as it does against a real contextplane.
 
 What you are looking at is fixture data. It is deliberately not a copy of any
 seed: names like `pattern-library` exist only here, which is also how you can
@@ -145,7 +145,7 @@ the session — travel as props.
 | `npm run ci:unit`    | Unit and component tests                                          |
 | `npm run ci:e2e`     | Build the artefacts, run the mocked lane, check the bundle budget |
 | `npm run ci:secrets` | Production build, then assert the dev roster was elided           |
-| `npm run e2e:dev`    | The specs against your own dev servers and a real registry        |
+| `npm run e2e:dev`    | The specs against your own dev servers and a real contextplane    |
 | `npm run codegen`    | Regenerate the typed client from the vendored OpenAPI document    |
 
 `npm run ci` is the whole pipeline and each `ci:<lane>` is one part of it. The

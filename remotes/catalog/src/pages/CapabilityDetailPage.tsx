@@ -45,7 +45,7 @@ import { InterfacePanel } from './capability/InterfacePanel';
  * `attributes` is `Record<string, unknown>` and the server means it: alongside plain
  * strings it returns objects for bitemporal attributes — `lifecycle: {"state": "beta"}`
  * on real data. `String(value)` turns that into the literal text "[object Object]",
- * which is what this page shipped until it was run against a real registry rather than
+ * which is what this page shipped until it was run against a real contextplane rather than
  * a fixture of only-strings.
  *
  * A bitemporal wrapper carrying a single `state` is unwrapped to the state, because
@@ -75,7 +75,7 @@ function AttributeValue({ value }: { value: unknown }) {
  *
  * The response is an object, and object key order is whatever the serializer felt
  * like — which put `display_name` third and `lifecycle` last on a page whose whole
- * job is to say what this thing is. Keys the registry has never sent are not listed;
+ * job is to say what this thing is. Keys the contextplane has never sent are not listed;
  * they fall through to the alphabetical tail below with their key title-cased, which
  * is the honest treatment of a field this app has never seen.
  */
@@ -179,7 +179,7 @@ export function CapabilityDetailPage() {
       title={displayName ?? slug ?? 'Capability'}
       // The one sentence the reader came for, at the top instead of at the bottom.
       // Absent when the capability has no overview fact — an empty line here would
-      // be this page inventing a summary the registry never wrote.
+      // be this page inventing a summary the contextplane never wrote.
       description={overview}
       metadata={
         query.isPending ? undefined : (
@@ -329,7 +329,7 @@ export function CapabilityDetailPage() {
                 items={attributeRows.map((row) => ({
                   // The key title-cased into the term a reader would use. The datum is
                   // the value beside it and is untouched; only the field *name* is
-                  // rewritten, and `owner` was never a word the registry expected back.
+                  // rewritten, and `owner` was never a word the contextplane expected back.
                   term: termText(row.key),
                   detail: <AttributeValue value={row.value} />,
                 }))}
@@ -378,7 +378,7 @@ export function CapabilityDetailPage() {
       {tab === 'record' ? (
         <SectionCard
           title="Record fields"
-          description="The registry's own record-keeping: who the row belongs to, whether it is still active, and when it was read. Omitted from the response entirely unless requested, so an empty table here means the server sent nothing — not that the values are null. Valid-time intervals are not among them: those belong to individual facts and edges, which are the rows that assert something that can later stop being true."
+          description="The contextplane's own record-keeping: who the row belongs to, whether it is still active, and when it was read. Omitted from the response entirely unless requested, so an empty table here means the server sent nothing — not that the values are null. Valid-time intervals are not among them: those belong to individual facts and edges, which are the rows that assert something that can later stop being true."
         >
           <DescriptionList
             caption="Record fields"

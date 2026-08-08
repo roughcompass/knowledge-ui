@@ -1,5 +1,5 @@
 /**
- * Usage: whether the registry is called, through which surface, and by how many.
+ * Usage: whether the contextplane is called, through which surface, and by how many.
  *
  * This is the read behind the observable-loop question — "is any of this used, and
  * by whom" — which nothing in the app could answer before, because the aggregate
@@ -45,7 +45,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import type { RegistryClient } from './client';
 import type { RegistryError } from './errors';
-import type { components } from './generated/registry';
+import type { components } from './generated/contextplane';
 import { queryKeys, type KeyScope } from './keys';
 import { compact } from './params';
 import { LIST_OPTIONS } from './queryDefaults';

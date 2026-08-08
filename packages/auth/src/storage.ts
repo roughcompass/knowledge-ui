@@ -3,7 +3,7 @@
  *
  * Two namespacing decisions, both from real failure modes:
  *
- * - By API base URL, because running two registry stacks in one browser is
+ * - By API base URL, because running two contextplane stacks in one browser is
  *   ordinary during development, and a token minted against one is rejected by
  *   the other. The hash only has to separate keys, so a small non-cryptographic
  *   digest is the right tool — there is nothing secret about the base URL and

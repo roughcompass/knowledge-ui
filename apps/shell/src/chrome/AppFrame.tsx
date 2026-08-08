@@ -194,7 +194,7 @@ export function AppFrame({
    * segment was a link, which meant the one control whose whole job is "go up" could
    * not.
    *
-   * Resolved against the FULL registry, not the capability-filtered `visible`. The
+   * Resolved against the FULL contextplane, not the capability-filtered `visible`. The
    * crumb is a location readout: a consumer standing on the audit log's refusal is
    * still standing on the audit log, and filtering that entry out left the longest
    * surviving prefix — Health's own `/ops` — claiming a page it does not own, with

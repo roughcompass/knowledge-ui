@@ -49,7 +49,7 @@ async function mint(clientId: string): Promise<string> {
       grant_type: 'client_credentials',
       client_id: clientId,
       client_secret: 'dev-secret',
-      scope: 'registry',
+      scope: 'contextplane',
     }),
   });
   const body = (await res.json()) as { access_token: string };

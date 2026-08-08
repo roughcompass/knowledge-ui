@@ -25,7 +25,7 @@ import {
  * ## The number this page cannot show
  *
  * The obvious dashboard is a row of totals — entities, edges, triples. **The
- * registry publishes none of them.** There is no `/v1/stats`, no
+ * contextplane publishes none of them.** There is no `/v1/stats`, no
  * `/v1/graph/summary`, and the two projection endpoints return `nodes`, `edges`
  * and `next_cursor` with no `total` on the envelope. The only way to produce a
  * total here would be to page the whole graph in the browser and count what came
@@ -35,7 +35,7 @@ import {
  *
  * So the totals are a named absence rather than a plausible number. That is the
  * whole point of the notice at the bottom: a reader who wants a triple count
- * leaves knowing the registry does not offer one, instead of leaving with a
+ * leaves knowing the contextplane does not offer one, instead of leaving with a
  * figure that was never true.
  *
  * ## What it shows instead, and why each is honest
@@ -145,7 +145,7 @@ function OntologyPanel({ session, client }: { session: Session; client: Registry
       </TileGrid>
       <Note label="What these count">
         Definitions, not instances. A count of entity types is how many things a node may be — not
-        how many exist. The registry serves no count of what exists.
+        how many exist. The contextplane serves no count of what exists.
       </Note>
     </StackLayout>
   );
@@ -242,8 +242,8 @@ export function GraphDashboardPage() {
         title="Projections"
         // The unstated half — the two directions are two endpoints, each paged
         // by cursor — is machinery; what a reader needs is that these are first
-        // pages and the registry does not say how much follows.
-        description="The first page of each projection. More may follow, and the registry does not say how much."
+        // pages and the contextplane does not say how much follows.
+        description="The first page of each projection. More may follow, and the contextplane does not say how much."
       >
         <StackLayout gap={3}>
           <ProjectionPanel
@@ -266,7 +266,7 @@ export function GraphDashboardPage() {
       {/*
         The absence is a first-class panel rather than a caveat in small print,
         because "how big is the graph" is the first question a dashboard invites
-        and the answer is that the registry does not say.
+        and the answer is that the contextplane does not say.
       */}
       <UnavailableNotice
         title="Graph totals"

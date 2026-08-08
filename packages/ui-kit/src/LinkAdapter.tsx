@@ -104,8 +104,8 @@ export type KLinkProps = Omit<LinkProps, 'href'> & {
 /**
  * A destination inside this application, and demonstrably not somewhere else.
  *
- * Most link targets here are built from values the registry served — a
- * capability's name, a resolved endpoint, a workspace id — and the registry
+ * Most link targets here are built from values the contextplane served — a
+ * capability's name, a resolved endpoint, a workspace id — and the contextplane
  * ingests from sync connectors, so a name is upstream content rather than
  * something this app chose. A backslash in one of those is enough to matter: a
  * router that reads `\\host` as protocol-relative sends the reader off-site from

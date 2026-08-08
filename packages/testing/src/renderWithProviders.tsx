@@ -55,7 +55,7 @@ export interface RenderWithProvidersOptions extends Omit<RenderOptions, 'wrapper
    * `useSession()`, which is every page.
    */
   session?: Session;
-  /** The registry client the page will call. Duck-typed, so a stub is fine. */
+  /** The contextplane client the page will call. Duck-typed, so a stub is fine. */
   client?: unknown;
   /** Offered to a refused route so it can suggest a switch. */
   personas?: readonly Persona[];

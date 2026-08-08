@@ -1,7 +1,7 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import type { RegistryClient } from './client';
-import type { components } from './generated/registry';
+import type { components } from './generated/contextplane';
 import { queryKeys, type KeyScope } from './keys';
 import { LIST_OPTIONS } from './queryDefaults';
 import { compact, toApiTimestamp } from './params';
@@ -42,8 +42,8 @@ export type SyncSourcePatch = Schemas['SyncSourcePatch'];
 /**
  * The connector types the server will accept for `source_type`.
  *
- * Hardcoded because the registry publishes no endpoint listing them: they are the
- * keys of the `CONNECTORS` dict in `registry/sync/registry.py`, and a POST with an
+ * Hardcoded because the contextplane publishes no endpoint listing them: they are the
+ * keys of the `CONNECTORS` dict in `contextplane/sync/contextplane.py`, and a POST with an
  * unknown value is refused with a 422 whose `path` is `null`. Sending one of these
  * is the only way to find out it is wrong at build time rather than at submit time.
  */

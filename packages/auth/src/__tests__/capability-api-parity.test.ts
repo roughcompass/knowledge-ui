@@ -10,13 +10,13 @@ import type { Capability, Role } from '../index';
  * Read as JSON rather than imported from the generated client, because the
  * generated module exports types only — erased at build time, so there is nothing
  * to enumerate at runtime. The document is the same input the client is generated
- * from, and a drift between it and the live registry is caught by its own gate.
+ * from, and a drift between it and the live contextplane is caught by its own gate.
  */
 const SPEC_PATHS: string[] = Object.keys(
   (
     JSON.parse(
       readFileSync(
-        new URL('../../../api-client/openapi/registry.openapi.json', import.meta.url),
+        new URL('../../../api-client/openapi/contextplane.openapi.json', import.meta.url),
         'utf8',
       ),
     ) as { paths: Record<string, unknown> }
@@ -260,7 +260,7 @@ describe('the capability table against the API', () => {
 describe('the role-collapse trap', () => {
   it('never grants a capability to admin alongside auditor only', () => {
     /*
-     * The registry resolves a principal to exactly one role by precedence, with
+     * The contextplane resolves a principal to exactly one role by precedence, with
      * auditor lowest. So a capability granted to both admin and auditor is
      * unreachable for anyone holding both — they collapse to admin and lose the
      * auditor grant. `audit:read` is auditor-only for exactly this reason, and

@@ -1,7 +1,7 @@
 /**
  * The calendar day out of a timestamp the API served, without moving it.
  *
- * The registry answers in ISO 8601 UTC — `2026-07-01T00:00:00Z` for a date-valued
+ * The contextplane answers in ISO 8601 UTC — `2026-07-01T00:00:00Z` for a date-valued
  * field, a full instant for an event. Three spellings of "show that as a day" had
  * accumulated across the app, and two of them were wrong:
  *

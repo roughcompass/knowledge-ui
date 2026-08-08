@@ -10,7 +10,7 @@
  *
  * By default this produces the **mocked** lane: the interceptor is baked in and
  * the persona switcher is enabled, so the built artefacts run with no backend at
- * all and CI stays green without a registry. `import.meta.env` is substituted at
+ * all and CI stays green without a contextplane. `import.meta.env` is substituted at
  * build time, so this is a property of the artefact and cannot be switched on
  * afterwards — hence a build flag rather than a runtime one.
  *

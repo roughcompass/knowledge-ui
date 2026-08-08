@@ -1621,7 +1621,7 @@ export interface paths {
          * @description Published key history, so an external verifier can check a receipt.
          *
          *     Deliberately unauthenticated: it carries only public keys and profile
-         *     names, and a verifier holding a receipt may not be a registry caller at
+         *     names, and a verifier holding a receipt may not be a contextplane caller at
          *     all. Retired and compromised keys stay listed -- a receipt signed two
          *     years ago must remain verifiable, and dropping a compromised key would
          *     both break that and hide the compromise.
@@ -3023,7 +3023,7 @@ export interface paths {
          *     first in this same file. The curation-surface router
          *     (`api/routers/memory_curation.py`) has since grown its own literal
          *     sibling, `GET /claims/believed`, in a different router entirely; that one
-         *     stays reachable only because `registry.wiring.routes` registers that
+         *     stays reachable only because `contextplane.wiring.routes` registers that
          *     router before this one. Moving this route ahead of that registration
          *     would silently swallow it the same way an unordered `/claims/search`
          *     would swallow itself here.
@@ -4284,7 +4284,7 @@ export interface components {
         /**
          * ArtifactKind
          * @description Mirrors the `ck_arc_artifacts_kind` CHECK constraint on
-         *     `arc_artifacts.kind` (`registry/storage/migrations/versions/
+         *     `arc_artifacts.kind` (`contextplane/storage/migrations/versions/
          *     0001_baseline_schema.py`) -- today's only source for this vocabulary.
          *     Transcribed rather than imported: that constraint is a raw SQL string
          *     in a migration, not an importable Python constant. This phase adds no
@@ -5871,7 +5871,7 @@ export interface components {
         };
         /**
          * ExternalIdItem
-         * @description One row of the entity_external_ids registry, surfaced via ``?include=external_ids``.
+         * @description One row of the entity_external_ids contextplane, surfaced via ``?include=external_ids``.
          */
         ExternalIdItem: {
             /** External Id */
@@ -6744,7 +6744,7 @@ export interface components {
          * ProjectionResponse
          * @description HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.
          *
-         *     Maps one-to-one to ``registry.service.platform.projections.Projection``.
+         *     Maps one-to-one to ``contextplane.service.platform.projections.Projection``.
          *     ``next_cursor`` is None when no further pages exist; pass it as ``cursor=``
          *     on the next request to retrieve the following page.
          */

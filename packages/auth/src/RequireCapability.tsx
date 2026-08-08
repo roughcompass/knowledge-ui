@@ -87,7 +87,7 @@ export function RequireCapability({
             */}
             {need === 'audit:read' && session.role === 'admin' ? (
               <Text color="secondary">
-                The registry grants exactly one role per session, and the audit log requires the
+                The contextplane grants exactly one role per session, and the audit log requires the
                 auditor role specifically — so an administrator is refused here by design, not by
                 misconfiguration.
               </Text>

@@ -23,7 +23,7 @@
  * figure would have to be assembled in the browser out of however many pages the
  * client happened to fetch, which measures the client's paging rather than the
  * graph — the same mistake as deriving a rate from a single metrics scrape. A
- * screen that needs a total has to say the registry does not publish one.
+ * screen that needs a total has to say the contextplane does not publish one.
  *
  * ## What *is* countable, and why
  *
@@ -124,7 +124,7 @@ export interface VocabularyValue {
   vocab_id: string;
   kind: string;
   value: string;
-  /** Seeded by the registry rather than added by this tenant; not deletable. */
+  /** Seeded by the contextplane rather than added by this tenant; not deletable. */
   is_system: boolean;
   /** Non-null means retired: existing rows may still reference it, new ones may not. */
   deprecated_at: string | null;

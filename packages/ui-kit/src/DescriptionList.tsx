@@ -45,7 +45,7 @@ export interface Description {
  * server returns bitemporal attributes as objects — a lifecycle arrives as
  * `{ state: 'beta' }` — and `String()` on that renders the literal text
  * `[object Object]`, which shipped once and was caught only by running against a
- * real registry rather than a fixture of strings. Rendering stays the caller's
+ * real contextplane rather than a fixture of strings. Rendering stays the caller's
  * decision, so it can be right about its own data.
  */
 export function DescriptionList({

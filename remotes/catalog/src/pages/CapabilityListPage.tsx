@@ -154,7 +154,7 @@ export function CapabilityListPage() {
           ) : (
             // Named rather than dashed. An em-dash in a column of package
             // coordinates reads as a missing value the reader should chase;
-            // most of this catalog is simply not published to a registry.
+            // most of this catalog is simply not published to a contextplane.
             <Text color="secondary" styleAs="notation">
               Not published
             </Text>
@@ -316,14 +316,14 @@ export function CapabilityListPage() {
           constants.is_active = 'active';
         } else {
           // Named in full and carried with warning weight below, because a page
-          // of registry-inactive entries is a state worth stopping on.
+          // of contextplane-inactive entries is a state worth stopping on.
           hidden.add('is_active');
-          inactive = 'Every entry on this page is marked inactive in the registry.';
+          inactive = 'Every entry on this page is marked inactive in the contextplane.';
         }
       }
       if (browseRows.every((row) => !row.external_id)) {
         hidden.add('external_id');
-        constants.external_id = 'not published to a registry';
+        constants.external_id = 'not published to a contextplane';
       }
       if (distinct((row) => isoDay(row.created_at))) {
         const day = isoDay(first.created_at);

@@ -117,7 +117,7 @@ export const capabilityHandlers = [
     // fixture used to return storage-prefixed bitemporal columns instead —
     // names the capability response has never carried under any view — which is
     // why the page's audit panel could read as working while rendering nothing
-    // against a real registry. Bitemporal intervals belong to facts and edges,
+    // against a real contextplane. Bitemporal intervals belong to facts and edges,
     // and appear on those.
     if (url.searchParams.get('view') === 'audit') {
       return HttpResponse.json({
@@ -168,7 +168,7 @@ function detailFor(handle: string) {
       tier: row.tier,
       display_name: row.display_name,
       // Kept in step with the top-level value on purpose: the two disagreeing is
-      // a real registry bug, and a fixture that shipped it would teach a page to
+      // a real contextplane bug, and a fixture that shipped it would teach a page to
       // tolerate the disagreement.
       lifecycle: { state: row.lifecycle },
     },
@@ -311,7 +311,7 @@ export const opsHandlers = [
             'process',
             'counter',
           ),
-          instance: 'registry-7d9f',
+          instance: 'contextplane-7d9f',
           actionable:
             'An entitlement arrived in a shape the parser rejected, so a principal silently resolved to fewer roles than it was granted.',
         },
@@ -323,7 +323,7 @@ export const opsHandlers = [
             'process',
             'counter',
           ),
-          instance: 'registry-7d9f',
+          instance: 'contextplane-7d9f',
           actionable:
             'Part of an entitlement string was unreadable and was skipped rather than failing the request.',
         },
@@ -335,13 +335,13 @@ export const opsHandlers = [
             'process',
             'counter',
           ),
-          instance: 'registry-7d9f',
+          instance: 'contextplane-7d9f',
           actionable:
             'A token authority could not be parsed, which usually means an issuer is misconfigured.',
         },
         {
           ...reading('audit_write_failures', 'Audit write failures', 0, 'process', 'counter'),
-          instance: 'registry-7d9f',
+          instance: 'contextplane-7d9f',
           actionable:
             'An audit row was lost. The compliance record has a hole in it, and the request that caused it still succeeded.',
         },

@@ -4,7 +4,7 @@ import { CopyButton } from './CopyButton';
 import { KLink } from './LinkAdapter';
 
 /**
- * A reference to something else in the registry.
+ * A reference to something else in the contextplane.
  *
  * Nine surfaces rendered a bare thirty-six-character UUID as their entire answer to
  * "which one" — the impact panel's related-entity column, every claim's subject, the

@@ -201,7 +201,7 @@ export const NAVIGATION: readonly NavigationSection[] = [
       label: 'Usage',
       need: 'usage:read:owned',
     },
-    // The audit log needs more than the section does: the registry resolves a
+    // The audit log needs more than the section does: the contextplane resolves a
     // session to one role and guards that endpoint on `auditor` specifically,
     // so an administrator who can see Operations still cannot see this page.
     {

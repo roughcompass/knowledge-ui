@@ -29,7 +29,7 @@ import { useState } from 'react';
  * outright. So every role can see whether their tenant has adopted, and only a
  * producer or admin can change it. The control renders the state to everyone and
  * offers the action only to principals the API would accept — offering a button
- * that is guaranteed to 403 is worse than not showing it, and the registry
+ * that is guaranteed to 403 is worse than not showing it, and the contextplane
  * collapses a principal to exactly one role, so a consumer cannot escalate by
  * also holding producer.
  */

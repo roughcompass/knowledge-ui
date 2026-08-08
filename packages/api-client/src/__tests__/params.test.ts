@@ -70,7 +70,7 @@ describe('the idempotency header', () => {
      * is absent, so both lookup and persist become no-ops and a retried POST
      * duplicates the write with nothing logged.
      *
-     * And it is a live trap, not a hypothetical: the registry's own
+     * And it is a live trap, not a hypothetical: the contextplane's own
      * `docs/04-guides/03-sync-connectors.md` documents it without the prefix.
      */
     expect(IDEMPOTENCY_HEADER).toBe('X-Idempotency-Key');

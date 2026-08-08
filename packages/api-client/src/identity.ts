@@ -9,7 +9,7 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import type { RegistryClient } from './client';
-import type { components } from './generated/registry';
+import type { components } from './generated/contextplane';
 import { queryKeys, type KeyScope } from './keys';
 
 type Schemas = components['schemas'];

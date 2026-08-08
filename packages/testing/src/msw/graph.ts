@@ -71,7 +71,7 @@ function nodeFor(row: CatalogEntry) {
 /**
  * Every dependency edge in the roster, flattened.
  *
- * `properties` carries the criticality the registry's edge-property schema
+ * `properties` carries the criticality the contextplane's edge-property schema
  * allows, rather than an empty object: the field is required on `EdgeRefItem`
  * and a fixture that always sent `{}` would let a table that cannot render a
  * populated bag pass.
@@ -132,7 +132,7 @@ function refuseNonAdmin(request: Request) {
  * The vocabulary values, keyed by kind.
  *
  * `entity_type` and `edge_rel` are the two kinds the graph is built from, and
- * both are seeded by the registry rather than by a tenant — hence `is_system` on
+ * both are seeded by the contextplane rather than by a tenant — hence `is_system` on
  * every row. One deprecated value is included on purpose: a deprecated term is
  * still referenced by existing rows and must render differently from a live one,
  * which a fixture of uniformly live values would never exercise.

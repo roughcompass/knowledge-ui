@@ -2,7 +2,7 @@
  * Acronyms the server writes in lowercase and a reader expects in caps.
  *
  * Deliberately short, and only for tokens this app actually renders. A general
- * dictionary would be a guess about words the registry has never sent, and the
+ * dictionary would be a guess about words the contextplane has never sent, and the
  * first wrong guess — capitalising a word that was never an acronym — is
  * indistinguishable from a typo to the reader who meets it.
  */

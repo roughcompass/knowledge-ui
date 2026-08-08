@@ -23,7 +23,7 @@ import { describe, expect, it } from 'vitest';
 
 const spec = JSON.parse(
   readFileSync(
-    new URL('../../../api-client/openapi/registry.openapi.json', import.meta.url),
+    new URL('../../../api-client/openapi/contextplane.openapi.json', import.meta.url),
     'utf8',
   ),
 ) as {

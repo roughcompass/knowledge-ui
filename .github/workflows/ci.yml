@@ -14,7 +14,7 @@
 # they parallelise and report separately. The composition lives in package.json.
 #
 # The end-to-end lane runs against a build with the request mocks compiled in,
-# so it needs no registry, no database and no identity provider. That is a
+# so it needs no contextplane, no database and no identity provider. That is a
 # deliberate property: a UI repo whose tests only pass when a backend happens
 # to be running is a repo whose tests do not get run.
 # =============================================================================
@@ -58,7 +58,7 @@ jobs:
       - run: npm ci
       # The spec is vendored rather than read across the repo boundary, so the
       # generated bindings must match the vendored copy. Drift against the live
-      # registry is caught by the live end-to-end lane instead.
+      # contextplane is caught by the live end-to-end lane instead.
       - run: npm run ci:codegen
 
   unit:

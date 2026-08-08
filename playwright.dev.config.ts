@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * End-to-end config for the **dev servers**, against a real registry.
+ * End-to-end config for the **dev servers**, against a real contextplane.
  *
  * This is the file `package.json`'s `e2e:dev` script and the built config's
  * docstring have both referenced since they were written, and which did not
@@ -26,14 +26,14 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * ## It needs a stack, and it says so before failing
  *
- * Three services: the registry, a mock identity provider, and the entitlement
+ * Three services: the contextplane, a mock identity provider, and the entitlement
  * service. Run `npm run doctor` first — the entitlement store is in memory, so a
  * restarted container answers every request with a bare 403 that looks like a
  * broken role gate and is a lost seed. The `webServer` entries wait on the dev
  * servers only; the backing services are checked by the specs' own setup, because
  * a Playwright timeout on a URL it cannot reach names the port and nothing else.
  *
- * Deliberately not in CI. It cannot be: the workflow provisions no registry, and
+ * Deliberately not in CI. It cannot be: the workflow provisions no contextplane, and
  * a lane that only passes when a backend happens to be running is a lane whose
  * failures get ignored. It is a local and pre-release check, run on purpose.
  */
@@ -47,7 +47,7 @@ export default defineConfig({
   // passes on the second try is a bug that reproduces intermittently, not a flake
   // worth papering over.
   retries: 0,
-  // Serial. The specs mutate real registry state — a sync source created by one
+  // Serial. The specs mutate real contextplane state — a sync source created by one
   // and deactivated by another is a race that would only ever fail in this lane,
   // where the store is shared rather than per-worker.
   fullyParallel: false,

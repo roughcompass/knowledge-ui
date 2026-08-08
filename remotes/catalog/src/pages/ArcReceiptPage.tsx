@@ -104,7 +104,7 @@ export function ArcReceiptPage() {
         /*
           A form asking for a UUID with no way to obtain one is a dead end, and this
           page was exactly that: nothing in the console produces a receipt id, and the
-          registry publishes no list endpoint for receipts — only read-by-id. So the
+          contextplane publishes no list endpoint for receipts — only read-by-id. So the
           honest thing is to say where an id comes from rather than leave a reader
           guessing that they have missed a link somewhere.
 
@@ -118,7 +118,7 @@ export function ArcReceiptPage() {
           />
           <UnavailableNotice
             title="Receipts cannot be browsed"
-            reason="The registry serves a receipt by id and publishes no index of them, so this console cannot offer a list to pick from. An id comes from the agent host that performed the resolution, or from the audit record of the request that produced it — not from anywhere in this app."
+            reason="The contextplane serves a receipt by id and publishes no index of them, so this console cannot offer a list to pick from. An id comes from the agent host that performed the resolution, or from the audit record of the request that produced it — not from anywhere in this app."
           />
         </StackLayout>
       ) : null}

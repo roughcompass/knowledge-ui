@@ -73,7 +73,7 @@ export function makeCapabilityDetail(overrides: Partial<Record<string, unknown>>
     /*
      * Attribute values are `unknown`, not strings. The real server returns
      * `lifecycle: {"state": "ga"}` — an object, and a required attribute per the
-     * registry's own capability schema — and a fixture with only string values let a
+     * contextplane's own capability schema — and a fixture with only string values let a
      * page get away with `String(value)`, which renders a dict as "[object Object]".
      * The object entry is here so that cannot regress.
      *
@@ -277,7 +277,7 @@ export function makeValidationEnvelope(
   return {
     errors: items.map(({ path, code, message }) => ({
       path,
-      // Pydantic's error *type*, not a registry error code — `missing`,
+      // Pydantic's error *type*, not a contextplane error code — `missing`,
       // `string_too_short`. Nothing should switch on it expecting the latter.
       code: code ?? 'missing',
       message,

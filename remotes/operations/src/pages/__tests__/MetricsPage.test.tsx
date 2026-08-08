@@ -75,9 +75,11 @@ describe('as an administrator', () => {
     // Stated once, because every counter in that table came from the same
     // replica. Repeating it per row said nothing extra and wrapped three lines
     // deep in a column nobody scans.
-    expect(screen.getByText(/registry-7d9f/)).toBeInTheDocument();
+    expect(screen.getByText(/contextplane-7d9f/)).toBeInTheDocument();
     // Never attached to a cluster-counted reading, which belongs to no replica.
-    expect(screen.queryByText(/Counted across the deployment.*registry-/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Counted across the deployment.*contextplane-/),
+    ).not.toBeInTheDocument();
   });
 
   it('says a zero does not prove zero everywhere', async () => {

@@ -31,7 +31,7 @@ import {
  * - **The read failed.** An error, said as one.
  *
  * `recordedInterface` is the capability's own `interface` attribute, handed down
- * from the detail response the page already holds. The registry has two sources
+ * from the detail response the page already holds. The contextplane has two sources
  * for a contract — canonical published interface text, and an attribute recorded
  * on the capability — and they stay labelled apart here, because a reader
  * deciding whether to depend on something needs to know which one they read.
@@ -116,7 +116,7 @@ export function InterfacePanel({
 
       {canonical ? (
         // The canonical text in the code face, unmodified. A contract is read
-        // literally — reformatting it here would mean the console and the registry
+        // literally — reformatting it here would mean the console and the contextplane
         // disagree about what was declared.
         <Text styleAs="code">{canonical}</Text>
       ) : hasRecorded ? (
@@ -141,7 +141,7 @@ export function InterfacePanel({
         </Text>
       ) : (
         <Text color="secondary">
-          The registry has no interface text recorded for this capability.
+          The contextplane has no interface text recorded for this capability.
         </Text>
       )}
     </SectionCard>

@@ -1,8 +1,8 @@
 /**
  * A link goes where the app can go, and nowhere else.
  *
- * Link targets in this product are assembled from values the registry served,
- * and the registry ingests from sync connectors — so a capability's name is
+ * Link targets in this product are assembled from values the contextplane served,
+ * and the contextplane ingests from sync connectors — so a capability's name is
  * upstream content rather than a value this app chose. The router version in
  * use reads a leading `\\host` as protocol-relative, which turns a row in a
  * table into a link off-site. Asserted on the rendered `href`, because that is

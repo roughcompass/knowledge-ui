@@ -25,7 +25,7 @@ import { useParams } from 'react-router-dom';
  * that a claim had three citations and had no way to read one.
  *
  * The whole point of this page is the citations. A served claim is required to carry
- * them — the registry refuses to return one without — so a claim rendering no
+ * them — the contextplane refuses to return one without — so a claim rendering no
  * citations here is a contract violation worth seeing rather than an empty table to
  * pass over, and the empty state says exactly that.
  */
@@ -115,7 +115,7 @@ export function ClaimDetailPage() {
         // The contract-violation explanation lives in the empty state, which is
         // the only place it is true: a card of healthy rows led with
         // "violation" reads as a warning about the evidence it introduces.
-        description="The evidence this claim was staged from. Every claim the registry serves arrives with its citations."
+        description="The evidence this claim was staged from. Every claim the contextplane serves arrives with its citations."
         banded
         flush
       >

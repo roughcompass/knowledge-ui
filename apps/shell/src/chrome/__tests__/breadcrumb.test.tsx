@@ -10,7 +10,7 @@ import { AppFrame } from '../AppFrame';
 /**
  * The breadcrumb is a location readout, and these are the two ways it lied: a
  * refused page was filed under the section's index (because the resolver only saw
- * the capability-filtered registry), and an entity leaf showed its raw 36-character
+ * the capability-filtered contextplane), and an entity leaf showed its raw 36-character
  * UUID even while the page below it had the display name on screen.
  */
 

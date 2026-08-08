@@ -1,5 +1,5 @@
 /**
- * The registry's error envelope, hand-written.
+ * The contextplane's error envelope, hand-written.
  *
  * These types are deliberately not generated. The OpenAPI document describes
  * every non-2xx response as FastAPI's default `HTTPValidationError`
@@ -237,7 +237,7 @@ function itemsOf(error: unknown): ErrorItem[] {
  * field errors would swallow both and show nothing at all.
  *
  * Note `code` is the Pydantic error *type* — `missing`, `string_too_short` — not a
- * registry error code. Do not switch on it expecting `validation_error`.
+ * contextplane error code. Do not switch on it expecting `validation_error`.
  */
 export function fieldErrors(error: unknown): Record<string, string[]> {
   const out: Record<string, string[]> = {};

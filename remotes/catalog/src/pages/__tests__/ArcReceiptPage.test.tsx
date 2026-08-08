@@ -42,7 +42,7 @@ describe('the ARC receipt inspector', () => {
     expect(screen.getByText('Ready')).toBeInTheDocument();
     expect(screen.getByText('Rendered Content Bytes')).toBeInTheDocument();
     expect(screen.getByText('Budget Limit Bytes')).toBeInTheDocument();
-    expect(screen.getByText('registry://directives/change-control')).toBeInTheDocument();
+    expect(screen.getByText('contextplane://directives/change-control')).toBeInTheDocument();
 
     expect(await screen.findByText('Event Chain')).toBeInTheDocument();
     expect(screen.getByText(/Resolution created/i)).toBeInTheDocument();

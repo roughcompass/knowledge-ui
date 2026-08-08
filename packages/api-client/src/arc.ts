@@ -27,7 +27,7 @@ export interface ArcSelectedDirective {
   audience_redacted: boolean;
 }
 
-/** Mirrors `ReceiptReader.get_receipt()` in the registry. */
+/** Mirrors `ReceiptReader.get_receipt()` in the contextplane. */
 export interface ArcReceipt {
   receipt_id: string;
   tenant_id: string;

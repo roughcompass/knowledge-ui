@@ -48,7 +48,7 @@ describe('a tab segment the page does not define', () => {
 });
 
 /**
- * The registry has two sources for a contract: canonical published interface
+ * The contextplane has two sources for a contract: canonical published interface
  * text, and an `interface` attribute recorded on the capability. The tab must
  * never deny a contract another tab is displaying, and must never pass one
  * source off as the other.
@@ -103,7 +103,9 @@ describe('the interface tab without canonical text', () => {
     renderAt('/salt-design-system/interface');
 
     expect(
-      await screen.findByText('The registry has no interface text recorded for this capability.'),
+      await screen.findByText(
+        'The contextplane has no interface text recorded for this capability.',
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/provenance above/)).not.toBeInTheDocument();
   });

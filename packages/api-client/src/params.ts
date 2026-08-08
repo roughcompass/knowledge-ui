@@ -53,7 +53,7 @@ export function clampPageSize(endpoint: PagedEndpoint, requested: number | undef
  * `persist` become no-ops and a retried POST duplicates the write with no error
  * anywhere.
  *
- * That is not a hypothetical. `registry/docs/04-guides/03-sync-connectors.md`
+ * That is not a hypothetical. `contextplane/docs/04-guides/03-sync-connectors.md`
  * documents the header as `Idempotency-Key`, without the prefix — so an operator
  * following the docs gets no idempotency at all. A named constant plus the test
  * asserting its value is what stops the same mistake being made here by hand.

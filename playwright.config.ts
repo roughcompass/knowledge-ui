@@ -15,9 +15,9 @@ import { defineConfig, devices } from '@playwright/test';
  * Two projects:
  *
  *   mocked — the default. `build:e2e` bakes in the MSW service worker, so these
- *            specs run with no registry at all and CI needs no backend.
+ *            specs run with no contextplane at all and CI needs no backend.
  *   live   — the same specs against a real stack, behind `KUI_LIVE=1`. Excluded
- *            by default because the registry's entitlement store is in memory and
+ *            by default because the contextplane's entitlement store is in memory and
  *            a cold container fails every persona assertion for a reason that has
  *            nothing to do with the code under test.
  */

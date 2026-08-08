@@ -47,7 +47,7 @@ const renderAs = (
  * presence: that no total appears, and that the counts which *do* appear are
  * labelled as pages or as definitions rather than as populations.
  */
-describe('the totals the registry does not serve', () => {
+describe('the totals the contextplane does not serve', () => {
   it('names the absence of graph totals instead of computing one', async () => {
     renderAs(<GraphDashboardPage />, 'admin');
     expect(await screen.findByText('Graph totals')).toBeInTheDocument();

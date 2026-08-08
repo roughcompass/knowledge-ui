@@ -431,8 +431,8 @@ export function WorkspaceDetailPage() {
 
       {archived ? (
         <Note label="Archived">
-          Nothing more can be written in here. The registry refuses new entries while a workspace is
-          archived, and everything already written stays readable.
+          Nothing more can be written in here. The contextplane refuses new entries while a
+          workspace is archived, and everything already written stays readable.
           {mayWrite
             ? ' The name and description can still be corrected, and un-archiving reopens it.'
             : ''}

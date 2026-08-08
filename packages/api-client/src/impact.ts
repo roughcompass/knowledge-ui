@@ -35,7 +35,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import type { RegistryClient } from './client';
 import type { RegistryError } from './errors';
-import type { components } from './generated/registry';
+import type { components } from './generated/contextplane';
 import { queryKeys, type KeyScope } from './keys';
 import { compact, toApiTimestamp } from './params';
 

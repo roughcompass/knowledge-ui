@@ -27,7 +27,7 @@ import type { RegistryClient } from './client';
  * That is not an error: cross-tenant edges are real, and a reference this tenant
  * cannot read is a fact about visibility rather than a failure to render.
  *
- * This is an N+1 by construction, and it is the honest shape available — the registry
+ * This is an N+1 by construction, and it is the honest shape available — the contextplane
  * publishes no batch resolve. If one ever lands, it goes behind this same signature.
  */
 export function useEntityNames(

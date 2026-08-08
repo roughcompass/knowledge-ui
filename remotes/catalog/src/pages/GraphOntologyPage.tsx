@@ -44,7 +44,7 @@ import {
  * A capability-type schema that is advisory describes what a capability of that
  * type should carry and does not refuse a write that ignores it. An enforcing
  * one rejects the write. The two are indistinguishable in a list of type names,
- * and confusing them is how somebody concludes the registry validated something
+ * and confusing them is how somebody concludes the contextplane validated something
  * it merely recorded — so the flag gets a column of its own rather than a
  * footnote.
  *
@@ -152,7 +152,7 @@ export function GraphOntologyPage() {
     <StackLayout gap={3}>
       <PageHeader
         title="Ontology"
-        description="The definitions the graph is built from: what a node may be, how two entities may be related, and which of those shapes the registry enforces."
+        description="The definitions the graph is built from: what a node may be, how two entities may be related, and which of those shapes the contextplane enforces."
       />
 
       {failed?.error ? <ErrorPanel error={failed.error} /> : null}
@@ -169,7 +169,7 @@ export function GraphOntologyPage() {
             getRowId={(row) => row.vocab_id}
             caption="Entity type vocabulary"
             emptyTitle="No Entity Types Registered"
-            emptyDescription="The vocabulary is empty for this tenant. Entity types are administered through the registry, not from this console."
+            emptyDescription="The vocabulary is empty for this tenant. Entity types are administered through the contextplane, not from this console."
             hideCaption
           />
         </SectionCard>
@@ -195,7 +195,7 @@ export function GraphOntologyPage() {
       {types.data ? (
         <SectionCard
           title="Capability type schemas"
-          description="What a capability of each type must carry — and whether the registry refuses a write that ignores it."
+          description="What a capability of each type must carry — and whether the contextplane refuses a write that ignores it."
         >
           <DataTable
             columns={typeColumns}

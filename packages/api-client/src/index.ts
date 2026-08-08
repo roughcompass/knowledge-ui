@@ -254,7 +254,7 @@ export {
   type WorkspacePatch,
 } from './workspaces';
 
-export type { components, paths } from './generated/registry';
+export type { components, paths } from './generated/contextplane';
 
 export {
   GRAPH_VOCABULARY_KINDS,

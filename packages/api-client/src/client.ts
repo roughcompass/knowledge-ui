@@ -1,5 +1,5 @@
 /**
- * The one place a request to the registry is built.
+ * The one place a request to the contextplane is built.
  *
  * This is a plain object with two properties, not a Proxy over the generated
  * `paths` type. A Proxy buys terse call sites and costs everything else: the
@@ -114,7 +114,7 @@ function serialiseQuery(query: QueryParams | undefined): string {
  * Concatenate rather than `new URL(path, base)`.
  *
  * `new URL` demands an absolute base, and the base here is usually empty: the
- * registry publishes no CORS headers, so a browser cannot call it cross-origin
+ * contextplane publishes no CORS headers, so a browser cannot call it cross-origin
  * at all and every dev and preview server proxies the API paths from its own
  * origin. Relative URLs are what makes that work — and they are what makes a
  * federated remote work too, since code loaded from a remote executes on the

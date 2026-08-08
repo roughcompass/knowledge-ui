@@ -1,6 +1,6 @@
 # `@knowledge-ui/api-client`
 
-The typed client for the registry API: one module per API domain, the query-key
+The typed client for the contextplane API: one module per API domain, the query-key
 factory, and the error model.
 
 ## What it owns

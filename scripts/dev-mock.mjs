@@ -2,7 +2,7 @@
 /**
  * The three dev servers, with the request interceptor switched on.
  *
- * `npm run dev` needs a registry, a mock identity provider and an entitlement
+ * `npm run dev` needs a contextplane, a mock identity provider and an entitlement
  * service running before the app gets past resolving a session. That is the
  * right default for working against real data, and the wrong one for reading a
  * screen, reviewing a change, or opening the app on a machine that has never run
@@ -22,7 +22,7 @@
  */
 import { spawn } from 'node:child_process';
 
-console.log('lane: mocked (no registry, identity provider or entitlement service required)');
+console.log('lane: mocked (no contextplane, identity provider or entitlement service required)');
 console.log('      data is fixture data — the same set the tests assert against');
 console.log('      all three origins intercept: shell :5170, catalog :5171, operations :5172\n');
 

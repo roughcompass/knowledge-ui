@@ -4,7 +4,7 @@ const API = process.env.KUI_API_TARGET ?? 'http://localhost:8000';
 const IDP = process.env.KUI_IDP_TARGET ?? 'http://localhost:8090';
 
 /**
- * Same-origin proxy for the registry API and the local identity provider.
+ * Same-origin proxy for the contextplane API and the local identity provider.
  *
  * Not dev-only, which is what its previous name claimed. All three `vite dev`
  * servers use it, all three `preview` servers use it, and the built end-to-end
@@ -12,7 +12,7 @@ const IDP = process.env.KUI_IDP_TARGET ?? 'http://localhost:8090';
  * every request the test suite makes against a real backend, not just the ones a
  * developer makes by hand.
  *
- * The registry ships no CORS middleware, so a browser cannot call it
+ * The contextplane ships no CORS middleware, so a browser cannot call it
  * cross-origin at all — not even a simple GET, because the response carries no
  * `Access-Control-Allow-Origin` for the reader to see. Every dev and preview
  * server therefore proxies the API paths from its own origin, and the app
@@ -30,7 +30,7 @@ const IDP = process.env.KUI_IDP_TARGET ?? 'http://localhost:8090';
  * Production has no proxy: deploy same-origin with the API, or put a reverse
  * proxy in front of both.
  */
-export function registryProxy(): Record<string, ProxyOptions> {
+export function contextplaneProxy(): Record<string, ProxyOptions> {
   return {
     '/v1': { target: API, changeOrigin: true },
     '/healthz': { target: API, changeOrigin: true },

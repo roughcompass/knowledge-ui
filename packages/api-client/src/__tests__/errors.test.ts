@@ -87,7 +87,7 @@ describe('toNetworkError', () => {
 
   it('names CORS as a likely cause, because the browser will not', () => {
     // A cross-origin failure is indistinguishable from a network failure to
-    // JavaScript, and the registry publishes no CORS headers — so this is the
+    // JavaScript, and the contextplane publishes no CORS headers — so this is the
     // single most likely explanation and worth putting in front of the reader.
     expect(toNetworkError(new Error('boom')).message).toMatch(/CORS/);
   });
@@ -110,7 +110,7 @@ describe('fieldErrors() / formErrors()', () => {
   /**
    * The shape Pydantic actually produces through the app's exception handler:
    * `path` is JSON-Path with a `$.` root, and `code` is the Pydantic error *type*
-   * rather than a registry error code.
+   * rather than a contextplane error code.
    */
   const validation = toRegistryError(422, {
     errors: [

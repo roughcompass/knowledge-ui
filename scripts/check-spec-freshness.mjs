@@ -39,7 +39,7 @@ const vendored = operations(
   JSON.parse(
     readFileSync(
       fileURLToPath(
-        new URL('../packages/api-client/openapi/registry.openapi.json', import.meta.url),
+        new URL('../packages/api-client/openapi/contextplane.openapi.json', import.meta.url),
       ),
       'utf8',
     ),
@@ -57,7 +57,7 @@ try {
   console.log(
     `check-spec-freshness: SKIP (no service at ${target} — ${error instanceof Error ? error.message : String(error)})`,
   );
-  console.log('  Start the registry and re-run to compare the vendored document against it.');
+  console.log('  Start the contextplane and re-run to compare the vendored document against it.');
   process.exit(0);
 }
 
@@ -78,6 +78,6 @@ if (removed.length > 0) {
   console.error(`\n  Vendored but not served (${removed.length}) — a call here would 404:`);
   for (const operation of removed) console.error(`    - ${operation}`);
 }
-console.error('\n  Re-vendor with: make openapi-export in the registry, copy to');
-console.error('  packages/api-client/openapi/registry.openapi.json, then npm run codegen.');
+console.error('\n  Re-vendor with: make openapi-export in the contextplane, copy to');
+console.error('  packages/api-client/openapi/contextplane.openapi.json, then npm run codegen.');
 process.exit(1);

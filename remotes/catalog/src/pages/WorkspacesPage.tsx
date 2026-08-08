@@ -442,7 +442,7 @@ export function WorkspacesPage() {
           it instead.
         */}
         <Text>
-          {deleting?.name} and its entries stop being readable from here. The registry keeps the
+          {deleting?.name} and its entries stop being readable from here. The contextplane keeps the
           row, but nothing in this application will show it again. Archiving instead keeps it
           readable and stops further writes.
         </Text>

@@ -86,7 +86,7 @@ export async function mintToken(persona) {
       client_id: persona.clientId,
       client_secret: persona.clientSecret,
       // Becomes the `aud` claim, which must be in the API's resource allowlist.
-      scope: 'registry',
+      scope: 'contextplane',
     }),
   });
   if (!res.ok) throw new Error(`token endpoint returned ${res.status}: ${await res.text()}`);

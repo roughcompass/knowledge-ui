@@ -24,7 +24,7 @@ export { NavCard } from './NavCard';
 export { KLink, LinkAdapterProvider, type KLinkProps } from './LinkAdapter';
 
 /**
- * A reference to something else in the registry: a name and a destination where one
+ * A reference to something else in the contextplane: a name and a destination where one
  * is known, a short id with the whole value one keystroke away where it is not. Nine
  * surfaces used to render a bare UUID as their entire answer to "which one".
  */

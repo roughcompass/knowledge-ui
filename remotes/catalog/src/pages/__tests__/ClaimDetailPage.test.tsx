@@ -44,7 +44,7 @@ describe('the claim detail page', () => {
   it('introduces healthy citations without the contract-violation warning', async () => {
     renderClaim('claim-1');
     expect(
-      await screen.findByText(/Every claim the registry serves arrives with its citations/),
+      await screen.findByText(/Every claim the contextplane serves arrives with its citations/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/contract violation/i)).not.toBeInTheDocument();
     // The evidence itself is on screen.

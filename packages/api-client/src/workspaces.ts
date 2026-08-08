@@ -3,7 +3,7 @@
  *
  * A workspace holds entries — notes, decisions, open questions, saved queries and
  * saved views — each one a Markdown body that may cite catalog entities by id. It
- * is the registry's own memory of *why* things were done, and it is deliberately
+ * is the contextplane's own memory of *why* things were done, and it is deliberately
  * not part of the catalog: nothing here is a fact the catalog serves.
  *
  * ## Ownership is the sharing model, and it is fixed at creation
@@ -21,7 +21,7 @@
  * `additionalProperties: true`, so the generated client gives back
  * `Record<string, unknown>` and would push a cast into every call site. The
  * interfaces below mirror `WorkspaceResponse` and `EntryResponse` in
- * `registry/api/routers/workspaces.py` field for field, including the two the
+ * `contextplane/api/routers/workspaces.py` field for field, including the two the
  * router documents as absent-when-null (`warnings`, and every encryption field,
  * which is not surfaced until content encryption ships).
  *
@@ -48,7 +48,7 @@ import { compact } from './params';
 
 /**
  * The closed ownership vocabulary, mirroring `VALID_OWNER_KINDS` in
- * `registry/service/workspace/_shared.py`.
+ * `contextplane/service/workspace/_shared.py`.
  */
 export const WORKSPACE_OWNER_KINDS = ['actor', 'tenant'] as const;
 export type WorkspaceOwnerKind = (typeof WORKSPACE_OWNER_KINDS)[number];
@@ -69,7 +69,7 @@ export const WORKSPACE_ENTRY_KINDS = [
 ] as const;
 export type WorkspaceEntryKind = (typeof WORKSPACE_ENTRY_KINDS)[number];
 
-/** Mirrors `WorkspaceResponse` in `registry/api/routers/workspaces.py`. */
+/** Mirrors `WorkspaceResponse` in `contextplane/api/routers/workspaces.py`. */
 export interface Workspace {
   workspace_id: string;
   tenant_id: string;

@@ -36,7 +36,7 @@ import {
 import { useState } from 'react';
 
 /**
- * Whether the registry is used, through which surface, and by how many.
+ * Whether the contextplane is used, through which surface, and by how many.
  *
  * The question the whole product turns on and the one nothing here could answer:
  * the aggregate API did not exist when these screens were built, so "is any of this
@@ -186,7 +186,7 @@ export function UsagePage() {
       <StackLayout gap={3}>
         <PageHeader
           title="Usage"
-          description="Whether the registry is called, through which surface, and by how many — over a window the service itself reports back."
+          description="Whether the contextplane is called, through which surface, and by how many — over a window the service itself reports back."
         />
         <UnavailableNotice
           title="Usage is not available to this role"
@@ -210,7 +210,7 @@ export function UsagePage() {
   const header = (
     <PageHeader
       title="Usage"
-      description="Whether the registry is called, through which surface, and by how many — over a window the service itself reports back."
+      description="Whether the contextplane is called, through which surface, and by how many — over a window the service itself reports back."
       actions={
         <FilterBar label="Usage window">
           <FilterField label="Window" basis="13rem">

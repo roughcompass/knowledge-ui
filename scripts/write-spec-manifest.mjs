@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 const HTTP_METHODS = new Set(['get', 'put', 'post', 'delete', 'patch', 'head', 'options', 'trace']);
 
 const specPath = fileURLToPath(
-  new URL('../packages/api-client/openapi/registry.openapi.json', import.meta.url),
+  new URL('../packages/api-client/openapi/contextplane.openapi.json', import.meta.url),
 );
 const manifestPath = fileURLToPath(
   new URL('../packages/api-client/openapi/paths.json', import.meta.url),

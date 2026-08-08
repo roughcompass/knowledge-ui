@@ -140,7 +140,7 @@ describe('the confirm dialog', () => {
 describe('deactivation stays reversible', () => {
   it('keeps a deactivated source on screen, offering Reactivate', async () => {
     /*
-     * The regression that shipped and was caught only against the live registry.
+     * The regression that shipped and was caught only against the live contextplane.
      *
      * `GET /v1/admin/sync-sources` is `active_only: bool = Query(True)` — it hides
      * inactive sources unless asked. The page omitted the parameter, so deactivating

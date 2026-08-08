@@ -5,7 +5,7 @@ import styles from './RetrievalArmsBar.module.css';
 /**
  * How much each retrieval arm contributed to a search score.
  *
- * The registry fuses three independent arms — semantic, lexical and graph — and
+ * The contextplane fuses three independent arms — semantic, lexical and graph — and
  * returns each one's contribution alongside the total. That breakdown is the
  * most interesting thing on a search result and there is no Salt component for
  * it, so this is one of the three places a stylesheet is warranted.

@@ -157,7 +157,8 @@ function TenantPicker({
       <DialogContent>
         <StackLayout gap={2}>
           <Text>
-            This identity has access to more than one tenant, so the registry cannot pick for you.
+            This identity has access to more than one tenant, so the contextplane cannot pick for
+            you.
           </Text>
           <RadioButtonGroup value={choice} onChange={(event) => setChoice(event.target.value)}>
             {tenants.map((slug) => (
@@ -186,12 +187,12 @@ function SeedDiagnostic({ personaKey, message }: { personaKey: string; message: 
     <Banner status="warning" role="alert">
       <BannerContent>
         <StackLayout gap={1}>
-          <Text styleAs="label">The registry refused this identity</Text>
+          <Text styleAs="label">The contextplane refused this identity</Text>
           <Text>{message}</Text>
           <Text>
             The persona <strong>{personaKey}</strong> authenticated successfully, so the token is
-            fine — the registry has no entitlements recorded for it. The entitlement service keeps
-            those in memory, so they are lost whenever its container restarts.
+            fine — the contextplane has no entitlements recorded for it. The entitlement service
+            keeps those in memory, so they are lost whenever its container restarts.
           </Text>
           <Text styleAs="code">npm run seed:personas</Text>
         </StackLayout>

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Salt Design System interface for the capability registry, built as a Module Federation 2 monorepo.",
+  "description": "Salt Design System interface for the capability contextplane, built as a Module Federation 2 monorepo.",
   "engines": {
     "node": ">=22.0.0"
   },

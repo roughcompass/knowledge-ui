@@ -2,13 +2,13 @@
  * Identity, exactly as the server reports it.
  *
  * Nothing in this module derives a role, a tenant or a permission from local
- * state. The registry resolves all of that from the bearer token and returns it
+ * state. The contextplane resolves all of that from the bearer token and returns it
  * from `GET /v1/whoami`; a UI that decided for itself would offer actions the
  * server then rejects, which is a worse experience than not offering them.
  */
 
 /**
- * The four roles the registry issues.
+ * The four roles the contextplane issues.
  *
  * Written in the server's precedence order — highest first. A principal holding
  * several entitlements for one tenant is collapsed to a single role by that
@@ -67,7 +67,7 @@ export interface WhoamiResponse {
   tenant_display_name: string;
   /** Always one element — the server has already collapsed multiple grants. */
   roles: string[];
-  /** Deprecated and always null when present at all; tokens are not registry-issued. */
+  /** Deprecated and always null when present at all; tokens are not contextplane-issued. */
   token_id?: string | null;
   /** Deprecated and always null when present at all; lifetime is the token's own `exp`. */
   token_expires_at?: string | null;

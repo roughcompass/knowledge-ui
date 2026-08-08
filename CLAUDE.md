@@ -12,7 +12,7 @@ the part a reader would otherwise discover by breaking something.
 
 `knowledge-ui` is a git repo with a remote at `roughcompass/knowledge-ui`. It sits
 beside two others in the same parent directory, and they are unrelated history:
-the registry backend, and a planning workspace.
+the contextplane backend, and a planning workspace.
 
 **Never `git add` a path outside this directory.** A change that spans repos
 produces one commit in each; neither is shared.
@@ -85,7 +85,7 @@ Four lanes, and each covers something the others cannot:
   The only lane that exercises real Module Federation, because `vite dev` serves
   remotes through a different path. This is the CI gate.
 - **End-to-end, live** (`npm run e2e:dev`) — the same specs against a real
-  registry. Catches drift between the hand-written mocks and the actual API. Not
+  contextplane. Catches drift between the hand-written mocks and the actual API. Not
   in CI, because the workflow provisions no backend.
 
 ### Traps

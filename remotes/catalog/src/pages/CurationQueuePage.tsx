@@ -18,7 +18,7 @@ import {
 /**
  * What needs a curator's attention.
  *
- * The registry ships a full curation runbook — work the queue, review promotions,
+ * The contextplane ships a full curation runbook — work the queue, review promotions,
  * configure auto-promotion — and none of it had a surface here. The memory-steward
  * persona, whose stated question is "is curation producing claims owners accept",
  * was served by one read-only claims list. This is the first page for that job.
@@ -78,7 +78,7 @@ export function CurationQueuePage() {
 
           <SectionCard
             title="Waiting on a curator"
-            description="Each row is an observation the registry could not resolve on its own."
+            description="Each row is an observation the contextplane could not resolve on its own."
             banded
             flush
           >
@@ -125,7 +125,7 @@ export function CurationQueuePage() {
               rows={items}
               getRowId={(row, index) => displayText(row.claim_id ?? index)}
               emptyTitle="Nothing Waiting"
-              emptyDescription="No observation in this tenant currently needs a curator. That is the queue being empty, not the queue being unavailable — staged claims arrive here only when the registry cannot resolve them on its own."
+              emptyDescription="No observation in this tenant currently needs a curator. That is the queue being empty, not the queue being unavailable — staged claims arrive here only when the contextplane cannot resolve them on its own."
               emptyHeadingLevel="h3"
             />
           </SectionCard>

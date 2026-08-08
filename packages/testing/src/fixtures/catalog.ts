@@ -27,13 +27,13 @@ import type { Lifecycle } from './index';
  * carries no lifecycle, because the list resource does not. The roster supplies
  * *content*; the handlers remain the only thing that decides shape.
  *
- * Names are slugs because that is what the registry stores as `name` and what
+ * Names are slugs because that is what the contextplane stores as `name` and what
  * appears in a URL. `display_name` is carried separately and is only used where
  * the API actually returns one.
  */
 
 export interface CatalogEntry {
-  /** The registry's `name`: the handle in the URL. */
+  /** The contextplane's `name`: the handle in the URL. */
   name: string;
   display_name: string;
   entity_type: 'capability' | 'concept' | 'operation';
@@ -302,7 +302,7 @@ export const CATALOG: readonly CatalogEntry[] = [
     'ga',
     'integration-platform',
     '1',
-    'The Kafka estate and its schema registry. Domain events are published once and consumed by whoever needs them, without point-to-point feeds.',
+    'The Kafka estate and its schema contextplane. Domain events are published once and consumed by whoever needs them, without point-to-point feeds.',
     [],
   ),
   entry(

@@ -12,7 +12,7 @@ import { Component, Suspense, type ErrorInfo, type ReactNode } from 'react';
  *
  * The retry reloads the page rather than re-rendering. That is deliberate and
  * worth stating: a rejected dynamic import stays rejected in the module
- * registry, so re-mounting the same lazy component returns the same rejection.
+ * contextplane, so re-mounting the same lazy component returns the same rejection.
  * Offering an in-place retry that cannot work would be worse than offering none.
  */
 interface Props {

@@ -148,7 +148,7 @@ export class DevPersonaAuthProvider implements AuthProvider {
         client_secret: this.current.clientSecret,
         // Becomes the token's `aud`, which the API checks against its resource
         // allowlist. Omitting it produces a token the API refuses.
-        scope: 'registry',
+        scope: 'contextplane',
       }),
     });
 

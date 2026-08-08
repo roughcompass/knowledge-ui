@@ -13,7 +13,7 @@ import { roleFor, subjectOf } from './role';
  * A handler that always says yes cannot show a persona switch changing anything,
  * which is the one thing a reviewer wants to try.
  *
- * The gates below mirror `registry/service/workspace/core.py`. Two details there
+ * The gates below mirror `contextplane/service/workspace/core.py`. Two details there
  * are easy to get wrong and are reproduced deliberately:
  *
  *  - **Metadata updates are not blocked by archiving.** The update route uses the

@@ -39,12 +39,12 @@ import { useState } from 'react';
 
 /**
  * Graph analytics: how far the graph reaches, how much of it is called, and how
- * fast it answers — bounded, everywhere, by what the registry actually serves.
+ * fast it answers — bounded, everywhere, by what the contextplane actually serves.
  *
  * ## Breadth and depth are per-root facts, never graph-wide ones
  *
  * "How broad is the graph" and "how deep is the graph" both sound like single
- * numbers, and the registry serves neither. What it serves is a traversal from a
+ * numbers, and the contextplane serves neither. What it serves is a traversal from a
  * *named root* at a *chosen depth*, and that response is complete: unlike the
  * projections it carries no cursor and no truncation flag, so everything within
  * the requested depth is in the array. Counting a complete response is reporting
@@ -82,7 +82,7 @@ import { useState } from 'react';
  * ## Service objectives are a named absence, not an invented target
  *
  * The obvious fourth panel is an SLO board — targets, attainment, error budget
- * burn. **The registry publishes no objective of any kind.** There is no
+ * burn. **The contextplane publishes no objective of any kind.** There is no
  * threshold, target, budget or objective on any schema it serves;
  * `/v1/admin/operational-health` returns readings with a value and a scope and
  * deliberately no target to compare them against. The only other candidate is
@@ -652,7 +652,7 @@ export function GraphAnalyticsPage() {
         scanning response times needs only the fact.
       */}
       <Text styleAs="notation" color="secondary">
-        No targets shown — the registry publishes no service objectives.
+        No targets shown — the contextplane publishes no service objectives.
       </Text>
     </StackLayout>
   );

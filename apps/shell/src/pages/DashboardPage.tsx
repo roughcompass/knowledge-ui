@@ -212,21 +212,21 @@ export function DashboardPage({
 
       {/*
         The auditor's one destination, where they can see it without scrolling.
-        `audit:read` is granted to exactly one role — the registry collapses a
+        `audit:read` is granted to exactly one role — the contextplane collapses a
         principal to one role, so even an admin is refused there — which makes
         this card the auditor's dispatch rather than a duplicate for everyone.
       */}
       {can(session, 'audit:read') ? (
         <ResourceCard
           title="Review what changed"
-          description="Every change to the registry, newest first, with what each one touched."
+          description="Every change to the contextplane, newest first, with what each one touched."
           actionLabel="Open Audit Log"
           to={remoteChildHref('operations', 'audit')}
         />
       ) : null}
 
       {/*
-        Learn the registry sits ABOVE the destination grid, not at the foot.
+        Learn the contextplane sits ABOVE the destination grid, not at the foot.
 
         It was last, on the theory that orientation is a first-visit need. The user
         audit reversed that: for a reader who does not yet know what the product is,
@@ -234,7 +234,7 @@ export function DashboardPage({
         outrank it. A reader who already knows scrolls one card-height past them.
       */}
       <StackLayout gap={1}>
-        <SectionHeading title="Learn the registry" />
+        <SectionHeading title="Learn the contextplane" />
         <TileGrid columns={3}>
           <ResourceCard
             title="Retrieval and trust"

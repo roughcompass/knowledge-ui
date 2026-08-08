@@ -92,7 +92,7 @@ describe('the browse table', () => {
       within(table).queryByRole('columnheader', { name: /External ID/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('Not published')).not.toBeInTheDocument();
-    expect(screen.getByText(/not published to a registry/)).toBeInTheDocument();
+    expect(screen.getByText(/not published to a contextplane/)).toBeInTheDocument();
   });
 });
 
@@ -127,7 +127,7 @@ describe('the active flag', () => {
     renderAt('/catalog');
 
     expect(
-      await screen.findByText('Every entry on this page is marked inactive in the registry.'),
+      await screen.findByText('Every entry on this page is marked inactive in the contextplane.'),
     ).toBeInTheDocument();
     const table = await screen.findByRole('table', { name: /Capabilities in this tenant/i });
     expect(
@@ -149,7 +149,7 @@ describe('the active flag', () => {
 
     expect(
       screen.getByText(
-        /Every row on this page is Capability, active, not published to a registry, created 2026-06-01\./,
+        /Every row on this page is Capability, active, not published to a contextplane, created 2026-06-01\./,
       ),
     ).toBeInTheDocument();
   });

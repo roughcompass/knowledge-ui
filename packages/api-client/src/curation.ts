@@ -6,7 +6,7 @@ import type { RegistryClient } from './client';
 /**
  * The curation queue — everything in this tenant needing a curator's attention.
  *
- * The registry ships a full curation runbook for operators and stewards, describing
+ * The contextplane ships a full curation runbook for operators and stewards, describing
  * a workflow of working the queue, reviewing promotions and configuring
  * auto-promotion. None of it had a console surface: the memory-steward persona,
  * whose stated job is "is curation producing claims owners accept", was served by
