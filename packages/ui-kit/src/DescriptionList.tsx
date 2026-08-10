@@ -1,6 +1,8 @@
 import { FlexItem, FlexLayout, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
+import { SkeletonBar } from './Skeleton';
+
 export interface Description {
   /** The field name, as the reader would say it. */
   term: string;
@@ -52,18 +54,28 @@ export function DescriptionList({
   caption,
   items,
   hideCaption = false,
+  isLoading = false,
 }: {
   /** Names the block, and labels the region for assistive technology. */
   caption: string;
   items: readonly Description[];
   /** Hide the caption visually where a card header already carries it. */
   hideCaption?: boolean;
+  /**
+   * Draw a bar in place of each detail, keeping every term.
+   *
+   * The terms are the caller's own `items`, so the placeholder has exactly the
+   * rows the real block will have and cannot describe a different shape. Keeping
+   * the terms visible also means the block says what it is about to tell you,
+   * which a spinner cannot.
+   */
+  isLoading?: boolean;
 }) {
   return (
     <StackLayout gap={1} aria-label={caption} role="group">
       {hideCaption ? null : <Text styleAs="label">{caption}</Text>}
 
-      {items.map((item) => (
+      {items.map((item, index) => (
         /*
          * Wraps on a narrow viewport rather than compressing the value: a long
          * identifier squeezed into a sliver of column is less readable than the same
@@ -75,7 +87,7 @@ export function DescriptionList({
               {item.term}
             </Text>
           </FlexItem>
-          <FlexItem grow={1}>{item.detail}</FlexItem>
+          <FlexItem grow={1}>{isLoading ? <SkeletonBar index={index} /> : item.detail}</FlexItem>
         </FlexLayout>
       ))}
     </StackLayout>

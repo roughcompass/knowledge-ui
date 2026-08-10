@@ -187,7 +187,7 @@ function SavedCases({
             key={saved.case_id}
             title={saved.name}
             description={`${sourceOption(saved.source).label} · ${saved.query}`}
-            action={
+            actions={
               <FlexLayout gap={1} align="center" wrap>
                 <CopyButton
                   value={exportedContextCase(saved)}

@@ -29,7 +29,7 @@ function SelectedDirective({ selected }: { selected: ArcSelectedDirective }) {
       description={`${selected.is_mandatory ? 'Mandatory' : 'Optional'} · ${
         selected.was_omitted ? 'omitted from the bundle' : 'selected for the bundle'
       }`}
-      action={selected.audience_redacted ? <Tag>Source Redacted</Tag> : undefined}
+      actions={selected.audience_redacted ? <Tag>Source Redacted</Tag> : undefined}
     >
       <DescriptionList
         caption={`Selected directive ${selected.directive_id}`}
@@ -81,7 +81,7 @@ function ReceiptOverview({ receipt }: { receipt: ArcReceipt }) {
     <SectionCard
       title="Resolution Record"
       description="The retained identity, selection configuration, outcome, and byte budget for this run."
-      action={<Tag>{termText(receipt.resolution_status)}</Tag>}
+      actions={<Tag>{termText(receipt.resolution_status)}</Tag>}
     >
       <DescriptionList
         caption="Resolution record"

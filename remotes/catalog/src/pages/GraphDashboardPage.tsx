@@ -9,7 +9,6 @@ import {
 } from '@knowledge-ui/api-client';
 import {
   ErrorPanel,
-  LoadingPanel,
   Note,
   PageHeader,
   SectionCard,
@@ -101,7 +100,13 @@ function OntologyPanel({ session, client }: { session: Session; client: Registry
   const queries = [entityTypes, edgeRels, types, edgeSchemas];
   const failed = queries.find((q) => q.error);
   if (failed?.error) return <ErrorPanel error={failed.error} />;
-  if (queries.some((q) => q.isLoading)) return <LoadingPanel label="Loading the ontology" />;
+  /*
+    No pending branch: every tile's label is declared below, so the row renders at
+    once and each tile bars its own reading. What a tile is about is known before
+    the count is, and a row of labelled tiles says more while loading than a
+    spinner does — and the grid does not resize when the counts arrive.
+  */
+  const ontologyPending = queries.some((q) => q.isLoading);
 
   /*
    * Counting is safe here and nowhere else on this page: each of these endpoints
@@ -115,12 +120,14 @@ function OntologyPanel({ session, client }: { session: Session; client: Registry
     <StackLayout gap={2}>
       <TileGrid columns={2}>
         <StatTile
+          isLoading={ontologyPending}
           label="Entity types"
           value={(entityTypes.data ?? []).length}
           hint="Kinds a node may be."
           headingLevel="h3"
         />
         <StatTile
+          isLoading={ontologyPending}
           label="Edge relations"
           value={liveEdgeRels.length}
           hint={
@@ -131,12 +138,14 @@ function OntologyPanel({ session, client }: { session: Session; client: Registry
           headingLevel="h3"
         />
         <StatTile
+          isLoading={ontologyPending}
           label="Capability type schemas"
           value={(types.data ?? []).length}
           hint={`${(types.data ?? []).filter((t) => !t.is_advisory).length} enforced, the rest advisory.`}
           headingLevel="h3"
         />
         <StatTile
+          isLoading={ontologyPending}
           label="Edge property schemas"
           value={(edgeSchemas.data ?? []).length}
           hint="Relations whose property bag is constrained."
@@ -168,7 +177,6 @@ function ProjectionPanel({
   const query = useGraphProjection(client, scope, direction);
 
   if (query.error) return <ErrorPanel error={query.error} />;
-  if (query.isLoading) return <LoadingPanel label={`Loading the ${direction} projection`} />;
 
   const nodes = query.data?.nodes ?? [];
   const edges = query.data?.edges ?? [];
@@ -184,12 +192,14 @@ function ProjectionPanel({
             a total by everyone who does not read the footnote.
           */}
           <StatTile
+            isLoading={query.isLoading}
             label="Entities on the first page"
             value={nodes.length}
             hint={more ? 'More follow.' : 'This is the whole projection.'}
             headingLevel="h3"
           />
           <StatTile
+            isLoading={query.isLoading}
             label="Edges on the first page"
             value={edges.length}
             hint="Edges whose source is one of the entities above."
@@ -218,7 +228,7 @@ export function GraphDashboardPage() {
       <SectionCard
         title="Ontology"
         description="The definitions the graph is built from — what a node may be, how two entities may be related, and which of those shapes are enforced."
-        action={
+        actions={
           canReadOntology ? (
             <KLink to="ontology">Ontology Detail</KLink>
           ) : (

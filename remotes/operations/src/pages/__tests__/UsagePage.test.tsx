@@ -1,8 +1,13 @@
 import { createRegistryClient } from '@knowledge-ui/api-client';
-import { makeSession, renderWithProviders, scenarios } from '@knowledge-ui/testing';
+import {
+  findLoadedTable,
+  makeSession,
+  renderWithProviders,
+  scenarios,
+} from '@knowledge-ui/testing';
 import { server } from '@knowledge-ui/testing/server';
 import { screen, within } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { UsagePage } from '../UsagePage';
 
@@ -14,6 +19,26 @@ import { UsagePage } from '../UsagePage';
  * wrong in a way the reader could not detect, which is the only kind of wrong that
  * matters on a page whose whole purpose is to be quotable.
  */
+
+/*
+ * The clock is pinned, because the mocked endpoints now echo the window they were
+ * asked for — as the real ones do — which makes every window relative to today.
+ * Without a fixed today these assertions would name dates that are correct only on
+ * the day they were written.
+ *
+ * Only `Date` is faked. Faking timers wholesale stops `react-query` and `user-event`
+ * from settling, and nothing here needs to control time passing — only what day it is.
+ */
+const TODAY = '2026-08-08T12:00:00Z';
+
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(TODAY));
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 const tokenFor = (clientId: string) =>
   `header.${btoa(JSON.stringify({ sub: clientId, exp: 9999999999 }))}.signature`;
@@ -37,7 +62,7 @@ describe('reach, which has three distinct outcomes', () => {
      * unused platform on a page read to decide whether the platform is used.
      */
     renderPage();
-    const table = await screen.findByRole('table', { name: /usage by surface/i });
+    const table = await findLoadedTable(/usage by surface/i);
     expect(within(table).getByText('Not available')).toBeInTheDocument();
     expect(within(table).getByText(/retention boundary/i)).toBeInTheDocument();
   });
@@ -57,7 +82,7 @@ describe('reach, which has three distinct outcomes', () => {
     server.use(...scenarios.usageSurfaceWithNoCallers());
 
     renderPage();
-    const table = await screen.findByRole('table', { name: /usage by surface/i });
+    const table = await findLoadedTable(/usage by surface/i);
     const quietRow = within(table).getByText('mcp').closest('tr') as HTMLElement;
     expect(quietRow).not.toBeNull();
 
@@ -73,7 +98,7 @@ describe('reach, which has three distinct outcomes', () => {
     // thirty times too large. Labelling it "actors" is the misreading the API warns
     // about in the field's own description.
     renderPage();
-    const table = await screen.findByRole('table', { name: /usage by surface/i });
+    const table = await findLoadedTable(/usage by surface/i);
     expect(within(table).getByText(/96 actor-days/)).toBeInTheDocument();
   });
 });
@@ -87,7 +112,7 @@ describe('a day with no traffic', () => {
      * seven days and returns six, with the gap in the middle.
      */
     renderPage();
-    expect(await screen.findByText(/No traffic was recorded on 2026-07-31/)).toBeInTheDocument();
+    expect(await screen.findByText(/No traffic was recorded on 2026-08-05/)).toBeInTheDocument();
     expect(screen.getByText(/omits a day rather than reporting zero/)).toBeInTheDocument();
   });
 
@@ -95,9 +120,9 @@ describe('a day with no traffic', () => {
     // Six points for a seven-day window: the table is the chart's data, so a row
     // per recorded day and none for the gap.
     renderPage();
-    const figure = await screen.findByRole('table', { name: /REST calls per day/i });
+    const figure = await findLoadedTable(/REST calls per day/i);
     expect(within(figure).getAllByRole('row')).toHaveLength(7); // 6 days + header
-    expect(within(figure).queryByText('2026-07-31')).not.toBeInTheDocument();
+    expect(within(figure).queryByText('2026-08-05')).not.toBeInTheDocument();
   });
 });
 
@@ -119,7 +144,7 @@ describe('percentiles', () => {
     server.use(...scenarios.usageSurfaceWithNoCallers());
 
     renderPage();
-    const table = await screen.findByRole('table', { name: /usage by surface/i });
+    const table = await findLoadedTable(/usage by surface/i);
     expect(within(table).getAllByText('No timed calls').length).toBeGreaterThan(0);
   });
 });
@@ -133,7 +158,7 @@ describe('the chart carries its table', () => {
      * reader can actually check.
      */
     renderPage();
-    const figure = await screen.findByRole('table', { name: /REST calls per day/i });
+    const figure = await findLoadedTable(/REST calls per day/i);
     expect(within(figure).getByRole('columnheader', { name: 'Calls' })).toBeInTheDocument();
     expect(
       within(figure).getByRole('columnheader', { name: /Actors That Day/i }),
@@ -149,7 +174,7 @@ describe('demand, as distinct from the catalogue', () => {
      * served. Caught by a defect hunt comparing the claim against the page.
      */
     renderPage();
-    const table = await screen.findByRole('table', { name: /usage by capability/i });
+    const table = await findLoadedTable(/usage by capability/i);
     /*
       The name, not the id. This ranking answers with `capability_id` and no name —
       its own column comment says so — so the table read as a list of identifiers
@@ -164,10 +189,8 @@ describe('demand, as distinct from the catalogue', () => {
 describe('the two usage scopes are separate gates', () => {
   it('gives an admin both the deployment panels and the owned-capability panel', async () => {
     renderPage('admin');
-    expect(await screen.findByRole('table', { name: /usage by surface/i })).toBeInTheDocument();
-    expect(
-      await screen.findByRole('table', { name: /usage of owned capabilities/i }),
-    ).toBeInTheDocument();
+    expect(await findLoadedTable(/usage by surface/i)).toBeInTheDocument();
+    expect(await findLoadedTable(/usage of owned capabilities/i)).toBeInTheDocument();
   });
 
   it('gives a producer only their own capabilities, and says why', async () => {
@@ -178,9 +201,7 @@ describe('the two usage scopes are separate gates', () => {
      * the API rejects.
      */
     renderPage('producer');
-    expect(
-      await screen.findByRole('table', { name: /usage of owned capabilities/i }),
-    ).toBeInTheDocument();
+    expect(await findLoadedTable(/usage of owned capabilities/i)).toBeInTheDocument();
     // The refusal leads with what a producer *can* see, then names the role that
     // could see more — the same boxed idiom every gated section uses.
     expect(screen.getByText('Usage across the deployment')).toBeInTheDocument();
@@ -253,22 +274,43 @@ describe('what the page refuses to say', () => {
      * defect. The unit adapts instead, and null still says nothing measured it.
      */
     renderPage('producer');
-    const table = await screen.findByRole('table', { name: /usage of owned capabilities/i });
+    const table = await findLoadedTable(/usage of owned capabilities/i);
     expect(within(table).getByText('61 MB')).toBeInTheDocument();
     expect(within(table).getByText('Not measured')).toBeInTheDocument();
     expect(within(table).queryByText(/0\.0 MB/)).not.toBeInTheDocument();
   });
 
   it('reports the window the service returned, not the one requested', async () => {
-    // The response echoes its own start and end, which is the mechanism for
-    // noticing a rollup that did not reach back far enough.
-    renderPage();
     /*
-     * Every panel states its own window rather than the page stating one for all of
-     * them, because each is a separate response that could cover a different range.
-     * So more than one match is the correct outcome, not an ambiguity to narrow.
+     * The response echoes its own start and end, which is the mechanism for noticing a
+     * rollup that did not reach back far enough. Every panel states its own window
+     * rather than the page stating one for all of them, because each is a separate
+     * response that could cover a different range — so more than one match is the
+     * correct outcome, not an ambiguity to narrow.
+     *
+     * Asserted on the rendered value rather than the ISO pair: the window moved out of
+     * each description and into the section header as a control, which is where a
+     * reader now reads it and where they click to change it.
      */
-    const stated = await screen.findAllByText(/2026-07-28 to 2026-08-03/);
+    renderPage();
+    const stated = await screen.findAllByRole('button', { name: /Window: 2 Aug – 8 Aug 2026/ });
     expect(stated.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('makes the window a control rather than a caption', async () => {
+    /*
+     * The point of moving it. Every number on the page is meaningless without the
+     * window, so it reads as a value — and a value a reader can act on, rather than a
+     * sentence that sends them back to the top of the page to find a dropdown.
+     *
+     * Only the trigger is asserted here. Opening the panel is floating-ui positioning
+     * against a measured viewport, and jsdom measures everything as zero, so the
+     * overlay's contents are covered in the end-to-end lane where there is a real
+     * layout to position against.
+     */
+    renderPage();
+    const value = (await screen.findAllByRole('button', { name: /^Window: / }))[0] as HTMLElement;
+    expect(value).toBeInstanceOf(HTMLButtonElement);
+    expect(value.getAttribute('aria-label')).toMatch(/Change it\.$/);
   });
 });

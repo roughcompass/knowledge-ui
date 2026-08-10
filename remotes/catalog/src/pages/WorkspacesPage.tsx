@@ -31,7 +31,6 @@ import {
   FilterBar,
   FilterField,
   FormRow,
-  LoadingPanel,
   PageHeader,
   SectionCard,
   UnavailableNotice,
@@ -378,13 +377,18 @@ export function WorkspacesPage() {
 
       {filters}
 
-      {query.isPending ? <LoadingPanel label="Loading workspaces" /> : null}
-
       {query.error ? <ErrorPanel error={query.error} title="Could not load workspaces" /> : null}
 
-      {!query.isPending && !query.error ? (
+      {/*
+        The table renders while the request is in flight and draws its own
+        column-derived skeleton, so the page does not swap a spinner for a table of
+        a different height. `rows` is empty until the data lands, which is what
+        puts `DataTable` into that state.
+      */}
+      {!query.error ? (
         <>
           <DataTable
+            isLoading={query.isPending}
             card
             zebra
             caption="Workspaces you can see"

@@ -10,6 +10,7 @@
  *   import { startWorker } from '@knowledge-ui/testing/browser'; // service worker
  */
 export * from './fixtures';
+export { findLoadedTable } from './queries';
 export { scenarios } from './msw/scenarios';
 export {
   auditHandlers,

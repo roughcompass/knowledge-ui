@@ -31,7 +31,7 @@ import styles from './SectionCard.module.css';
 export function SectionCard({
   title,
   description,
-  action,
+  actions,
   footer,
   banded = false,
   flush = false,
@@ -40,8 +40,15 @@ export function SectionCard({
 }: {
   title?: string;
   description?: ReactNode;
-  /** Trailing control on the header row, e.g. a link or a small button. */
-  action?: ReactNode;
+  /**
+   * Trailing controls on the header row, right of the title.
+   *
+   * Plural, and rendered in a row: a section header commonly carries more than one —
+   * a window value beside a link, say — and callers were composing their own
+   * `FlexLayout` to get two side by side, each with its own gap. One row here means
+   * every header aligns its controls the same way.
+   */
+  actions?: ReactNode;
   /** Tinted strip below the body: a hint on the left, its action on the right. */
   footer?: ReactNode;
   /** Put the title in its own divided band above the content. */
@@ -55,7 +62,16 @@ export function SectionCard({
   headingLevel?: 'h2' | 'h3';
   children: ReactNode;
 }) {
-  const hasHeading = title !== undefined || action !== undefined;
+  /*
+   * A description or a trailing control is a header on its own.
+   *
+   * This used to require a title, which silently dropped both: a single-table page
+   * whose `PageHeader` already names the thing has no business repeating that name
+   * here, but it still wants the row — one line saying what the table contains, and
+   * the window it covers on the right. Passing a description and getting nothing back
+   * is the kind of no-op that looks like a styling problem.
+   */
+  const hasHeading = title !== undefined || description !== undefined || actions !== undefined;
 
   const heading = hasHeading ? (
     <FlexLayout gap={2} align="start" justify="space-between">
@@ -67,7 +83,11 @@ export function SectionCard({
         ) : null}
         {description !== undefined ? <Text color="secondary">{description}</Text> : null}
       </StackLayout>
-      {action}
+      {actions !== undefined ? (
+        <FlexLayout gap={1} align="center" className={styles.actions}>
+          {actions}
+        </FlexLayout>
+      ) : null}
     </FlexLayout>
   ) : null;
 

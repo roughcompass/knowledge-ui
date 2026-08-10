@@ -375,7 +375,7 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
     <SectionCard
       banded
       title="What you publish"
-      action={
+      actions={
         <KLink to={usagePage} color="accent" underline="never">
           Full Usage
         </KLink>
@@ -660,7 +660,7 @@ function RecentChanges({ client, session }: { client: RegistryClient; session: S
     <SectionCard
       banded
       title="Recent changes"
-      action={
+      actions={
         <KLink to={inbox} color="accent" underline="never">
           View All
         </KLink>

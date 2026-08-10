@@ -526,7 +526,7 @@ export function WorkspaceDetailPage() {
       <SectionCard
         title="Entries"
         description="Notes, decisions, open questions and saved queries written in this workspace."
-        action={
+        actions={
           mayWriteEntries ? (
             <Button
               appearance={entryFormOpen ? 'bordered' : 'solid'}

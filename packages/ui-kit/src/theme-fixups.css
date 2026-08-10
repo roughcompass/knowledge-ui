@@ -163,6 +163,25 @@ h6.saltText {
    * and the lighter card surfaces, in both modes.
    */
   --kui-skeleton-background: var(--salt-palette-alpha-contrast-low);
+
+  /*
+   * Chart colours, named by the role they play in a chart.
+   *
+   * These exist as bridge properties rather than as literals in the chart
+   * component because the chart library takes its colours as *props*, and
+   * `check-salt-tokens` only reads stylesheets. A `fill="var(--salt-…)"` written
+   * in TSX is invisible to the guard that exists precisely because two of three
+   * chart series once rendered transparent against an undefined token.
+   *
+   * Declared here, they are checked: the bridge rule requires each `--kui-*` to be
+   * a lone `var(--salt-*)` reference, so the guard verifies every name resolves
+   * under theme-next and the component can only ask for a role, never for a value.
+   */
+  --kui-chart-series: var(--salt-category-1-dataviz);
+  --kui-chart-axis: var(--salt-separable-tertiary-borderColor);
+  --kui-chart-grid: var(--salt-separable-secondary-borderColor);
+  --kui-chart-tick: var(--salt-content-secondary-foreground);
+  --kui-chart-cursor: var(--salt-palette-alpha-contrast-low);
 }
 
 /*

@@ -1,5 +1,5 @@
 import { createRegistryClient } from '@knowledge-ui/api-client';
-import { makeSession, renderWithProviders } from '@knowledge-ui/testing';
+import { findLoadedTable, makeSession, renderWithProviders } from '@knowledge-ui/testing';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
@@ -42,7 +42,7 @@ describe('the claims page', () => {
      * field the API adds and the page ignores now fails here.
      */
     renderPage();
-    const table = await screen.findByRole('table', { name: /claims/i });
+    const table = await findLoadedTable(/claims/i);
 
     const headers = within(table)
       .getAllByRole('columnheader')
@@ -89,7 +89,7 @@ describe('the claims page', () => {
     // A list spanning entities with no subject column is a list of assertions
     // about nothing in particular.
     renderPage();
-    const table = await screen.findByRole('table', { name: /claims/i });
+    const table = await findLoadedTable(/claims/i);
     /*
       The display name, not the slug or the id. A claims browser whose subject column
       says `salt-design-system` — or worse, a UUID — is a list of assertions about
@@ -106,7 +106,7 @@ describe('the claims page', () => {
      * and an open interval reads as "still holds" rather than as missing data.
      */
     renderPage();
-    const table = await screen.findByRole('table', { name: /claims/i });
+    const table = await findLoadedTable(/claims/i);
     expect(within(table).getAllByText(/still holds/).length).toBeGreaterThan(0);
     expect(within(table).getAllByText(/^seen 2026-08-04$/).length).toBeGreaterThan(0);
   });
@@ -119,7 +119,7 @@ describe('the claims page', () => {
      * the one state a safety caveat must never reach.
      */
     renderPage();
-    await screen.findByRole('table', { name: /claims/i });
+    await findLoadedTable(/claims/i);
 
     const notes = screen.getAllByText(/not an instruction to follow/i);
     expect(notes).toHaveLength(1);
@@ -132,7 +132,7 @@ describe('the claims page', () => {
      * the flag the rows of the most clickable table in the app looked static.
      */
     renderPage();
-    const table = await screen.findByRole('table', { name: /claims/i });
+    const table = await findLoadedTable(/claims/i);
     const [, firstDataRow] = within(table).getAllByRole('row');
     expect(firstDataRow?.className).toMatch(/clickableRow/);
   });
@@ -144,7 +144,7 @@ describe('the claims page', () => {
      * past the edge of the card.
      */
     renderPage();
-    const table = await screen.findByRole('table', { name: /claims/i });
+    const table = await findLoadedTable(/claims/i);
     const valueCell = within(table).getByText('Dropdown').closest('td');
     const evidenceCell = within(table)
       .getByText(/ev-9001/)
@@ -156,14 +156,14 @@ describe('the claims page', () => {
   it('shows every citation without a click', async () => {
     // A citation behind a disclosure is a citation nobody checks.
     renderPage();
-    const table = await screen.findByRole('table', { name: /claims/i });
+    const table = await findLoadedTable(/claims/i);
     expect(within(table).getByText(/ev-9001/)).toBeInTheDocument();
     expect(within(table).getByText(/pkg:npm\/@salt-ds\/core/)).toBeInTheDocument();
   });
 
   it('bands confidence and still shows the number', async () => {
     renderPage();
-    const table = await screen.findByRole('table', { name: /claims/i });
+    const table = await findLoadedTable(/claims/i);
     // 0.92 is high, 0.61 moderate, 0.33 low — chosen to straddle both boundaries.
     expect(within(table).getByText('high')).toBeInTheDocument();
     expect(within(table).getByText('moderate')).toBeInTheDocument();
@@ -178,7 +178,7 @@ describe('the claims page', () => {
      * Collapsing them into one column would lose that.
      */
     renderPage();
-    const table = await screen.findByRole('table', { name: /claims/i });
+    const table = await findLoadedTable(/claims/i);
     expect(within(table).getByText('confirmed')).toBeInTheDocument();
   });
 
@@ -190,7 +190,7 @@ describe('the claims page', () => {
      * sent.
      */
     renderPage();
-    await screen.findByRole('table', { name: /claims/i });
+    await findLoadedTable(/claims/i);
     expect(screen.getByText('0.33')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('combobox', { name: /minimum confidence/i }));
@@ -207,7 +207,7 @@ describe('the claims page', () => {
      * because that one is reversible by the reader.
      */
     renderPage();
-    await screen.findByRole('table', { name: /claims/i });
+    await findLoadedTable(/claims/i);
 
     await userEvent.click(screen.getByRole('combobox', { name: /minimum confidence/i }));
     await userEvent.click(screen.getByRole('option', { name: '0.8' }));
@@ -220,7 +220,7 @@ describe('the claims page', () => {
 
   it('searches by value rather than filtering what is on screen', async () => {
     renderPage();
-    await screen.findByRole('table', { name: /claims/i });
+    await findLoadedTable(/claims/i);
 
     await userEvent.type(screen.getByRole('textbox', { name: /^search$/i }), 'design-tokens');
 
@@ -242,7 +242,7 @@ describe('the claims page', () => {
      * route, and the results below it prove the route drove the request.
      */
     renderPage();
-    await screen.findByRole('table', { name: /claims/i });
+    await findLoadedTable(/claims/i);
 
     const search = screen.getByRole('textbox', { name: /^search$/i });
     await userEvent.type(search, 'Dropdown');
@@ -271,7 +271,7 @@ describe('the claims page', () => {
      * filter a reader has to go on.
      */
     renderPage();
-    await screen.findByRole('table', { name: /claims/i });
+    await findLoadedTable(/claims/i);
 
     await userEvent.click(screen.getByRole('combobox', { name: /^persona$/i }));
     for (const persona of ['L1 responder', 'L3 engineer', 'Architect', 'Agent — default']) {
@@ -287,7 +287,7 @@ describe('the claims page', () => {
      * first view of claims was already the machine-depth variant.
      */
     renderPage();
-    await screen.findByRole('table', { name: /claims/i });
+    await findLoadedTable(/claims/i);
     expect(screen.getByRole('combobox', { name: /^persona$/i })).toHaveTextContent(
       'Agent — default',
     );
@@ -298,7 +298,7 @@ describe('the claims page', () => {
     // to get facts it can check, so the audience for a confidence score is the
     // same audience as for the catalog.
     const { unmount } = renderPage('auditor');
-    expect(await screen.findByRole('table', { name: /claims/i })).toBeInTheDocument();
+    expect(await findLoadedTable(/claims/i)).toBeInTheDocument();
     unmount();
   });
 });

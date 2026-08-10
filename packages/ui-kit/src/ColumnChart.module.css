@@ -1,0 +1,35 @@
+/*
+ * The chart's own box, and the surface its tooltip sits on.
+ *
+ * Colours are not here: the library takes them as props, so they live in
+ * `theme-fixups.css` as `--kui-chart-*` bridge properties where
+ * `scripts/check-salt-tokens.mjs` can verify each one resolves. What is here is
+ * the geometry, plus the tooltip chrome that is ordinary CSS.
+ */
+
+/*
+ * A height, because `ResponsiveContainer` measures its parent and a parent with no
+ * height measures zero — which renders an empty SVG and looks exactly like a chart
+ * whose data never arrived.
+ *
+ * 11.5rem matches the space `Figure` reserves for a mark while loading, so the
+ * skeleton and the chart occupy the same box and nothing moves when the data lands.
+ */
+.chart {
+  inline-size: 100%;
+  block-size: 11.5rem;
+}
+
+.tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--salt-spacing-25);
+  padding: var(--salt-spacing-100) var(--salt-spacing-150);
+  background: var(--salt-container-primary-background);
+  border: var(--salt-size-border) solid var(--salt-separable-primary-borderColor);
+  border-radius: var(--kui-radius-floating);
+
+  /* Sits above the plot, so it needs the elevation the design system gives
+   * transient surfaces rather than a border alone. */
+  box-shadow: var(--salt-overlayable-shadow-popout);
+}

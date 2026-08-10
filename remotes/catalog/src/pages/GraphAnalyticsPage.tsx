@@ -464,11 +464,16 @@ function OwnedUsagePanel({
   }
 
   if (owned.error) return <ErrorPanel error={owned.error} title="Could not read owned usage" />;
-  if (owned.isPending) return <LoadingPanel label="Reading owned usage" />;
-
+  /*
+    No early return for the pending state: the table's columns are declared here, so
+    it can draw its own skeleton and the panel keeps its height while the request is
+    in flight. A spinner in its place collapsed the section and then pushed the page
+    down by the height of a table when the rows arrived.
+  */
   return (
     <StackLayout gap={2}>
       <DataTable
+        isLoading={owned.isPending}
         caption={
           owned.data
             ? `Capabilities you own that were called, ${describeWindow(owned.data)}`
@@ -531,11 +536,10 @@ function LatencyPanel({
   }
 
   if (summary.error) return <ErrorPanel error={summary.error} title="Could not read latency" />;
-  if (summary.isPending) return <LoadingPanel label="Reading latency" />;
-
   return (
     <StackLayout gap={2}>
       <DataTable
+        isLoading={summary.isPending}
         caption="Response time and outcome by surface"
         columns={[
           { key: 'surface', header: 'Surface', render: (row) => <Tag>{row.surface}</Tag> },

@@ -112,7 +112,7 @@ function CatalogResultCard({
     <SectionCard
       title={hit.name}
       description={hit.entity_type}
-      action={
+      actions={
         <EvaluationSelect itemId={hit.entity_id} value={evaluation} onChange={onEvaluation} />
       }
     >
@@ -186,7 +186,7 @@ function ClaimResultCard({
     <SectionCard
       title={`${claim.subject_entity_id} · ${claim.predicate}`}
       description={displayText(claim.value) || 'No value served'}
-      action={
+      actions={
         <EvaluationSelect itemId={claim.claim_id} value={evaluation} onChange={onEvaluation} />
       }
     >
@@ -244,7 +244,7 @@ function WorkspaceResultCard({
     <SectionCard
       title={termText(entry.kind)}
       description={entry.body_md}
-      action={
+      actions={
         <EvaluationSelect itemId={entry.entry_id} value={evaluation} onChange={onEvaluation} />
       }
     >

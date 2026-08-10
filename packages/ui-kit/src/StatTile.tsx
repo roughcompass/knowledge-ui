@@ -2,6 +2,7 @@ import { FlexLayout, StackLayout, StatusIndicator, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 import { SectionCard } from './SectionCard';
+import { SkeletonBar } from './Skeleton';
 
 /**
  * One readout: what it is, what it says, and where it came from.
@@ -33,6 +34,7 @@ export function StatTile({
   visual,
   action,
   headingLevel = 'h2',
+  isLoading = false,
 }: {
   label: string;
   /**
@@ -70,6 +72,16 @@ export function StatTile({
   action?: ReactNode;
   /** Set to `h3` when the tile sits under a section heading rather than the page title. */
   headingLevel?: 'h2' | 'h3';
+  /**
+   * Draw the tile's own placeholder in place of the reading.
+   *
+   * The label is real and stays — it is known before the number is, so there is no
+   * reason to withhold it, and a row of tiles that already say what they will
+   * measure is more informative while loading than a row of spinners. The value,
+   * the hint and the badge become bars only where the real thing would have been,
+   * which is what keeps the tile from changing size when the number lands.
+   */
+  isLoading?: boolean;
 }) {
   return (
     <SectionCard>
@@ -78,7 +90,7 @@ export function StatTile({
           <Text styleAs="label" as={headingLevel} color="secondary">
             {label}
           </Text>
-          {badge}
+          {isLoading ? <SkeletonBar index={1} /> : badge}
         </FlexLayout>
 
         <FlexLayout gap={2} align="center" justify="space-between">
@@ -89,7 +101,13 @@ export function StatTile({
               as its own caption. 24px is the only display number on a page, which
               is what makes a row of tiles scannable.
             */}
-            {status === undefined ? (
+            {isLoading ? (
+              // At display size, so the bar occupies exactly the line the number
+              // will: the tile does not grow by 10px when the value arrives.
+              <Text styleAs="h2" as="div">
+                <SkeletonBar index={0} />
+              </Text>
+            ) : status === undefined ? (
               <Text styleAs="h2" as="div">
                 {value}
               </Text>
@@ -101,9 +119,9 @@ export function StatTile({
                 </Text>
               </FlexLayout>
             )}
-            {hint !== undefined ? (
+            {isLoading || hint !== undefined ? (
               <Text styleAs="notation" color="secondary">
-                {hint}
+                {isLoading ? <SkeletonBar index={2} /> : hint}
               </Text>
             ) : null}
           </StackLayout>

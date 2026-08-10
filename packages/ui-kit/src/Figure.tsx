@@ -31,6 +31,7 @@ export function Figure<TRow>({
   rows,
   columns,
   getRowId,
+  isLoading = false,
 }: {
   /** Names the figure. Used as the table's caption, so it is never decorative. */
   caption: string;
@@ -43,6 +44,15 @@ export function Figure<TRow>({
   rows: readonly TRow[];
   columns: ReadonlyArray<Column<TRow>>;
   getRowId: (row: TRow) => string;
+  /**
+   * Render the figure's own placeholder instead of a spinner beside it.
+   *
+   * The mark's box is reserved at its real height and the table draws its
+   * column-derived rows, so the panel does not resize when the data lands. A
+   * spinner here collapsed the whole figure to a single line and then pushed the
+   * page down by the height of a chart and five rows.
+   */
+  isLoading?: boolean;
 }) {
   return (
     <StackLayout gap={2}>
@@ -51,12 +61,25 @@ export function Figure<TRow>({
       {/*
         Hidden from assistive technology, not from the layout. The table below
         carries the same values in a form that can be navigated.
+
+        While loading the box is still here and still empty, which is the point:
+        it holds the space the chart will occupy. The mark is not rendered, because
+        a mark drawn from no data is a chart asserting a shape nobody measured.
       */}
-      <div className={styles.mark} aria-hidden="true">
-        {mark}
+      <div
+        className={isLoading ? `${styles.mark} ${styles.markReserved}` : styles.mark}
+        aria-hidden="true"
+      >
+        {isLoading ? null : mark}
       </div>
 
-      <DataTable caption={caption} columns={columns} rows={rows} getRowId={getRowId} />
+      <DataTable
+        caption={caption}
+        columns={columns}
+        rows={rows}
+        getRowId={getRowId}
+        isLoading={isLoading}
+      />
     </StackLayout>
   );
 }

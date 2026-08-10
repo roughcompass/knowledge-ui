@@ -35,6 +35,26 @@ export { SuggestionField } from './SuggestionPanel';
 export { PageHeader } from './PageHeader';
 export { FilterBar, FilterField, popoverOverlayProps } from './FilterBar';
 
+/**
+ * The window a page is reporting on: the logic, the controls, and the value a reader
+ * clicks to change it. One definition, because two panels disagreeing about where a
+ * quarter starts is invisible until someone reconciles two exports.
+ */
+export { DateRangeControls } from './DateRangeControls';
+export { DateRangeValue } from './DateRangeValue';
+export {
+  PERIODS,
+  customRangeProblem,
+  formatDayRange,
+  periodLabel,
+  periodRange,
+  resolveWindow,
+  todayAsDay,
+  type DayRange,
+  type PeriodId,
+  type WindowSelection,
+} from './dateRange';
+
 // The write path. Added with the first mutation in the app; see each file for why
 // it exists rather than being a Salt component used directly.
 export { FormRow } from './FormRow';
@@ -93,7 +113,6 @@ export {
   type RetrievalArms,
 } from './RetrievalArmsBar';
 export { JsonDiff, diffKeys, type DiffEntry, type DiffStatus } from './JsonDiff';
-export { Sparkline, buildPath } from './Sparkline';
 
 /**
  * Charts are exported as a pair: `Figure` renders a mark beside the table it was
@@ -101,7 +120,8 @@ export { Sparkline, buildPath } from './Sparkline';
  * a page from importing a mark directly and hand-rolling the pairing.
  */
 export { Figure } from './Figure';
-export { BarSeries, shares, type Bar } from './BarSeries';
+export { LazyColumnChart } from './LazyColumnChart';
+export { tickInterval, compactNumber, type Bar } from './ColumnChart';
 
 /**
  * The usable form of the pairing, and the one a screen should reach for.

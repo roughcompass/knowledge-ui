@@ -1,9 +1,10 @@
-import { BarSeries, type Bar } from './BarSeries';
 import { Figure } from './Figure';
+import { LazyColumnChart } from './LazyColumnChart';
+import type { Bar } from './ColumnChart';
 import type { Column } from './DataTable';
 
 /**
- * A bar chart and its table, ready to use from a screen.
+ * A column chart and its table, ready to use from a screen.
  *
  * ## Why this exists at all
  *
@@ -33,25 +34,32 @@ export function BarFigure<TRow>({
   caption,
   description,
   bars,
+  valueLabel,
   rows,
   columns,
   getRowId,
+  isLoading = false,
 }: {
   caption: string;
   description?: React.ReactNode;
   bars: readonly Bar[];
+  /** What one unit is, for the chart's tooltip: "calls", "entities". Not a sentence. */
+  valueLabel: string;
   rows: readonly TRow[];
   columns: ReadonlyArray<Column<TRow>>;
   getRowId: (row: TRow) => string;
+  /** Draw the figure's own placeholder rather than a spinner beside it. */
+  isLoading?: boolean;
 }) {
   return (
     <Figure
       caption={caption}
       description={description}
-      mark={<BarSeries bars={bars} />}
+      mark={<LazyColumnChart bars={bars} valueLabel={valueLabel} />}
       rows={rows}
       columns={columns}
       getRowId={getRowId}
+      isLoading={isLoading}
     />
   );
 }

@@ -24,6 +24,7 @@ import {
 import { can, useSession } from '@knowledge-ui/auth';
 import {
   CursorPager,
+  SectionCard,
   DataTable,
   ErrorPanel,
   FilterBar,
@@ -429,19 +430,30 @@ export function CapabilityListPage() {
               }
             />
           </FlexLayout>
-          <DataTable
-            card
-            caption={`Search results for ${q}`}
-            zebra
-            hideCaption
-            columns={searchColumns}
-            rows={rows as SearchHit[]}
-            getRowId={(row) => row.entity_id}
-            isLoading={isPending}
-            hasError={Boolean(error)}
-            emptyTitle="No matches"
-            emptyDescription={`Nothing in this tenant matched “${q}”. Search covers names and the text recorded against each capability; try a broader word, or clear the lifecycle and type filters.`}
-          />
+          {/*
+            Named as search results rather than as the catalogue. The two tables on
+            this page look alike and answer different questions, and a reader who
+            cannot tell which one they are reading will quote a ranked subset as the
+            whole tenant.
+          */}
+          <SectionCard
+            description={`Ranked matches for “${q}”, best first. This is a subset of the catalogue, not all of it.`}
+            flush
+            banded
+          >
+            <DataTable
+              caption={`Search results for ${q}`}
+              zebra
+              hideCaption
+              columns={searchColumns}
+              rows={rows as SearchHit[]}
+              getRowId={(row) => row.entity_id}
+              isLoading={isPending}
+              hasError={Boolean(error)}
+              emptyTitle="No matches"
+              emptyDescription={`Nothing in this tenant matched “${q}”. Search covers names and the text recorded against each capability; try a broader word, or clear the lifecycle and type filters.`}
+            />
+          </SectionCard>
         </>
       ) : (
         <>
@@ -462,19 +474,20 @@ export function CapabilityListPage() {
               Every row on this page is {sharedFacts.join(', ')}.
             </Text>
           ) : null}
-          <DataTable
-            card
-            caption="Capabilities in this tenant"
-            zebra
-            hideCaption
-            columns={visibleBrowseColumns}
-            rows={browseRows}
-            getRowId={(row) => row.entity_id}
-            isLoading={isPending}
-            hasError={Boolean(error)}
-            emptyTitle="No capabilities"
-            emptyDescription="Nothing has been published in this tenant yet."
-          />
+          <SectionCard description="Every capability in this tenant, newest first." flush banded>
+            <DataTable
+              caption="Capabilities in this tenant"
+              zebra
+              hideCaption
+              columns={visibleBrowseColumns}
+              rows={browseRows}
+              getRowId={(row) => row.entity_id}
+              isLoading={isPending}
+              hasError={Boolean(error)}
+              emptyTitle="No capabilities"
+              emptyDescription="Nothing has been published in this tenant yet."
+            />
+          </SectionCard>
           <CursorPager
             showingCount={rows.length}
             isLoading={isPending}

@@ -18,8 +18,8 @@ import {
   ErrorPanel,
   FilterBar,
   FilterField,
-  LoadingPanel,
   Note,
+  SectionCard,
   PageHeader,
   UnavailableNotice,
   isoDay,
@@ -345,10 +345,14 @@ export function ClaimsPage() {
         />
       ) : null}
 
-      {active.isPending ? <LoadingPanel label="Reading claims" /> : null}
       {active.error ? <ErrorPanel error={active.error} title="Could not read claims" /> : null}
 
-      {active.data ? (
+      {/*
+        Rendered while the request is in flight so the table can draw its own
+        column-derived skeleton, rather than a spinner giving way to a block of a
+        different height.
+      */}
+      {!active.error ? (
         <>
           {/*
             What the number means, and what to do about a low one.
@@ -373,120 +377,139 @@ export function ClaimsPage() {
             been checked by a person. Before acting on anything here, read the evidence and the date
             it was last seen rather than the score.
           </Text>
-          <DataTable
-            card
-            caption="Claims"
-            hideCaption
-            zebra
-            columns={[
-              {
-                key: 'subject_entity_id',
-                header: 'Subject',
-                linked: true,
-                // First column, because a predicate and a value do not say what they
-                // are about. A list spanning entities without this is unreadable.
-                /*
-                  A claim names its subject by id, and this rendered it as plain
-                  text — so the first column of a claims browser, the one that says
-                  what each row is about, was thirty-six characters of hex that led
-                  nowhere. An unlinked claim has no subject at all, which is a real
-                  state the curation queue exists for, so that case says so instead
-                  of rendering an empty reference.
-                */
-                render: (row) =>
-                  row.subject_entity_id ? (
+          {/*
+            The same header every other table in the console carries. No title: the
+            page heading above already names this, and a second copy of that name in a
+            third size is what the header exists to avoid. The description says what the
+            rows are, which the page title does not.
+          */}
+          <SectionCard
+            description="Statements recorded about capabilities in this tenant, with the confidence and authority each one carries."
+            flush
+            banded
+          >
+            <DataTable
+              isLoading={active.isPending}
+              caption="Claims"
+              hideCaption
+              zebra
+              columns={[
+                {
+                  key: 'subject_entity_id',
+                  header: 'Subject',
+                  linked: true,
+                  // First column, because a predicate and a value do not say what they
+                  // are about. A list spanning entities without this is unreadable.
+                  /*
+                    A claim names its subject by id, and this rendered it as plain
+                    text — so the first column of a claims browser, the one that says
+                    what each row is about, was thirty-six characters of hex that led
+                    nowhere. An unlinked claim has no subject at all, which is a real
+                    state the curation queue exists for, so that case says so instead
+                    of rendering an empty reference.
+                  */
+                  render: (row) =>
+                    row.subject_entity_id ? (
+                      <EntityLink
+                        id={row.subject_entity_id}
+                        name={subjectNames[row.subject_entity_id]}
+                        to={`../${row.subject_entity_id}`}
+                      />
+                    ) : (
+                      <Text color="secondary">Unlinked</Text>
+                    ),
+                },
+                {
+                  key: 'claim_id',
+                  header: 'Claim',
+                  linked: true,
+                  /*
+                    The way into the citation drill-in. Evidence counts were listed on
+                    this page with nothing to open — the detail hook existed and no
+                    route rendered it.
+                  */
+                  render: (row) => (
                     <EntityLink
-                      id={row.subject_entity_id}
-                      name={subjectNames[row.subject_entity_id]}
-                      to={`../${row.subject_entity_id}`}
+                      id={String(row.claim_id)}
+                      to={`../claims/${String(row.claim_id)}`}
                     />
-                  ) : (
-                    <Text color="secondary">Unlinked</Text>
                   ),
-              },
-              {
-                key: 'claim_id',
-                header: 'Claim',
-                linked: true,
-                /*
-                  The way into the citation drill-in. Evidence counts were listed on
-                  this page with nothing to open — the detail hook existed and no
-                  route rendered it.
-                */
-                render: (row) => (
-                  <EntityLink id={String(row.claim_id)} to={`../claims/${String(row.claim_id)}`} />
-                ),
-              },
-              {
-                key: 'predicate',
-                header: 'Predicate',
-                /*
-                 * Carries the category beneath it. Both classify the claim, and at nine
-                 * columns the table broke `salt-design-system` across three lines — so
-                 * the two low-variance classifiers share a cell rather than each taking
-                 * width from the subject, which is the field a reader scans first.
-                 */
-                render: (row) => (
-                  <StackLayout gap={0.5}>
-                    <Tag>{row.predicate}</Tag>
-                    <Text color="secondary" styleAs="label">
-                      {row.claim_category}
-                    </Text>
-                  </StackLayout>
-                ),
-              },
-              {
-                key: 'value',
-                header: 'Value',
-                // Running text, and the widest field in the row. Held to one line
-                // it pushes the trust columns — the ones the intro tells a reader
-                // to judge by — past the card edge.
-                wrap: true,
-                render: (row) => <Text>{String(row.value)}</Text>,
-              },
-              {
-                key: 'confidence',
-                header: 'Confidence',
-                render: (row) => <ConfidenceCell claim={row} />,
-              },
-              {
-                key: 'human_confirmed',
-                header: 'Owner Confirmed',
-                // The ground-truth signal, and distinct from the model's own
-                // confidence: a confirmed low-confidence claim outranks an
-                // unconfirmed high-confidence one.
-                render: (row) =>
-                  row.human_confirmed ? <Tag>confirmed</Tag> : <Text color="secondary">—</Text>,
-              },
-              { key: 'valid_from', header: 'Valid', render: (row) => <ValidityCell claim={row} /> },
-              {
-                key: 'citations',
-                header: 'Evidence',
-                // The authority sits with the citations because both answer "where did
-                // this come from", and separating them made two narrow columns out of
-                // one idea.
-                // Excerpts are prose. One-lined, a single long citation decides the
-                // width of the whole table.
-                wrap: true,
-                render: (row) => (
-                  <StackLayout gap={0.5}>
-                    <Text color="secondary" styleAs="label">
-                      {row.authority}
-                    </Text>
-                    <Citations claim={row} />
-                  </StackLayout>
-                ),
-              },
-            ]}
-            rows={claims}
-            getRowId={(row) => row.claim_id}
-            emptyTitle={searching ? 'No Claims Match That Search' : 'No Claims at This Threshold'}
-            emptyDescription={
-              searching
-                ? 'The memory holds nothing matching those words for this tenant. A claim can exist and be invisible here if its entity belongs to another tenant.'
-                : 'Nothing meets the confidence floor you set. Lower it to see weaker claims, which are excluded rather than absent.'
-            }
-          />
+                },
+                {
+                  key: 'predicate',
+                  header: 'Predicate',
+                  /*
+                   * Carries the category beneath it. Both classify the claim, and at nine
+                   * columns the table broke `salt-design-system` across three lines — so
+                   * the two low-variance classifiers share a cell rather than each taking
+                   * width from the subject, which is the field a reader scans first.
+                   */
+                  render: (row) => (
+                    <StackLayout gap={0.5}>
+                      <Tag>{row.predicate}</Tag>
+                      <Text color="secondary" styleAs="label">
+                        {row.claim_category}
+                      </Text>
+                    </StackLayout>
+                  ),
+                },
+                {
+                  key: 'value',
+                  header: 'Value',
+                  // Running text, and the widest field in the row. Held to one line
+                  // it pushes the trust columns — the ones the intro tells a reader
+                  // to judge by — past the card edge.
+                  wrap: true,
+                  render: (row) => <Text>{String(row.value)}</Text>,
+                },
+                {
+                  key: 'confidence',
+                  header: 'Confidence',
+                  render: (row) => <ConfidenceCell claim={row} />,
+                },
+                {
+                  key: 'human_confirmed',
+                  header: 'Owner Confirmed',
+                  // The ground-truth signal, and distinct from the model's own
+                  // confidence: a confirmed low-confidence claim outranks an
+                  // unconfirmed high-confidence one.
+                  render: (row) =>
+                    row.human_confirmed ? <Tag>confirmed</Tag> : <Text color="secondary">—</Text>,
+                },
+                {
+                  key: 'valid_from',
+                  header: 'Valid',
+                  render: (row) => <ValidityCell claim={row} />,
+                },
+                {
+                  key: 'citations',
+                  header: 'Evidence',
+                  // The authority sits with the citations because both answer "where did
+                  // this come from", and separating them made two narrow columns out of
+                  // one idea.
+                  // Excerpts are prose. One-lined, a single long citation decides the
+                  // width of the whole table.
+                  wrap: true,
+                  render: (row) => (
+                    <StackLayout gap={0.5}>
+                      <Text color="secondary" styleAs="label">
+                        {row.authority}
+                      </Text>
+                      <Citations claim={row} />
+                    </StackLayout>
+                  ),
+                },
+              ]}
+              rows={claims}
+              getRowId={(row) => row.claim_id}
+              emptyTitle={searching ? 'No Claims Match That Search' : 'No Claims at This Threshold'}
+              emptyDescription={
+                searching
+                  ? 'The memory holds nothing matching those words for this tenant. A claim can exist and be invisible here if its entity belongs to another tenant.'
+                  : 'Nothing meets the confidence floor you set. Lower it to see weaker claims, which are excluded rather than absent.'
+              }
+            />
+          </SectionCard>
         </>
       ) : null}
     </StackLayout>

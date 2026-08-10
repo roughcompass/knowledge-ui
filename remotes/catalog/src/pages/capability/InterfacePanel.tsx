@@ -94,7 +94,7 @@ export function InterfacePanel({
     <SectionCard
       title="Interface"
       description="The contract this capability declares. What a consuming team reads before depending on it."
-      action={canonical ? <CopyButton value={canonical} label="Copy Interface" /> : undefined}
+      actions={canonical ? <CopyButton value={canonical} label="Copy Interface" /> : undefined}
       banded
     >
       {provenance.length > 0 ? (

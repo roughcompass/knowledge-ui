@@ -14,7 +14,7 @@ import {
   ErrorPanel,
   FilterBar,
   FilterField,
-  LoadingPanel,
+  SectionCard,
   PageHeader,
   UnavailableNotice,
   instantText,
@@ -92,16 +92,12 @@ export function NotificationsPage() {
     </FilterBar>
   );
 
-  if (query.isPending) {
-    return (
-      <StackLayout gap={3}>
-        {header}
-        {filters}
-        <LoadingPanel label="Loading notifications" />
-      </StackLayout>
-    );
-  }
-
+  /*
+    No pending branch: the table below declares its own columns, so it renders its
+    skeleton in place and the header and filters stay exactly where they are. The
+    spinner branch replaced a table with a centred glyph and then jumped the page
+    when the rows landed.
+  */
   if (query.error) {
     return (
       <StackLayout gap={3}>
@@ -148,75 +144,87 @@ export function NotificationsPage() {
       {header}
       {filters}
 
-      <DataTable
-        card
-        zebra
-        caption="Notifications"
-        // The page heading already says this. A visible caption under it repeated
-        // the word once more, in a third size.
-        hideCaption
-        columns={[
-          {
-            key: 'slug',
-            header: 'Capability',
-            // Linking out is the whole mechanism for "what changed" — the payload
-            // does not carry it, by design.
-            render: (row) => (
-              <KLink underline="never" color="primary" to={`../${encodeURIComponent(row.slug)}`}>
-                {row.slug}
-              </KLink>
-            ),
-          },
-          { key: 'kind', header: 'Event' },
-          {
-            key: 'classification',
-            header: 'Change',
-            render: (row) =>
-              row.classification ? (
-                <Tag
-                  bordered={row.classification !== 'major'}
-                  category={row.classification === 'major' ? 5 : undefined}
-                >
-                  {row.classification}
-                </Tag>
-              ) : (
-                // Absent rather than zero: not every event kind classifies a
-                // change, and an em-dash says "not applicable" where "none"
-                // would say "no change".
-                <Text color="secondary">—</Text>
+      {/*
+        The same header every other table in the console carries. No title: the
+        page heading above already names this, and a second copy of that name in a
+        third size is what the header exists to avoid. The description says what the
+        rows are, which the page title does not.
+      */}
+      <SectionCard
+        description="Delivered to this tenant, newest first. A notification records that something changed; it is not an alert, and nothing is retried from here."
+        flush
+        banded
+      >
+        <DataTable
+          isLoading={query.isPending}
+          zebra
+          caption="Notifications"
+          // The page heading already says this. A visible caption under it repeated
+          // the word once more, in a third size.
+          hideCaption
+          columns={[
+            {
+              key: 'slug',
+              header: 'Capability',
+              // Linking out is the whole mechanism for "what changed" — the payload
+              // does not carry it, by design.
+              render: (row) => (
+                <KLink underline="never" color="primary" to={`../${encodeURIComponent(row.slug)}`}>
+                  {row.slug}
+                </KLink>
               ),
-          },
-          { key: 'version', header: 'Version' },
-          {
-            key: 'occurred',
-            header: 'When',
-            figures: 'tabular' as const,
-            // This rendered the served `2026-08-01T10:00:00Z` verbatim, which a
-            // reader has to convert in their head before it answers the only
-            // question they are asking of the column.
-            render: (row) => <Text styleAs="notation">{instantText(row.occurred) ?? '—'}</Text>,
-          },
-          {
-            key: 'id',
-            header: 'Action',
-            render: (row) =>
-              status === 'read' ? (
-                <Text color="secondary">Read</Text>
-              ) : (
-                <Button
-                  appearance="bordered"
-                  sentiment="neutral"
-                  disabled={markRead.isPending}
-                  onClick={() => markRead.mutate({ notificationId: row.id })}
-                >
-                  Mark Read
-                </Button>
-              ),
-          },
-        ]}
-        rows={rows}
-        getRowId={(row) => row.id}
-      />
+            },
+            { key: 'kind', header: 'Event' },
+            {
+              key: 'classification',
+              header: 'Change',
+              render: (row) =>
+                row.classification ? (
+                  <Tag
+                    bordered={row.classification !== 'major'}
+                    category={row.classification === 'major' ? 5 : undefined}
+                  >
+                    {row.classification}
+                  </Tag>
+                ) : (
+                  // Absent rather than zero: not every event kind classifies a
+                  // change, and an em-dash says "not applicable" where "none"
+                  // would say "no change".
+                  <Text color="secondary">—</Text>
+                ),
+            },
+            { key: 'version', header: 'Version' },
+            {
+              key: 'occurred',
+              header: 'When',
+              figures: 'tabular' as const,
+              // This rendered the served `2026-08-01T10:00:00Z` verbatim, which a
+              // reader has to convert in their head before it answers the only
+              // question they are asking of the column.
+              render: (row) => <Text styleAs="notation">{instantText(row.occurred) ?? '—'}</Text>,
+            },
+            {
+              key: 'id',
+              header: 'Action',
+              render: (row) =>
+                status === 'read' ? (
+                  <Text color="secondary">Read</Text>
+                ) : (
+                  <Button
+                    appearance="bordered"
+                    sentiment="neutral"
+                    disabled={markRead.isPending}
+                    onClick={() => markRead.mutate({ notificationId: row.id })}
+                  >
+                    Mark Read
+                  </Button>
+                ),
+            },
+          ]}
+          rows={rows}
+          getRowId={(row) => row.id}
+        />
+      </SectionCard>
 
       {markRead.error ? (
         <ErrorPanel error={markRead.error} title="Could not mark that read" />

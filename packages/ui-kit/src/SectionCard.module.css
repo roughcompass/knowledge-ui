@@ -87,3 +87,14 @@
 .flush {
   padding: 0;
 }
+
+/*
+ * The header's trailing controls.
+ *
+ * `flex-shrink: 0` because the title beside them wraps and they must not: a window
+ * value squeezed to two lines stops reading as a value, and the heading has the whole
+ * rest of the row to use.
+ */
+.actions {
+  flex-shrink: 0;
+}

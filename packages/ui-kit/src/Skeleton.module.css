@@ -9,6 +9,18 @@
  * their real content, so there is nothing to keep in sync.
  */
 .bar {
+  /*
+   * `display` is load-bearing, and its absence was a silent bug.
+   *
+   * This renders a `span`, and width and height do not apply to a non-replaced
+   * inline element — so `block-size` and `inline-size` below were both ignored and
+   * every bar had a 0×0 box. Measured in a browser at 0 by 0: the table skeleton
+   * drew its header and then a run of empty rows, which reads as a table that
+   * loaded and found nothing rather than as one still loading. Nothing caught it,
+   * for the reason this repo has written down twice already — stylelint checks
+   * form and not effect, and jsdom computes no styles at all.
+   */
+  display: block;
   background: var(--kui-skeleton-background);
   border-radius: var(--kui-radius-surface);
   block-size: var(--salt-size-base);

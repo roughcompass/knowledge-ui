@@ -49,7 +49,48 @@ import { roleFor } from './role';
  * operator screen to a consumer.
  */
 
-const WINDOW = { start: '2026-07-28', end: '2026-08-03' };
+/**
+ * What the rollup is holding, and therefore the furthest back it can answer.
+ *
+ * A request reaching past this comes back narrowed, which is the case the page's
+ * "Narrowed Window" notice exists for. A request inside it is echoed exactly.
+ */
+const RETAINED_FROM = '2026-06-01';
+
+/**
+ * The window a response reports, derived from the one requested.
+ *
+ * These handlers used to return a fixed window whatever they were asked, and that
+ * made a working feature look broken: the page shows the range each response
+ * covered — because a rollup can answer with less than was requested and saying so
+ * is the point — so every panel reported the same dates no matter what the reader
+ * selected. Changing the filter did change the request, and nothing on screen moved.
+ *
+ * The API's own contract is that the window is "echoed back by every response",
+ * which is what lets a caller render the window it actually got. A fixture that
+ * does not echo is not a simpler version of that endpoint, it is a different one —
+ * and the difference was invisible until someone tried to use the filter.
+ */
+function answeredWindow(request: Request): { start: string; end: string } {
+  const params = new URL(request.url).searchParams;
+  const from = params.get('from') ?? RETAINED_FROM;
+  const to = params.get('to') ?? from;
+  // Narrowing, not rejection: the caller asked for more history than exists.
+  return { start: from < RETAINED_FROM ? RETAINED_FROM : from, end: to };
+}
+
+/** Every day in the window, so a series can be generated across whatever was asked. */
+function daysIn({ start, end }: { start: string; end: string }): string[] {
+  const days: string[] = [];
+  const cursor = new Date(`${start}T00:00:00Z`);
+  const last = new Date(`${end}T00:00:00Z`);
+  // Bounded so a malformed range cannot spin: no window here is a year of days.
+  while (cursor <= last && days.length < 400) {
+    days.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return days;
+}
 
 function refuse(role: string, allowed: readonly string[]) {
   if (allowed.includes(role)) return null;
@@ -71,9 +112,10 @@ export const usageHandlers = [
     const denied = refuse(roleFor(request), ['admin']);
     if (denied) return denied;
 
+    const window = answeredWindow(request);
     return HttpResponse.json({
-      ...WINDOW,
-      days: 7,
+      ...window,
+      days: daysIn(window).length,
       surfaces: [
         {
           surface: 'rest',
@@ -111,19 +153,17 @@ export const usageHandlers = [
     if (denied) return denied;
 
     /*
-     * Six points across a seven-day window. 2026-07-31 is absent, in the middle,
-     * because the API omits a day with no traffic rather than sending a zero.
+     * A point per day of the window the response reports, with the fourth day
+     * omitted rather than sent as a zero — the distinction the API preserves "so a
+     * caller can tell an outage from a quiet weekend", and the one every charting
+     * default destroys. Omitted in the middle rather than at an edge, because an
+     * edge gap is invisible to a chart that just plots what it is given.
      */
-    const days = [
-      '2026-07-28',
-      '2026-07-29',
-      '2026-07-30',
-      '2026-08-01',
-      '2026-08-02',
-      '2026-08-03',
-    ];
+    const window = answeredWindow(request);
+    const days = daysIn(window).filter((_day, index) => index !== 3);
+
     return HttpResponse.json({
-      ...WINDOW,
+      ...window,
       points: days.map((day, i) => ({
         day,
         surface: 'rest',
@@ -143,7 +183,7 @@ export const usageHandlers = [
     if (denied) return denied;
 
     return HttpResponse.json({
-      ...WINDOW,
+      ...answeredWindow(request),
       capabilities: [
         { capability_id: 'salt-design-system', calls: 3110, actor_days: 71 },
         { capability_id: 'entitlements-service', calls: 902, actor_days: 40 },
@@ -157,7 +197,7 @@ export const usageHandlers = [
     if (denied) return denied;
 
     return HttpResponse.json({
-      ...WINDOW,
+      ...answeredWindow(request),
       tools: [
         {
           tool: 'search_capabilities',
@@ -195,7 +235,7 @@ export const usageHandlers = [
     if (denied) return denied;
 
     return HttpResponse.json({
-      ...WINDOW,
+      ...answeredWindow(request),
       capabilities: [
         {
           capability_id: 'salt-design-system',

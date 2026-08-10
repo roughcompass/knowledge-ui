@@ -2,12 +2,16 @@ import { describe, expect, it } from 'vitest';
 
 import { diffKeys } from '../JsonDiff';
 import { armShares } from '../RetrievalArmsBar';
-import { buildPath } from '../Sparkline';
 
 /**
- * The pure logic inside the three gap components. Rendering is covered by the
+ * The pure logic inside the remaining gap components. Rendering is covered by the
  * accessibility and end-to-end lanes; these are the branches that quietly
  * produce NaN or a wrong picture.
+ *
+ * `buildPath` used to be tested here too. It belonged to `Sparkline`, a hand-rolled
+ * SVG trend line that no screen ever rendered — the charting work replaced the one
+ * mark that did have a consumer, and removing the unused one took its arithmetic
+ * with it rather than leaving tests standing over code nothing calls.
  */
 
 describe('diffKeys', () => {
@@ -78,40 +82,5 @@ describe('armShares', () => {
   it('clamps a negative contribution to zero', () => {
     const shares = armShares({ semantic: 2, lexical: -5 });
     expect(shares?.find((s) => s.key === 'lexical')?.pct).toBe(0);
-  });
-});
-
-describe('buildPath', () => {
-  it('draws nothing for fewer than two points', () => {
-    // One sample is not a trend, and the component says "collecting" instead.
-    expect(buildPath([], 100, 20)).toBe('');
-    expect(buildPath([5], 100, 20)).toBe('');
-  });
-
-  it('places a flat series on the midline instead of dividing by zero', () => {
-    const path = buildPath([5, 5, 5], 100, 20);
-    expect(path).toContain('10.00');
-    expect(path).not.toContain('NaN');
-  });
-
-  it('spans the full height for a varying series', () => {
-    const path = buildPath([0, 10], 100, 20);
-    // Lowest value sits at the bottom, highest at the top.
-    expect(path).toBe('M0.00,20.00 L100.00,0.00');
-  });
-
-  it('breaks the line at a gap rather than drawing through it', () => {
-    // A gap means a counter reset; joining across it would draw a plunge and a
-    // climb that never happened.
-    const path = buildPath([1, undefined, 3], 100, 20);
-    expect((path.match(/M/g) ?? []).length).toBe(2);
-  });
-
-  it('tolerates leading and trailing gaps', () => {
-    expect(buildPath([undefined, 1, 2, undefined], 100, 20)).not.toContain('NaN');
-  });
-
-  it('ignores non-finite values', () => {
-    expect(buildPath([1, Number.NaN, 3], 100, 20)).not.toContain('NaN');
   });
 });

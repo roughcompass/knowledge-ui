@@ -16,7 +16,6 @@ import {
   ErrorPanel,
   FilterBar,
   FilterField,
-  LoadingPanel,
   PageHeader,
   SectionCard,
   UnavailableNotice,
@@ -209,9 +208,12 @@ export function GraphProjectionsPage() {
       </FilterBar>
 
       {query.error ? <ErrorPanel error={query.error} /> : null}
-      {query.isLoading ? <LoadingPanel label="Loading the projection" /> : null}
-
-      {query.data ? (
+      {/*
+        Rendered while the projection is in flight: both tables declare their columns
+        (`nodeColumns`, `edgeColumns`), so each draws its own skeleton and the two
+        cards keep their height instead of a spinner giving way to them.
+      */}
+      {!query.error ? (
         <>
           <SectionCard
             title="Entities"
@@ -219,7 +221,7 @@ export function GraphProjectionsPage() {
             footer={
               <CursorPager
                 canPrev={stack.current.canGoBack}
-                canNext={Boolean(query.data.next_cursor)}
+                canNext={Boolean(query.data?.next_cursor)}
                 onPrev={() => setCursor(stack.current.pop())}
                 onNext={() => {
                   stack.current.push(cursor);
@@ -231,6 +233,7 @@ export function GraphProjectionsPage() {
             }
           >
             <DataTable
+              isLoading={query.isLoading}
               columns={nodeColumns}
               rows={nodes}
               getRowId={(row) => row.entity_id}
@@ -247,6 +250,7 @@ export function GraphProjectionsPage() {
           >
             <StackLayout gap={2}>
               <DataTable
+                isLoading={query.isLoading}
                 columns={edgeColumns}
                 rows={edges}
                 getRowId={(row) => row.edge_id}

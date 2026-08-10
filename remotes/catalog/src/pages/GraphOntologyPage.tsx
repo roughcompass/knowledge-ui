@@ -13,7 +13,6 @@ import { can, useSession } from '@knowledge-ui/auth';
 import {
   DataTable,
   ErrorPanel,
-  LoadingPanel,
   Note,
   PageHeader,
   SectionCard,
@@ -156,16 +155,22 @@ export function GraphOntologyPage() {
       />
 
       {failed?.error ? <ErrorPanel error={failed.error} /> : null}
-      {queries.some((q) => q.isLoading) ? <LoadingPanel label="Loading the ontology" /> : null}
-
-      {entityTypes.data ? (
+      {/*
+        Each vocabulary table declares its own columns, so the cards render straight
+        away and each table draws its own skeleton rather than the page showing one
+        spinner for three sections of different heights.
+      */}
+      {entityTypes.error === null ? (
         <SectionCard
           title="Entity types"
-          description={`The ${entityTypes.data.length} kinds a node may be.`}
+          description={
+            entityTypes.data ? `The ${entityTypes.data.length} kinds a node may be.` : undefined
+          }
         >
           <DataTable
+            isLoading={entityTypes.isLoading}
             columns={vocabColumns}
-            rows={entityTypes.data}
+            rows={entityTypes.data ?? []}
             getRowId={(row) => row.vocab_id}
             caption="Entity type vocabulary"
             emptyTitle="No Entity Types Registered"
@@ -175,14 +180,19 @@ export function GraphOntologyPage() {
         </SectionCard>
       ) : null}
 
-      {edgeRels.data ? (
+      {edgeRels.error === null ? (
         <SectionCard
           title="Edge relations"
-          description={`The ${edgeRels.data.length} ways two entities may be related. Deprecated values are listed because existing edges still carry them.`}
+          description={
+            edgeRels.data
+              ? `The ${edgeRels.data.length} ways two entities may be related. Deprecated values are listed because existing edges still carry them.`
+              : undefined
+          }
         >
           <DataTable
+            isLoading={edgeRels.isLoading}
             columns={vocabColumns}
-            rows={edgeRels.data}
+            rows={edgeRels.data ?? []}
             getRowId={(row) => row.vocab_id}
             caption="Edge relation vocabulary"
             emptyTitle="No Edge Relations Registered"
@@ -192,14 +202,15 @@ export function GraphOntologyPage() {
         </SectionCard>
       ) : null}
 
-      {types.data ? (
+      {types.error === null ? (
         <SectionCard
           title="Capability type schemas"
           description="What a capability of each type must carry — and whether the contextplane refuses a write that ignores it."
         >
           <DataTable
+            isLoading={types.isLoading}
             columns={typeColumns}
-            rows={types.data}
+            rows={types.data ?? []}
             getRowId={(row) => row.schema_id}
             caption="Capability type schemas"
             emptyTitle="No Capability Type Schemas"

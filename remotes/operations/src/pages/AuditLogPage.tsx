@@ -24,6 +24,7 @@ import {
   FilterBar,
   FilterField,
   JsonDiff,
+  SectionCard,
   PageHeader,
   instantText,
   type Column,
@@ -226,22 +227,33 @@ export function AuditLogPage() {
         Not zebra: an open change panel occupies a striped row slot of its own,
         which flips the stripe phase of every row beneath it.
       */}
-      <DataTable
-        card
-        caption="Audit entries"
-        hideCaption
-        columns={columns}
-        rows={rows}
-        getRowId={(row) => String(row.audit_id)}
-        isLoading={query.isPending && allowed}
-        hasError={Boolean(query.error)}
-        emptyTitle="No audit entries"
-        emptyDescription="Nothing matching those filters has been recorded."
-        expandedRowId={expanded}
-        renderDetail={(row) => (
-          <JsonDiff before={row.before_jsonb} after={row.after_jsonb} hideUnchanged />
-        )}
-      />
+      {/*
+        The same header every other table in the console carries. No title: the
+        page heading above already names this, and a second copy of that name in a
+        third size is what the header exists to avoid. The description says what the
+        rows are, which the page title does not.
+      */}
+      <SectionCard
+        description="Recorded actions, newest first. Every entry is written by the service at the moment of the change, so this is the record rather than a reconstruction of it."
+        flush
+        banded
+      >
+        <DataTable
+          caption="Audit entries"
+          hideCaption
+          columns={columns}
+          rows={rows}
+          getRowId={(row) => String(row.audit_id)}
+          isLoading={query.isPending && allowed}
+          hasError={Boolean(query.error)}
+          emptyTitle="No audit entries"
+          emptyDescription="Nothing matching those filters has been recorded."
+          expandedRowId={expanded}
+          renderDetail={(row) => (
+            <JsonDiff before={row.before_jsonb} after={row.after_jsonb} hideUnchanged />
+          )}
+        />
+      </SectionCard>
 
       <CursorPager
         showingCount={rows.length}
