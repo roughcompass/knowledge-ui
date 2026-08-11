@@ -3,8 +3,18 @@
     "schemas": {
       "ActivateRequest": {
         "additionalProperties": false,
+        "description": "Body for `POST /v1/arc/revisions/{id}/activate`. `qualification_id`\nis required when the risk classification demands observation and\nforbidden otherwise (Appendix A.6).",
         "properties": {
-          "supersedes": {
+          "proposal_id": {
+            "format": "uuid",
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "proposal_version": {
+            "title": "Proposal Version",
+            "type": "integer"
+          },
+          "qualification_id": {
             "anyOf": [
               {
                 "format": "uuid",
@@ -14,10 +24,85 @@
                 "type": "null"
               }
             ],
-            "title": "Supersedes"
+            "title": "Qualification Id"
           }
         },
+        "required": [
+          "proposal_id",
+          "proposal_version"
+        ],
         "title": "ActivateRequest",
+        "type": "object"
+      },
+      "ActivationEligibilityResponse": {
+        "additionalProperties": false,
+        "description": "`predicates[]` always contains all ten entries in fixed order, so a\nclient cannot mistake an omitted predicate for a satisfied one.",
+        "properties": {
+          "eligible": {
+            "title": "Eligible",
+            "type": "boolean"
+          },
+          "predicates": {
+            "items": {
+              "$ref": "#/components/schemas/ActivationPredicateStatus"
+            },
+            "maxItems": 10,
+            "minItems": 10,
+            "title": "Predicates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "eligible",
+          "predicates"
+        ],
+        "title": "ActivationEligibilityResponse",
+        "type": "object"
+      },
+      "ActivationPredicateName": {
+        "description": "The ten activation predicates, in their fixed evaluation order.",
+        "enum": [
+          "latest_version",
+          "state_approved",
+          "digest_chain",
+          "baseline_current",
+          "source_valid",
+          "risk_reproducible",
+          "observation_qualified",
+          "projection_evidence_valid",
+          "actor_separation",
+          "operational_integrity"
+        ],
+        "title": "ActivationPredicateName",
+        "type": "string"
+      },
+      "ActivationPredicateStatus": {
+        "additionalProperties": false,
+        "description": "One row of `ActivationEligibilityResponse.predicates`.",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/ActivationPredicateName"
+          },
+          "reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RefusalCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "satisfied": {
+            "title": "Satisfied",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "satisfied"
+        ],
+        "title": "ActivationPredicateStatus",
         "type": "object"
       },
       "ActorRef": {
@@ -90,6 +175,26 @@
           "status"
         ],
         "title": "AdjudicateClaimResponse",
+        "type": "object"
+      },
+      "AdminActivateRequest": {
+        "additionalProperties": false,
+        "description": "Body for the direct artifact-admin activation route.\n\nNamed apart from the authoring-surface `ActivateRequest` (`registry.\napi.schemas.arc_authoring`) even though both bodies once shared the\nbare name `ActivateRequest` -- two distinct request shapes on two\ndistinct routes with the same class name force the OpenAPI generator\nto invent a module-qualified name for one of them the moment both are\never exported together, which is a worse, less stable public contract\nthan either route picking its own explicit name up front.",
+        "properties": {
+          "supersedes": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes"
+          }
+        },
+        "title": "AdminActivateRequest",
         "type": "object"
       },
       "AdmissionMethod": {
@@ -360,6 +465,89 @@
           "predicates"
         ],
         "title": "AllowlistResponse",
+        "type": "object"
+      },
+      "ApprovalChallengeRequest": {
+        "additionalProperties": false,
+        "description": "Body for `POST {PV}/approval-challenges`: names the enrolled\nverifier who will complete the challenge.",
+        "properties": {
+          "approval_verifier_id": {
+            "format": "uuid",
+            "title": "Approval Verifier Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approval_verifier_id"
+        ],
+        "title": "ApprovalChallengeRequest",
+        "type": "object"
+      },
+      "ApprovalChallengeResponse": {
+        "additionalProperties": false,
+        "description": "The signing challenge a projection approval must complete: the\nverifier signs `canonical_evidence_bytes_base64` and submits that\nsignature via `ApprovalCompletionRequest`.",
+        "properties": {
+          "approval_challenge_id": {
+            "format": "uuid",
+            "title": "Approval Challenge Id",
+            "type": "string"
+          },
+          "approval_nonce": {
+            "title": "Approval Nonce",
+            "type": "string"
+          },
+          "canonical_evidence_bytes_base64": {
+            "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+            "title": "Canonical Evidence Bytes Base64",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "signing_domain": {
+            "title": "Signing Domain",
+            "type": "string"
+          }
+        },
+        "required": [
+          "approval_challenge_id",
+          "canonical_evidence_bytes_base64",
+          "signing_domain",
+          "approval_nonce",
+          "expires_at"
+        ],
+        "title": "ApprovalChallengeResponse",
+        "type": "object"
+      },
+      "ApprovalCompletionRequest": {
+        "additionalProperties": false,
+        "description": "Body for `POST /v1/arc/approval-challenges/{id}/complete`: the\nverifier's proof over the challenge's canonical evidence bytes.",
+        "properties": {
+          "proof": {
+            "discriminator": {
+              "mapping": {
+                "detached_signature": "#/components/schemas/DetachedSignatureProof",
+                "verifier_attestation": "#/components/schemas/VerifierAttestationProof"
+              },
+              "propertyName": "verification_method"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DetachedSignatureProof"
+              },
+              {
+                "$ref": "#/components/schemas/VerifierAttestationProof"
+              }
+            ],
+            "title": "Proof"
+          }
+        },
+        "required": [
+          "proof"
+        ],
+        "title": "ApprovalCompletionRequest",
         "type": "object"
       },
       "ApprovalVerifierResponse": {
@@ -954,7 +1142,7 @@
             "anyOf": [
               {
                 "enum": [
-                  "self_attested",
+                  "authorized_retrieval",
                   "signed_result"
                 ],
                 "type": "string"
@@ -2161,6 +2349,79 @@
         "title": "AvailableAction",
         "type": "string"
       },
+      "BaselineDiffChange": {
+        "additionalProperties": false,
+        "description": "One field-level change in `BaselineDiffResponse.changes`.",
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before"
+          },
+          "change_kind": {
+            "$ref": "#/components/schemas/ChangeKind"
+          },
+          "field_path": {
+            "title": "Field Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field_path",
+          "change_kind"
+        ],
+        "title": "BaselineDiffChange",
+        "type": "object"
+      },
+      "BaselineDiffResponse": {
+        "additionalProperties": false,
+        "description": "Result of `GET {PV}/baseline-diff`, and the same shape embedded in\n`ReviewPackageResponse.baseline_diff`.",
+        "properties": {
+          "baseline_revision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Revision Id"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/BaselineDiffChange"
+            },
+            "title": "Changes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "changes"
+        ],
+        "title": "BaselineDiffResponse",
+        "type": "object"
+      },
       "BelievedClaimResponse": {
         "additionalProperties": false,
         "properties": {
@@ -2307,6 +2568,94 @@
           "metadata"
         ],
         "title": "Body_admit_source_upload_v1_arc_sources_uploads_post",
+        "type": "object"
+      },
+      "BreakdownOut": {
+        "additionalProperties": false,
+        "description": "One metric over one window, with everything needed to read it.",
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/CellOut"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "classification": {
+            "title": "Classification",
+            "type": "string"
+          },
+          "cohort_key": {
+            "description": "The population the figures cover. Always the tenant: no finer cohort exists, because a per-team breakdown would be a team-performance view.",
+            "title": "Cohort Key",
+            "type": "string"
+          },
+          "denominator": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The population the total is over, named for a reader who would otherwise infer a rate.",
+            "title": "Denominator"
+          },
+          "floors": {
+            "$ref": "#/components/schemas/FloorsOut"
+          },
+          "metric": {
+            "title": "Metric",
+            "type": "string"
+          },
+          "partial": {
+            "description": "True when at least one cell was suppressed, so the total is over a subset.",
+            "title": "Partial",
+            "type": "boolean"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Recomputed over reported cells only, never the true population. With a cell withheld, serving the real total would let a reader recover the withheld figure by subtraction.",
+            "title": "Total"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          },
+          "withheld": {
+            "description": "True when the whole breakdown was withheld because its remainder could not be combined into a bucket clearing the floors. Distinct from every cell being suppressed: not even the shape of the distribution is served.",
+            "title": "Withheld",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "metric",
+          "cohort_key",
+          "window_start",
+          "window_end",
+          "classification",
+          "floors",
+          "cells",
+          "total",
+          "denominator",
+          "partial",
+          "withheld"
+        ],
+        "title": "BreakdownOut",
         "type": "object"
       },
       "BreakingChangePreviewResponse": {
@@ -3034,6 +3383,39 @@
         "title": "CapabilityUsageOut",
         "type": "object"
       },
+      "CellOut": {
+        "additionalProperties": false,
+        "description": "One reported figure, or the record that one was withheld.\n\nThe counts behind a suppressed cell are deliberately absent from this model.\nServing them would defeat the suppression: an actor count of two is the\ndisclosure the floor exists to prevent.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "suppressed": {
+            "title": "Suppressed",
+            "type": "boolean"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null exactly when the cell was suppressed for falling below a floor. Not zero: a withheld cell is not an empty one, and reporting it as zero would understate every total computed from this breakdown.",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "label",
+          "value",
+          "suppressed"
+        ],
+        "title": "CellOut",
+        "type": "object"
+      },
       "ChallengeRequest": {
         "additionalProperties": false,
         "properties": {
@@ -3089,6 +3471,188 @@
           "manifest_claims_digest"
         ],
         "title": "ChallengeResponse",
+        "type": "object"
+      },
+      "ChangeKind": {
+        "description": "How one field changed between a baseline and a candidate revision.",
+        "enum": [
+          "added",
+          "removed",
+          "changed"
+        ],
+        "title": "ChangeKind",
+        "type": "string"
+      },
+      "CheckpointAppend": {
+        "description": "One step to record on a task.\n\nCarries content only. Ordering, identity, attribution, retention and the\ndigest are computed server-side from its own view -- a client that could set\nthem could write a checkpoint into the middle of somebody else's chain.",
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "completed_checks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Completed Checks",
+            "type": "array"
+          },
+          "decisions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "evidence": {
+            "description": "External references supporting this step, normalized server-side.",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "goal": {
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Action"
+          },
+          "open_questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Open Questions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "goal"
+        ],
+        "title": "CheckpointAppend",
+        "type": "object"
+      },
+      "CheckpointResponse": {
+        "description": "One recorded step, in the shape resume reads back.",
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "checkpoint_id": {
+            "format": "uuid",
+            "title": "Checkpoint Id",
+            "type": "string"
+          },
+          "completed_checks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Completed Checks",
+            "type": "array"
+          },
+          "decisions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "digest": {
+            "title": "Digest",
+            "type": "string"
+          },
+          "goal": {
+            "title": "Goal",
+            "type": "string"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Action"
+          },
+          "open_questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Open Questions",
+            "type": "array"
+          },
+          "predecessor_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predecessor Id"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "retention_policy": {
+            "title": "Retention Policy",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "task_id": {
+            "format": "uuid",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "checkpoint_id",
+          "task_id",
+          "sequence",
+          "predecessor_id",
+          "goal",
+          "decisions",
+          "assumptions",
+          "completed_checks",
+          "open_questions",
+          "next_action",
+          "author",
+          "recorded_at",
+          "retention_policy",
+          "digest"
+        ],
+        "title": "CheckpointResponse",
         "type": "object"
       },
       "Citation": {
@@ -3444,6 +4008,451 @@
         "title": "ConnectorFetchRequest",
         "type": "object"
       },
+      "ContextBlockResponse": {
+        "description": "One arm of the answer.\n\n`state` is carried, never inferred. A reader who computes it from whether\n`items` is empty gets the one case that matters wrong: a failed arm has no\nitems either, and treating it as empty reads a broken arm as a quiet one.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ContextItemResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Why the arm did not fully succeed. Always present when degraded or failed.",
+            "title": "Reason"
+          },
+          "state": {
+            "description": "One of success, empty, degraded, failed.",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "state"
+        ],
+        "title": "ContextBlockResponse",
+        "type": "object"
+      },
+      "ContextEnvelopeResponse": {
+        "description": "Exactly four blocks, quality, state, and the receipt that records them.\n\n`receipt_id` is not decorative and is not optional. It names the stored\nrecord of this resolution, which is what makes the answer auditable later --\nand it is the id `GET /v1/receipts/{receipt_id}` takes.",
+        "properties": {
+          "arc_block_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set when the ARC block is empty because the request named no receipt, which is a caller-fixable emptiness rather than an absence of results.",
+            "title": "Arc Block Note"
+          },
+          "blocks": {
+            "description": "Exactly ['canonical', 'arc', 'observed_claims', 'workspace'], in that order.",
+            "items": {
+              "$ref": "#/components/schemas/ContextBlockResponse"
+            },
+            "title": "Blocks",
+            "type": "array"
+          },
+          "quality": {
+            "$ref": "#/components/schemas/QualityResponse"
+          },
+          "receipt_id": {
+            "format": "uuid",
+            "title": "Receipt Id",
+            "type": "string"
+          },
+          "state": {
+            "description": "One of complete, degraded, blocked.",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "blocks",
+          "quality",
+          "receipt_id"
+        ],
+        "title": "ContextEnvelopeResponse",
+        "type": "object"
+      },
+      "ContextFeedbackRequest": {
+        "additionalProperties": false,
+        "description": "One report about a served answer.\n\n`kind` decides which of `receipt_id` and `receipt_item_id` are required and\nwhich are forbidden; the service enforces that union and returns 422 naming\nthe violation. They are optional here because two of the three shapes omit\nthem, not because any combination is acceptable.",
+        "properties": {
+          "idempotency_key": {
+            "description": "This submission's key. Replays carry it verbatim.",
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "kind": {
+            "description": "One of item_specific, receipt_level, diagnostic_observation.",
+            "title": "Kind",
+            "type": "string"
+          },
+          "learning_eligible": {
+            "default": true,
+            "description": "Whether this may be used as learning or evaluation evidence. May be lowered by the reporter; always false for a diagnostic observation, which cites nothing that could be checked.",
+            "title": "Learning Eligible",
+            "type": "boolean"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Free text. Minimized before the structured fields expire.",
+            "title": "Note"
+          },
+          "rating": {
+            "description": "A verdict from the bounded vocabulary.",
+            "title": "Rating",
+            "type": "string"
+          },
+          "receipt_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The resolution this is about.",
+            "title": "Receipt Id"
+          },
+          "receipt_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The exact item on that receipt.",
+            "title": "Receipt Item Id"
+          },
+          "reporter_id": {
+            "description": "Who is reporting. Must be the caller unless external.",
+            "minLength": 1,
+            "title": "Reporter Id",
+            "type": "string"
+          },
+          "reporter_type": {
+            "description": "One of human, agent, external.",
+            "title": "Reporter Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "rating",
+          "reporter_id",
+          "reporter_type",
+          "idempotency_key"
+        ],
+        "title": "ContextFeedbackRequest",
+        "type": "object"
+      },
+      "ContextFeedbackResponse": {
+        "additionalProperties": false,
+        "description": "What was stored, and whether this call is what stored it.",
+        "properties": {
+          "content_digest": {
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "feedback_id": {
+            "format": "uuid",
+            "title": "Feedback Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "learning_eligible": {
+            "title": "Learning Eligible",
+            "type": "boolean"
+          },
+          "rating": {
+            "title": "Rating",
+            "type": "string"
+          },
+          "receipt_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt Id"
+          },
+          "receipt_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt Item Id"
+          },
+          "replayed": {
+            "description": "True when this call recognised an existing submission rather than storing a new one.",
+            "title": "Replayed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "feedback_id",
+          "kind",
+          "rating",
+          "learning_eligible",
+          "receipt_id",
+          "receipt_item_id",
+          "content_digest",
+          "created_at",
+          "replayed"
+        ],
+        "title": "ContextFeedbackResponse",
+        "type": "object"
+      },
+      "ContextItemResponse": {
+        "description": "One piece of context and everything needed to weigh it.",
+        "properties": {
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "receipt_item_id": {
+            "$ref": "#/components/schemas/ReceiptItemIdResponse"
+          },
+          "trust": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TrustResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "receipt_item_id",
+          "payload"
+        ],
+        "title": "ContextItemResponse",
+        "type": "object"
+      },
+      "ContextResolveRequest": {
+        "description": "One context resolution.\n\n`arc_receipt_id` is optional and its absence is not an error. The ARC arm is\nreceipt-anchored -- it serves what an attested resolution already selected --\nso a request naming no receipt gets a complete envelope whose ARC block is\n`empty`. `arc_block_note` on the response says which kind of empty it is,\nbecause \"you named no receipt\" and \"that receipt selected nothing\" are the\nsame value with different meanings and only the first is the caller's to fix.",
+        "properties": {
+          "arc_receipt_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "An attested ARC resolution to serve. Omit it and the ARC block comes back empty, not failed.",
+            "title": "Arc Receipt Id"
+          },
+          "lifecycle_references": {
+            "description": "Where in a delivery lifecycle this request is being made, as references the registry does not own. Each `kind` must be one of ['run', 'stage', 'work_item', 'repository', 'artifact', 'action', 'build', 'deployment', 'incident', 'outcome']. Context recorded as applying somewhere else is withheld and reported, never silently dropped. Stage is your own system's name for it: nothing here is stored, ordered, or advanced.",
+            "items": {
+              "$ref": "#/components/schemas/ExternalReferenceRequest"
+            },
+            "title": "Lifecycle References",
+            "type": "array"
+          },
+          "limit": {
+            "default": 25,
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "max_age_s": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Treat arm results older than this as stale. Omit to accept any age.",
+            "title": "Max Age S"
+          },
+          "query": {
+            "description": "What the caller is asking for.",
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          },
+          "subject_entity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Entity Id"
+          },
+          "task_ids": {
+            "description": "Tasks whose workspace material may be recalled, subject to the caller's participation.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Task Ids",
+            "type": "array"
+          },
+          "workspace_reference": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExternalReferenceRequest"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Recall workspace material citing this external reference."
+          },
+          "workspace_term": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lexical term for the workspace arm.",
+            "title": "Workspace Term"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "ContextResolveRequest",
+        "type": "object"
+      },
+      "ContradictionGroupListResponse": {
+        "additionalProperties": false,
+        "description": "Every open disagreement in the caller's tenant.",
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/ContradictionGroupResponse"
+            },
+            "title": "Groups",
+            "type": "array"
+          }
+        },
+        "required": [
+          "groups"
+        ],
+        "title": "ContradictionGroupListResponse",
+        "type": "object"
+      },
+      "ContradictionGroupResponse": {
+        "additionalProperties": false,
+        "description": "One disagreement axis, as a reviewer needs to see it.\n\n`member_count` is the number of claims in disagreement, not the number of\npairs detected: a three-way disagreement is three pairs and three members,\nand reporting the pair count would overstate how much is contested.",
+        "properties": {
+          "claim_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Claim Ids",
+            "type": "array"
+          },
+          "contest_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Contest Ids",
+            "type": "array"
+          },
+          "first_detected_at": {
+            "format": "date-time",
+            "title": "First Detected At",
+            "type": "string"
+          },
+          "member_count": {
+            "title": "Member Count",
+            "type": "integer"
+          },
+          "predicate": {
+            "title": "Predicate",
+            "type": "string"
+          },
+          "subject_entity_id": {
+            "format": "uuid",
+            "title": "Subject Entity Id",
+            "type": "string"
+          },
+          "subject_reference": {
+            "title": "Subject Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_entity_id",
+          "subject_reference",
+          "predicate",
+          "claim_ids",
+          "contest_ids",
+          "first_detected_at",
+          "member_count"
+        ],
+        "title": "ContradictionGroupResponse",
+        "type": "object"
+      },
       "CreateArtifactRequest": {
         "description": "Body for ``POST /v1/capabilities/{id}/artifacts``.\n\n``title`` is required and validated server-side (1-200 chars, no\nleading/trailing whitespace). ``body_format`` is one of\n``markdown`` (default), ``html``, ``plain``.",
         "properties": {
@@ -3701,6 +4710,178 @@
         "title": "CreatePredicateRequest",
         "type": "object"
       },
+      "CurationCaseListResponse": {
+        "additionalProperties": false,
+        "description": "A page of contradiction cases, oldest first.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CurationCaseResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "CurationCaseListResponse",
+        "type": "object"
+      },
+      "CurationCaseResponse": {
+        "additionalProperties": false,
+        "description": "A contradiction routed to an owner, and what was decided about it.\n\n`approval_authority` and `evidence_threshold` are recorded at disposition\ntime rather than derived on read: a decision whose approver is decided\nafterwards is a decision nobody is accountable for.",
+        "properties": {
+          "approval_authority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Authority"
+          },
+          "case_id": {
+            "format": "uuid",
+            "title": "Case Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disposition"
+          },
+          "evidence_threshold": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Threshold"
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner Id"
+          },
+          "predicate": {
+            "title": "Predicate",
+            "type": "string"
+          },
+          "raised_by_derivation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raised By Derivation Id"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "routed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routed At"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subject_reference": {
+            "title": "Subject Reference",
+            "type": "string"
+          },
+          "target_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Kind"
+          },
+          "tenant_id": {
+            "format": "uuid",
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id",
+          "tenant_id",
+          "subject_reference",
+          "predicate",
+          "status",
+          "created_at",
+          "raised_by_derivation_id",
+          "owner_id",
+          "routed_at",
+          "disposition",
+          "approval_authority",
+          "evidence_threshold",
+          "resolved_at",
+          "target_kind"
+        ],
+        "title": "CurationCaseResponse",
+        "type": "object"
+      },
       "DailyPointOut": {
         "additionalProperties": false,
         "description": "One day's exact figures for one surface \u2014 unlike the summary, nothing here is an approximation.",
@@ -3825,6 +5006,25 @@
         ],
         "title": "DeltaCode",
         "type": "string"
+      },
+      "DeltaCodeCounter": {
+        "additionalProperties": false,
+        "description": "One row of `ObservationStatusResponse.counters_by_delta_code`.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "delta_code": {
+            "$ref": "#/components/schemas/DeltaCode"
+          }
+        },
+        "required": [
+          "delta_code",
+          "count"
+        ],
+        "title": "DeltaCodeCounter",
+        "type": "object"
       },
       "DependencyResponse": {
         "description": "Response for the dependency-traversal endpoint -- edges reachable from `root_entity_id` within `depth`.",
@@ -4847,6 +6047,47 @@
         "title": "ExceptionApprovalBody",
         "type": "object"
       },
+      "ExclusionListResponse": {
+        "description": "Everything one resolution withheld, or an empty list if it withheld nothing.",
+        "properties": {
+          "exclusions": {
+            "items": {
+              "$ref": "#/components/schemas/ExclusionResponse"
+            },
+            "title": "Exclusions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "exclusions"
+        ],
+        "title": "ExclusionListResponse",
+        "type": "object"
+      },
+      "ExclusionResponse": {
+        "description": "One item a resolution found and did not return.\n\nSurfaced rather than kept internal: the difference between \"there was\nnothing\" and \"there was something you may not see\" is the whole reason the\nrow is stored, and a reader who never sees it cannot act on it.",
+        "properties": {
+          "block": {
+            "title": "Block",
+            "type": "string"
+          },
+          "item_key": {
+            "title": "Item Key",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "block",
+          "item_key",
+          "reason"
+        ],
+        "title": "ExclusionResponse",
+        "type": "object"
+      },
       "ExpectedImpactEnvelope": {
         "additionalProperties": false,
         "description": "Exactly the closed `arc_expected_impact_envelope_v1` profile object.",
@@ -4992,7 +6233,7 @@
         "type": "object"
       },
       "ExternalIdItem": {
-        "description": "One row of the entity_external_ids contextplane, surfaced via ``?include=external_ids``.",
+        "description": "One row of the entity_external_ids registry, surfaced via ``?include=external_ids``.",
         "properties": {
           "external_id": {
             "title": "External Id",
@@ -5178,6 +6419,86 @@
         "title": "ExternalIdsExpansion",
         "type": "object"
       },
+      "ExternalReferenceRequest": {
+        "description": "A pointer to something the registry does not own.\n\nMirrors `ExternalReferenceV1`. `classification` is required rather than\ndefaulted: a reference whose sensitivity the caller did not state is one the\nserver would have to guess about, and guessing low is the failure that\nmatters.",
+        "properties": {
+          "authorized_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorized Uri"
+          },
+          "classification": {
+            "description": "One of ['confidential', 'internal', 'public', 'restricted'].",
+            "title": "Classification",
+            "type": "string"
+          },
+          "external_authority": {
+            "description": "The authority in the external system, not ours.",
+            "minLength": 1,
+            "title": "External Authority",
+            "type": "string"
+          },
+          "external_id": {
+            "minLength": 1,
+            "title": "External Id",
+            "type": "string"
+          },
+          "kind": {
+            "minLength": 1,
+            "title": "Kind",
+            "type": "string"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "source_namespace": {
+            "minLength": 1,
+            "title": "Source Namespace",
+            "type": "string"
+          },
+          "source_system": {
+            "minLength": 1,
+            "title": "Source System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_system",
+          "source_namespace",
+          "kind",
+          "external_id",
+          "classification",
+          "external_authority"
+        ],
+        "title": "ExternalReferenceRequest",
+        "type": "object"
+      },
       "ExternalSystemCreate": {
         "description": "Body for POST /v1/admin/external-systems; `slug` is the identifier every mapping will reference.",
         "properties": {
@@ -5274,6 +6595,92 @@
         "title": "ExternalSystemResponse",
         "type": "object"
       },
+      "FieldProvenance": {
+        "additionalProperties": false,
+        "description": "Response projection of `FieldProvenanceInput` that adds the recorded\nauthor. Appears only in read models -- never accepted as input.",
+        "properties": {
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActorRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "author_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Role"
+          },
+          "derivation_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivation Profile"
+          },
+          "excerpt_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt Digest"
+          },
+          "field_path": {
+            "title": "Field Path",
+            "type": "string"
+          },
+          "provenance_class": {
+            "$ref": "#/components/schemas/ProvenanceClass"
+          },
+          "source_anchor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Anchor"
+          },
+          "source_evidence_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Evidence Id"
+          }
+        },
+        "required": [
+          "field_path",
+          "provenance_class"
+        ],
+        "title": "FieldProvenance",
+        "type": "object"
+      },
       "FieldProvenanceInput": {
         "additionalProperties": false,
         "description": "Request-only. Deliberately not one of the profile-aliased\ncomponents in `arc_authoring_profiles.py`: it is a different shape\nthan the persisted `arc_field_provenance_v1` canonical profile (no\n`author_issuer`/`author_subject` split, an `excerpt_digest` name\ninstead of `quoted_excerpt_digest`, and a `source_evidence_id` the\nprofile does not carry). Carries no `author`: for a `human_judgment`\nfield the author is the authenticated caller of the `PATCH`, written\nserver-side, never client-supplied.",
@@ -5348,6 +6755,134 @@
           "provenance_class"
         ],
         "title": "FieldProvenanceInput",
+        "type": "object"
+      },
+      "FloorsOut": {
+        "additionalProperties": false,
+        "description": "The thresholds in force, served so a suppressed cell is legible.",
+        "properties": {
+          "min_actors": {
+            "description": "Minimum distinct contributors before a cell may carry a value.",
+            "title": "Min Actors",
+            "type": "integer"
+          },
+          "min_events": {
+            "description": "Minimum events before a cell may carry a value.",
+            "title": "Min Events",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "min_actors",
+          "min_events"
+        ],
+        "title": "FloorsOut",
+        "type": "object"
+      },
+      "GrantCreate": {
+        "description": "Add one participant to a task.\n\n`granted_by` is deliberately absent: it is the calling actor, taken from the\nrequest context. Accepting it would let a caller attribute a grant to\nsomebody else, and the stored record would look identical to a real one\nafterwards.",
+        "properties": {
+          "actor_id": {
+            "description": "The actor being granted participation.",
+            "minLength": 1,
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the grant stops applying. Absent means it lasts as long as the task.",
+            "title": "Expires At"
+          },
+          "role": {
+            "description": "One of ['auditor', 'contributor', 'owner', 'reader'].",
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "actor_id",
+          "role"
+        ],
+        "title": "GrantCreate",
+        "type": "object"
+      },
+      "GrantListResponse": {
+        "description": "Every grant on one task, expired ones included.\n\nExpired grants are not filtered out. An audit of a past read needs the\ngrants that applied then, and hiding them makes a revoked participant\nindistinguishable from one who was never there.",
+        "properties": {
+          "grants": {
+            "items": {
+              "$ref": "#/components/schemas/GrantResponse"
+            },
+            "title": "Grants",
+            "type": "array"
+          }
+        },
+        "required": [
+          "grants"
+        ],
+        "title": "GrantListResponse",
+        "type": "object"
+      },
+      "GrantResponse": {
+        "description": "One grant, active or not.",
+        "properties": {
+          "actor_id": {
+            "title": "Actor Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "granted_at": {
+            "format": "date-time",
+            "title": "Granted At",
+            "type": "string"
+          },
+          "granted_by": {
+            "title": "Granted By",
+            "type": "string"
+          },
+          "resolver_version": {
+            "title": "Resolver Version",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "task_id": {
+            "format": "uuid",
+            "title": "Task Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_id",
+          "actor_id",
+          "role",
+          "granted_by",
+          "granted_at",
+          "expires_at",
+          "resolver_version"
+        ],
+        "title": "GrantResponse",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -5680,6 +7215,36 @@
           "fields"
         ],
         "title": "InterfaceSurfaceResponse",
+        "type": "object"
+      },
+      "JudgmentAuthor": {
+        "additionalProperties": false,
+        "description": "Response-only. See Appendix A.4: recorded authors, server-written.",
+        "properties": {
+          "field_path": {
+            "title": "Field Path",
+            "type": "string"
+          },
+          "issuer": {
+            "title": "Issuer",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field_path",
+          "issuer",
+          "subject",
+          "role"
+        ],
+        "title": "JudgmentAuthor",
         "type": "object"
       },
       "LifecycleTransitionRequest": {
@@ -6065,6 +7630,104 @@
         "title": "ManifestBody",
         "type": "object"
       },
+      "NormalizedSignalReference": {
+        "additionalProperties": false,
+        "description": "A reference as stored identity sees it: the same fields, plus the key.\n\n`collision_key` is what makes two spellings of one reference compare equal,\nand it is returned rather than left for the caller to recompute -- a producer\ncorrelating its own references against what this submission was identified by\nshould not have to reimplement the digest to do it.",
+        "properties": {
+          "authorized_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A URI a reader is permitted to follow.",
+            "title": "Authorized Uri"
+          },
+          "classification": {
+            "enum": [
+              "public",
+              "internal",
+              "confidential",
+              "restricted"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "collision_key": {
+            "title": "Collision Key",
+            "type": "string"
+          },
+          "external_authority": {
+            "description": "The authority in the external system. Never this service's own.",
+            "minLength": 1,
+            "title": "External Authority",
+            "type": "string"
+          },
+          "external_id": {
+            "description": "The id within that system. Trimmed, never case-folded.",
+            "minLength": 1,
+            "title": "External Id",
+            "type": "string"
+          },
+          "kind": {
+            "description": "What the reference names, e.g. `commit`, `run`, `deployment`.",
+            "minLength": 1,
+            "title": "Kind",
+            "type": "string"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the source observed this reference. Absent when it cannot report one.",
+            "title": "Observed At"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Immutable revision, when the source records one.",
+            "title": "Revision"
+          },
+          "source_namespace": {
+            "description": "Namespace inside that system, e.g. `acme/app`.",
+            "minLength": 1,
+            "title": "Source Namespace",
+            "type": "string"
+          },
+          "source_system": {
+            "description": "Owning system, e.g. `github`. Folded to lowercase.",
+            "minLength": 1,
+            "title": "Source System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_system",
+          "source_namespace",
+          "kind",
+          "external_id",
+          "classification",
+          "external_authority",
+          "collision_key"
+        ],
+        "title": "NormalizedSignalReference",
+        "type": "object"
+      },
       "NotificationItem": {
         "properties": {
           "capability_id": {
@@ -6281,6 +7944,112 @@
           }
         },
         "title": "ObservationClassPredicate",
+        "type": "object"
+      },
+      "ObservationDecision": {
+        "description": "The outcome of comparing observed behavior against a candidate's\nexpected-impact envelope.",
+        "enum": [
+          "qualified",
+          "insufficient",
+          "failed"
+        ],
+        "title": "ObservationDecision",
+        "type": "string"
+      },
+      "ObservationStatusResponse": {
+        "additionalProperties": false,
+        "description": "Aggregate observation-window counters for one cohort. Carries no\ntenant detail; tenant-scoped detail requires its own authorization and\nis served separately (Appendix A.1).",
+        "properties": {
+          "cohort_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Cohort Digest",
+            "type": "string"
+          },
+          "cohort_id": {
+            "format": "uuid",
+            "title": "Cohort Id",
+            "type": "string"
+          },
+          "computed_decision": {
+            "$ref": "#/components/schemas/ObservationDecision"
+          },
+          "counters_by_delta_code": {
+            "items": {
+              "$ref": "#/components/schemas/DeltaCodeCounter"
+            },
+            "title": "Counters By Delta Code",
+            "type": "array"
+          },
+          "eligible_count": {
+            "title": "Eligible Count",
+            "type": "integer"
+          },
+          "observed_count": {
+            "title": "Observed Count",
+            "type": "integer"
+          },
+          "out_of_envelope_count": {
+            "title": "Out Of Envelope Count",
+            "type": "integer"
+          },
+          "reason_codes": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCode"
+            },
+            "title": "Reason Codes",
+            "type": "array"
+          },
+          "unexplained_count": {
+            "title": "Unexplained Count",
+            "type": "integer"
+          },
+          "window_deadline": {
+            "format": "date-time",
+            "title": "Window Deadline",
+            "type": "string"
+          },
+          "window_started_at": {
+            "format": "date-time",
+            "title": "Window Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cohort_id",
+          "cohort_digest",
+          "window_started_at",
+          "window_deadline",
+          "eligible_count",
+          "observed_count",
+          "counters_by_delta_code",
+          "unexplained_count",
+          "out_of_envelope_count",
+          "computed_decision",
+          "reason_codes"
+        ],
+        "title": "ObservationStatusResponse",
+        "type": "object"
+      },
+      "OpenCurationCaseRequest": {
+        "additionalProperties": false,
+        "description": "The axis a new case is about.",
+        "properties": {
+          "predicate": {
+            "minLength": 1,
+            "title": "Predicate",
+            "type": "string"
+          },
+          "subject_reference": {
+            "minLength": 1,
+            "title": "Subject Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_reference",
+          "predicate"
+        ],
+        "title": "OpenCurationCaseRequest",
         "type": "object"
       },
       "OperationalHealthOut": {
@@ -7048,8 +8817,81 @@
         "title": "ProgressionOverrideResponse",
         "type": "object"
       },
+      "ProjectionApprovalEvidenceResponse": {
+        "additionalProperties": false,
+        "description": "Verified projection-approval evidence binding a proposal version's\nrevision to its approving principal.",
+        "properties": {
+          "approval_verifier_id": {
+            "format": "uuid",
+            "title": "Approval Verifier Id",
+            "type": "string"
+          },
+          "approved_payload_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Approved Payload Digest",
+            "type": "string"
+          },
+          "approving_principal_issuer": {
+            "title": "Approving Principal Issuer",
+            "type": "string"
+          },
+          "approving_principal_subject": {
+            "title": "Approving Principal Subject",
+            "type": "string"
+          },
+          "evidence_id": {
+            "format": "uuid",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "proposal_id": {
+            "format": "uuid",
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "proposal_version": {
+            "title": "Proposal Version",
+            "type": "integer"
+          },
+          "revision_id": {
+            "format": "uuid",
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "verified_at": {
+            "format": "date-time",
+            "title": "Verified At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "proposal_id",
+          "proposal_version",
+          "revision_id",
+          "approved_payload_digest",
+          "approval_verifier_id",
+          "approving_principal_issuer",
+          "approving_principal_subject",
+          "verified_at"
+        ],
+        "title": "ProjectionApprovalEvidenceResponse",
+        "type": "object"
+      },
       "ProjectionResponse": {
-        "description": "HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.\n\nMaps one-to-one to ``contextplane.service.platform.projections.Projection``.\n``next_cursor`` is None when no further pages exist; pass it as ``cursor=``\non the next request to retrieve the following page.",
+        "description": "HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.\n\nMaps one-to-one to ``contextplane.service.catalog.projections.Projection``.\n``next_cursor`` is None when no further pages exist; pass it as ``cursor=``\non the next request to retrieve the following page.",
         "properties": {
           "edges": {
             "items": {
@@ -7625,6 +9467,167 @@
         "title": "PurgeResultResponse",
         "type": "object"
       },
+      "QualificationAcceptanceRequest": {
+        "additionalProperties": false,
+        "description": "Body for `POST {PV}/observation/accept`: the accepting principal's\nacknowledgement of the reason codes attached to the qualification.",
+        "properties": {
+          "acknowledged_reason_codes": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCode"
+            },
+            "title": "Acknowledged Reason Codes",
+            "type": "array"
+          },
+          "qualification_id": {
+            "format": "uuid",
+            "title": "Qualification Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "qualification_id",
+          "acknowledged_reason_codes"
+        ],
+        "title": "QualificationAcceptanceRequest",
+        "type": "object"
+      },
+      "QualificationResponse": {
+        "additionalProperties": false,
+        "description": "The computed (and, once accepted, acknowledged) observation-\nqualification decision for a candidate proposal version.",
+        "properties": {
+          "accepted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted At"
+          },
+          "accepted_by": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActorRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "baseline_revision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Revision Id"
+          },
+          "candidate_review_package_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Candidate Review Package Digest",
+            "type": "string"
+          },
+          "cohort_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Cohort Digest",
+            "type": "string"
+          },
+          "computed_at": {
+            "format": "date-time",
+            "title": "Computed At",
+            "type": "string"
+          },
+          "decision": {
+            "$ref": "#/components/schemas/ObservationDecision"
+          },
+          "expected_impact_envelope_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Expected Impact Envelope Digest",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "qualification_algorithm_version": {
+            "title": "Qualification Algorithm Version",
+            "type": "string"
+          },
+          "qualification_id": {
+            "format": "uuid",
+            "title": "Qualification Id",
+            "type": "string"
+          },
+          "replay_corpus_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replay Corpus Digest"
+          }
+        },
+        "required": [
+          "qualification_id",
+          "decision",
+          "candidate_review_package_digest",
+          "cohort_digest",
+          "expected_impact_envelope_digest",
+          "qualification_algorithm_version",
+          "computed_at"
+        ],
+        "title": "QualificationResponse",
+        "type": "object"
+      },
+      "QualityResponse": {
+        "description": "What the caller should do about the response as a whole.",
+        "properties": {
+          "cacheable": {
+            "title": "Cacheable",
+            "type": "boolean"
+          },
+          "degraded_blocks": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Degraded Blocks",
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "degraded_blocks",
+          "reasons",
+          "cacheable"
+        ],
+        "title": "QualityResponse",
+        "type": "object"
+      },
       "QueueCountsResponse": {
         "additionalProperties": false,
         "properties": {
@@ -7979,6 +9982,137 @@
         "title": "ReasonRequest",
         "type": "object"
       },
+      "ReceiptItemIdResponse": {
+        "description": "A receipt line's stable name, with the parts it was derived from.\n\nBoth, deliberately. The digest is what a receipt quotes; the parts are what\nmake it checkable. A response carrying only the digest asks the caller to\ntrust an opaque string, which is the opposite of what a receipt is for.",
+        "properties": {
+          "block": {
+            "title": "Block",
+            "type": "string"
+          },
+          "item_key": {
+            "title": "Item Key",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "description": "The digest a receipt line carries verbatim.",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "block",
+          "source",
+          "item_key"
+        ],
+        "title": "ReceiptItemIdResponse",
+        "type": "object"
+      },
+      "ReceiptListResponse": {
+        "description": "Receipts citing one piece of external work, newest first.",
+        "properties": {
+          "receipts": {
+            "items": {
+              "$ref": "#/components/schemas/ReceiptResponse"
+            },
+            "title": "Receipts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "receipts"
+        ],
+        "title": "ReceiptListResponse",
+        "type": "object"
+      },
+      "ReceiptResponse": {
+        "description": "One stored resolution.",
+        "properties": {
+          "cacheable": {
+            "title": "Cacheable",
+            "type": "boolean"
+          },
+          "receipt_id": {
+            "format": "uuid",
+            "title": "Receipt Id",
+            "type": "string"
+          },
+          "request_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Digest"
+          },
+          "requested_by": {
+            "title": "Requested By",
+            "type": "string"
+          },
+          "resolved_at": {
+            "format": "date-time",
+            "title": "Resolved At",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          }
+        },
+        "required": [
+          "receipt_id",
+          "task_id",
+          "state",
+          "cacheable",
+          "resolved_at",
+          "requested_by",
+          "request_digest"
+        ],
+        "title": "ReceiptResponse",
+        "type": "object"
+      },
+      "RecordDispositionRequest": {
+        "additionalProperties": false,
+        "description": "What the accountable owner decided.\n\nThe three `propose_*` values ask another surface to write something and do\nnot perform that write; each target keeps its own approval contract.",
+        "properties": {
+          "disposition": {
+            "enum": [
+              "confirm",
+              "reject",
+              "supersede",
+              "propose_canonical",
+              "propose_runbook",
+              "propose_arc"
+            ],
+            "title": "Disposition",
+            "type": "string"
+          }
+        },
+        "required": [
+          "disposition"
+        ],
+        "title": "RecordDispositionRequest",
+        "type": "object"
+      },
       "RecordEventRequest": {
         "additionalProperties": false,
         "properties": {
@@ -8019,6 +10153,57 @@
         "title": "RecordEventRequest",
         "type": "object"
       },
+      "ReferenceListResponse": {
+        "description": "Every piece of external work one resolution cites.",
+        "properties": {
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceResponse"
+            },
+            "title": "References",
+            "type": "array"
+          }
+        },
+        "required": [
+          "references"
+        ],
+        "title": "ReferenceListResponse",
+        "type": "object"
+      },
+      "ReferenceResponse": {
+        "description": "One piece of external work a receipt cites.",
+        "properties": {
+          "classification": {
+            "title": "Classification",
+            "type": "string"
+          },
+          "external_id": {
+            "title": "External Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "source_namespace": {
+            "title": "Source Namespace",
+            "type": "string"
+          },
+          "source_system": {
+            "title": "Source System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_system",
+          "source_namespace",
+          "kind",
+          "external_id",
+          "classification"
+        ],
+        "title": "ReferenceResponse",
+        "type": "object"
+      },
       "RefusalCode": {
         "description": "The twenty-six closed refusal codes; see `REFUSAL_CODE_STATUS` for\neach one's HTTP status (Appendix A.5).",
         "enum": [
@@ -8051,6 +10236,90 @@
         ],
         "title": "RefusalCode",
         "type": "string"
+      },
+      "ReplayCorpusApprovalRequest": {
+        "additionalProperties": false,
+        "description": "Body for `POST /v1/arc/admin/observation-replay-corpora`: approves a\ngenerated replay corpus for use in qualification.",
+        "properties": {
+          "corpus_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Corpus Digest",
+            "type": "string"
+          },
+          "generator_version": {
+            "title": "Generator Version",
+            "type": "string"
+          },
+          "owning_scope": {
+            "$ref": "#/components/schemas/OwningScope"
+          },
+          "target_tenant_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Tenant Id"
+          }
+        },
+        "required": [
+          "owning_scope",
+          "corpus_digest",
+          "generator_version"
+        ],
+        "title": "ReplayCorpusApprovalRequest",
+        "type": "object"
+      },
+      "ReplayCorpusResponse": {
+        "additionalProperties": false,
+        "description": "`ReplayCorpusApprovalRequest` plus who approved it and when.",
+        "properties": {
+          "approved_at": {
+            "format": "date-time",
+            "title": "Approved At",
+            "type": "string"
+          },
+          "approved_by": {
+            "$ref": "#/components/schemas/ActorRef"
+          },
+          "corpus_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Corpus Digest",
+            "type": "string"
+          },
+          "generator_version": {
+            "title": "Generator Version",
+            "type": "string"
+          },
+          "owning_scope": {
+            "$ref": "#/components/schemas/OwningScope"
+          },
+          "target_tenant_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Tenant Id"
+          }
+        },
+        "required": [
+          "owning_scope",
+          "corpus_digest",
+          "generator_version",
+          "approved_at",
+          "approved_by"
+        ],
+        "title": "ReplayCorpusResponse",
+        "type": "object"
       },
       "RequestHistoryResponse": {
         "additionalProperties": false,
@@ -8206,6 +10475,479 @@
         "title": "ResolveContextResponse",
         "type": "object"
       },
+      "ResumeCheckpointResponse": {
+        "description": "One recorded step, as resume returns it. Conclusions, never an exchange.",
+        "properties": {
+          "checkpoint_id": {
+            "format": "uuid",
+            "title": "Checkpoint Id",
+            "type": "string"
+          },
+          "goal": {
+            "title": "Goal",
+            "type": "string"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Action"
+          },
+          "open_questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Open Questions",
+            "type": "array"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checkpoint_id",
+          "sequence",
+          "goal",
+          "open_questions",
+          "next_action",
+          "recorded_at"
+        ],
+        "title": "ResumeCheckpointResponse",
+        "type": "object"
+      },
+      "ResumeCitationResponse": {
+        "description": "A resolvable handle to evidence supporting newer learning.",
+        "properties": {
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "ref"
+        ],
+        "title": "ResumeCitationResponse",
+        "type": "object"
+      },
+      "ResumeFeedbackResponse": {
+        "description": "A minimized verdict; reporter identity and free text stay private.",
+        "properties": {
+          "consumed": {
+            "title": "Consumed",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "feedback_id": {
+            "format": "uuid",
+            "title": "Feedback Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "learning_eligible": {
+            "title": "Learning Eligible",
+            "type": "boolean"
+          },
+          "rating": {
+            "title": "Rating",
+            "type": "string"
+          },
+          "receipt_id": {
+            "format": "uuid",
+            "title": "Receipt Id",
+            "type": "string"
+          },
+          "receipt_item_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt Item Id"
+          }
+        },
+        "required": [
+          "feedback_id",
+          "kind",
+          "receipt_id",
+          "receipt_item_id",
+          "rating",
+          "learning_eligible",
+          "created_at",
+          "consumed"
+        ],
+        "title": "ResumeFeedbackResponse",
+        "type": "object"
+      },
+      "ResumeLearningResponse": {
+        "description": "A reviewed claim with the governed serving path's trust contract.",
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "authority": {
+            "title": "Authority",
+            "type": "string"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/ResumeCitationResponse"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "claim_category": {
+            "title": "Claim Category",
+            "type": "string"
+          },
+          "claim_id": {
+            "format": "uuid",
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "human_confirmed": {
+            "title": "Human Confirmed",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "predicate": {
+            "title": "Predicate",
+            "type": "string"
+          },
+          "subject_entity_id": {
+            "format": "uuid",
+            "title": "Subject Entity Id",
+            "type": "string"
+          },
+          "trust": {
+            "title": "Trust",
+            "type": "string"
+          },
+          "trust_note": {
+            "title": "Trust Note",
+            "type": "string"
+          },
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "value": {
+            "title": "Value"
+          }
+        },
+        "required": [
+          "claim_id",
+          "subject_entity_id",
+          "predicate",
+          "value",
+          "claim_category",
+          "confidence",
+          "authority",
+          "valid_from",
+          "valid_to",
+          "as_of",
+          "human_confirmed",
+          "citations",
+          "label",
+          "trust",
+          "trust_note"
+        ],
+        "title": "ResumeLearningResponse",
+        "type": "object"
+      },
+      "ResumeRequestBody": {
+        "description": "The work a caller is picking up.\n\nReferences are `system/namespace/kind/external_id` tuples because that is\nwhat a pipeline holds: its own run id, the pull request it is working on.\nThere is deliberately no transcript flag -- see `context/resume.py`.",
+        "properties": {
+          "checkpoint_bound": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checkpoint Bound"
+          },
+          "feedback_bound": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback Bound"
+          },
+          "learning_bound": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Learning Bound"
+          },
+          "receipt_bound": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receipt Bound"
+          },
+          "reference_bound": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Bound"
+          },
+          "references": {
+            "items": {
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            "minItems": 1,
+            "title": "References",
+            "type": "array"
+          }
+        },
+        "required": [
+          "references"
+        ],
+        "title": "ResumeRequestBody",
+        "type": "object"
+      },
+      "ResumeResponse": {
+        "description": "Everything needed to carry on, and which of three answers this is.\n\n`status` is explicit rather than inferred from empty fields. A caller that\nhas to work out whether an empty checkpoint list means \"new work\", \"you may\nnot see it\" or \"you named two tasks\" will get that wrong, and the wrong\nbranch starts work that already exists.",
+        "properties": {
+          "ambiguous_task_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Ambiguous Task Ids",
+            "type": "array"
+          },
+          "checkpoints": {
+            "items": {
+              "$ref": "#/components/schemas/ResumeCheckpointResponse"
+            },
+            "title": "Checkpoints",
+            "type": "array"
+          },
+          "feedback": {
+            "items": {
+              "$ref": "#/components/schemas/ResumeFeedbackResponse"
+            },
+            "title": "Feedback",
+            "type": "array"
+          },
+          "head_checkpoint_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Head Checkpoint Id"
+          },
+          "head_sequence": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Head Sequence"
+          },
+          "head_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Head Summary"
+          },
+          "learning": {
+            "items": {
+              "$ref": "#/components/schemas/ResumeLearningResponse"
+            },
+            "title": "Learning",
+            "type": "array"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Action"
+          },
+          "open_questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Open Questions",
+            "type": "array"
+          },
+          "receipts": {
+            "items": {
+              "$ref": "#/components/schemas/ReceiptResponse"
+            },
+            "title": "Receipts",
+            "type": "array"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceResponse"
+            },
+            "title": "References",
+            "type": "array"
+          },
+          "status": {
+            "description": "One of `resumed`, `empty`, `ambiguous`.",
+            "title": "Status",
+            "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "truncated": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Truncated",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "task_id",
+          "head_checkpoint_id",
+          "head_sequence",
+          "head_summary",
+          "checkpoints",
+          "receipts",
+          "references",
+          "open_questions",
+          "next_action",
+          "feedback",
+          "learning",
+          "truncated"
+        ],
+        "title": "ResumeResponse",
+        "type": "object"
+      },
       "ReversePromotionRequest": {
         "additionalProperties": false,
         "properties": {
@@ -8233,6 +10975,92 @@
           "status"
         ],
         "title": "ReversePromotionResponse",
+        "type": "object"
+      },
+      "ReviewPackageResponse": {
+        "additionalProperties": false,
+        "description": "Result of `GET {PV}/review-package`: everything a projection\napprover needs to review before signing, and the same object whose\ndigest the approval evidence binds.",
+        "properties": {
+          "artifact_revision_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Artifact Revision Digest",
+            "type": "string"
+          },
+          "artifact_semantics_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Artifact Semantics Digest",
+            "type": "string"
+          },
+          "baseline_diff": {
+            "$ref": "#/components/schemas/BaselineDiffResponse"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "expected_impact_envelope": {
+            "$ref": "#/components/schemas/ExpectedImpactEnvelope"
+          },
+          "field_provenance": {
+            "items": {
+              "$ref": "#/components/schemas/FieldProvenance"
+            },
+            "title": "Field Provenance",
+            "type": "array"
+          },
+          "judgment_authors": {
+            "items": {
+              "$ref": "#/components/schemas/JudgmentAuthor"
+            },
+            "title": "Judgment Authors",
+            "type": "array"
+          },
+          "prose_readback": {
+            "title": "Prose Readback",
+            "type": "string"
+          },
+          "reach_confirmations": {
+            "$ref": "#/components/schemas/ReachConfirmationResponse"
+          },
+          "review_package_digest": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Review Package Digest",
+            "type": "string"
+          },
+          "risk_algorithm_version": {
+            "title": "Risk Algorithm Version",
+            "type": "string"
+          },
+          "risk_classification": {
+            "$ref": "#/components/schemas/RiskClassification"
+          },
+          "semantic_tests": {
+            "$ref": "#/components/schemas/SemanticTestResultResponse"
+          },
+          "submission_identity": {
+            "$ref": "#/components/schemas/ActorRef"
+          }
+        },
+        "required": [
+          "review_package_digest",
+          "artifact_semantics_digest",
+          "artifact_revision_digest",
+          "baseline_diff",
+          "field_provenance",
+          "citations",
+          "judgment_authors",
+          "prose_readback",
+          "semantic_tests",
+          "expected_impact_envelope",
+          "risk_classification",
+          "risk_algorithm_version",
+          "reach_confirmations",
+          "submission_identity"
+        ],
+        "title": "ReviewPackageResponse",
         "type": "object"
       },
       "ReviewProposalRequest": {
@@ -8268,6 +11096,72 @@
         "title": "ReviewProposalRequest",
         "type": "object"
       },
+      "RevisionLifecycleState": {
+        "description": "Mirrors the `LIFECYCLE_*` constants in\n`contextplane.arc.service.artifact_integrity` (`draft`, `active`,\n`superseded`, `revoked`, `expired`). Transcribed rather than imported:\n`api/schemas/` does not depend on `arc/service/` anywhere else in this\ncodebase, and importing a service module's constants here would be a\nnew, one-off exception to that direction.",
+        "enum": [
+          "draft",
+          "active",
+          "superseded",
+          "revoked",
+          "expired"
+        ],
+        "title": "RevisionLifecycleState",
+        "type": "string"
+      },
+      "RevisionResponse": {
+        "additionalProperties": false,
+        "description": "A revision's lifecycle and operational-integrity state.",
+        "properties": {
+          "activated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activated At"
+          },
+          "artifact_id": {
+            "format": "uuid",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "lifecycle_state": {
+            "$ref": "#/components/schemas/RevisionLifecycleState"
+          },
+          "operational_integrity_state": {
+            "$ref": "#/components/schemas/OperationalIntegrityState"
+          },
+          "revision_id": {
+            "format": "uuid",
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          }
+        },
+        "required": [
+          "revision_id",
+          "artifact_id",
+          "lifecycle_state",
+          "operational_integrity_state"
+        ],
+        "title": "RevisionResponse",
+        "type": "object"
+      },
       "RevokeRequest": {
         "additionalProperties": false,
         "properties": {
@@ -8286,7 +11180,7 @@
       },
       "RevokeVerifierRequest": {
         "additionalProperties": false,
-        "description": "Body for `POST /approval-evidence/{evidence_id}/revoke`.\n\nNot the verifier-revoke route below -- that one moved to the wire\n`ReasonRequest` per Appendix A.1's contract for D1. This narrower model\nstays for evidence revocation, which AAS-T13's contract does not touch.",
+        "description": "Body for `POST /approval-evidence/{evidence_id}/revoke`.\n\nNot the verifier-revoke route below -- that route was migrated to the\nshared `ReasonRequest` wire model when verifier enrollment was built.\nThis narrower model stays for evidence revocation, which that\nmigration left untouched.",
         "properties": {
           "reason": {
             "maxLength": 500,
@@ -8317,6 +11211,22 @@
         ],
         "title": "RiskClassification",
         "type": "string"
+      },
+      "RouteCurationCaseRequest": {
+        "additionalProperties": false,
+        "description": "Who becomes accountable for deciding the case.\n\nText rather than an actor id: an accountable owner can be a rota or a team\naddress that has no actor row of its own.",
+        "properties": {
+          "owner_id": {
+            "minLength": 1,
+            "title": "Owner Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner_id"
+        ],
+        "title": "RouteCurationCaseRequest",
+        "type": "object"
       },
       "SearchResponse": {
         "description": "Response for the search endpoint -- bounded by `top_k`, so `total` is an exact count, not an estimate.",
@@ -8561,6 +11471,310 @@
           "visibility"
         ],
         "title": "SetVisibilityRequest",
+        "type": "object"
+      },
+      "SignalIngestRequest": {
+        "additionalProperties": false,
+        "description": "One observation a producer reports.\n\n`source_id` names a registered source rather than a system name: the\nregistration is what carries the declared authority and the ingest ceiling,\nand a free-text name would name no registration at all.",
+        "properties": {
+          "classification": {
+            "enum": [
+              "public",
+              "internal",
+              "confidential",
+              "restricted"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "event_time": {
+            "description": "When the source says it happened. Timezone-aware.",
+            "format": "date-time",
+            "title": "Event Time",
+            "type": "string"
+          },
+          "evidence_handle": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A handle to authorized evidence held elsewhere. Exactly one of payload or evidence_handle.",
+            "title": "Evidence Handle"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When this stops being usable as current. Absent is not the same as never expires.",
+            "title": "Expires At"
+          },
+          "idempotency_key": {
+            "description": "This submission's own key. Distinct from source_event_id: one occurrence may be resubmitted.",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "observed_time": {
+            "description": "When the producer learned of it. Timezone-aware.",
+            "format": "date-time",
+            "title": "Observed Time",
+            "type": "string"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The allowlisted projection. Exactly one of payload or evidence_handle.",
+            "title": "Payload"
+          },
+          "producer_id": {
+            "description": "Who produced the observation, in the source's own id space.",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Producer Id",
+            "type": "string"
+          },
+          "producer_type": {
+            "enum": [
+              "human",
+              "agent",
+              "external"
+            ],
+            "title": "Producer Type",
+            "type": "string"
+          },
+          "project_key": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Project scope, when the producer knows one.",
+            "title": "Project Key"
+          },
+          "references": {
+            "description": "The external work this observation is about. Empty is legal for a diagnostic observation.",
+            "items": {
+              "$ref": "#/components/schemas/SignalReference"
+            },
+            "maxItems": 32,
+            "title": "References",
+            "type": "array"
+          },
+          "schema_version": {
+            "default": "external_signal.v1",
+            "description": "The envelope contract version. `external_signal.v1` today.",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_event_id": {
+            "description": "That system's identifier for this occurrence. Trimmed, never case-folded.",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Source Event Id",
+            "type": "string"
+          },
+          "source_id": {
+            "description": "The registered source this observation arrives through.",
+            "format": "uuid",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_system": {
+            "description": "The external system's own name for itself. Folded to lowercase before the write.",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Source System",
+            "type": "string"
+          },
+          "team_key": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team scope, when the producer knows one.",
+            "title": "Team Key"
+          }
+        },
+        "required": [
+          "source_id",
+          "source_system",
+          "source_event_id",
+          "producer_id",
+          "producer_type",
+          "idempotency_key",
+          "classification",
+          "event_time",
+          "observed_time"
+        ],
+        "title": "SignalIngestRequest",
+        "type": "object"
+      },
+      "SignalIngestResponse": {
+        "description": "What the caller is told once a submission is admitted or recognised.\n\n`replayed` is the field a client retrying a dropped response reads: a retry\ncan tell it found the first write rather than making a second one. The status\ncode says the same thing (201 created, 200 recognised); the field is here so\na client that only reads the body still knows.",
+        "properties": {
+          "authority": {
+            "description": "Read off the source's declared policy, never off the request.",
+            "title": "Authority",
+            "type": "string"
+          },
+          "content_digest": {
+            "description": "What makes a redelivery decidable without re-sending the body.",
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "ingested_at": {
+            "description": "Server-assigned. One clock read per submission.",
+            "format": "date-time",
+            "title": "Ingested At",
+            "type": "string"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/NormalizedSignalReference"
+            },
+            "title": "References",
+            "type": "array"
+          },
+          "replayed": {
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "signal_id": {
+            "format": "uuid",
+            "title": "Signal Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "signal_id",
+          "ingested_at",
+          "authority",
+          "content_digest",
+          "replayed",
+          "references"
+        ],
+        "title": "SignalIngestResponse",
+        "type": "object"
+      },
+      "SignalReference": {
+        "additionalProperties": false,
+        "description": "One piece of external work an observation is about.\n\nClosed and complete for the same reason the reference contract itself is:\n`source_system`, `source_namespace`, `kind` and `external_id` are the\ncollision scope, so a reference missing one of them collides with everything\nelse missing it. Classification and the *external* authority are required\nbecause a reference nobody can weigh is not evidence of anything.",
+        "properties": {
+          "authorized_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "A URI a reader is permitted to follow.",
+            "title": "Authorized Uri"
+          },
+          "classification": {
+            "enum": [
+              "public",
+              "internal",
+              "confidential",
+              "restricted"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "external_authority": {
+            "description": "The authority in the external system. Never this service's own.",
+            "minLength": 1,
+            "title": "External Authority",
+            "type": "string"
+          },
+          "external_id": {
+            "description": "The id within that system. Trimmed, never case-folded.",
+            "minLength": 1,
+            "title": "External Id",
+            "type": "string"
+          },
+          "kind": {
+            "description": "What the reference names, e.g. `commit`, `run`, `deployment`.",
+            "minLength": 1,
+            "title": "Kind",
+            "type": "string"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the source observed this reference. Absent when it cannot report one.",
+            "title": "Observed At"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Immutable revision, when the source records one.",
+            "title": "Revision"
+          },
+          "source_namespace": {
+            "description": "Namespace inside that system, e.g. `acme/app`.",
+            "minLength": 1,
+            "title": "Source Namespace",
+            "type": "string"
+          },
+          "source_system": {
+            "description": "Owning system, e.g. `github`. Folded to lowercase.",
+            "minLength": 1,
+            "title": "Source System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_system",
+          "source_namespace",
+          "kind",
+          "external_id",
+          "classification",
+          "external_authority"
+        ],
+        "title": "SignalReference",
         "type": "object"
       },
       "SignatureAlgorithm": {
@@ -10330,6 +13544,70 @@
         "title": "TriggerResponse",
         "type": "object"
       },
+      "TrustResponse": {
+        "description": "All eight trust labels. Complete or absent, never partial.\n\nPresent for every non-canonical item and absent for every canonical one --\nthe contract enforces that, and this shape carries whichever it was given.",
+        "properties": {
+          "assertion_kind": {
+            "title": "Assertion Kind",
+            "type": "string"
+          },
+          "attribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attribution"
+          },
+          "authority": {
+            "title": "Authority",
+            "type": "string"
+          },
+          "classification": {
+            "title": "Classification",
+            "type": "string"
+          },
+          "freshness": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Freshness"
+          },
+          "mutability": {
+            "title": "Mutability",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "trust": {
+            "title": "Trust",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trust",
+          "source",
+          "assertion_kind",
+          "authority",
+          "freshness",
+          "mutability",
+          "attribution",
+          "classification"
+        ],
+        "title": "TrustResponse",
+        "type": "object"
+      },
       "UpdateEntityRequest": {
         "description": "Bag of attribute updates applied bi-temporally; does not change entity_type or name directly.",
         "properties": {
@@ -10834,14 +14112,14 @@
     "securitySchemes": {
       "bearerAuth": {
         "bearerFormat": "JWT",
-        "description": "Paste a JWT issued by an OpenID Connect provider.\n\n- **Local development:** run `make dev-token` to seed the dev tenant + mock-IDP client, then exchange the client credentials for a JWT via `POST {MOCK_OIDC_URL}/default/token` with `grant_type=client_credentials` and `scope=contextplane`.\n- **Production:** present a JWT from the IdP at `OIDC_DISCOVERY_URL`. The entitlement service resolves grants from the JWT's `sub` claim; the tenant + actor are JIT-materialised on first sight.",
+        "description": "Paste a JWT issued by an OpenID Connect provider.\n\n- **Local development:** run `make dev-token` to seed the dev tenant + mock-IDP client, then exchange the client credentials for a JWT via `POST {MOCK_OIDC_URL}/default/token` with `grant_type=client_credentials` and `scope=registry`.\n- **Production:** present a JWT from the IdP at `OIDC_DISCOVERY_URL`. The entitlement service resolves grants from the JWT's `sub` claim; the tenant + actor are JIT-materialised on first sight.",
         "scheme": "bearer",
         "type": "http"
       }
     }
   },
   "info": {
-    "description": "**contextplane** \u2014 semantic + temporal retrieval of an organisation's\nengineering capabilities, with cross-tenant adoption, subscriptions,\nnotifications, and a breaking-change advisor.\n\n### Authentication & tenancy\n\nEvery endpoint is **tenant-scoped**. The calling tenant is resolved\nfrom the `Authorization: Bearer <JWT>` header: the JWT is validated\nagainst the OIDC discovery URL and the entitlement service returns the\ngrants that anchor the `TenantContext`. No endpoint ever returns data\nfrom a tenant other than the caller's \u2014 cross-tenant relationships go\nthrough explicit adoption events (see the `adoptions` section).\n\n### Roles within a tenant\n\n| Role       | Typical use                                                     |\n|------------|-----------------------------------------------------------------|\n| `consumer` | Read capabilities, subscribe to events, list notifications.     |\n| `producer` | Create / update / publish capabilities owned by this tenant.    |\n| `admin`    | Manage this tenant's vocabulary, schemas, PII policies, RBAC.   |\n| `auditor`  | Read-only access to the audit log + notification history.       |\n\n### `admin: \u2026` endpoints are tenant-admin, not service-admin\n\nSections tagged `admin: \u2026` require the **`admin` role within the calling\ntenant**. They are NOT service-operator surfaces. There is no cross-tenant\nadmin surface in the API. Service operators (the people running the\ndeployment) interact with the system through environment variables, helm\nvalues, and Alembic migrations \u2014 not REST.\n\n### HTTP method conventions\n\nStandard verbs (`PATCH`, `DELETE`) are the canonical surface. Operators\nbehind enterprise gateways that strip non-GET/POST verbs can opt into\nPOST-tunneled aliases (`POST .../{id}:update`, `:delete`, etc.) by\nsetting `REGISTRY_HTTP_METHODS_MODE=both`. The aliases are disabled by\ndefault.\n",
+    "description": "**Context Plane** \u2014 semantic + temporal retrieval of an organisation's\nengineering capabilities, with cross-tenant adoption, subscriptions,\nnotifications, and a breaking-change advisor.\n\n### Authentication & tenancy\n\nEvery endpoint is **tenant-scoped**. The calling tenant is resolved\nfrom the `Authorization: Bearer <JWT>` header: the JWT is validated\nagainst the OIDC discovery URL and the entitlement service returns the\ngrants that anchor the `TenantContext`. No endpoint ever returns data\nfrom a tenant other than the caller's \u2014 cross-tenant relationships go\nthrough explicit adoption events (see the `adoptions` section).\n\n### Roles within a tenant\n\n| Role       | Typical use                                                     |\n|------------|-----------------------------------------------------------------|\n| `consumer` | Read capabilities, subscribe to events, list notifications.     |\n| `producer` | Create / update / publish capabilities owned by this tenant.    |\n| `admin`    | Manage this tenant's vocabulary, schemas, PII policies, RBAC.   |\n| `auditor`  | Read-only access to the audit log + notification history.       |\n\n### `admin: \u2026` endpoints are tenant-admin, not service-admin\n\nSections tagged `admin: \u2026` require the **`admin` role within the calling\ntenant**. They are NOT service-operator surfaces. There is no cross-tenant\nadmin surface in the API. Service operators (the people running the\ndeployment) interact with the system through environment variables, helm\nvalues, and Alembic migrations \u2014 not REST.\n\n### HTTP method conventions\n\nStandard verbs (`PATCH`, `DELETE`) are the canonical surface. Operators\nbehind enterprise gateways that strip non-GET/POST verbs can opt into\nPOST-tunneled aliases (`POST .../{id}:update`, `:delete`, etc.) by\nsetting `CONTEXTPLANE_HTTP_METHODS_MODE=both`. The aliases are disabled by\ndefault.\n",
     "title": "contextplane",
     "version": "0.1.0"
   },
@@ -14207,6 +17485,48 @@
         ]
       }
     },
+    "/v1/arc/admin/observation-replay-corpora": {
+      "post": {
+        "description": "Approve a replay corpus for the ADR 041 Sec.5 seven-day fallback.\n\nThe digest named here is one `QualificationService.compute` already\nreported back (via `QualificationResponse.reason_codes`, once a\ncandidate reaches its seven-day cap still insufficient) -- see\n`replay_corpus.py`'s own module docstring for why this route accepts a\ndigest rather than a corpus body, and how an operator or tenant admin\nknows which digest to approve.",
+        "operationId": "approve_observation_replay_corpus_v1_arc_admin_observation_replay_corpora_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplayCorpusApprovalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplayCorpusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve Observation Replay Corpus",
+        "tags": [
+          "arc: admin"
+        ]
+      }
+    },
     "/v1/arc/admin/operator-identity": {
       "get": {
         "description": "Whether the caller holds deployment operator identity, and what this\ndeployment is actually able to do.\n\nExists so an operator can find out *before* attempting a governance\nwrite, rather than discovering it from a 403 in the middle of one. It\nreports only a boolean and the allowlist fingerprint -- never the\nallowlist, and never anyone else's membership.\n\nThe capability flags are here rather than annotated onto each record they\naffect. What needs qualifying is a deployment-wide claim, read now; a\ncaveat carried inside individual receipts is read one record at a time, at\naudit time, possibly years later. This is the one place an operator already\nchecks before use.",
@@ -14251,7 +17571,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ActivateRequest"
+                "$ref": "#/components/schemas/AdminActivateRequest"
               }
             }
           },
@@ -14531,6 +17851,60 @@
         ]
       }
     },
+    "/v1/arc/approval-challenges/{approval_challenge_id}/complete": {
+      "post": {
+        "description": "`POST /v1/arc/approval-challenges/{id}/complete`.",
+        "operationId": "complete_approval_challenge_v1_arc_approval_challenges__approval_challenge_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "approval_challenge_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Approval Challenge Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalCompletionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectionApprovalEvidenceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Approval Challenge",
+        "tags": [
+          "arc: approval"
+        ]
+      }
+    },
     "/v1/arc/artifacts": {
       "post": {
         "operationId": "create_artifact_family_v1_arc_artifacts_post",
@@ -14712,7 +18086,7 @@
     },
     "/v1/arc/metadata": {
       "get": {
-        "description": "Published key history, so an external verifier can check a receipt.\n\nDeliberately unauthenticated: it carries only public keys and profile\nnames, and a verifier holding a receipt may not be a contextplane caller at\nall. Retired and compromised keys stay listed -- a receipt signed two\nyears ago must remain verifiable, and dropping a compromised key would\nboth break that and hide the compromise.",
+        "description": "Published key history, so an external verifier can check a receipt.\n\nDeliberately unauthenticated: it carries only public keys and profile\nnames, and a verifier holding a receipt may not be a registry caller at\nall. Retired and compromised keys stay listed -- a receipt signed two\nyears ago must remain verifiable, and dropping a compromised key would\nboth break that and hide the compromise.",
         "operationId": "get_verification_metadata_v1_arc_metadata_get",
         "responses": {
           "200": {
@@ -14890,6 +18264,137 @@
         ]
       }
     },
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/approval-challenges": {
+      "post": {
+        "description": "`POST {PV}/approval-challenges`.\n\nAn omitted `Idempotency-Key` is not refused the way source admission\nrefuses one (Appendix A.5 states idempotency-key support as something\nevery mutation route *accepts*, not universally *requires*): a caller\nthat omits it gets a fresh, single-use key minted here, so the call\nstill succeeds -- it simply carries no retry-deduplication of its own.",
+        "operationId": "create_approval_challenge_v1_arc_proposals__proposal_id__versions__proposal_version__approval_challenges_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "proposal_version",
+            "required": true,
+            "schema": {
+              "title": "Proposal Version",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovalChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovalChallengeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Approval Challenge",
+        "tags": [
+          "arc: approval"
+        ]
+      }
+    },
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/baseline-diff": {
+      "get": {
+        "operationId": "get_baseline_diff_v1_arc_proposals__proposal_id__versions__proposal_version__baseline_diff_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "proposal_version",
+            "required": true,
+            "schema": {
+              "title": "Proposal Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BaselineDiffResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Baseline Diff",
+        "tags": [
+          "arc: approval"
+        ]
+      }
+    },
     "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/draft": {
       "post": {
         "description": "`POST {PV}/draft`: ask the drafter sandbox for a citation-bound\npatch.\n\nRefuses with `arc_drafter_model_disabled` on every deployment running\nthe committed decision artifact (`outcome: human_only`) -- see\n`DrafterService.draft`'s own docstring for why that refusal is\nprovably the first thing this call does.",
@@ -14950,6 +18455,175 @@
         "summary": "Draft Proposal Version",
         "tags": [
           "arc: drafting"
+        ]
+      }
+    },
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/observation": {
+      "get": {
+        "description": "`GET {PV}/observation`. Carries aggregate counters and cohort\ndigests only -- see `queries/observation.py::load_aggregate_counters`\nfor why a global candidate's response can never carry per-tenant\ndetail.",
+        "operationId": "get_observation_status_v1_arc_proposals__proposal_id__versions__proposal_version__observation_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "proposal_version",
+            "required": true,
+            "schema": {
+              "title": "Proposal Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Observation Status",
+        "tags": [
+          "arc: observation"
+        ]
+      }
+    },
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/observation/accept": {
+      "post": {
+        "description": "`POST {PV}/observation/accept`. Refuses a non-positive decision,\nthe submitter accepting their own submission, and (for a global-\nmandatory candidate) the approver accepting in place of a third\ndistinct activator -- see `QualificationService.accept`'s own\ndocstring for each rule.",
+        "operationId": "accept_qualification_v1_arc_proposals__proposal_id__versions__proposal_version__observation_accept_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "proposal_version",
+            "required": true,
+            "schema": {
+              "title": "Proposal Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QualificationAcceptanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualificationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept Qualification",
+        "tags": [
+          "arc: observation"
+        ]
+      }
+    },
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/observation/qualify": {
+      "post": {
+        "description": "`POST {PV}/observation/qualify`. System-computed: freezes the\ncohort on first call, closes its window at the first correct boundary,\nand returns the current decision -- `insufficient`/`failed` included,\nnever raised as an error, per `QualificationResponse.decision`'s own\nclosed vocabulary.",
+        "operationId": "qualify_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__observation_qualify_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "proposal_version",
+            "required": true,
+            "schema": {
+              "title": "Proposal Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QualificationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Qualify Proposal Version",
+        "tags": [
+          "arc: observation"
         ]
       }
     },
@@ -15078,6 +18752,59 @@
         ]
       }
     },
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/review-package": {
+      "get": {
+        "description": "`GET {PV}/review-package`: everything a projection approver reads\nbefore signing, and the same object whose digest the approval evidence\nbinds. `ReviewPackageService.get_review_package` always recomputes `S`,\n`R`, and `A` from authoritative rows -- see that service's own module\ndocstring for which persisted digest columns it cross-checks rather\nthan trusts.",
+        "operationId": "get_review_package_v1_arc_proposals__proposal_id__versions__proposal_version__review_package_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "proposal_version",
+            "required": true,
+            "schema": {
+              "title": "Proposal Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewPackageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Review Package",
+        "tags": [
+          "arc: approval"
+        ]
+      }
+    },
     "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/semantic-tests": {
       "post": {
         "operationId": "run_semantic_tests_v1_arc_proposals__proposal_id__versions__proposal_version__semantic_tests_post",
@@ -15142,7 +18869,7 @@
     },
     "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/submit": {
       "post": {
-        "description": "`POST {PV}/submit`.\n\nRefuses on every deployment today with `arc_operational_integrity_pending`\n-- see `ArtifactMaterialisationService`'s own module docstring for why --\nbefore this handler, or the service method it calls, touches a session.\nOnce the two collaborators it needs are wired, the same call freezes the\nversion, materialises its bound draft revision, and returns a fresh\nread of it, matching every other transition route's fresh-read\nconvention.",
+        "description": "`POST {PV}/submit`.\n\nFreezes the version, materialises its bound draft revision, and\nreturns a fresh read of it, matching every other transition route's\nfresh-read convention. See `ArtifactMaterialisationService.submit`'s\nown docstring for the freeze/materialise/bijection/audit sequence this\ncall runs inside one transaction.",
         "operationId": "submit_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__submit_post",
         "parameters": [
           {
@@ -15575,6 +19302,158 @@
         "summary": "Resolve Context",
         "tags": [
           "arc"
+        ]
+      }
+    },
+    "/v1/arc/revisions/{revision_id}/activate": {
+      "post": {
+        "description": "`POST /v1/arc/revisions/{revision_id}/activate`. Succeeds once every\none of the ten named predicates is satisfied for the current\ntransaction; any unmet predicate refuses with\n`arc_activation_predicate_failed`. See `contextplane.arc.service.activation`'s\nown module docstring for the full predicate list and lock order.",
+        "operationId": "activate_revision_v1_arc_revisions__revision_id__activate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Activate Revision",
+        "tags": [
+          "arc: activation"
+        ]
+      }
+    },
+    "/v1/arc/revisions/{revision_id}/activation-eligibility": {
+      "get": {
+        "description": "`GET /v1/arc/revisions/{revision_id}/activation-eligibility`. Always\nreports all ten predicates, in fixed order -- see `ActivationService.\nget_eligibility`'s own docstring for why the report is computed as if\nthe calling principal were the one activating.",
+        "operationId": "get_activation_eligibility_v1_arc_revisions__revision_id__activation_eligibility_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivationEligibilityResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Activation Eligibility",
+        "tags": [
+          "arc: activation"
+        ]
+      }
+    },
+    "/v1/arc/revisions/{revision_id}/revoke": {
+      "post": {
+        "description": "`POST /v1/arc/revisions/{revision_id}/revoke`. Delegates to the\nshared lifecycle transition every revision -- authored or not -- uses;\nsee `ActivationService.revoke`'s own docstring.",
+        "operationId": "revoke_revision_v1_arc_revisions__revision_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "revision_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevisionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Revision",
+        "tags": [
+          "arc: activation"
         ]
       }
     },
@@ -17585,6 +21464,49 @@
         ]
       }
     },
+    "/v1/checkpoints/by-digest/{digest}": {
+      "get": {
+        "description": "One checkpoint by content digest.\n\nAddressed outside any task path on purpose: a digest names the content, and\na caller holding one from a receipt does not necessarily know which task it\nbelongs to. Authorization is unchanged -- the service still refuses a\ncheckpoint on a task this actor does not participate in.",
+        "operationId": "get_checkpoint_by_digest_v1_checkpoints_by_digest__digest__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "digest",
+            "required": true,
+            "schema": {
+              "title": "Digest",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckpointResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Checkpoint By Digest",
+        "tags": [
+          "task memory"
+        ]
+      }
+    },
     "/v1/concepts": {
       "post": {
         "operationId": "_create_v1_concepts_post",
@@ -17807,6 +21729,132 @@
         "summary": " Patch",
         "tags": [
           "concepts"
+        ]
+      }
+    },
+    "/v1/context/feedback": {
+      "post": {
+        "description": "Report feedback about a served answer, bound to exactly what it is about.\n\nItem-specific feedback cites a receipt and an exact item on it; receipt-level\ncites a receipt and no item; a diagnostic observation cites neither and is\nnever learning-eligible. The binding is resolved against the receipt's own\nrows before anything is written, so an item belonging to a different receipt\nis refused rather than stored.\n\nNothing is inferred: no rating is derived from an external outcome, and a\nsubmission that is refused leaves no row behind.",
+        "operationId": "record_context_feedback_v1_context_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextFeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextFeedbackResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Context Feedback",
+        "tags": [
+          "context-feedback"
+        ]
+      }
+    },
+    "/v1/context/resolve": {
+      "post": {
+        "description": "Resolve one context request into the four-block envelope.\n\nThe clock is read once, here, and passed down. Every arm evaluates \"active\nnow\" against that one moment, so a request cannot authorize on one side of a\ngrant's expiry and read on the other -- and the receipt records the same\ninstant the answer was resolved at.",
+        "operationId": "resolve_context_v1_context_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextResolveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContextEnvelopeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve Context",
+        "tags": [
+          "context"
+        ]
+      }
+    },
+    "/v1/context/resume": {
+      "post": {
+        "description": "Pick up the named work, within bounds.\n\nA POST because the reference list is the request body and can carry several\ntuples; nothing here mutates. 200 for all three outcomes -- ambiguous and\nempty are answers, not errors, and a 4xx would make a caller retry a request\nthat was correctly formed.",
+        "operationId": "resume_context_v1_context_resume_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumeRequestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resume Context",
+        "tags": [
+          "context receipts"
         ]
       }
     },
@@ -18378,6 +22426,82 @@
         "summary": "Find integrations that connect two capabilities",
         "tags": [
           "integrations"
+        ]
+      }
+    },
+    "/v1/learning/aggregates": {
+      "get": {
+        "description": "Every served metric over one window, each already floored.\n\nAll metrics in one response rather than a metric-per-path: a caller that had to\nname a metric would be able to ask for exactly the one whose cells are thin, and\nrepeat that across windows until a suppressed cell was bracketed. Serving the\nwhole set over one window makes that probing no cheaper than reading everything.",
+        "operationId": "read_aggregates_v1_learning_aggregates_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "window_days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 400,
+              "minimum": 1,
+              "title": "Window Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BreakdownOut"
+                  },
+                  "title": "Response Read Aggregates V1 Learning Aggregates Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Feedback and learning aggregates for this tenant",
+        "tags": [
+          "learning-reads"
+        ]
+      }
+    },
+    "/v1/learning/metrics": {
+      "get": {
+        "description": "The closed metric set, so a client discovers it rather than guessing.",
+        "operationId": "list_metrics_v1_learning_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "title": "Response List Metrics V1 Learning Metrics Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Which aggregate metrics this deployment serves",
+        "tags": [
+          "learning-reads"
         ]
       }
     },
@@ -19429,6 +23553,326 @@
         ]
       }
     },
+    "/v1/memory/contradiction-groups": {
+      "get": {
+        "description": "Open contradictions in the caller's tenant, one entry per axis.\n\nUnpaginated, unlike every list route around it, and deliberately: the result\nis one row per *unresolved* disagreement axis in one tenant, which the\ncuration queue already surfaces under its own `contested` reason and which\ncuration drains. Detection also caps how many pairs a single axis can\nproduce, so no one subject can inflate this into an unbounded read.\n\nA plain read, so nothing goes through `HttpMethodRouter`.",
+        "operationId": "list_contradiction_groups_v1_memory_contradiction_groups_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "predicate",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Predicate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContradictionGroupListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Contradiction Groups",
+        "tags": [
+          "memory curation"
+        ]
+      }
+    },
+    "/v1/memory/curation-cases": {
+      "get": {
+        "description": "Contradiction cases in the caller's tenant, oldest first.\n\nSame keyset shape as the queue route above, on `(created_at, case_id)`: an\naged contradiction is the one worth surfacing, and a queue whose tail is\nnever reached is a queue that queued for nothing.\n\nThe query parameter is `status`; the handler argument is `case_status`\nbecause `status` is this module's imported `fastapi.status`, and shadowing it\ninside one handler would break the `build_error` calls in the same function.",
+        "operationId": "list_curation_cases_v1_memory_curation_cases_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationCaseListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Curation Cases",
+        "tags": [
+          "memory curation"
+        ]
+      },
+      "post": {
+        "description": "Put one contradiction axis in front of a person.\n\nIdempotent while a case on the same axis is unresolved, and it returns the\nalready-open case rather than refusing: re-detecting the same contradiction\nis the normal path, and a second row would split one disagreement into two\nentries that two owners could decide differently. `201` is therefore the\nstatus for \"there is a case on this axis\", not a promise that this call is\nwhat created it -- the same shape the idempotent creates elsewhere in this\nsurface use.\n\nA collection create with no alternate verb, so it is a plain `POST`.",
+        "operationId": "open_curation_case_v1_memory_curation_cases_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenCurationCaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationCaseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open Curation Case",
+        "tags": [
+          "memory curation"
+        ]
+      }
+    },
+    "/v1/memory/curation-cases/{case_id}": {
+      "get": {
+        "description": "One case, if it belongs to the caller's tenant.\n\nA case in another tenant answers exactly as one that does not exist, so a\ncase id cannot confirm that somebody else is reviewing a contradiction.",
+        "operationId": "get_curation_case_v1_memory_curation_cases__case_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationCaseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Curation Case",
+        "tags": [
+          "memory curation"
+        ]
+      }
+    },
+    "/v1/memory/curation-cases/{case_id}:disposition": {
+      "post": {
+        "description": "Record what the accountable owner decided, and on whose authority.\n\nAuthorization is the service's, not this route's: only the owner the case is\nrouted to may decide it, because being able to read a case is not authority\nto settle it. That check is what makes \"routed to an owner\" mean anything, so\nit lives with the write it guards rather than being re-derived here.\n\nNothing here performs the write a `propose_*` disposition asks for. The\nsurfaces that own canonical facts, runbooks, and agent-readiness artifacts\neach have their own approval contract; collapsing \"decided\" and \"written\"\ninto one moment is the confusion an accountable owner exists to prevent.",
+        "operationId": "record_case_disposition_v1_memory_curation_cases__case_id__disposition_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordDispositionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationCaseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Case Disposition",
+        "tags": [
+          "memory curation"
+        ]
+      }
+    },
+    "/v1/memory/curation-cases/{case_id}:route": {
+      "post": {
+        "description": "Name the person accountable for deciding this case.\n\nRe-routing an already-routed case is allowed and audited -- escalation is a\nreal move, and a queue that could not hand a case on would strand it on\nwhoever it reached first. A resolved case is refused rather than reopened.\n\nA curator action with no alternate HTTP verb, so it is a plain `POST` for\nthe same reason `:link` and `:discard` are.",
+        "operationId": "route_curation_case_v1_memory_curation_cases__case_id__route_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Case Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteCurationCaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationCaseResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Route Curation Case",
+        "tags": [
+          "memory curation"
+        ]
+      }
+    },
     "/v1/memory/curation-queue": {
       "get": {
         "description": "Everything needing curator attention in the caller's tenant.\n\n`?counts=true` returns the per-reason tally instead of the item list --\nthe number a curator needs to see before opening the queue is not the\nsame as the page they open, and a tally needs no pagination of its own.\n\nNot registered through `HttpMethodRouter`: this is a plain read, always\nexposed, with nothing to switch between across deployment modes.",
@@ -19940,7 +24384,7 @@
         ]
       },
       "post": {
-        "description": "Append one immutable event.\n\nThe session is not created here; it exists because its events do. There is\nno update route: an event is write-once, removable only by the author, by\nretention, or by an erasure request.\n\nThe body is scanned before storage and a blocking tenant policy refuses the\nwrite. `metadata` is not scanned -- see the request model.",
+        "description": "Append one immutable event.\n\nThe session is not created here; it exists because its events do. There is\nno update route: an event is write-once, removable only by the author, by\nretention, or by an erasure request.\n\nThe body goes through admission before storage: content carrying a\nprohibited class is refused with a 422 on a deployment that has configured\nnothing, rather than detected and stored. `metadata` is not scanned -- see\nthe request model.",
         "operationId": "record_event_v1_memory_sessions__session_id__events_post",
         "parameters": [
           {
@@ -20580,6 +25024,236 @@
         ]
       }
     },
+    "/v1/receipts/by-reference": {
+      "get": {
+        "description": "Every resolution citing one piece of external work, newest first.\n\nThe read somebody makes starting from a commit or a build, which is how a\nreceipt is reached in practice -- nobody holds a receipt id.",
+        "operationId": "receipts_by_reference_v1_receipts_by_reference_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "source_system",
+            "required": true,
+            "schema": {
+              "title": "Source System",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source_namespace",
+            "required": true,
+            "schema": {
+              "title": "Source Namespace",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "external_id",
+            "required": true,
+            "schema": {
+              "title": "External Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Receipts By Reference",
+        "tags": [
+          "context receipts"
+        ]
+      }
+    },
+    "/v1/receipts/{receipt_id}": {
+      "get": {
+        "description": "One receipt by id.\n\nMissing and forbidden are the same 404 by construction: the service's tenant\npredicate is in the SELECT, so a foreign receipt returns nothing rather than\nbeing found and refused -- and a distinguishable refusal would confirm the\nid exists.",
+        "operationId": "get_receipt_v1_receipts__receipt_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "receipt_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Receipt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Receipt",
+        "tags": [
+          "context receipts"
+        ]
+      }
+    },
+    "/v1/receipts/{receipt_id}/exclusions": {
+      "get": {
+        "description": "What one resolution withheld, optionally for one block.\n\nThe read that answers \"was there more than this\". Published because a\nreceipt that records its withholding and never shows it leaves a reader\nunable to tell a thin answer from a filtered one.",
+        "operationId": "get_receipt_exclusions_v1_receipts__receipt_id__exclusions_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "receipt_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Receipt Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "block",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Block"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExclusionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Receipt Exclusions",
+        "tags": [
+          "context receipts"
+        ]
+      }
+    },
+    "/v1/receipts/{receipt_id}/references": {
+      "get": {
+        "description": "What one resolution claimed to be about. The read an auditor makes.",
+        "operationId": "get_receipt_references_v1_receipts__receipt_id__references_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "receipt_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Receipt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferenceListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Receipt References",
+        "tags": [
+          "context receipts"
+        ]
+      }
+    },
     "/v1/search": {
       "get": {
         "description": "Hybrid search across capabilities, concepts, operations, and artifact bodies.\n\nEach result cites the artifacts that made it match; follow a citation's\n``_links.self`` to read one. ``?view=audit`` additionally returns those\nartifacts inline in their full audit shape.",
@@ -20704,6 +25378,48 @@
         ]
       }
     },
+    "/v1/signals": {
+      "post": {
+        "description": "Report one observation from a registered source.\n\nRecords what the source said, at the three times involved, under the\nauthority that source declared. It concludes nothing: no success, no failure,\nno causal link, and no learning eligibility is derived from the payload here.\n\nReturns the stored signal's id, the server-assigned ingestion time, the\nderived authority, the content digest, whether this call recognised an\nexisting submission rather than storing a new one, and each reference\nnormalized with its collision key.",
+        "operationId": "ingest_signal_v1_signals_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignalIngestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignalIngestResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ingest Signal",
+        "tags": [
+          "signals"
+        ]
+      }
+    },
     "/v1/subscriptions/{subscription_id}": {
       "delete": {
         "description": "Soft-delete (sets t_invalidated_at). Idempotent.",
@@ -20806,6 +25522,272 @@
         "summary": "Update a subscription",
         "tags": [
           "subscriptions"
+        ]
+      }
+    },
+    "/v1/tasks/{task_id}/checkpoints": {
+      "post": {
+        "description": "Append one step to the task's chain.\n\nThe idempotency key is required rather than optional. An append with no key\ncannot be retried safely, and the one thing a client does after a dropped\nresponse is retry -- so a surface that accepts a keyless append is a surface\nthat produces duplicate steps under exactly the condition it will meet.",
+        "operationId": "append_checkpoint_v1_tasks__task_id__checkpoints_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckpointAppend"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckpointResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Append Checkpoint",
+        "tags": [
+          "task memory"
+        ]
+      }
+    },
+    "/v1/tasks/{task_id}/checkpoints/{checkpoint_id}": {
+      "get": {
+        "description": "One checkpoint by id.\n\nThe task id in the path is part of the address rather than a second filter:\nthe service authorizes by the checkpoint's own task, so a mismatched pair is\na 404 rather than a read of somebody else's chain.",
+        "operationId": "get_checkpoint_v1_tasks__task_id__checkpoints__checkpoint_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "checkpoint_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Checkpoint Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckpointResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Checkpoint",
+        "tags": [
+          "task memory"
+        ]
+      }
+    },
+    "/v1/tasks/{task_id}/participants": {
+      "get": {
+        "description": "Everyone on this task, expired grants included.",
+        "operationId": "list_participants_v1_tasks__task_id__participants_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Participants",
+        "tags": [
+          "task memory"
+        ]
+      },
+      "post": {
+        "description": "Grant one actor participation. Only a task owner may.",
+        "operationId": "add_participant_v1_tasks__task_id__participants_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add Participant",
+        "tags": [
+          "task memory"
+        ]
+      }
+    },
+    "/v1/tasks/{task_id}/participants/{actor_id}": {
+      "delete": {
+        "description": "End one actor's participation now.\n\n204 whether or not anything changed. Revoking an already-revoked grant is\nnot an error, and reporting 404 for it would tell a caller whether a grant\nit may not read exists.",
+        "operationId": "remove_participant_v1_tasks__task_id__participants__actor_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "actor_id",
+            "required": true,
+            "schema": {
+              "title": "Actor Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove Participant",
+        "tags": [
+          "task memory"
         ]
       }
     },

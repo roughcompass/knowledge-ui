@@ -1353,6 +1353,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/arc/admin/observation-replay-corpora": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve Observation Replay Corpus
+         * @description Approve a replay corpus for the ADR 041 Sec.5 seven-day fallback.
+         *
+         *     The digest named here is one `QualificationService.compute` already
+         *     reported back (via `QualificationResponse.reason_codes`, once a
+         *     candidate reaches its seven-day cap still insufficient) -- see
+         *     `replay_corpus.py`'s own module docstring for why this route accepts a
+         *     digest rather than a corpus body, and how an operator or tenant admin
+         *     knows which digest to approve.
+         */
+        post: operations["approve_observation_replay_corpus_v1_arc_admin_observation_replay_corpora_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/arc/admin/operator-identity": {
         parameters: {
             query?: never;
@@ -1534,6 +1561,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/arc/approval-challenges/{approval_challenge_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete Approval Challenge
+         * @description `POST /v1/arc/approval-challenges/{id}/complete`.
+         */
+        post: operations["complete_approval_challenge_v1_arc_approval_challenges__approval_challenge_id__complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/arc/artifacts": {
         parameters: {
             query?: never;
@@ -1621,7 +1668,7 @@ export interface paths {
          * @description Published key history, so an external verifier can check a receipt.
          *
          *     Deliberately unauthenticated: it carries only public keys and profile
-         *     names, and a verifier holding a receipt may not be a contextplane caller at
+         *     names, and a verifier holding a receipt may not be a registry caller at
          *     all. Retired and compromised keys stay listed -- a receipt signed two
          *     years ago must remain verifiable, and dropping a compromised key would
          *     both break that and hide the compromise.
@@ -1683,6 +1730,49 @@ export interface paths {
         patch: operations["edit_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__patch"];
         trace?: never;
     };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/approval-challenges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Approval Challenge
+         * @description `POST {PV}/approval-challenges`.
+         *
+         *     An omitted `Idempotency-Key` is not refused the way source admission
+         *     refuses one (Appendix A.5 states idempotency-key support as something
+         *     every mutation route *accepts*, not universally *requires*): a caller
+         *     that omits it gets a fresh, single-use key minted here, so the call
+         *     still succeeds -- it simply carries no retry-deduplication of its own.
+         */
+        post: operations["create_approval_challenge_v1_arc_proposals__proposal_id__versions__proposal_version__approval_challenges_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/baseline-diff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Baseline Diff */
+        get: operations["get_baseline_diff_v1_arc_proposals__proposal_id__versions__proposal_version__baseline_diff_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/draft": {
         parameters: {
             query?: never;
@@ -1703,6 +1793,77 @@ export interface paths {
          *     provably the first thing this call does.
          */
         post: operations["draft_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__draft_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/observation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Observation Status
+         * @description `GET {PV}/observation`. Carries aggregate counters and cohort
+         *     digests only -- see `queries/observation.py::load_aggregate_counters`
+         *     for why a global candidate's response can never carry per-tenant
+         *     detail.
+         */
+        get: operations["get_observation_status_v1_arc_proposals__proposal_id__versions__proposal_version__observation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/observation/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Qualification
+         * @description `POST {PV}/observation/accept`. Refuses a non-positive decision,
+         *     the submitter accepting their own submission, and (for a global-
+         *     mandatory candidate) the approver accepting in place of a third
+         *     distinct activator -- see `QualificationService.accept`'s own
+         *     docstring for each rule.
+         */
+        post: operations["accept_qualification_v1_arc_proposals__proposal_id__versions__proposal_version__observation_accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/observation/qualify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Qualify Proposal Version
+         * @description `POST {PV}/observation/qualify`. System-computed: freezes the
+         *     cohort on first call, closes its window at the first correct boundary,
+         *     and returns the current decision -- `insufficient`/`failed` included,
+         *     never raised as an error, per `QualificationResponse.decision`'s own
+         *     closed vocabulary.
+         */
+        post: operations["qualify_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__observation_qualify_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1747,6 +1908,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/review-package": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Review Package
+         * @description `GET {PV}/review-package`: everything a projection approver reads
+         *     before signing, and the same object whose digest the approval evidence
+         *     binds. `ReviewPackageService.get_review_package` always recomputes `S`,
+         *     `R`, and `A` from authoritative rows -- see that service's own module
+         *     docstring for which persisted digest columns it cross-checks rather
+         *     than trusts.
+         */
+        get: operations["get_review_package_v1_arc_proposals__proposal_id__versions__proposal_version__review_package_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/arc/proposals/{proposal_id}/versions/{proposal_version}/semantic-tests": {
         parameters: {
             query?: never;
@@ -1777,13 +1963,11 @@ export interface paths {
          * Submit Proposal Version
          * @description `POST {PV}/submit`.
          *
-         *     Refuses on every deployment today with `arc_operational_integrity_pending`
-         *     -- see `ArtifactMaterialisationService`'s own module docstring for why --
-         *     before this handler, or the service method it calls, touches a session.
-         *     Once the two collaborators it needs are wired, the same call freezes the
-         *     version, materialises its bound draft revision, and returns a fresh
-         *     read of it, matching every other transition route's fresh-read
-         *     convention.
+         *     Freezes the version, materialises its bound draft revision, and
+         *     returns a fresh read of it, matching every other transition route's
+         *     fresh-read convention. See `ArtifactMaterialisationService.submit`'s
+         *     own docstring for the freeze/materialise/bijection/audit sequence this
+         *     call runs inside one transaction.
          */
         post: operations["submit_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__submit_post"];
         delete?: never;
@@ -1946,6 +2130,75 @@ export interface paths {
          *     is never selected under one instant and evaluated under another.
          */
         post: operations["resolve_context_v1_arc_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/revisions/{revision_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Activate Revision
+         * @description `POST /v1/arc/revisions/{revision_id}/activate`. Succeeds once every
+         *     one of the ten named predicates is satisfied for the current
+         *     transaction; any unmet predicate refuses with
+         *     `arc_activation_predicate_failed`. See `contextplane.arc.service.activation`'s
+         *     own module docstring for the full predicate list and lock order.
+         */
+        post: operations["activate_revision_v1_arc_revisions__revision_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/revisions/{revision_id}/activation-eligibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Activation Eligibility
+         * @description `GET /v1/arc/revisions/{revision_id}/activation-eligibility`. Always
+         *     reports all ten predicates, in fixed order -- see `ActivationService.
+         *     get_eligibility`'s own docstring for why the report is computed as if
+         *     the calling principal were the one activating.
+         */
+        get: operations["get_activation_eligibility_v1_arc_revisions__revision_id__activation_eligibility_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/arc/revisions/{revision_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke Revision
+         * @description `POST /v1/arc/revisions/{revision_id}/revoke`. Delegates to the
+         *     shared lifecycle transition every revision -- authored or not -- uses;
+         *     see `ActivationService.revoke`'s own docstring.
+         */
+        post: operations["revoke_revision_v1_arc_revisions__revision_id__revoke_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2502,6 +2755,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/checkpoints/by-digest/{digest}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Checkpoint By Digest
+         * @description One checkpoint by content digest.
+         *
+         *     Addressed outside any task path on purpose: a digest names the content, and
+         *     a caller holding one from a receipt does not necessarily know which task it
+         *     belongs to. Authorization is unchanged -- the service still refuses a
+         *     checkpoint on a task this actor does not participate in.
+         */
+        get: operations["get_checkpoint_by_digest_v1_checkpoints_by_digest__digest__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/concepts": {
         parameters: {
             query?: never;
@@ -2554,6 +2832,85 @@ export interface paths {
          *     a stale precondition fails fast.
          */
         patch: operations["v1_concepts_update"];
+        trace?: never;
+    };
+    "/v1/context/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Context Feedback
+         * @description Report feedback about a served answer, bound to exactly what it is about.
+         *
+         *     Item-specific feedback cites a receipt and an exact item on it; receipt-level
+         *     cites a receipt and no item; a diagnostic observation cites neither and is
+         *     never learning-eligible. The binding is resolved against the receipt's own
+         *     rows before anything is written, so an item belonging to a different receipt
+         *     is refused rather than stored.
+         *
+         *     Nothing is inferred: no rating is derived from an external outcome, and a
+         *     submission that is refused leaves no row behind.
+         */
+        post: operations["record_context_feedback_v1_context_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/context/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve Context
+         * @description Resolve one context request into the four-block envelope.
+         *
+         *     The clock is read once, here, and passed down. Every arm evaluates "active
+         *     now" against that one moment, so a request cannot authorize on one side of a
+         *     grant's expiry and read on the other -- and the receipt records the same
+         *     instant the answer was resolved at.
+         */
+        post: operations["resolve_context_v1_context_resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/context/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resume Context
+         * @description Pick up the named work, within bounds.
+         *
+         *     A POST because the reference list is the request body and can carry several
+         *     tuples; nothing here mutates. 200 for all three outcomes -- ambiguous and
+         *     empty are answers, not errors, and a 4xx would make a caller retry a request
+         *     that was correctly formed.
+         */
+        post: operations["resume_context_v1_context_resume_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/entities": {
@@ -2752,6 +3109,51 @@ export interface paths {
          *     pagination is not wired. The envelope exists for client shape consistency.
          */
         get: operations["find_integrations_v1_integrations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning/aggregates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Feedback and learning aggregates for this tenant
+         * @description Every served metric over one window, each already floored.
+         *
+         *     All metrics in one response rather than a metric-per-path: a caller that had to
+         *     name a metric would be able to ask for exactly the one whose cells are thin, and
+         *     repeat that across windows until a suppressed cell was bracketed. Serving the
+         *     whole set over one window makes that probing no cheaper than reading everything.
+         */
+        get: operations["read_aggregates_v1_learning_aggregates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Which aggregate metrics this deployment serves
+         * @description The closed metric set, so a client discovers it rather than guessing.
+         */
+        get: operations["list_metrics_v1_learning_metrics_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3178,6 +3580,156 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/memory/contradiction-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Contradiction Groups
+         * @description Open contradictions in the caller's tenant, one entry per axis.
+         *
+         *     Unpaginated, unlike every list route around it, and deliberately: the result
+         *     is one row per *unresolved* disagreement axis in one tenant, which the
+         *     curation queue already surfaces under its own `contested` reason and which
+         *     curation drains. Detection also caps how many pairs a single axis can
+         *     produce, so no one subject can inflate this into an unbounded read.
+         *
+         *     A plain read, so nothing goes through `HttpMethodRouter`.
+         */
+        get: operations["list_contradiction_groups_v1_memory_contradiction_groups_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/curation-cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Curation Cases
+         * @description Contradiction cases in the caller's tenant, oldest first.
+         *
+         *     Same keyset shape as the queue route above, on `(created_at, case_id)`: an
+         *     aged contradiction is the one worth surfacing, and a queue whose tail is
+         *     never reached is a queue that queued for nothing.
+         *
+         *     The query parameter is `status`; the handler argument is `case_status`
+         *     because `status` is this module's imported `fastapi.status`, and shadowing it
+         *     inside one handler would break the `build_error` calls in the same function.
+         */
+        get: operations["list_curation_cases_v1_memory_curation_cases_get"];
+        put?: never;
+        /**
+         * Open Curation Case
+         * @description Put one contradiction axis in front of a person.
+         *
+         *     Idempotent while a case on the same axis is unresolved, and it returns the
+         *     already-open case rather than refusing: re-detecting the same contradiction
+         *     is the normal path, and a second row would split one disagreement into two
+         *     entries that two owners could decide differently. `201` is therefore the
+         *     status for "there is a case on this axis", not a promise that this call is
+         *     what created it -- the same shape the idempotent creates elsewhere in this
+         *     surface use.
+         *
+         *     A collection create with no alternate verb, so it is a plain `POST`.
+         */
+        post: operations["open_curation_case_v1_memory_curation_cases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/curation-cases/{case_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Curation Case
+         * @description One case, if it belongs to the caller's tenant.
+         *
+         *     A case in another tenant answers exactly as one that does not exist, so a
+         *     case id cannot confirm that somebody else is reviewing a contradiction.
+         */
+        get: operations["get_curation_case_v1_memory_curation_cases__case_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/curation-cases/{case_id}:disposition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Case Disposition
+         * @description Record what the accountable owner decided, and on whose authority.
+         *
+         *     Authorization is the service's, not this route's: only the owner the case is
+         *     routed to may decide it, because being able to read a case is not authority
+         *     to settle it. That check is what makes "routed to an owner" mean anything, so
+         *     it lives with the write it guards rather than being re-derived here.
+         *
+         *     Nothing here performs the write a `propose_*` disposition asks for. The
+         *     surfaces that own canonical facts, runbooks, and agent-readiness artifacts
+         *     each have their own approval contract; collapsing "decided" and "written"
+         *     into one moment is the confusion an accountable owner exists to prevent.
+         */
+        post: operations["record_case_disposition_v1_memory_curation_cases__case_id__disposition_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/memory/curation-cases/{case_id}:route": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Route Curation Case
+         * @description Name the person accountable for deciding this case.
+         *
+         *     Re-routing an already-routed case is allowed and audited -- escalation is a
+         *     real move, and a queue that could not hand a case on would strand it on
+         *     whoever it reached first. A resolved case is refused rather than reopened.
+         *
+         *     A curator action with no alternate HTTP verb, so it is a plain `POST` for
+         *     the same reason `:link` and `:discard` are.
+         */
+        post: operations["route_curation_case_v1_memory_curation_cases__case_id__route_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/memory/curation-queue": {
         parameters: {
             query?: never;
@@ -3344,8 +3896,10 @@ export interface paths {
          *     no update route: an event is write-once, removable only by the author, by
          *     retention, or by an erasure request.
          *
-         *     The body is scanned before storage and a blocking tenant policy refuses the
-         *     write. `metadata` is not scanned -- see the request model.
+         *     The body goes through admission before storage: content carrying a
+         *     prohibited class is refused with a 422 on a deployment that has configured
+         *     nothing, rather than detected and stored. `metadata` is not scanned -- see
+         *     the request model.
          */
         post: operations["record_event_v1_memory_sessions__session_id__events_post"];
         delete?: never;
@@ -3562,6 +4116,98 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/receipts/by-reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Receipts By Reference
+         * @description Every resolution citing one piece of external work, newest first.
+         *
+         *     The read somebody makes starting from a commit or a build, which is how a
+         *     receipt is reached in practice -- nobody holds a receipt id.
+         */
+        get: operations["receipts_by_reference_v1_receipts_by_reference_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/receipts/{receipt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Receipt
+         * @description One receipt by id.
+         *
+         *     Missing and forbidden are the same 404 by construction: the service's tenant
+         *     predicate is in the SELECT, so a foreign receipt returns nothing rather than
+         *     being found and refused -- and a distinguishable refusal would confirm the
+         *     id exists.
+         */
+        get: operations["get_receipt_v1_receipts__receipt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/receipts/{receipt_id}/exclusions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Receipt Exclusions
+         * @description What one resolution withheld, optionally for one block.
+         *
+         *     The read that answers "was there more than this". Published because a
+         *     receipt that records its withholding and never shows it leaves a reader
+         *     unable to tell a thin answer from a filtered one.
+         */
+        get: operations["get_receipt_exclusions_v1_receipts__receipt_id__exclusions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/receipts/{receipt_id}/references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Receipt References
+         * @description What one resolution claimed to be about. The read an auditor makes.
+         */
+        get: operations["get_receipt_references_v1_receipts__receipt_id__references_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/search": {
         parameters: {
             query?: never;
@@ -3580,6 +4226,35 @@ export interface paths {
         get: operations["search_v1_search_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/signals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ingest Signal
+         * @description Report one observation from a registered source.
+         *
+         *     Records what the source said, at the three times involved, under the
+         *     authority that source declared. It concludes nothing: no success, no failure,
+         *     no causal link, and no learning eligibility is derived from the payload here.
+         *
+         *     Returns the stored signal's id, the server-assigned ingestion time, the
+         *     derived authority, the content digest, whether this call recognised an
+         *     existing submission rather than storing a new one, and each reference
+         *     normalized with its collision key.
+         */
+        post: operations["ingest_signal_v1_signals_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3621,6 +4296,103 @@ export interface paths {
          *     Pass ``?view=audit`` to include bitemporal columns in the response.
          */
         patch: operations["_update_subscription_handler_v1_subscriptions__subscription_id__patch"];
+        trace?: never;
+    };
+    "/v1/tasks/{task_id}/checkpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Append Checkpoint
+         * @description Append one step to the task's chain.
+         *
+         *     The idempotency key is required rather than optional. An append with no key
+         *     cannot be retried safely, and the one thing a client does after a dropped
+         *     response is retry -- so a surface that accepts a keyless append is a surface
+         *     that produces duplicate steps under exactly the condition it will meet.
+         */
+        post: operations["append_checkpoint_v1_tasks__task_id__checkpoints_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{task_id}/checkpoints/{checkpoint_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Checkpoint
+         * @description One checkpoint by id.
+         *
+         *     The task id in the path is part of the address rather than a second filter:
+         *     the service authorizes by the checkpoint's own task, so a mismatched pair is
+         *     a 404 rather than a read of somebody else's chain.
+         */
+        get: operations["get_checkpoint_v1_tasks__task_id__checkpoints__checkpoint_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{task_id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Participants
+         * @description Everyone on this task, expired grants included.
+         */
+        get: operations["list_participants_v1_tasks__task_id__participants_get"];
+        put?: never;
+        /**
+         * Add Participant
+         * @description Grant one actor participation. Only a task owner may.
+         */
+        post: operations["add_participant_v1_tasks__task_id__participants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{task_id}/participants/{actor_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Participant
+         * @description End one actor's participation now.
+         *
+         *     204 whether or not anything changed. Revoking an already-revoked grant is
+         *     not an error, and reporting 404 for it would tell a caller whether a grant
+         *     it may not read exists.
+         */
+        delete: operations["remove_participant_v1_tasks__task_id__participants__actor_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/usage/owned-capabilities": {
@@ -3919,10 +4691,49 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** ActivateRequest */
+        /**
+         * ActivateRequest
+         * @description Body for `POST /v1/arc/revisions/{id}/activate`. `qualification_id`
+         *     is required when the risk classification demands observation and
+         *     forbidden otherwise (Appendix A.6).
+         */
         ActivateRequest: {
-            /** Supersedes */
-            supersedes?: string | null;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Proposal Version */
+            proposal_version: number;
+            /** Qualification Id */
+            qualification_id?: string | null;
+        };
+        /**
+         * ActivationEligibilityResponse
+         * @description `predicates[]` always contains all ten entries in fixed order, so a
+         *     client cannot mistake an omitted predicate for a satisfied one.
+         */
+        ActivationEligibilityResponse: {
+            /** Eligible */
+            eligible: boolean;
+            /** Predicates */
+            predicates: components["schemas"]["ActivationPredicateStatus"][];
+        };
+        /**
+         * ActivationPredicateName
+         * @description The ten activation predicates, in their fixed evaluation order.
+         * @enum {string}
+         */
+        ActivationPredicateName: "latest_version" | "state_approved" | "digest_chain" | "baseline_current" | "source_valid" | "risk_reproducible" | "observation_qualified" | "projection_evidence_valid" | "actor_separation" | "operational_integrity";
+        /**
+         * ActivationPredicateStatus
+         * @description One row of `ActivationEligibilityResponse.predicates`.
+         */
+        ActivationPredicateStatus: {
+            name: components["schemas"]["ActivationPredicateName"];
+            reason_code?: components["schemas"]["RefusalCode"] | null;
+            /** Satisfied */
+            satisfied: boolean;
         };
         /**
          * ActorRef
@@ -3951,6 +4762,22 @@ export interface components {
         AdjudicateClaimResponse: {
             /** Status */
             status: string;
+        };
+        /**
+         * AdminActivateRequest
+         * @description Body for the direct artifact-admin activation route.
+         *
+         *     Named apart from the authoring-surface `ActivateRequest` (`registry.
+         *     api.schemas.arc_authoring`) even though both bodies once shared the
+         *     bare name `ActivateRequest` -- two distinct request shapes on two
+         *     distinct routes with the same class name force the OpenAPI generator
+         *     to invent a module-qualified name for one of them the moment both are
+         *     ever exported together, which is a worse, less stable public contract
+         *     than either route picking its own explicit name up front.
+         */
+        AdminActivateRequest: {
+            /** Supersedes */
+            supersedes?: string | null;
         };
         /**
          * AdmissionMethod
@@ -4052,6 +4879,51 @@ export interface components {
         AllowlistResponse: {
             /** Predicates */
             predicates: string[];
+        };
+        /**
+         * ApprovalChallengeRequest
+         * @description Body for `POST {PV}/approval-challenges`: names the enrolled
+         *     verifier who will complete the challenge.
+         */
+        ApprovalChallengeRequest: {
+            /**
+             * Approval Verifier Id
+             * Format: uuid
+             */
+            approval_verifier_id: string;
+        };
+        /**
+         * ApprovalChallengeResponse
+         * @description The signing challenge a projection approval must complete: the
+         *     verifier signs `canonical_evidence_bytes_base64` and submits that
+         *     signature via `ApprovalCompletionRequest`.
+         */
+        ApprovalChallengeResponse: {
+            /**
+             * Approval Challenge Id
+             * Format: uuid
+             */
+            approval_challenge_id: string;
+            /** Approval Nonce */
+            approval_nonce: string;
+            /** Canonical Evidence Bytes Base64 */
+            canonical_evidence_bytes_base64: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Signing Domain */
+            signing_domain: string;
+        };
+        /**
+         * ApprovalCompletionRequest
+         * @description Body for `POST /v1/arc/approval-challenges/{id}/complete`: the
+         *     verifier's proof over the challenge's canonical evidence bytes.
+         */
+        ApprovalCompletionRequest: {
+            /** Proof */
+            proof: components["schemas"]["DetachedSignatureProof"] | components["schemas"]["VerifierAttestationProof"];
         };
         /**
          * ApprovalVerifierResponse
@@ -4233,7 +5105,7 @@ export interface components {
             /** Required Evidence Type */
             required_evidence_type?: string | null;
             /** Satisfaction Mode */
-            satisfaction_mode?: ("self_attested" | "signed_result") | null;
+            satisfaction_mode?: ("authorized_retrieval" | "signed_result") | null;
             /** Source Anchor */
             source_anchor: string;
             /** Verification Max Age Seconds */
@@ -4619,6 +5491,34 @@ export interface components {
          * @enum {string}
          */
         AvailableAction: "edit" | "validate" | "run_semantic_tests" | "confirm_reach" | "draft" | "submit" | "withdraw" | "reject" | "supersede" | "request_approval" | "qualify" | "accept_qualification" | "activate";
+        /**
+         * BaselineDiffChange
+         * @description One field-level change in `BaselineDiffResponse.changes`.
+         */
+        BaselineDiffChange: {
+            /** After */
+            after?: {
+                [key: string]: unknown;
+            } | null;
+            /** Before */
+            before?: {
+                [key: string]: unknown;
+            } | null;
+            change_kind: components["schemas"]["ChangeKind"];
+            /** Field Path */
+            field_path: string;
+        };
+        /**
+         * BaselineDiffResponse
+         * @description Result of `GET {PV}/baseline-diff`, and the same shape embedded in
+         *     `ReviewPackageResponse.baseline_diff`.
+         */
+        BaselineDiffResponse: {
+            /** Baseline Revision Id */
+            baseline_revision_id?: string | null;
+            /** Changes */
+            changes: components["schemas"]["BaselineDiffChange"][];
+        };
         /** BelievedClaimResponse */
         BelievedClaimResponse: {
             /** Bucket */
@@ -4668,6 +5568,54 @@ export interface components {
             body: string;
             /** Metadata */
             metadata: string;
+        };
+        /**
+         * BreakdownOut
+         * @description One metric over one window, with everything needed to read it.
+         */
+        BreakdownOut: {
+            /** Cells */
+            cells: components["schemas"]["CellOut"][];
+            /** Classification */
+            classification: string;
+            /**
+             * Cohort Key
+             * @description The population the figures cover. Always the tenant: no finer cohort exists, because a per-team breakdown would be a team-performance view.
+             */
+            cohort_key: string;
+            /**
+             * Denominator
+             * @description The population the total is over, named for a reader who would otherwise infer a rate.
+             */
+            denominator: number | null;
+            floors: components["schemas"]["FloorsOut"];
+            /** Metric */
+            metric: string;
+            /**
+             * Partial
+             * @description True when at least one cell was suppressed, so the total is over a subset.
+             */
+            partial: boolean;
+            /**
+             * Total
+             * @description Recomputed over reported cells only, never the true population. With a cell withheld, serving the real total would let a reader recover the withheld figure by subtraction.
+             */
+            total: number | null;
+            /**
+             * Window End
+             * Format: date-time
+             */
+            window_end: string;
+            /**
+             * Window Start
+             * Format: date-time
+             */
+            window_start: string;
+            /**
+             * Withheld
+             * @description True when the whole breakdown was withheld because its remainder could not be combined into a bucket clearing the floors. Distinct from every cell being suppressed: not even the shape of the distribution is served.
+             */
+            withheld: boolean;
         };
         /** BreakingChangePreviewResponse */
         BreakingChangePreviewResponse: {
@@ -4983,6 +5931,25 @@ export interface components {
              */
             capability_id: string;
         };
+        /**
+         * CellOut
+         * @description One reported figure, or the record that one was withheld.
+         *
+         *     The counts behind a suppressed cell are deliberately absent from this model.
+         *     Serving them would defeat the suppression: an actor count of two is the
+         *     disclosure the floor exists to prevent.
+         */
+        CellOut: {
+            /** Label */
+            label: string;
+            /** Suppressed */
+            suppressed: boolean;
+            /**
+             * Value
+             * @description Null exactly when the cell was suppressed for falling below a floor. Not zero: a withheld cell is not an empty one, and reporting it as zero would understate every total computed from this breakdown.
+             */
+            value: number | null;
+        };
         /** ChallengeRequest */
         ChallengeRequest: {
             /** Idempotency Key */
@@ -5002,6 +5969,84 @@ export interface components {
             issued_at: string;
             /** Manifest Claims Digest */
             manifest_claims_digest: string;
+        };
+        /**
+         * ChangeKind
+         * @description How one field changed between a baseline and a candidate revision.
+         * @enum {string}
+         */
+        ChangeKind: "added" | "removed" | "changed";
+        /**
+         * CheckpointAppend
+         * @description One step to record on a task.
+         *
+         *     Carries content only. Ordering, identity, attribution, retention and the
+         *     digest are computed server-side from its own view -- a client that could set
+         *     them could write a checkpoint into the middle of somebody else's chain.
+         */
+        CheckpointAppend: {
+            /** Assumptions */
+            assumptions?: string[];
+            /** Completed Checks */
+            completed_checks?: string[];
+            /** Decisions */
+            decisions?: string[];
+            /**
+             * Evidence
+             * @description External references supporting this step, normalized server-side.
+             */
+            evidence?: {
+                [key: string]: unknown;
+            }[];
+            /** Goal */
+            goal: string;
+            /** Next Action */
+            next_action?: string | null;
+            /** Open Questions */
+            open_questions?: string[];
+        };
+        /**
+         * CheckpointResponse
+         * @description One recorded step, in the shape resume reads back.
+         */
+        CheckpointResponse: {
+            /** Assumptions */
+            assumptions: string[];
+            /** Author */
+            author: string;
+            /**
+             * Checkpoint Id
+             * Format: uuid
+             */
+            checkpoint_id: string;
+            /** Completed Checks */
+            completed_checks: string[];
+            /** Decisions */
+            decisions: string[];
+            /** Digest */
+            digest: string;
+            /** Goal */
+            goal: string;
+            /** Next Action */
+            next_action: string | null;
+            /** Open Questions */
+            open_questions: string[];
+            /** Predecessor Id */
+            predecessor_id: string | null;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Retention Policy */
+            retention_policy: string;
+            /** Sequence */
+            sequence: number;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
         };
         /**
          * Citation
@@ -5165,6 +6210,250 @@ export interface components {
             verifier_id: string;
         };
         /**
+         * ContextBlockResponse
+         * @description One arm of the answer.
+         *
+         *     `state` is carried, never inferred. A reader who computes it from whether
+         *     `items` is empty gets the one case that matters wrong: a failed arm has no
+         *     items either, and treating it as empty reads a broken arm as a quiet one.
+         */
+        ContextBlockResponse: {
+            /** Items */
+            items?: components["schemas"]["ContextItemResponse"][];
+            /** Name */
+            name: string;
+            /**
+             * Reason
+             * @description Why the arm did not fully succeed. Always present when degraded or failed.
+             */
+            reason?: string | null;
+            /**
+             * State
+             * @description One of success, empty, degraded, failed.
+             */
+            state: string;
+        };
+        /**
+         * ContextEnvelopeResponse
+         * @description Exactly four blocks, quality, state, and the receipt that records them.
+         *
+         *     `receipt_id` is not decorative and is not optional. It names the stored
+         *     record of this resolution, which is what makes the answer auditable later --
+         *     and it is the id `GET /v1/receipts/{receipt_id}` takes.
+         */
+        ContextEnvelopeResponse: {
+            /**
+             * Arc Block Note
+             * @description Set when the ARC block is empty because the request named no receipt, which is a caller-fixable emptiness rather than an absence of results.
+             */
+            arc_block_note?: string | null;
+            /**
+             * Blocks
+             * @description Exactly ['canonical', 'arc', 'observed_claims', 'workspace'], in that order.
+             */
+            blocks: components["schemas"]["ContextBlockResponse"][];
+            quality: components["schemas"]["QualityResponse"];
+            /**
+             * Receipt Id
+             * Format: uuid
+             */
+            receipt_id: string;
+            /**
+             * State
+             * @description One of complete, degraded, blocked.
+             */
+            state: string;
+        };
+        /**
+         * ContextFeedbackRequest
+         * @description One report about a served answer.
+         *
+         *     `kind` decides which of `receipt_id` and `receipt_item_id` are required and
+         *     which are forbidden; the service enforces that union and returns 422 naming
+         *     the violation. They are optional here because two of the three shapes omit
+         *     them, not because any combination is acceptable.
+         */
+        ContextFeedbackRequest: {
+            /**
+             * Idempotency Key
+             * @description This submission's key. Replays carry it verbatim.
+             */
+            idempotency_key: string;
+            /**
+             * Kind
+             * @description One of item_specific, receipt_level, diagnostic_observation.
+             */
+            kind: string;
+            /**
+             * Learning Eligible
+             * @description Whether this may be used as learning or evaluation evidence. May be lowered by the reporter; always false for a diagnostic observation, which cites nothing that could be checked.
+             * @default true
+             */
+            learning_eligible: boolean;
+            /**
+             * Note
+             * @description Free text. Minimized before the structured fields expire.
+             */
+            note?: string | null;
+            /**
+             * Rating
+             * @description A verdict from the bounded vocabulary.
+             */
+            rating: string;
+            /**
+             * Receipt Id
+             * @description The resolution this is about.
+             */
+            receipt_id?: string | null;
+            /**
+             * Receipt Item Id
+             * @description The exact item on that receipt.
+             */
+            receipt_item_id?: string | null;
+            /**
+             * Reporter Id
+             * @description Who is reporting. Must be the caller unless external.
+             */
+            reporter_id: string;
+            /**
+             * Reporter Type
+             * @description One of human, agent, external.
+             */
+            reporter_type: string;
+        };
+        /**
+         * ContextFeedbackResponse
+         * @description What was stored, and whether this call is what stored it.
+         */
+        ContextFeedbackResponse: {
+            /** Content Digest */
+            content_digest: string;
+            /** Created At */
+            created_at: string;
+            /**
+             * Feedback Id
+             * Format: uuid
+             */
+            feedback_id: string;
+            /** Kind */
+            kind: string;
+            /** Learning Eligible */
+            learning_eligible: boolean;
+            /** Rating */
+            rating: string;
+            /** Receipt Id */
+            receipt_id: string | null;
+            /** Receipt Item Id */
+            receipt_item_id: string | null;
+            /**
+             * Replayed
+             * @description True when this call recognised an existing submission rather than storing a new one.
+             */
+            replayed: boolean;
+        };
+        /**
+         * ContextItemResponse
+         * @description One piece of context and everything needed to weigh it.
+         */
+        ContextItemResponse: {
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
+            receipt_item_id: components["schemas"]["ReceiptItemIdResponse"];
+            trust?: components["schemas"]["TrustResponse"] | null;
+        };
+        /**
+         * ContextResolveRequest
+         * @description One context resolution.
+         *
+         *     `arc_receipt_id` is optional and its absence is not an error. The ARC arm is
+         *     receipt-anchored -- it serves what an attested resolution already selected --
+         *     so a request naming no receipt gets a complete envelope whose ARC block is
+         *     `empty`. `arc_block_note` on the response says which kind of empty it is,
+         *     because "you named no receipt" and "that receipt selected nothing" are the
+         *     same value with different meanings and only the first is the caller's to fix.
+         */
+        ContextResolveRequest: {
+            /**
+             * Arc Receipt Id
+             * @description An attested ARC resolution to serve. Omit it and the ARC block comes back empty, not failed.
+             */
+            arc_receipt_id?: string | null;
+            /**
+             * Lifecycle References
+             * @description Where in a delivery lifecycle this request is being made, as references the registry does not own. Each `kind` must be one of ['run', 'stage', 'work_item', 'repository', 'artifact', 'action', 'build', 'deployment', 'incident', 'outcome']. Context recorded as applying somewhere else is withheld and reported, never silently dropped. Stage is your own system's name for it: nothing here is stored, ordered, or advanced.
+             */
+            lifecycle_references?: components["schemas"]["ExternalReferenceRequest"][];
+            /**
+             * Limit
+             * @default 25
+             */
+            limit: number;
+            /**
+             * Max Age S
+             * @description Treat arm results older than this as stale. Omit to accept any age.
+             */
+            max_age_s?: number | null;
+            /**
+             * Query
+             * @description What the caller is asking for.
+             */
+            query: string;
+            /** Subject Entity Id */
+            subject_entity_id?: string | null;
+            /**
+             * Task Ids
+             * @description Tasks whose workspace material may be recalled, subject to the caller's participation.
+             */
+            task_ids?: string[];
+            /** @description Recall workspace material citing this external reference. */
+            workspace_reference?: components["schemas"]["ExternalReferenceRequest"] | null;
+            /**
+             * Workspace Term
+             * @description Lexical term for the workspace arm.
+             */
+            workspace_term?: string | null;
+        };
+        /**
+         * ContradictionGroupListResponse
+         * @description Every open disagreement in the caller's tenant.
+         */
+        ContradictionGroupListResponse: {
+            /** Groups */
+            groups: components["schemas"]["ContradictionGroupResponse"][];
+        };
+        /**
+         * ContradictionGroupResponse
+         * @description One disagreement axis, as a reviewer needs to see it.
+         *
+         *     `member_count` is the number of claims in disagreement, not the number of
+         *     pairs detected: a three-way disagreement is three pairs and three members,
+         *     and reporting the pair count would overstate how much is contested.
+         */
+        ContradictionGroupResponse: {
+            /** Claim Ids */
+            claim_ids: string[];
+            /** Contest Ids */
+            contest_ids: string[];
+            /**
+             * First Detected At
+             * Format: date-time
+             */
+            first_detected_at: string;
+            /** Member Count */
+            member_count: number;
+            /** Predicate */
+            predicate: string;
+            /**
+             * Subject Entity Id
+             * Format: uuid
+             */
+            subject_entity_id: string;
+            /** Subject Reference */
+            subject_reference: string;
+        };
+        /**
          * CreateArtifactRequest
          * @description Body for ``POST /v1/capabilities/{id}/artifacts``.
          *
@@ -5271,6 +6560,63 @@ export interface components {
             value_type: string;
         };
         /**
+         * CurationCaseListResponse
+         * @description A page of contradiction cases, oldest first.
+         */
+        CurationCaseListResponse: {
+            /** Items */
+            items: components["schemas"]["CurationCaseResponse"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * CurationCaseResponse
+         * @description A contradiction routed to an owner, and what was decided about it.
+         *
+         *     `approval_authority` and `evidence_threshold` are recorded at disposition
+         *     time rather than derived on read: a decision whose approver is decided
+         *     afterwards is a decision nobody is accountable for.
+         */
+        CurationCaseResponse: {
+            /** Approval Authority */
+            approval_authority: string | null;
+            /**
+             * Case Id
+             * Format: uuid
+             */
+            case_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Disposition */
+            disposition: string | null;
+            /** Evidence Threshold */
+            evidence_threshold: string | null;
+            /** Owner Id */
+            owner_id: string | null;
+            /** Predicate */
+            predicate: string;
+            /** Raised By Derivation Id */
+            raised_by_derivation_id: string | null;
+            /** Resolved At */
+            resolved_at: string | null;
+            /** Routed At */
+            routed_at: string | null;
+            /** Status */
+            status: string;
+            /** Subject Reference */
+            subject_reference: string;
+            /** Target Kind */
+            target_kind: string | null;
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+        };
+        /**
          * DailyPointOut
          * @description One day's exact figures for one surface — unlike the summary, nothing here is an approximation.
          */
@@ -5330,6 +6676,15 @@ export interface components {
          * @enum {string}
          */
         DeltaCode: "newly_selected" | "no_longer_selected" | "conflict_changed" | "mandatory_block_added" | "mandatory_block_removed";
+        /**
+         * DeltaCodeCounter
+         * @description One row of `ObservationStatusResponse.counters_by_delta_code`.
+         */
+        DeltaCodeCounter: {
+            /** Count */
+            count: number;
+            delta_code: components["schemas"]["DeltaCode"];
+        };
         /**
          * DependencyResponse
          * @description Response for the dependency-traversal endpoint -- edges reachable from `root_entity_id` within `depth`.
@@ -5801,6 +7156,30 @@ export interface components {
             verifier_identity: string;
         };
         /**
+         * ExclusionListResponse
+         * @description Everything one resolution withheld, or an empty list if it withheld nothing.
+         */
+        ExclusionListResponse: {
+            /** Exclusions */
+            exclusions: components["schemas"]["ExclusionResponse"][];
+        };
+        /**
+         * ExclusionResponse
+         * @description One item a resolution found and did not return.
+         *
+         *     Surfaced rather than kept internal: the difference between "there was
+         *     nothing" and "there was something you may not see" is the whole reason the
+         *     row is stored, and a reader who never sees it cannot act on it.
+         */
+        ExclusionResponse: {
+            /** Block */
+            block: string;
+            /** Item Key */
+            item_key: string;
+            /** Reason */
+            reason: string;
+        };
+        /**
          * ExpectedImpactEnvelope
          * @description Exactly the closed `arc_expected_impact_envelope_v1` profile object.
          */
@@ -5871,7 +7250,7 @@ export interface components {
         };
         /**
          * ExternalIdItem
-         * @description One row of the entity_external_ids contextplane, surfaced via ``?include=external_ids``.
+         * @description One row of the entity_external_ids registry, surfaced via ``?include=external_ids``.
          */
         ExternalIdItem: {
             /** External Id */
@@ -5953,6 +7332,41 @@ export interface components {
             truncated: boolean;
         };
         /**
+         * ExternalReferenceRequest
+         * @description A pointer to something the registry does not own.
+         *
+         *     Mirrors `ExternalReferenceV1`. `classification` is required rather than
+         *     defaulted: a reference whose sensitivity the caller did not state is one the
+         *     server would have to guess about, and guessing low is the failure that
+         *     matters.
+         */
+        ExternalReferenceRequest: {
+            /** Authorized Uri */
+            authorized_uri?: string | null;
+            /**
+             * Classification
+             * @description One of ['confidential', 'internal', 'public', 'restricted'].
+             */
+            classification: string;
+            /**
+             * External Authority
+             * @description The authority in the external system, not ours.
+             */
+            external_authority: string;
+            /** External Id */
+            external_id: string;
+            /** Kind */
+            kind: string;
+            /** Observed At */
+            observed_at?: string | null;
+            /** Revision */
+            revision?: string | null;
+            /** Source Namespace */
+            source_namespace: string;
+            /** Source System */
+            source_system: string;
+        };
+        /**
          * ExternalSystemCreate
          * @description Body for POST /v1/admin/external-systems; `slug` is the identifier every mapping will reference.
          */
@@ -5991,6 +7405,27 @@ export interface components {
             url_template: string | null;
         };
         /**
+         * FieldProvenance
+         * @description Response projection of `FieldProvenanceInput` that adds the recorded
+         *     author. Appears only in read models -- never accepted as input.
+         */
+        FieldProvenance: {
+            author?: components["schemas"]["ActorRef"] | null;
+            /** Author Role */
+            author_role?: string | null;
+            /** Derivation Profile */
+            derivation_profile?: string | null;
+            /** Excerpt Digest */
+            excerpt_digest?: string | null;
+            /** Field Path */
+            field_path: string;
+            provenance_class: components["schemas"]["ProvenanceClass"];
+            /** Source Anchor */
+            source_anchor?: string | null;
+            /** Source Evidence Id */
+            source_evidence_id?: string | null;
+        };
+        /**
          * FieldProvenanceInput
          * @description Request-only. Deliberately not one of the profile-aliased
          *     components in `arc_authoring_profiles.py`: it is a different shape
@@ -6015,6 +7450,86 @@ export interface components {
             source_anchor?: string | null;
             /** Source Evidence Id */
             source_evidence_id?: string | null;
+        };
+        /**
+         * FloorsOut
+         * @description The thresholds in force, served so a suppressed cell is legible.
+         */
+        FloorsOut: {
+            /**
+             * Min Actors
+             * @description Minimum distinct contributors before a cell may carry a value.
+             */
+            min_actors: number;
+            /**
+             * Min Events
+             * @description Minimum events before a cell may carry a value.
+             */
+            min_events: number;
+        };
+        /**
+         * GrantCreate
+         * @description Add one participant to a task.
+         *
+         *     `granted_by` is deliberately absent: it is the calling actor, taken from the
+         *     request context. Accepting it would let a caller attribute a grant to
+         *     somebody else, and the stored record would look identical to a real one
+         *     afterwards.
+         */
+        GrantCreate: {
+            /**
+             * Actor Id
+             * @description The actor being granted participation.
+             */
+            actor_id: string;
+            /**
+             * Expires At
+             * @description When the grant stops applying. Absent means it lasts as long as the task.
+             */
+            expires_at?: string | null;
+            /**
+             * Role
+             * @description One of ['auditor', 'contributor', 'owner', 'reader'].
+             */
+            role: string;
+        };
+        /**
+         * GrantListResponse
+         * @description Every grant on one task, expired ones included.
+         *
+         *     Expired grants are not filtered out. An audit of a past read needs the
+         *     grants that applied then, and hiding them makes a revoked participant
+         *     indistinguishable from one who was never there.
+         */
+        GrantListResponse: {
+            /** Grants */
+            grants: components["schemas"]["GrantResponse"][];
+        };
+        /**
+         * GrantResponse
+         * @description One grant, active or not.
+         */
+        GrantResponse: {
+            /** Actor Id */
+            actor_id: string;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Granted At
+             * Format: date-time
+             */
+            granted_at: string;
+            /** Granted By */
+            granted_by: string;
+            /** Resolver Version */
+            resolver_version: string;
+            /** Role */
+            role: string;
+            /**
+             * Task Id
+             * Format: uuid
+             */
+            task_id: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -6148,6 +7663,20 @@ export interface components {
             operations: {
                 [key: string]: unknown;
             }[];
+        };
+        /**
+         * JudgmentAuthor
+         * @description Response-only. See Appendix A.4: recorded authors, server-written.
+         */
+        JudgmentAuthor: {
+            /** Field Path */
+            field_path: string;
+            /** Issuer */
+            issuer: string;
+            /** Role */
+            role: string;
+            /** Subject */
+            subject: string;
         };
         /**
          * LifecycleTransitionRequest
@@ -6291,6 +7820,64 @@ export interface components {
             /** Task Summary */
             task_summary?: string | null;
         };
+        /**
+         * NormalizedSignalReference
+         * @description A reference as stored identity sees it: the same fields, plus the key.
+         *
+         *     `collision_key` is what makes two spellings of one reference compare equal,
+         *     and it is returned rather than left for the caller to recompute -- a producer
+         *     correlating its own references against what this submission was identified by
+         *     should not have to reimplement the digest to do it.
+         */
+        NormalizedSignalReference: {
+            /**
+             * Authorized Uri
+             * @description A URI a reader is permitted to follow.
+             */
+            authorized_uri?: string | null;
+            /**
+             * Classification
+             * @enum {string}
+             */
+            classification: "public" | "internal" | "confidential" | "restricted";
+            /** Collision Key */
+            collision_key: string;
+            /**
+             * External Authority
+             * @description The authority in the external system. Never this service's own.
+             */
+            external_authority: string;
+            /**
+             * External Id
+             * @description The id within that system. Trimmed, never case-folded.
+             */
+            external_id: string;
+            /**
+             * Kind
+             * @description What the reference names, e.g. `commit`, `run`, `deployment`.
+             */
+            kind: string;
+            /**
+             * Observed At
+             * @description When the source observed this reference. Absent when it cannot report one.
+             */
+            observed_at?: string | null;
+            /**
+             * Revision
+             * @description Immutable revision, when the source records one.
+             */
+            revision?: string | null;
+            /**
+             * Source Namespace
+             * @description Namespace inside that system, e.g. `acme/app`.
+             */
+            source_namespace: string;
+            /**
+             * Source System
+             * @description Owning system, e.g. `github`. Folded to lowercase.
+             */
+            source_system: string;
+        };
         /** NotificationItem */
         NotificationItem: {
             /** Capability Id */
@@ -6346,6 +7933,61 @@ export interface components {
             requested_action_classes?: string[] | null;
             /** Task Kind */
             task_kind?: string[] | null;
+        };
+        /**
+         * ObservationDecision
+         * @description The outcome of comparing observed behavior against a candidate's
+         *     expected-impact envelope.
+         * @enum {string}
+         */
+        ObservationDecision: "qualified" | "insufficient" | "failed";
+        /**
+         * ObservationStatusResponse
+         * @description Aggregate observation-window counters for one cohort. Carries no
+         *     tenant detail; tenant-scoped detail requires its own authorization and
+         *     is served separately (Appendix A.1).
+         */
+        ObservationStatusResponse: {
+            /** Cohort Digest */
+            cohort_digest: string;
+            /**
+             * Cohort Id
+             * Format: uuid
+             */
+            cohort_id: string;
+            computed_decision: components["schemas"]["ObservationDecision"];
+            /** Counters By Delta Code */
+            counters_by_delta_code: components["schemas"]["DeltaCodeCounter"][];
+            /** Eligible Count */
+            eligible_count: number;
+            /** Observed Count */
+            observed_count: number;
+            /** Out Of Envelope Count */
+            out_of_envelope_count: number;
+            /** Reason Codes */
+            reason_codes: components["schemas"]["ReasonCode"][];
+            /** Unexplained Count */
+            unexplained_count: number;
+            /**
+             * Window Deadline
+             * Format: date-time
+             */
+            window_deadline: string;
+            /**
+             * Window Started At
+             * Format: date-time
+             */
+            window_started_at: string;
+        };
+        /**
+         * OpenCurationCaseRequest
+         * @description The axis a new case is about.
+         */
+        OpenCurationCaseRequest: {
+            /** Predicate */
+            predicate: string;
+            /** Subject Reference */
+            subject_reference: string;
         };
         /**
          * OperationalHealthOut
@@ -6741,10 +8383,52 @@ export interface components {
             to_state: string;
         };
         /**
+         * ProjectionApprovalEvidenceResponse
+         * @description Verified projection-approval evidence binding a proposal version's
+         *     revision to its approving principal.
+         */
+        ProjectionApprovalEvidenceResponse: {
+            /**
+             * Approval Verifier Id
+             * Format: uuid
+             */
+            approval_verifier_id: string;
+            /** Approved Payload Digest */
+            approved_payload_digest: string;
+            /** Approving Principal Issuer */
+            approving_principal_issuer: string;
+            /** Approving Principal Subject */
+            approving_principal_subject: string;
+            /**
+             * Evidence Id
+             * Format: uuid
+             */
+            evidence_id: string;
+            /**
+             * Proposal Id
+             * Format: uuid
+             */
+            proposal_id: string;
+            /** Proposal Version */
+            proposal_version: number;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Revoked At */
+            revoked_at?: string | null;
+            /**
+             * Verified At
+             * Format: date-time
+             */
+            verified_at: string;
+        };
+        /**
          * ProjectionResponse
          * @description HTTP response shape for GET /v1/graph/provider and /v1/graph/consumer.
          *
-         *     Maps one-to-one to ``contextplane.service.platform.projections.Projection``.
+         *     Maps one-to-one to ``contextplane.service.catalog.projections.Projection``.
          *     ``next_cursor`` is None when no further pages exist; pass it as ``cursor=``
          *     on the next request to retrieve the following page.
          */
@@ -7003,6 +8687,67 @@ export interface components {
                 };
             };
         };
+        /**
+         * QualificationAcceptanceRequest
+         * @description Body for `POST {PV}/observation/accept`: the accepting principal's
+         *     acknowledgement of the reason codes attached to the qualification.
+         */
+        QualificationAcceptanceRequest: {
+            /** Acknowledged Reason Codes */
+            acknowledged_reason_codes: components["schemas"]["ReasonCode"][];
+            /**
+             * Qualification Id
+             * Format: uuid
+             */
+            qualification_id: string;
+        };
+        /**
+         * QualificationResponse
+         * @description The computed (and, once accepted, acknowledged) observation-
+         *     qualification decision for a candidate proposal version.
+         */
+        QualificationResponse: {
+            /** Accepted At */
+            accepted_at?: string | null;
+            accepted_by?: components["schemas"]["ActorRef"] | null;
+            /** Baseline Revision Id */
+            baseline_revision_id?: string | null;
+            /** Candidate Review Package Digest */
+            candidate_review_package_digest: string;
+            /** Cohort Digest */
+            cohort_digest: string;
+            /**
+             * Computed At
+             * Format: date-time
+             */
+            computed_at: string;
+            decision: components["schemas"]["ObservationDecision"];
+            /** Expected Impact Envelope Digest */
+            expected_impact_envelope_digest: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Qualification Algorithm Version */
+            qualification_algorithm_version: string;
+            /**
+             * Qualification Id
+             * Format: uuid
+             */
+            qualification_id: string;
+            /** Replay Corpus Digest */
+            replay_corpus_digest?: string | null;
+        };
+        /**
+         * QualityResponse
+         * @description What the caller should do about the response as a whole.
+         */
+        QualityResponse: {
+            /** Cacheable */
+            cacheable: boolean;
+            /** Degraded Blocks */
+            degraded_blocks: string[];
+            /** Reasons */
+            reasons: string[];
+        };
         /** QueueCountsResponse */
         QueueCountsResponse: {
             /** Counts */
@@ -7146,6 +8891,75 @@ export interface components {
             note?: string | null;
             reason_code: components["schemas"]["ReasonCode"];
         };
+        /**
+         * ReceiptItemIdResponse
+         * @description A receipt line's stable name, with the parts it was derived from.
+         *
+         *     Both, deliberately. The digest is what a receipt quotes; the parts are what
+         *     make it checkable. A response carrying only the digest asks the caller to
+         *     trust an opaque string, which is the opposite of what a receipt is for.
+         */
+        ReceiptItemIdResponse: {
+            /** Block */
+            block: string;
+            /** Item Key */
+            item_key: string;
+            /** Source */
+            source: string;
+            /**
+             * Value
+             * @description The digest a receipt line carries verbatim.
+             */
+            value: string;
+        };
+        /**
+         * ReceiptListResponse
+         * @description Receipts citing one piece of external work, newest first.
+         */
+        ReceiptListResponse: {
+            /** Receipts */
+            receipts: components["schemas"]["ReceiptResponse"][];
+        };
+        /**
+         * ReceiptResponse
+         * @description One stored resolution.
+         */
+        ReceiptResponse: {
+            /** Cacheable */
+            cacheable: boolean;
+            /**
+             * Receipt Id
+             * Format: uuid
+             */
+            receipt_id: string;
+            /** Request Digest */
+            request_digest: string | null;
+            /** Requested By */
+            requested_by: string;
+            /**
+             * Resolved At
+             * Format: date-time
+             */
+            resolved_at: string;
+            /** State */
+            state: string;
+            /** Task Id */
+            task_id: string | null;
+        };
+        /**
+         * RecordDispositionRequest
+         * @description What the accountable owner decided.
+         *
+         *     The three `propose_*` values ask another surface to write something and do
+         *     not perform that write; each target keeps its own approval contract.
+         */
+        RecordDispositionRequest: {
+            /**
+             * Disposition
+             * @enum {string}
+             */
+            disposition: "confirm" | "reject" | "supersede" | "propose_canonical" | "propose_runbook" | "propose_arc";
+        };
         /** RecordEventRequest */
         RecordEventRequest: {
             /** Body */
@@ -7160,12 +8974,69 @@ export interface components {
             tool_name?: string | null;
         };
         /**
+         * ReferenceListResponse
+         * @description Every piece of external work one resolution cites.
+         */
+        ReferenceListResponse: {
+            /** References */
+            references: components["schemas"]["ReferenceResponse"][];
+        };
+        /**
+         * ReferenceResponse
+         * @description One piece of external work a receipt cites.
+         */
+        ReferenceResponse: {
+            /** Classification */
+            classification: string;
+            /** External Id */
+            external_id: string;
+            /** Kind */
+            kind: string;
+            /** Source Namespace */
+            source_namespace: string;
+            /** Source System */
+            source_system: string;
+        };
+        /**
          * RefusalCode
          * @description The twenty-six closed refusal codes; see `REFUSAL_CODE_STATUS` for
          *     each one's HTTP status (Appendix A.5).
          * @enum {string}
          */
         RefusalCode: "arc_source_admission_refused" | "arc_source_status_unavailable" | "arc_evidence_type_not_writable" | "arc_enrollment_challenge_required" | "arc_enrollment_verification_failed" | "arc_approval_challenge_expired" | "arc_approval_challenge_failed" | "arc_approval_challenge_superseded" | "arc_approval_already_completed" | "arc_approval_verification_failed" | "arc_approval_challenge_limit_reached" | "arc_proposal_state_conflict" | "arc_proposal_validation_failed" | "arc_provenance_invalid" | "arc_reach_confirmation_required" | "arc_envelope_invalid" | "arc_observation_insufficient" | "arc_observation_failed" | "arc_qualification_actor_invalid" | "arc_qualification_expired" | "arc_activation_predicate_failed" | "arc_operational_integrity_pending" | "arc_operational_integrity_failed" | "arc_drafter_model_disabled" | "arc_idempotency_conflict" | "arc_actor_not_caller_supplied";
+        /**
+         * ReplayCorpusApprovalRequest
+         * @description Body for `POST /v1/arc/admin/observation-replay-corpora`: approves a
+         *     generated replay corpus for use in qualification.
+         */
+        ReplayCorpusApprovalRequest: {
+            /** Corpus Digest */
+            corpus_digest: string;
+            /** Generator Version */
+            generator_version: string;
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+        };
+        /**
+         * ReplayCorpusResponse
+         * @description `ReplayCorpusApprovalRequest` plus who approved it and when.
+         */
+        ReplayCorpusResponse: {
+            /**
+             * Approved At
+             * Format: date-time
+             */
+            approved_at: string;
+            approved_by: components["schemas"]["ActorRef"];
+            /** Corpus Digest */
+            corpus_digest: string;
+            /** Generator Version */
+            generator_version: string;
+            owning_scope: components["schemas"]["OwningScope"];
+            /** Target Tenant Id */
+            target_tenant_id?: string | null;
+        };
         /** RequestHistoryResponse */
         RequestHistoryResponse: {
             /** Items */
@@ -7233,6 +9104,190 @@ export interface components {
             /** Status */
             status: string;
         };
+        /**
+         * ResumeCheckpointResponse
+         * @description One recorded step, as resume returns it. Conclusions, never an exchange.
+         */
+        ResumeCheckpointResponse: {
+            /**
+             * Checkpoint Id
+             * Format: uuid
+             */
+            checkpoint_id: string;
+            /** Goal */
+            goal: string;
+            /** Next Action */
+            next_action: string | null;
+            /** Open Questions */
+            open_questions: string[];
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Sequence */
+            sequence: number;
+        };
+        /**
+         * ResumeCitationResponse
+         * @description A resolvable handle to evidence supporting newer learning.
+         */
+        ResumeCitationResponse: {
+            /** Excerpt */
+            excerpt?: string | null;
+            /** Kind */
+            kind: string;
+            /** Ref */
+            ref: string;
+        };
+        /**
+         * ResumeFeedbackResponse
+         * @description A minimized verdict; reporter identity and free text stay private.
+         */
+        ResumeFeedbackResponse: {
+            /** Consumed */
+            consumed: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Feedback Id
+             * Format: uuid
+             */
+            feedback_id: string;
+            /** Kind */
+            kind: string;
+            /** Learning Eligible */
+            learning_eligible: boolean;
+            /** Rating */
+            rating: string;
+            /**
+             * Receipt Id
+             * Format: uuid
+             */
+            receipt_id: string;
+            /** Receipt Item Id */
+            receipt_item_id: string | null;
+        };
+        /**
+         * ResumeLearningResponse
+         * @description A reviewed claim with the governed serving path's trust contract.
+         */
+        ResumeLearningResponse: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            /** Authority */
+            authority: string;
+            /** Citations */
+            citations: components["schemas"]["ResumeCitationResponse"][];
+            /** Claim Category */
+            claim_category: string;
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /** Confidence */
+            confidence: number;
+            /** Human Confirmed */
+            human_confirmed: boolean;
+            /** Label */
+            label: string;
+            /** Predicate */
+            predicate: string;
+            /**
+             * Subject Entity Id
+             * Format: uuid
+             */
+            subject_entity_id: string;
+            /** Trust */
+            trust: string;
+            /** Trust Note */
+            trust_note: string;
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to: string | null;
+            /** Value */
+            value: unknown;
+        };
+        /**
+         * ResumeRequestBody
+         * @description The work a caller is picking up.
+         *
+         *     References are `system/namespace/kind/external_id` tuples because that is
+         *     what a pipeline holds: its own run id, the pull request it is working on.
+         *     There is deliberately no transcript flag -- see `context/resume.py`.
+         */
+        ResumeRequestBody: {
+            /** Checkpoint Bound */
+            checkpoint_bound?: number | null;
+            /** Feedback Bound */
+            feedback_bound?: number | null;
+            /** Learning Bound */
+            learning_bound?: number | null;
+            /** Receipt Bound */
+            receipt_bound?: number | null;
+            /** Reference Bound */
+            reference_bound?: number | null;
+            /** References */
+            references: [
+                string,
+                string,
+                string,
+                string
+            ][];
+        };
+        /**
+         * ResumeResponse
+         * @description Everything needed to carry on, and which of three answers this is.
+         *
+         *     `status` is explicit rather than inferred from empty fields. A caller that
+         *     has to work out whether an empty checkpoint list means "new work", "you may
+         *     not see it" or "you named two tasks" will get that wrong, and the wrong
+         *     branch starts work that already exists.
+         */
+        ResumeResponse: {
+            /** Ambiguous Task Ids */
+            ambiguous_task_ids?: string[];
+            /** Checkpoints */
+            checkpoints: components["schemas"]["ResumeCheckpointResponse"][];
+            /** Feedback */
+            feedback: components["schemas"]["ResumeFeedbackResponse"][];
+            /** Head Checkpoint Id */
+            head_checkpoint_id: string | null;
+            /** Head Sequence */
+            head_sequence: number | null;
+            /** Head Summary */
+            head_summary: string | null;
+            /** Learning */
+            learning: components["schemas"]["ResumeLearningResponse"][];
+            /** Next Action */
+            next_action: string | null;
+            /** Open Questions */
+            open_questions: string[];
+            /** Receipts */
+            receipts: components["schemas"]["ReceiptResponse"][];
+            /** References */
+            references: components["schemas"]["ReferenceResponse"][];
+            /**
+             * Status
+             * @description One of `resumed`, `empty`, `ambiguous`.
+             */
+            status: string;
+            /** Task Id */
+            task_id: string | null;
+            /** Truncated */
+            truncated: string[];
+        };
         /** ReversePromotionRequest */
         ReversePromotionRequest: {
             /** Reason */
@@ -7242,6 +9297,36 @@ export interface components {
         ReversePromotionResponse: {
             /** Status */
             status: string;
+        };
+        /**
+         * ReviewPackageResponse
+         * @description Result of `GET {PV}/review-package`: everything a projection
+         *     approver needs to review before signing, and the same object whose
+         *     digest the approval evidence binds.
+         */
+        ReviewPackageResponse: {
+            /** Artifact Revision Digest */
+            artifact_revision_digest: string;
+            /** Artifact Semantics Digest */
+            artifact_semantics_digest: string;
+            baseline_diff: components["schemas"]["BaselineDiffResponse"];
+            /** Citations */
+            citations: components["schemas"]["Citation"][];
+            expected_impact_envelope: components["schemas"]["ExpectedImpactEnvelope"];
+            /** Field Provenance */
+            field_provenance: components["schemas"]["FieldProvenance"][];
+            /** Judgment Authors */
+            judgment_authors: components["schemas"]["JudgmentAuthor"][];
+            /** Prose Readback */
+            prose_readback: string;
+            reach_confirmations: components["schemas"]["ReachConfirmationResponse"];
+            /** Review Package Digest */
+            review_package_digest: string;
+            /** Risk Algorithm Version */
+            risk_algorithm_version: string;
+            risk_classification: components["schemas"]["RiskClassification"];
+            semantic_tests: components["schemas"]["SemanticTestResultResponse"];
+            submission_identity: components["schemas"]["ActorRef"];
         };
         /** ReviewProposalRequest */
         ReviewProposalRequest: {
@@ -7255,6 +9340,39 @@ export interface components {
              */
             state: "accepted" | "rejected";
         };
+        /**
+         * RevisionLifecycleState
+         * @description Mirrors the `LIFECYCLE_*` constants in
+         *     `contextplane.arc.service.artifact_integrity` (`draft`, `active`,
+         *     `superseded`, `revoked`, `expired`). Transcribed rather than imported:
+         *     `api/schemas/` does not depend on `arc/service/` anywhere else in this
+         *     codebase, and importing a service module's constants here would be a
+         *     new, one-off exception to that direction.
+         * @enum {string}
+         */
+        RevisionLifecycleState: "draft" | "active" | "superseded" | "revoked" | "expired";
+        /**
+         * RevisionResponse
+         * @description A revision's lifecycle and operational-integrity state.
+         */
+        RevisionResponse: {
+            /** Activated At */
+            activated_at?: string | null;
+            /**
+             * Artifact Id
+             * Format: uuid
+             */
+            artifact_id: string;
+            lifecycle_state: components["schemas"]["RevisionLifecycleState"];
+            operational_integrity_state: components["schemas"]["OperationalIntegrityState"];
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Revoked At */
+            revoked_at?: string | null;
+        };
         /** RevokeRequest */
         RevokeRequest: {
             /** Reason */
@@ -7264,9 +9382,10 @@ export interface components {
          * RevokeVerifierRequest
          * @description Body for `POST /approval-evidence/{evidence_id}/revoke`.
          *
-         *     Not the verifier-revoke route below -- that one moved to the wire
-         *     `ReasonRequest` per Appendix A.1's contract for D1. This narrower model
-         *     stays for evidence revocation, which AAS-T13's contract does not touch.
+         *     Not the verifier-revoke route below -- that route was migrated to the
+         *     shared `ReasonRequest` wire model when verifier enrollment was built.
+         *     This narrower model stays for evidence revocation, which that
+         *     migration left untouched.
          */
         RevokeVerifierRequest: {
             /** Reason */
@@ -7278,6 +9397,17 @@ export interface components {
          * @enum {string}
          */
         RiskClassification: "global_mandatory" | "global_non_mandatory" | "tenant_mandatory" | "tenant_non_mandatory" | "domain_mandatory" | "domain_non_mandatory" | "capability_mandatory" | "capability_non_mandatory" | "task_mandatory" | "task_non_mandatory";
+        /**
+         * RouteCurationCaseRequest
+         * @description Who becomes accountable for deciding the case.
+         *
+         *     Text rather than an actor id: an accountable owner can be a rota or a team
+         *     address that has no actor row of its own.
+         */
+        RouteCurationCaseRequest: {
+            /** Owner Id */
+            owner_id: string;
+        };
         /**
          * SearchResponse
          * @description Response for the search endpoint -- bounded by `top_k`, so `total` is an exact count, not an estimate.
@@ -7399,6 +9529,195 @@ export interface components {
             shared_with_tenants?: string[] | null;
             /** Visibility */
             visibility: string;
+        };
+        /**
+         * SignalIngestRequest
+         * @description One observation a producer reports.
+         *
+         *     `source_id` names a registered source rather than a system name: the
+         *     registration is what carries the declared authority and the ingest ceiling,
+         *     and a free-text name would name no registration at all.
+         */
+        SignalIngestRequest: {
+            /**
+             * Classification
+             * @enum {string}
+             */
+            classification: "public" | "internal" | "confidential" | "restricted";
+            /**
+             * Event Time
+             * Format: date-time
+             * @description When the source says it happened. Timezone-aware.
+             */
+            event_time: string;
+            /**
+             * Evidence Handle
+             * @description A handle to authorized evidence held elsewhere. Exactly one of payload or evidence_handle.
+             */
+            evidence_handle?: string | null;
+            /**
+             * Expires At
+             * @description When this stops being usable as current. Absent is not the same as never expires.
+             */
+            expires_at?: string | null;
+            /**
+             * Idempotency Key
+             * @description This submission's own key. Distinct from source_event_id: one occurrence may be resubmitted.
+             */
+            idempotency_key: string;
+            /**
+             * Observed Time
+             * Format: date-time
+             * @description When the producer learned of it. Timezone-aware.
+             */
+            observed_time: string;
+            /**
+             * Payload
+             * @description The allowlisted projection. Exactly one of payload or evidence_handle.
+             */
+            payload?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Producer Id
+             * @description Who produced the observation, in the source's own id space.
+             */
+            producer_id: string;
+            /**
+             * Producer Type
+             * @enum {string}
+             */
+            producer_type: "human" | "agent" | "external";
+            /**
+             * Project Key
+             * @description Project scope, when the producer knows one.
+             */
+            project_key?: string | null;
+            /**
+             * References
+             * @description The external work this observation is about. Empty is legal for a diagnostic observation.
+             */
+            references?: components["schemas"]["SignalReference"][];
+            /**
+             * Schema Version
+             * @description The envelope contract version. `external_signal.v1` today.
+             * @default external_signal.v1
+             */
+            schema_version: string;
+            /**
+             * Source Event Id
+             * @description That system's identifier for this occurrence. Trimmed, never case-folded.
+             */
+            source_event_id: string;
+            /**
+             * Source Id
+             * Format: uuid
+             * @description The registered source this observation arrives through.
+             */
+            source_id: string;
+            /**
+             * Source System
+             * @description The external system's own name for itself. Folded to lowercase before the write.
+             */
+            source_system: string;
+            /**
+             * Team Key
+             * @description Team scope, when the producer knows one.
+             */
+            team_key?: string | null;
+        };
+        /**
+         * SignalIngestResponse
+         * @description What the caller is told once a submission is admitted or recognised.
+         *
+         *     `replayed` is the field a client retrying a dropped response reads: a retry
+         *     can tell it found the first write rather than making a second one. The status
+         *     code says the same thing (201 created, 200 recognised); the field is here so
+         *     a client that only reads the body still knows.
+         */
+        SignalIngestResponse: {
+            /**
+             * Authority
+             * @description Read off the source's declared policy, never off the request.
+             */
+            authority: string;
+            /**
+             * Content Digest
+             * @description What makes a redelivery decidable without re-sending the body.
+             */
+            content_digest: string;
+            /**
+             * Ingested At
+             * Format: date-time
+             * @description Server-assigned. One clock read per submission.
+             */
+            ingested_at: string;
+            /** References */
+            references: components["schemas"]["NormalizedSignalReference"][];
+            /** Replayed */
+            replayed: boolean;
+            /**
+             * Signal Id
+             * Format: uuid
+             */
+            signal_id: string;
+        };
+        /**
+         * SignalReference
+         * @description One piece of external work an observation is about.
+         *
+         *     Closed and complete for the same reason the reference contract itself is:
+         *     `source_system`, `source_namespace`, `kind` and `external_id` are the
+         *     collision scope, so a reference missing one of them collides with everything
+         *     else missing it. Classification and the *external* authority are required
+         *     because a reference nobody can weigh is not evidence of anything.
+         */
+        SignalReference: {
+            /**
+             * Authorized Uri
+             * @description A URI a reader is permitted to follow.
+             */
+            authorized_uri?: string | null;
+            /**
+             * Classification
+             * @enum {string}
+             */
+            classification: "public" | "internal" | "confidential" | "restricted";
+            /**
+             * External Authority
+             * @description The authority in the external system. Never this service's own.
+             */
+            external_authority: string;
+            /**
+             * External Id
+             * @description The id within that system. Trimmed, never case-folded.
+             */
+            external_id: string;
+            /**
+             * Kind
+             * @description What the reference names, e.g. `commit`, `run`, `deployment`.
+             */
+            kind: string;
+            /**
+             * Observed At
+             * @description When the source observed this reference. Absent when it cannot report one.
+             */
+            observed_at?: string | null;
+            /**
+             * Revision
+             * @description Immutable revision, when the source records one.
+             */
+            revision?: string | null;
+            /**
+             * Source Namespace
+             * @description Namespace inside that system, e.g. `acme/app`.
+             */
+            source_namespace: string;
+            /**
+             * Source System
+             * @description Owning system, e.g. `github`. Folded to lowercase.
+             */
+            source_system: string;
         };
         /**
          * SignatureAlgorithm
@@ -8110,6 +10429,31 @@ export interface components {
             sync_run_id: string;
             /** Trigger */
             trigger: string;
+        };
+        /**
+         * TrustResponse
+         * @description All eight trust labels. Complete or absent, never partial.
+         *
+         *     Present for every non-canonical item and absent for every canonical one --
+         *     the contract enforces that, and this shape carries whichever it was given.
+         */
+        TrustResponse: {
+            /** Assertion Kind */
+            assertion_kind: string;
+            /** Attribution */
+            attribution: string | null;
+            /** Authority */
+            authority: string;
+            /** Classification */
+            classification: string;
+            /** Freshness */
+            freshness: string | null;
+            /** Mutability */
+            mutability: string;
+            /** Source */
+            source: string;
+            /** Trust */
+            trust: string;
         };
         /**
          * UpdateEntityRequest
@@ -10378,6 +12722,39 @@ export interface operations {
             };
         };
     };
+    approve_observation_replay_corpus_v1_arc_admin_observation_replay_corpora_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplayCorpusApprovalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplayCorpusResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     describe_operator_identity_v1_arc_admin_operator_identity_get: {
         parameters: {
             query?: never;
@@ -10411,7 +12788,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ActivateRequest"];
+                "application/json": components["schemas"]["AdminActivateRequest"];
             };
         };
         responses: {
@@ -10593,6 +12970,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SourceUploadPolicyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_approval_challenge_v1_arc_approval_challenges__approval_challenge_id__complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                approval_challenge_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalCompletionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectionApprovalEvidenceResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10859,6 +13271,76 @@ export interface operations {
             };
         };
     };
+    create_approval_challenge_v1_arc_proposals__proposal_id__versions__proposal_version__approval_challenges_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalChallengeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalChallengeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_baseline_diff_v1_arc_proposals__proposal_id__versions__proposal_version__baseline_diff_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BaselineDiffResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     draft_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__draft_post: {
         parameters: {
             query?: never;
@@ -10882,6 +13364,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DraftPatchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_observation_status_v1_arc_proposals__proposal_id__versions__proposal_version__observation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObservationStatusResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_qualification_v1_arc_proposals__proposal_id__versions__proposal_version__observation_accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QualificationAcceptanceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QualificationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    qualify_proposal_version_v1_arc_proposals__proposal_id__versions__proposal_version__observation_qualify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QualificationResponse"];
                 };
             };
             /** @description Validation Error */
@@ -10954,6 +13536,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProposalVersionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_review_package_v1_arc_proposals__proposal_id__versions__proposal_version__review_package_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+                proposal_version: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewPackageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -11268,6 +13882,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResolveContextResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_revision_v1_arc_revisions__revision_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_activation_eligibility_v1_arc_revisions__revision_id__activation_eligibility_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivationEligibilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_revision_v1_arc_revisions__revision_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RevisionResponse"];
                 };
             };
             /** @description Validation Error */
@@ -12238,6 +14953,37 @@ export interface operations {
             };
         };
     };
+    get_checkpoint_by_digest_v1_checkpoints_by_digest__digest__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                digest: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckpointResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     _create_v1_concepts_post: {
         parameters: {
             query?: never;
@@ -12362,6 +15108,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CapabilityResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_context_feedback_v1_context_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContextFeedbackRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextFeedbackResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_context_v1_context_resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContextResolveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContextEnvelopeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resume_context_v1_context_resume_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResumeRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumeResponse"];
                 };
             };
             /** @description Validation Error */
@@ -12656,6 +15501,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_aggregates_v1_learning_aggregates_get: {
+        parameters: {
+            query?: {
+                window_days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BreakdownOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_metrics_v1_learning_metrics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
                 };
             };
         };
@@ -13190,6 +16086,204 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LinkedClaimResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_contradiction_groups_v1_memory_contradiction_groups_get: {
+        parameters: {
+            query?: {
+                predicate?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContradictionGroupListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_curation_cases_v1_memory_curation_cases_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                cursor?: string | null;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurationCaseListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_curation_case_v1_memory_curation_cases_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenCurationCaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurationCaseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_curation_case_v1_memory_curation_cases__case_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurationCaseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_case_disposition_v1_memory_curation_cases__case_id__disposition_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordDispositionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurationCaseResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    route_curation_case_v1_memory_curation_cases__case_id__route_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RouteCurationCaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurationCaseResponse"];
                 };
             };
             /** @description Validation Error */
@@ -13842,6 +16936,136 @@ export interface operations {
             };
         };
     };
+    receipts_by_reference_v1_receipts_by_reference_get: {
+        parameters: {
+            query: {
+                source_system: string;
+                source_namespace: string;
+                kind: string;
+                external_id: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_receipt_v1_receipts__receipt_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_receipt_exclusions_v1_receipts__receipt_id__exclusions_get: {
+        parameters: {
+            query?: {
+                block?: string | null;
+            };
+            header?: never;
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExclusionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_receipt_references_v1_receipts__receipt_id__references_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReferenceListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     search_v1_search_get: {
         parameters: {
             query: {
@@ -13868,6 +17092,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ingest_signal_v1_signals_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignalIngestRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignalIngestResponse"];
                 };
             };
             /** @description Validation Error */
@@ -13936,6 +17193,171 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SubscriptionResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    append_checkpoint_v1_tasks__task_id__checkpoints_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckpointAppend"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckpointResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_checkpoint_v1_tasks__task_id__checkpoints__checkpoint_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+                checkpoint_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckpointResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_participants_v1_tasks__task_id__participants_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrantListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_participant_v1_tasks__task_id__participants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrantCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrantResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_participant_v1_tasks__task_id__participants__actor_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+                actor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
