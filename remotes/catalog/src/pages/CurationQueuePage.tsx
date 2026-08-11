@@ -45,6 +45,7 @@ export function CurationQueuePage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Catalog stewardship"
         title="Curation queue"
         description="Observations waiting on a curator: claims whose subject never resolved, and pairs that disagree."
         actions={<KLink to="../claims">All Claims</KLink>}
@@ -97,7 +98,6 @@ export function CurationQueuePage() {
                 {
                   key: 'claim_id',
                   header: 'Claim',
-                  linked: true,
                   render: (row) =>
                     row.claim_id ? (
                       <EntityLink

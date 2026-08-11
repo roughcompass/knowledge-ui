@@ -1,4 +1,4 @@
-import { FlexLayout, Text } from '@salt-ds/core';
+import { FlexLayout, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 /**
@@ -15,12 +15,27 @@ import type { ReactNode } from 'react';
  *
  * One action, never two. Two makes it a toolbar and the eye stops reading either.
  */
-export function SectionHeading({ title, action }: { title: string; action?: ReactNode }) {
+export function SectionHeading({
+  eyebrow,
+  title,
+  action,
+}: {
+  eyebrow?: string;
+  title: string;
+  action?: ReactNode;
+}) {
   return (
     <FlexLayout gap={2} align="center" justify="space-between">
-      <Text styleAs="h3" as="h2">
-        {title}
-      </Text>
+      <StackLayout gap={1}>
+        {eyebrow ? (
+          <Text styleAs="notation" color="secondary">
+            {eyebrow}
+          </Text>
+        ) : null}
+        <Text styleAs="h3" as="h2">
+          {title}
+        </Text>
+      </StackLayout>
       {action}
     </FlexLayout>
   );

@@ -1,7 +1,5 @@
-import { Text } from '@salt-ds/core';
+import { Panel, StackLayout, Text } from '@salt-ds/core';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-
-import styles from './ColumnChart.module.css';
 
 /**
  * A column chart: one measure, one column per position along an ordered axis.
@@ -20,13 +18,11 @@ import styles from './ColumnChart.module.css';
  * behind a lazy boundary — see `LazyColumnChart` — so it is not in any remote's
  * initial federated graph and the bundle budgets stay where they were.
  *
- * ## Colours come from the bridge, not from here
+ * ## Colours come from Salt
  *
- * Every colour is `var(--kui-chart-*)`, declared in `theme-fixups.css` as a lone
- * Salt token. The library takes colours as props and `check-salt-tokens` only reads
- * stylesheets, so a literal here would be invisible to the guard that exists
- * because two of three chart series once rendered transparent. Naming a role keeps
- * it checked.
+ * Recharts receives only published Salt theme tokens. There is no application
+ * palette or stylesheet, so axes, grid, cursor and series continue to adapt to the
+ * selected Salt mode.
  *
  * ## Still paired with a table
  *
@@ -76,12 +72,14 @@ function ChartTooltip({
   if (active !== true || datum?.value === undefined) return null;
 
   return (
-    <div className={styles.tooltip}>
-      <Text styleAs="notation" color="secondary">
-        {String(label)}
-      </Text>
-      <Text styleAs="label">{`${datum.value.toLocaleString()} ${valueLabel}`}</Text>
-    </div>
+    <Panel variant="primary">
+      <StackLayout gap={1}>
+        <Text styleAs="notation" color="secondary">
+          {String(label)}
+        </Text>
+        <Text styleAs="label">{`${datum.value.toLocaleString()} ${valueLabel}`}</Text>
+      </StackLayout>
+    </Panel>
   );
 }
 
@@ -106,56 +104,58 @@ export function ColumnChart({
   }
 
   return (
-    <div className={styles.chart}>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={[...bars]} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-          {/*
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={[...bars]} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+        {/*
             Horizontal rules only. Vertical ones would divide the columns from each
             other, which the 2px gap already does, and a full lattice reads as
             graph paper rather than as a scale.
           */}
-          <CartesianGrid stroke="var(--kui-chart-grid)" strokeDasharray="2 4" vertical={false} />
-          <XAxis
-            dataKey="label"
-            stroke="var(--kui-chart-axis)"
-            tick={{ fill: 'var(--kui-chart-tick)', fontSize: 11 }}
-            tickLine={false}
-            interval={tickInterval(bars.length)}
-            /* Keeps the first and last position named however the interval falls. */
-            minTickGap={0}
-          />
-          <YAxis
-            stroke="var(--kui-chart-axis)"
-            tick={{ fill: 'var(--kui-chart-tick)', fontSize: 11 }}
-            tickLine={false}
-            axisLine={false}
-            width={44}
-            tickFormatter={compactNumber}
-            /*
-             * From zero, always. A truncated value axis exaggerates differences
-             * between columns, which for a count is a false claim about the data —
-             * and the one distortion a bar chart must never make.
-             */
-            domain={[0, 'auto']}
-            allowDecimals={false}
-          />
-          <Tooltip
-            cursor={{ fill: 'var(--kui-chart-cursor)' }}
-            content={<ChartTooltip valueLabel={valueLabel} />}
-          />
-          <Bar
-            dataKey="value"
-            fill="var(--kui-chart-series)"
-            /*
-             * Rounded at the free end only, anchored to the baseline. Rounding the
-             * bottom would lift the column off the axis it is measured from.
-             */
-            radius={[4, 4, 0, 0]}
-            maxBarSize={48}
-            isAnimationActive={false}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+        <CartesianGrid
+          stroke="var(--salt-separable-secondary-borderColor)"
+          strokeDasharray="2 4"
+          vertical={false}
+        />
+        <XAxis
+          dataKey="label"
+          stroke="var(--salt-separable-tertiary-borderColor)"
+          tick={{ fill: 'var(--salt-content-secondary-foreground)' }}
+          tickLine={false}
+          interval={tickInterval(bars.length)}
+          /* Keeps the first and last position named however the interval falls. */
+          minTickGap={0}
+        />
+        <YAxis
+          stroke="var(--salt-separable-tertiary-borderColor)"
+          tick={{ fill: 'var(--salt-content-secondary-foreground)' }}
+          tickLine={false}
+          axisLine={false}
+          width={44}
+          tickFormatter={compactNumber}
+          /*
+           * From zero, always. A truncated value axis exaggerates differences
+           * between columns, which for a count is a false claim about the data —
+           * and the one distortion a bar chart must never make.
+           */
+          domain={[0, 'auto']}
+          allowDecimals={false}
+        />
+        <Tooltip
+          cursor={{ fill: 'var(--salt-palette-alpha-contrast-low)' }}
+          content={<ChartTooltip valueLabel={valueLabel} />}
+        />
+        <Bar
+          dataKey="value"
+          fill="var(--salt-category-1-dataviz)"
+          /*
+           * Rounded at the free end only, anchored to the baseline. Rounding the
+           * bottom would lift the column off the axis it is measured from.
+           */
+          radius={[4, 4, 0, 0]}
+          maxBarSize={48}
+          isAnimationActive={false}
+        />
+      </BarChart>
+    </ResponsiveContainer>
   );
 }

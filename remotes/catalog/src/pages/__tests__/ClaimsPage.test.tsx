@@ -125,16 +125,16 @@ describe('the claims page', () => {
     expect(notes).toHaveLength(1);
   });
 
-  it('marks the link columns so their rows carry the hover cue', async () => {
+  it('keeps the subject and claim destinations available as links', async () => {
     /*
-     * Subject and claim are built inside `render`, which the table cannot
-     * inspect for anchors — the column has to declare itself linked. Without
-     * the flag the rows of the most clickable table in the app looked static.
+     * Subject and claim are built inside `render`; both must remain real links
+     * when the shared table delegates its presentation entirely to Salt.
      */
     renderPage();
     const table = await findLoadedTable(/claims/i);
     const [, firstDataRow] = within(table).getAllByRole('row');
-    expect(firstDataRow?.className).toMatch(/clickableRow/);
+    if (!firstDataRow) throw new Error('first claim row missing');
+    expect(within(firstDataRow).getAllByRole('link').length).toBeGreaterThan(0);
   });
 
   it('lets the value and evidence cells wrap rather than deciding the table width', async () => {
@@ -149,8 +149,8 @@ describe('the claims page', () => {
     const evidenceCell = within(table)
       .getByText(/ev-9001/)
       .closest('td');
-    expect(valueCell?.className).toMatch(/wrap/);
-    expect(evidenceCell?.className).toMatch(/wrap/);
+    expect(valueCell).not.toHaveStyle({ whiteSpace: 'nowrap' });
+    expect(evidenceCell).not.toHaveStyle({ whiteSpace: 'nowrap' });
   });
 
   it('shows every citation without a click', async () => {

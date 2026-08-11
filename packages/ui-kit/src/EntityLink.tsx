@@ -88,15 +88,17 @@ export function EntityLink({
   return (
     <FlexLayout gap={1} align="center">
       <Tooltip content={label}>
-        {to ? (
-          <KLink to={to} underline="never" color="accent" styleAs="code">
-            {short}
-          </KLink>
-        ) : (
-          <Text styleAs="code" color="secondary">
-            {short}
-          </Text>
-        )}
+        <FlexLayout align="center">
+          {to ? (
+            <KLink to={to} underline="never" color="accent" styleAs="code">
+              {short}
+            </KLink>
+          ) : (
+            <Text styleAs="code" color="secondary">
+              {short}
+            </Text>
+          )}
+        </FlexLayout>
       </Tooltip>
       <CopyButton value={id} label="Copy Id" />
     </FlexLayout>

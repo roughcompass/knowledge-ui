@@ -1,19 +1,18 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * The application chrome: the drill-down rail, its back control, the resize handle,
- * and the two rules that have to line up.
+ * The application chrome: the persistent Salt rail, route-derived navigation,
+ * global search layer, and shared table behavior.
  *
  * Separate from `a11y.spec.ts` because these are behavioural rather than
  * axe-driven. Every assertion here corresponds to a defect that shipped at some
  * point in this work:
  *
- *   - the drilled panel used to be derived from click state, so a deep link opened
- *     with the wrong panel;
- *   - the back control announced "Back to Operations" while navigating to `/`;
- *   - the rail header was 49px against a 67px top bar, so the two hairlines
- *     bracketing the chrome sat 18px apart;
- *   - the resize handle's visible mark filled its whole 12px hit area.
+ *   - current navigation used to be derived from click state, so a deep link opened
+ *     with the wrong section;
+ *   - the custom rail could overlap the top bar and collapse below a usable width;
+ *   - table links and overflow looked correct in markup while failing on screen;
+ *   - the search preview existed under the clipped top bar but was not visible.
  */
 
 const RAIL = 'nav';
@@ -110,113 +109,58 @@ test('a collapsed section still shows that it holds the current page', async ({ 
   );
 });
 
-test('the rail header and the top bar are the same height', async ({ page }) => {
+test('the utility bar and main content stay clear of the branded navigation rail', async ({
+  page,
+}) => {
   await ready(page, '/catalog');
 
   const bounds = await page.evaluate(() => {
     const bar = document.querySelector('header');
-    // The rail's divided header zone: the only element above the nav carrying a
-    // bottom rule.
-    const zone = [...document.querySelectorAll('div')].find((d) =>
-      /zoneDivided/.test(typeof d.className === 'string' ? d.className : ''),
-    );
-    if (!bar || !zone) return null;
+    const rail = document.querySelector('nav');
+    const main = document.querySelector('main');
+    if (!bar || !rail || !main) return null;
+    const railBounds = rail.parentElement?.getBoundingClientRect() ?? rail.getBoundingClientRect();
     return {
-      barBottom: Math.round(bar.getBoundingClientRect().bottom),
-      zoneBottom: Math.round(zone.getBoundingClientRect().bottom),
+      railRight: Math.round(railBounds.right),
+      barLeft: Math.round(bar.getBoundingClientRect().left),
+      mainLeft: Math.round(main.getBoundingClientRect().left),
     };
   });
 
   expect(bounds).not.toBeNull();
-  // The two rules bracket the chrome across the full window width. A one-pixel
-  // difference is visible as a step where they meet.
-  expect(bounds?.barBottom).toBe(bounds?.zoneBottom);
+  expect(bounds?.barLeft).toBeGreaterThanOrEqual(bounds?.railRight ?? 0);
+  expect(bounds?.mainLeft).toBeGreaterThanOrEqual(bounds?.railRight ?? 0);
 });
 
-test('the resize handle is operable from the keyboard and persists', async ({ page }) => {
+test('the Salt navigation rail keeps a stable usable width across reloads', async ({ page }) => {
   await ready(page, '/catalog');
 
-  const handle = page.getByRole('separator', { name: 'Resize navigation' });
-  await expect(handle).toHaveAttribute('aria-valuenow', /\d+/);
-
-  const before = Number(await handle.getAttribute('aria-valuenow'));
-  await handle.focus();
-  await page.keyboard.press('ArrowRight');
-  const after = Number(await handle.getAttribute('aria-valuenow'));
-  expect(after).toBeGreaterThan(before);
-
-  // Survives a reload, which is the whole point of persisting it.
-  await page.reload({ waitUntil: 'networkidle' });
-  await expect(page.getByRole('separator', { name: 'Resize navigation' })).toHaveAttribute(
-    'aria-valuenow',
-    String(after),
+  const rail = page.locator(RAIL);
+  const before = await rail.evaluate((element) =>
+    Math.round((element.parentElement ?? element).getBoundingClientRect().width),
   );
+  expect(before).toBeGreaterThan(200);
+
+  await page.reload({ waitUntil: 'networkidle' });
+  const after = await page
+    .locator(RAIL)
+    .evaluate((element) =>
+      Math.round((element.parentElement ?? element).getBoundingClientRect().width),
+    );
+  expect(after).toBe(before);
 });
 
-test('the resize handle clamps rather than collapsing the rail', async ({ page }) => {
+test('table cell presentation is owned by Salt rather than application classes', async ({
+  page,
+}) => {
   await ready(page, '/catalog');
 
-  const handle = page.getByRole('separator', { name: 'Resize navigation' });
-  const min = Number(await handle.getAttribute('aria-valuemin'));
-  await handle.focus();
-
-  // Far more presses than the range needs. Without clamping the rail would pass
-  // through zero and the nav labels would be unreachable with no way back.
-  for (let i = 0; i < 30; i++) await page.keyboard.press('ArrowLeft');
-  expect(Number(await handle.getAttribute('aria-valuenow'))).toBe(min);
-
-  const railWidth = await page.locator(RAIL).evaluate((el) => {
-    const rail = el.parentElement;
-    return rail ? Math.round(rail.getBoundingClientRect().width) : 0;
+  const applicationClasses = await page.locator('tbody td').evaluateAll((cells) => {
+    return cells.flatMap((cell) =>
+      [...cell.classList].filter((className) => !className.startsWith('salt')),
+    );
   });
-  expect(railWidth).toBeGreaterThanOrEqual(min);
-});
-
-test('the resize mark is a hairline, not the width of its hit area', async ({ page }) => {
-  await ready(page, '/catalog');
-
-  const measured = await page.evaluate(() => {
-    const el = document.querySelector('[role="separator"]');
-    if (!el) return null;
-    return {
-      hit: Math.round(el.getBoundingClientRect().width),
-      mark: getComputedStyle(el, '::after').width,
-    };
-  });
-
-  expect(measured).not.toBeNull();
-  // A one-pixel target is unusable with a pointer, so the hit area is wide — but
-  // filling it drew a 12px bar on hover.
-  expect(measured?.hit).toBeGreaterThan(4);
-  expect(measured?.mark).toBe('1px');
-});
-
-test('a column that opts into wrapping actually wraps', async ({ page }) => {
-  /*
-   * The cells-hold-their-line rule is a compound selector carrying a class and an
-   * element, so the plain `.wrap` opt-out lost to it: the class landed on the cell
-   * and the text still ran off the side. A claims table that should have measured
-   * 1369px measured 1841px against a 1198px column, hiding four of its eight
-   * columns behind a scroll nobody had reason to attempt.
-   *
-   * jsdom computes no styles, and stylelint checks form rather than effect, so
-   * neither lane can see this. It is the same failure numeric alignment had.
-   */
-  await ready(page, '/catalog/claims');
-
-  const measured = await page.evaluate(() => {
-    const cells = [...document.querySelectorAll('td')];
-    const wrapped = cells.find((td) => [...td.classList].some((c) => c.includes('wrap')));
-    const plain = cells.find((td) => ![...td.classList].some((c) => c.includes('wrap')));
-    return {
-      wrapped: wrapped ? getComputedStyle(wrapped).whiteSpace : null,
-      plain: plain ? getComputedStyle(plain).whiteSpace : null,
-    };
-  });
-
-  expect(measured.wrapped, 'a wrapping column must exist on this page').not.toBeNull();
-  expect(measured.wrapped).toBe('normal');
-  expect(measured.plain).toBe('nowrap');
+  expect(applicationClasses).toEqual([]);
 });
 
 test('the search panel is visible, not merely present', async ({ page }) => {
@@ -238,10 +182,8 @@ test('the search panel is visible, not merely present', async ({ page }) => {
   const panel = page.getByText('Press Enter for all results');
   await expect(panel).toBeVisible();
 
-  const hit = await page.evaluate(() => {
-    const el = [...document.querySelectorAll('div')].find(
-      (d) => typeof d.className === 'string' && d.className.includes('panel'),
-    );
+  const hit = await panel.evaluate((status) => {
+    const el = status.closest('.saltPanel');
     if (!el) return null;
     const r = el.getBoundingClientRect();
     const topmost = document.elementFromPoint(r.x + r.width / 2, r.y + 10);
@@ -279,9 +221,7 @@ test('a link in a table cell is the colour of a link', async ({ page }) => {
   if (measured?.inner !== null) expect(measured?.inner).toBe(measured?.anchor);
 });
 
-test('a table wider than its column scrolls instead of clipping', async ({ page }) => {
-  // Eight columns do not fit a 1200px measure at any type size. The answer is a
-  // scroller the keyboard can reach, not columns that silently leave the page.
+test('a wide table uses Salt overflow handling instead of clipping', async ({ page }) => {
   await ready(page, '/catalog/claims');
 
   const measured = await page.evaluate(() => {
@@ -289,16 +229,26 @@ test('a table wider than its column scrolls instead of clipping', async ({ page 
     let el = table?.parentElement ?? null;
     while (el && el !== document.body) {
       if (getComputedStyle(el).overflowX === 'auto') {
-        return { overflows: el.scrollWidth > el.clientWidth, tabIndex: el.tabIndex };
+        return {
+          overflow: getComputedStyle(el).overflowX,
+          scrollWidth: el.scrollWidth,
+          clientWidth: el.clientWidth,
+          tabIndex: el.tabIndex,
+        };
       }
       el = el.parentElement;
     }
     return null;
   });
 
-  expect(measured, 'the table must sit inside a horizontal scroller').not.toBeNull();
-  expect(measured?.overflows).toBe(true);
-  expect(measured?.tabIndex).toBe(0);
+  expect(measured, 'the table must sit inside Salt’s horizontal scroller').not.toBeNull();
+  expect(measured?.overflow).toBe('auto');
+  expect(measured?.scrollWidth).toBeGreaterThanOrEqual(measured?.clientWidth ?? 0);
+  // Salt only adds a keyboard stop when there is something to scroll. Wrapped
+  // content that fits should not add an inert tab stop to every table.
+  expect(measured?.tabIndex).toBe(
+    (measured?.scrollWidth ?? 0) > (measured?.clientWidth ?? 0) ? 0 : -1,
+  );
 });
 
 test('a mistyped address still has a page heading', async ({ page }) => {

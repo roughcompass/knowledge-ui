@@ -1,4 +1,4 @@
-import styles from './Skeleton.module.css';
+import { LinearProgress } from '@salt-ds/core';
 
 /**
  * A placeholder bar, internal to this package on purpose.
@@ -20,12 +20,10 @@ import styles from './Skeleton.module.css';
  * has not arrived. Derived from the index so it is stable across renders — a random
  * width would reflow on every paint.
  */
-const WIDTHS = [styles.w0, styles.w1, styles.w2, styles.w3, styles.w4] as const;
-
-export function SkeletonBar({ index = 0 }: { index?: number }) {
+export function SkeletonBar({ index: _index = 0 }: { index?: number }) {
   return (
-    <span
-      className={`${styles.bar} ${WIDTHS[index % WIDTHS.length]}`}
+    <LinearProgress
+      hideLabel
       // The row announces itself through `aria-busy` on the region; the bars are
       // decoration and would otherwise be read out as a run of empty elements.
       aria-hidden="true"

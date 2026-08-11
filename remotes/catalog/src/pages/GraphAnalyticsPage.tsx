@@ -601,6 +601,7 @@ export function GraphAnalyticsPage() {
         directly above the first section it actually applies to.
       */}
       <PageHeader
+        eyebrow="Dependency intelligence"
         title="Graph analytics"
         description="Reach, usage, and response times for the capability graph."
       />

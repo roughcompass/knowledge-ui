@@ -34,6 +34,7 @@ export function SyncRunDetailPage() {
 
   const header = (
     <PageHeader
+      eyebrow="Platform operations"
       title="Sync run"
       description="What one connector run did, and what it reported."
       actions={<KLink to="../runs">All Runs</KLink>}

@@ -1,7 +1,5 @@
-import { Card, Divider, FlexLayout, StackLayout, Text } from '@salt-ds/core';
+import { Card, Divider, FlexLayout, StackLayout, Text, type CardProps } from '@salt-ds/core';
 import type { ReactNode } from 'react';
-
-import styles from './SectionCard.module.css';
 
 /**
  * A titled section of a page, as a bordered card.
@@ -31,15 +29,21 @@ import styles from './SectionCard.module.css';
 export function SectionCard({
   title,
   description,
+  visual,
   actions,
   footer,
   banded = false,
   flush = false,
   headingLevel = 'h2',
+  variant = 'primary',
+  accent,
+  hoverable = false,
   children,
 }: {
   title?: string;
   description?: ReactNode;
+  /** Icon or compact visual that identifies the section at a glance. */
+  visual?: ReactNode;
   /**
    * Trailing controls on the header row, right of the title.
    *
@@ -60,6 +64,9 @@ export function SectionCard({
   flush?: boolean;
   /** Set to `h3` when the section sits under another heading. */
   headingLevel?: 'h2' | 'h3';
+  variant?: CardProps['variant'];
+  accent?: CardProps['accent'];
+  hoverable?: boolean;
   children: ReactNode;
 }) {
   /*
@@ -75,16 +82,19 @@ export function SectionCard({
 
   const heading = hasHeading ? (
     <FlexLayout gap={2} align="start" justify="space-between">
-      <StackLayout gap={1}>
-        {title !== undefined ? (
-          <Text styleAs="h3" as={headingLevel}>
-            {title}
-          </Text>
-        ) : null}
-        {description !== undefined ? <Text color="secondary">{description}</Text> : null}
-      </StackLayout>
+      <FlexLayout gap={2} align="start">
+        {visual}
+        <StackLayout gap={1}>
+          {title !== undefined ? (
+            <Text styleAs="h3" as={headingLevel}>
+              {title}
+            </Text>
+          ) : null}
+          {description !== undefined ? <Text color="secondary">{description}</Text> : null}
+        </StackLayout>
+      </FlexLayout>
       {actions !== undefined ? (
-        <FlexLayout gap={1} align="center" className={styles.actions}>
+        <FlexLayout gap={1} align="center" wrap>
           {actions}
         </FlexLayout>
       ) : null}
@@ -92,15 +102,15 @@ export function SectionCard({
   ) : null;
 
   return (
-    <Card className={styles.card}>
-      {banded && heading ? (
-        <>
-          <div className={styles.header}>{heading}</div>
-          <Divider variant="tertiary" />
-        </>
-      ) : null}
+    <Card variant={variant} accent={accent} hoverable={hoverable}>
+      <StackLayout gap={flush ? 1 : 2}>
+        {banded && heading ? (
+          <>
+            {heading}
+            <Divider variant="tertiary" />
+          </>
+        ) : null}
 
-      <div className={flush ? styles.flush : styles.body}>
         {!banded && heading ? (
           <StackLayout gap={2}>
             {heading}
@@ -109,16 +119,16 @@ export function SectionCard({
         ) : (
           children
         )}
-      </div>
 
-      {footer !== undefined ? (
-        <>
-          <Divider variant="tertiary" />
-          <FlexLayout className={styles.footer} gap={2} align="center" justify="space-between">
-            {footer}
-          </FlexLayout>
-        </>
-      ) : null}
+        {footer !== undefined ? (
+          <>
+            <Divider variant="tertiary" />
+            <FlexLayout gap={2} align="center" justify="space-between" wrap>
+              {footer}
+            </FlexLayout>
+          </>
+        ) : null}
+      </StackLayout>
     </Card>
   );
 }

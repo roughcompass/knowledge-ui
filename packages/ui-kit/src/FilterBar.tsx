@@ -1,22 +1,15 @@
 import { FlexItem, FlexLayout, FormField, FormFieldLabel } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
-import styles from './FilterBar.module.css';
-
 /**
  * Props for the popover panel of any `Dropdown` or `ComboBox` in the app.
  *
- * Exported rather than applied automatically because the panel is rendered in a
- * portal at `body` level, outside any ui-kit subtree — no wrapper component can
- * reach it with CSS, and no parent can inject props into a caller's `Dropdown`.
- * Passing it explicitly is the only mechanism Salt offers:
+ * Exported as the common extension point passed to every Salt dropdown. It is
+ * intentionally empty while Salt owns the complete popover presentation:
  *
  *     <Dropdown bordered OverlayProps={popoverOverlayProps} …>
- *
- * Without it the open menu is outlined in the accent colour, because Salt styles
- * `OptionList` with `--salt-selectable-borderColor-selected`.
  */
-export const popoverOverlayProps = { className: styles.popover };
+export const popoverOverlayProps = {};
 
 /**
  * A row of filter controls above a table.
@@ -31,12 +24,11 @@ export const popoverOverlayProps = { className: styles.popover };
  * tray inside a 1199px bar. `Toolbar` is built for compact groups of actions, not
  * for a form row that should span the column.
  *
- * The row is also where the control-border override is scoped — see the
- * stylesheet.
+ * Salt owns the control borders and responsive wrapping.
  */
 export function FilterBar({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <FlexLayout className={styles.bar} gap={2} align="end" wrap role="group" aria-label={label}>
+    <FlexLayout gap={2} align="end" wrap role="group" aria-label={label}>
       {children}
     </FlexLayout>
   );

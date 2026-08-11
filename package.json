@@ -23,7 +23,7 @@
     "build:e2e": "node scripts/build-e2e.mjs",
     "preview:shell": "npm run preview -w @knowledge-ui/shell",
     "lint": "eslint . --max-warnings 0",
-    "lint:css": "stylelint \"**/*.css\"",
+    "lint:css": "stylelint \"**/*.css\" --allow-empty-input",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -b --pretty false && tsc -p apps/shell --pretty false && tsc -p remotes/catalog --pretty false && tsc -p remotes/operations --pretty false && tsc -p tsconfig.tooling.json --pretty false",

@@ -221,6 +221,7 @@ export function GraphDashboardPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Dependency intelligence"
         title="Graph"
         description="How the catalog is connected: the ontology that constrains the graph, and the projections of what this tenant ships and consumes."
       />

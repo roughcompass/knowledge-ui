@@ -105,7 +105,6 @@ export function AuditLogPage() {
       {
         key: 'target',
         header: 'Target',
-        linked: true,
         /*
           The audit log names what an action was performed on, and rendered it as
           type-and-id text. An auditor reading a row wants the thing itself; only a
@@ -187,6 +186,7 @@ export function AuditLogPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Platform operations"
         title="Audit log"
         description="Every recorded change, newest first. Reading this requires the auditor role."
       />

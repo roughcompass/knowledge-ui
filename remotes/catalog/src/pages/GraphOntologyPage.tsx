@@ -135,7 +135,7 @@ export function GraphOntologyPage() {
   if (!allowed) {
     return (
       <StackLayout gap={3}>
-        <PageHeader title="Ontology" />
+        <PageHeader eyebrow="Dependency intelligence" title="Ontology" />
         <UnavailableNotice
           title="Ontology"
           reason="The vocabulary and schema endpoints are served under /v1/admin and admit administrators only. This session holds a different role, so these definitions are not readable here."
@@ -150,6 +150,7 @@ export function GraphOntologyPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Dependency intelligence"
         title="Ontology"
         description="The definitions the graph is built from: what a node may be, how two entities may be related, and which of those shapes the contextplane enforces."
       />

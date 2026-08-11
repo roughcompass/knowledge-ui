@@ -1,8 +1,7 @@
-import { TBody, TD, TH, THead, TR, Table, Text } from '@salt-ds/core';
-import { Fragment, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { TBody, TD, TH, THead, TR, Table, TableContainer, Text } from '@salt-ds/core';
+import { Fragment, type ReactNode } from 'react';
 
 import { SectionCard } from './SectionCard';
-import styles from './DataTable.module.css';
 import { EmptyState } from './EmptyState';
 import { displayText } from './displayText';
 import { SkeletonBar } from './Skeleton';
@@ -41,31 +40,8 @@ export interface Column<TRow> {
    * to "do nothing" is an invitation to write it and expect something.
    */
   align?: 'right';
-  /**
-   * Tabular figures without right alignment.
-   *
-   * The coupling above is right for counts and wrong for timestamps, which is the
-   * case that forced this apart. A column of `2026-08-04 01:22:11` wants its digits
-   * to line up — proportional figures make two adjacent rows disagree by a pixel per
-   * digit, which is exactly what makes scanning for a time range harder than it
-   * should be — but right-aligning it would pull it away from the label beside it and
-   * ragged-left a column whose values are all the same length anyway.
-   *
-   * So: `align` decides where the column sits, this decides how its digits are cut.
-   * A count wants both and says `align: 'right'`; a timestamp wants only this.
-   *
-   * This half stays a CSS module class, and safely: Salt takes no position on figures
-   * and sets no `font-variant-numeric` anywhere in its table, so unlike alignment
-   * there is no rule of its own to be outranked by.
-   */
+  /** Render the value with Salt's fixed-width code text treatment. */
   figures?: 'tabular';
-  /**
-   * Let this column's values wrap.
-   *
-   * Cells hold their line by default — see the module CSS. Opt in for columns whose
-   * values are running text: a note body, a query, a failure message.
-   */
-  wrap?: boolean;
   /**
    * Where this cell's value goes.
    *
@@ -79,17 +55,6 @@ export interface Column<TRow> {
    * that genuinely have nowhere to go.
    */
   href?: (row: TRow) => string | undefined;
-  /**
-   * This column's `render` returns its own anchors.
-   *
-   * The row-hover treatment is keyed on the table having a linked column, and
-   * `href` is how the table knows. A column that builds links inside `render` —
-   * an `EntityLink` with a destination, a composed cell — is invisible to that
-   * test, so its rows looked static while being the most clickable thing on the
-   * page. The table cannot inspect a `ReactNode` for anchors; the column has to
-   * say so.
-   */
-  linked?: boolean;
 }
 
 export interface DataTableProps<TRow> {
@@ -129,8 +94,7 @@ export interface DataTableProps<TRow> {
    *
    * Salt's own `zebra` prop, not a stripe of our own. This was hand-rolled in CSS
    * before, which duplicated a built-in, striped `nth-child(even)` where Salt
-   * stripes `nth-of-type(odd)` — the opposite rows — and needed a specificity fix
-   * to stop it beating the row hover.
+   * stripes `nth-of-type(odd)` — the opposite rows.
    *
    * Turning it on also turns the row divider off: the reference separates rows with
    * one mechanism, and drawing both a stripe and a rule is what made our tables
@@ -191,69 +155,13 @@ export interface DataTableProps<TRow> {
  * over the row type and a parameter typed `Column<unknown>` will not accept one —
  * the row type is unrelated to how its digits are cut.
  */
-function cellProps({ align, figures, wrap }: Pick<Column<unknown>, 'align' | 'figures' | 'wrap'>) {
-  const classes = [
-    // `align: 'right'` implies tabular. A count wants both; a timestamp asks for
-    // figures alone and keeps its left edge.
-    align === 'right' || figures === 'tabular' ? styles.tabular : undefined,
-    wrap ? styles.wrap : undefined,
-  ].filter(Boolean);
+function cellProps({ align }: Pick<Column<unknown>, 'align'>) {
   return {
     // Salt's prop rather than a class of ours: it emits `saltTable-td-align-right`,
     // which is the selector Salt's own `text-align` rule is keyed on. Anything else
     // is outranked by `table.saltTable td` and loses without ever saying so.
     ...(align === 'right' ? { textAlign: 'right' as const } : {}),
-    className: classes.length > 0 ? classes.join(' ') : undefined,
   };
-}
-
-/** Fade depth, capped so a long overflow does not swallow half a column. */
-const FADE_MAX = 24;
-
-/**
- * A wide table scrolls inside its container instead of clipping.
- *
- * The container clips silently otherwise: `white-space: nowrap` on every cell
- * means columns past the card's right edge simply vanish, value clipped
- * mid-number, with nothing on screen saying more exists. The cue is an edge
- * fade rather than a permanent scrollbar, matching the rail: it appears only on
- * an edge with content beyond it, so a table that fits shows nothing.
- *
- * CSS cannot ask whether the table overflows, so the mask stops are written
- * here from the scroll position — the same reasoning as the rail's vertical
- * fade. The wrapper also becomes focusable only while it actually scrolls,
- * because a keyboard reader has no other way to reach the hidden columns, and
- * a tab stop on a table that fits is a stop with nothing behind it.
- */
-function OverflowScroll({ children }: { children: ReactNode }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const syncFade = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const max = el.scrollWidth - el.clientWidth;
-    const cap = (n: number) => `${Math.min(FADE_MAX, Math.max(0, n))}px`;
-    el.style.setProperty('--fadeStart', cap(el.scrollLeft));
-    el.style.setProperty('--fadeEnd', cap(max - el.scrollLeft));
-    el.tabIndex = max > 0 ? 0 : -1;
-  }, []);
-
-  // Also on mount and on resize: whether the table overflows depends on the
-  // container's width, which changes without any scrolling.
-  useEffect(() => {
-    syncFade();
-    const el = scrollRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(syncFade);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [syncFade, children]);
-
-  return (
-    <div ref={scrollRef} className={styles.scroll} onScroll={syncFade}>
-      {children}
-    </div>
-  );
 }
 
 export function DataTable<TRow>({
@@ -296,44 +204,40 @@ export function DataTable<TRow>({
    */
   if (isLoading && rows.length === 0)
     return (
-      <div aria-busy="true">
-        <Text className="salt-visuallyHidden" role="status" aria-live="polite">
-          {`Loading ${caption}`}
-        </Text>
-        <OverflowScroll>
-          <Table className={styles.table} zebra={zebra} divider={zebra ? 'none' : 'tertiary'}>
-            <caption className={hideCaption ? 'salt-visuallyHidden' : undefined}>
-              <Text color="secondary" styleAs="notation">
-                {caption}
-              </Text>
-            </caption>
-            <THead>
-              <TR>
-                {columns.map((column) => (
-                  <TH
-                    key={column.key}
-                    scope="col"
-                    {...cellProps({ align: column.align, figures: column.figures })}
-                  >
-                    {column.header}
-                  </TH>
+      <TableContainer>
+        <Table aria-busy="true" zebra={zebra} divider={zebra ? 'none' : 'tertiary'}>
+          <Text
+            as="caption"
+            className={hideCaption ? 'salt-visuallyHidden' : undefined}
+            color="secondary"
+            styleAs="notation"
+            role="status"
+            aria-live="polite"
+          >
+            {`Loading ${caption}`}
+          </Text>
+          <THead>
+            <TR>
+              {columns.map((column) => (
+                <TH key={column.key} scope="col" {...cellProps({ align: column.align })}>
+                  {column.header}
+                </TH>
+              ))}
+            </TR>
+          </THead>
+          <TBody>
+            {Array.from({ length: skeletonRows }, (_, rowIndex) => (
+              <TR key={rowIndex}>
+                {columns.map((column, columnIndex) => (
+                  <TD key={column.key}>
+                    <SkeletonBar index={rowIndex + columnIndex} />
+                  </TD>
                 ))}
               </TR>
-            </THead>
-            <TBody>
-              {Array.from({ length: skeletonRows }, (_, rowIndex) => (
-                <TR key={rowIndex}>
-                  {columns.map((column, columnIndex) => (
-                    <TD key={column.key}>
-                      <SkeletonBar index={rowIndex + columnIndex} />
-                    </TD>
-                  ))}
-                </TR>
-              ))}
-            </TBody>
-          </Table>
-        </OverflowScroll>
-      </div>
+            ))}
+          </TBody>
+        </Table>
+      </TableContainer>
     );
 
   if (rows.length === 0)
@@ -346,105 +250,84 @@ export function DataTable<TRow>({
     );
 
   const table = (
-    <Table className={styles.table} zebra={zebra} divider={zebra ? 'none' : 'tertiary'}>
-      <caption className={hideCaption ? 'salt-visuallyHidden' : undefined}>
-        <Text color="secondary" styleAs="notation">
+    <TableContainer>
+      <Table zebra={zebra} divider={zebra ? 'none' : 'tertiary'}>
+        <Text
+          as="caption"
+          className={hideCaption ? 'salt-visuallyHidden' : undefined}
+          color="secondary"
+          styleAs="notation"
+        >
           {caption}
         </Text>
-      </caption>
-      <THead>
-        <TR>
-          {columns.map((column) => (
-            <TH
-              key={column.key}
-              scope="col"
-              // The header aligns with its column: a right-aligned column of totals
-              // under a left-aligned label reads as two columns that missed each other.
-              {...cellProps({ align: column.align, figures: column.figures })}
-            >
-              {column.header}
-            </TH>
-          ))}
-        </TR>
-      </THead>
-      <TBody>
-        {rows.map((row, index) => {
-          const rowId = getRowId(row, index);
-          const detailOpen =
-            renderDetail !== undefined && expandedRowId != null && expandedRowId === rowId;
-          return (
-            <Fragment key={rowId}>
-              <TR
-                /*
-                 * The row is not the control; the link in its primary cell is.
-                 *
-                 * This carried a row-level click handler with a tab stop and a key
-                 * handler, because the correct pattern needs an href and this package
-                 * takes no router dependency. It does now, through the kit's own link
-                 * adapter — so the handler is gone rather than kept beside the link,
-                 * which would have left two ways to activate a row, one of them a
-                 * focusable div wrapping an anchor.
-                 *
-                 * The hover treatment stays, keyed on the table having a linked column
-                 * at all, so a row that goes somewhere still looks like it does.
-                 * `linked` is how a column whose `render` builds its own anchors
-                 * counts — the table cannot see inside a `ReactNode`.
-                 */
-                className={
-                  columns.some((column) => column.href || column.linked)
-                    ? styles.clickableRow
-                    : undefined
-                }
+        <THead>
+          <TR>
+            {columns.map((column) => (
+              <TH
+                key={column.key}
+                scope="col"
+                // The header aligns with its column: a right-aligned column of totals
+                // under a left-aligned label reads as two columns that missed each other.
+                {...cellProps({ align: column.align })}
               >
-                {columns.map((column) => (
-                  <TD
-                    key={column.key}
-                    {...cellProps({
-                      align: column.align,
-                      figures: column.figures,
-                      wrap: column.wrap,
-                    })}
-                  >
-                    {(() => {
-                      const content = column.render
-                        ? column.render(row)
-                        : displayText((row as Record<string, unknown>)[column.key]);
-                      const href = column.href?.(row);
-                      // Dense by default: a column of links reads as a ruled form if
-                      // each one carries its own underline. Accent supplies the
-                      // affordance and the underline returns on hover.
-                      return href ? (
-                        <KLink to={href} underline="never" color="accent">
-                          {content}
-                        </KLink>
-                      ) : (
-                        content
-                      );
-                    })()}
-                  </TD>
-                ))}
-              </TR>
-              {detailOpen ? (
+                {column.header}
+              </TH>
+            ))}
+          </TR>
+        </THead>
+        <TBody>
+          {rows.map((row, index) => {
+            const rowId = getRowId(row, index);
+            const detailOpen =
+              renderDetail !== undefined && expandedRowId != null && expandedRowId === rowId;
+            return (
+              <Fragment key={rowId}>
                 <TR>
-                  {/*
-                    One cell across every column, so the panel sits beneath the row
-                    it belongs to rather than in any one column's width. Wrapping is
-                    opted back in: detail content is running text or a diff, and the
-                    table-wide nowrap would push it into the horizontal scroll.
-                  */}
-                  <TD colSpan={columns.length} className={styles.wrap}>
-                    {renderDetail(row)}
-                  </TD>
+                  {columns.map((column) => (
+                    <TD key={column.key} {...cellProps({ align: column.align })}>
+                      {(() => {
+                        const content = column.render
+                          ? column.render(row)
+                          : displayText((row as Record<string, unknown>)[column.key]);
+                        const href = column.href?.(row);
+                        // Use Salt's complete link treatment. With no application CSS,
+                        // its underline is the non-colour affordance that distinguishes
+                        // a destination from adjacent text.
+                        return href ? (
+                          <KLink to={href} underline="default" color="accent">
+                            {column.align === 'right' || column.figures === 'tabular' ? (
+                              <Text styleAs="code">{content}</Text>
+                            ) : (
+                              content
+                            )}
+                          </KLink>
+                        ) : column.align === 'right' || column.figures === 'tabular' ? (
+                          <Text styleAs="code">{content}</Text>
+                        ) : (
+                          content
+                        );
+                      })()}
+                    </TD>
+                  ))}
                 </TR>
-              ) : null}
-            </Fragment>
-          );
-        })}
-      </TBody>
-    </Table>
+                {detailOpen ? (
+                  <TR>
+                    {/*
+                    One cell across every column, so the panel sits beneath the row
+                    it belongs to rather than in any one column's width. Detail
+                    content uses Salt's default wrapping because it is running text
+                    or a diff rather than a compact identifier.
+                  */}
+                    <TD colSpan={columns.length}>{renderDetail(row)}</TD>
+                  </TR>
+                ) : null}
+              </Fragment>
+            );
+          })}
+        </TBody>
+      </Table>
+    </TableContainer>
   );
 
-  const scrollable = <OverflowScroll>{table}</OverflowScroll>;
-
-  return card ? <SectionCard flush>{scrollable}</SectionCard> : scrollable;
+  return card ? <SectionCard flush>{table}</SectionCard> : table;
 }

@@ -1,13 +1,11 @@
-import { Text, useFloatingComponent, useFloatingUI } from '@salt-ds/core';
+import { Panel, StackLayout, Text, useFloatingComponent, useFloatingUI } from '@salt-ds/core';
 import type { ReactNode } from 'react';
-
-import styles from './SuggestionPanel.module.css';
 
 /**
  * A field with a panel that floats beneath it.
  *
- * Exists so the global search can preview results without the shell growing a
- * stylesheet — this package is the only one allowed one.
+ * Exists so the global search can preview results using Salt's own floating layer
+ * and surface components.
  *
  * Deliberately not a combo box. Salt ships one, and it owns its own list, selection
  * and filtering; here the field submits to a real URL and the panel offers links, so
@@ -54,22 +52,13 @@ export function SuggestionField({
 }) {
   const open = panel !== undefined || (status !== undefined && status !== null);
   const { Component: FloatingComponent } = useFloatingComponent();
-
-  /*
-   * No middleware argument, so Salt's own default applies — it already flips and
-   * shifts against the viewport edge. Passing a custom array would mean importing
-   * the floating library directly, which this package does not depend on: it
-   * resolves only through Salt today, so the import would break on a Salt upgrade
-   * that moved it. The gap below the field is a margin on the panel instead, which
-   * is a spacing decision and belongs in the stylesheet regardless.
-   */
   const { refs, x, y, strategy, context } = useFloatingUI({
     open,
     placement: 'bottom-start',
   });
 
   return (
-    <div className={styles.root} ref={refs.setReference}>
+    <StackLayout gap={0} ref={refs.setReference}>
       {children}
       <FloatingComponent
         open={open}
@@ -80,11 +69,15 @@ export function SuggestionField({
         aria-hidden={!open}
         focusManagerProps={{ context, initialFocus: -1, returnFocus: false, modal: false }}
       >
-        <div className={styles.panel}>
-          {panel}
-          {status !== undefined && status !== null ? <Text color="secondary">{status}</Text> : null}
-        </div>
+        <Panel variant="primary">
+          <StackLayout gap={1}>
+            {panel}
+            {status !== undefined && status !== null ? (
+              <Text color="secondary">{status}</Text>
+            ) : null}
+          </StackLayout>
+        </Panel>
       </FloatingComponent>
-    </div>
+    </StackLayout>
   );
 }

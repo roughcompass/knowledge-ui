@@ -1,8 +1,7 @@
-import { StackLayout, Text } from '@salt-ds/core';
+import { LinearProgress, Panel, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 import { DataTable, type Column } from './DataTable';
-import styles from './Figure.module.css';
 
 /**
  * A chart and the table it was drawn from, as one thing.
@@ -66,12 +65,9 @@ export function Figure<TRow>({
         it holds the space the chart will occupy. The mark is not rendered, because
         a mark drawn from no data is a chart asserting a shape nobody measured.
       */}
-      <div
-        className={isLoading ? `${styles.mark} ${styles.markReserved}` : styles.mark}
-        aria-hidden="true"
-      >
-        {isLoading ? null : mark}
-      </div>
+      <Panel variant="secondary" aria-hidden="true">
+        {isLoading ? <LinearProgress hideLabel /> : mark}
+      </Panel>
 
       <DataTable
         caption={caption}

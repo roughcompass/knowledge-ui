@@ -2,7 +2,6 @@ import { FlexLayout, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 import { Prose } from './Layout';
-import styles from './PageHeader.module.css';
 
 /**
  * The title block every screen opens with.
@@ -11,11 +10,10 @@ import styles from './PageHeader.module.css';
  * Salt's Text carries the type scale, and a bare heading element would render
  * outside it.
  *
- * The title is a full `h1` at 32px/42px. It was `styleAs="h2"` (24px) on a reading
- * of the reference that turned out too quiet in practice: with body at 14px and
- * every card title compressed, the whole page flattened and a user audit called the
- * hierarchy inverted. The description is promoted with it — a page's one-sentence
- * purpose is not fine print.
+ * The title keeps `h1` semantics at Salt's `h2` visual scale. In a data-dense
+ * console the larger display scale crowded out filters and tables; the smaller
+ * scale remains unmistakably first in the outline when paired with the domain
+ * eyebrow. The description stays secondary body text rather than competing with it.
  *
  * `description` and `metadata` are separate props rather than one polymorphic slot.
  * There was one slot, branching on `typeof description === 'string'` to decide
@@ -32,11 +30,14 @@ import styles from './PageHeader.module.css';
  *   metadata     chips, status, counts. Laid out by the caller, no measure.
  */
 export function PageHeader({
+  eyebrow,
   title,
   description,
   metadata,
   actions,
 }: {
+  /** Short context label above the page title. */
+  eyebrow?: ReactNode;
   title: string;
   /** A sentence. Emphasis is fine; block-level children are not. */
   description?: ReactNode;
@@ -45,9 +46,14 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <StackLayout gap={1}>
+    <StackLayout gap={2}>
+      {eyebrow !== undefined ? (
+        <Text styleAs="notation" color="secondary">
+          {eyebrow}
+        </Text>
+      ) : null}
       <FlexLayout gap={2} align="center" justify="space-between">
-        <Text className={styles.title} styleAs="h1" as="h1">
+        <Text styleAs="h2" as="h1">
           {title}
         </Text>
         {actions}
@@ -56,9 +62,7 @@ export function PageHeader({
         // Measured, because several callers pass a full sentence of explanation and
         // it otherwise ran the width of the viewport.
         <Prose>
-          <Text className={styles.description} styleAs="h4" as="p" color="secondary">
-            {description}
-          </Text>
+          <Text color="secondary">{description}</Text>
         </Prose>
       ) : null}
       {metadata}

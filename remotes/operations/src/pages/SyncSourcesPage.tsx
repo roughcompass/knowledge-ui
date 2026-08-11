@@ -211,6 +211,7 @@ export function SyncSourcesPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Platform operations"
         title="Sync connectors"
         description="Each connector mirrors an upstream source into the catalog as read-only facts. Authored facts always win over synced ones."
         actions={

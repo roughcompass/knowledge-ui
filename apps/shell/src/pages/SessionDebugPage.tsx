@@ -43,7 +43,11 @@ export function SessionDebugPage({ session }: { session: Session }) {
 
   return (
     <StackLayout gap={3}>
-      <PageHeader title="Session" description="What the server currently knows about you." />
+      <PageHeader
+        eyebrow="Secure session"
+        title="Session"
+        description="What the server currently knows about you."
+      />
 
       <SectionCard title="Current session" banded flush>
         <DataTable

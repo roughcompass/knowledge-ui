@@ -76,14 +76,14 @@ describe('column alignment', () => {
     const table = await screen.findByRole('table', { name: /usage/i });
     const dayCell = within(table).getByText('2026-08-01');
     expect(dayCell.className).not.toContain('align-right');
-    // The figures class is hashed by the CSS module, so its identity is not
-    // assertable; that it is *there* alongside Salt's own classes is.
-    expect(dayCell.className.split(' ').length).toBeGreaterThan(2);
+    // Salt's code text style supplies fixed-width figures without adding an
+    // application stylesheet or changing the cell's alignment.
+    expect(dayCell.className).toContain('saltText-code');
   });
 });
 
 describe('link cells', () => {
-  it('renders an href column as an accent link with no rest underline', async () => {
+  it('renders an href column as an accent link with Salt underline affordance', async () => {
     render([
       { key: 'name', header: 'Capability', href: (row) => `/catalog/${row.id}` },
       { key: 'calls', header: 'Calls' },
@@ -93,40 +93,37 @@ describe('link cells', () => {
     // Salt's own color API: accent is what separates the one clickable thing in
     // the row from the plain text beside it.
     expect(link.className).toContain('saltLink-accent');
-    expect(link.className).toContain('saltLink-underlineNever');
+    expect(link.className).toContain('saltLink-underlineDefault');
   });
 
-  it('gives rows the hover treatment when a column carries an href', async () => {
+  it('puts a real link in each row when a column carries an href', async () => {
     render([{ key: 'name', header: 'Capability', href: (row) => `/catalog/${row.id}` }]);
 
     const table = await screen.findByRole('table', { name: /usage/i });
     const [, ...bodyRows] = within(table).getAllByRole('row');
-    for (const row of bodyRows) expect(row.className).toContain('clickableRow');
+    for (const row of bodyRows) expect(within(row).getByRole('link')).toBeInTheDocument();
   });
 
-  it('gives rows the hover treatment when a render-based column declares `linked`', async () => {
-    // The table cannot see inside a ReactNode, so a column whose `render` builds
-    // its own anchors has to say so to get the same affordance href columns get.
+  it('preserves links built by a render-based column', async () => {
     render([
       {
         key: 'name',
         header: 'Capability',
-        linked: true,
         render: (row) => <a href={`/catalog/${row.id}`}>{row.name}</a>,
       },
     ]);
 
     const table = await screen.findByRole('table', { name: /usage/i });
     const [, ...bodyRows] = within(table).getAllByRole('row');
-    for (const row of bodyRows) expect(row.className).toContain('clickableRow');
+    for (const row of bodyRows) expect(within(row).getByRole('link')).toBeInTheDocument();
   });
 
-  it('leaves rows static when no column links anywhere', async () => {
+  it('does not invent links when no column links anywhere', async () => {
     render([{ key: 'name', header: 'Capability' }]);
 
     const table = await screen.findByRole('table', { name: /usage/i });
     const [, ...bodyRows] = within(table).getAllByRole('row');
-    for (const row of bodyRows) expect(row.className).not.toContain('clickableRow');
+    for (const row of bodyRows) expect(within(row).queryByRole('link')).not.toBeInTheDocument();
   });
 });
 
@@ -135,9 +132,8 @@ describe('the horizontal overflow container', () => {
     render([{ key: 'name', header: 'Capability' }]);
 
     const table = await screen.findByRole('table', { name: /usage/i });
-    // nowrap cells make a wide table clip mid-value at the card edge with
-    // nothing saying more exists; the container is what lets it scroll.
-    expect(table.parentElement?.className).toContain('scroll');
+    // Salt owns overflow and its cue; the application does not recreate either.
+    expect(table.parentElement?.className).toContain('saltTable-container');
   });
 });
 

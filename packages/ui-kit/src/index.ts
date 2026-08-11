@@ -1,8 +1,7 @@
 export { ContentColumn, Prose } from './Layout';
 
-// App chrome. These live here rather than in the shell because ui-kit is the only
-// workspace permitted a stylesheet, and the tab underline and card bands both
-// need one.
+// App chrome. Shared composition keeps the shell and standalone remotes on the
+// same Salt components and interaction patterns.
 export { AppShell } from './AppShell';
 export { AppSidebar } from './AppSidebar';
 export { ScopeSwitcher, RailBrand, type ScopeOption } from './ScopeSwitcher';

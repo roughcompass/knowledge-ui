@@ -1,6 +1,4 @@
-import { StackLayout, Text } from '@salt-ds/core';
-
-import styles from './JsonDiff.module.css';
+import { FlexLayout, GridLayout, Panel, StackLayout, StatusIndicator, Text } from '@salt-ds/core';
 
 /**
  * Key-level before/after comparison for an audit entry.
@@ -85,31 +83,48 @@ export function JsonDiff({
     );
   }
 
+  const statusFor = (status: DiffStatus): 'success' | 'error' | 'warning' | 'info' => {
+    if (status === 'added') return 'success';
+    if (status === 'removed') return 'error';
+    if (status === 'changed') return 'warning';
+    return 'info';
+  };
+
   return (
     <StackLayout gap={1}>
-      <div className={styles.grid}>
+      <GridLayout columns={{ xs: 1, sm: 2 }} gap={2}>
         <Text styleAs="label" color="secondary">
           Before
         </Text>
         <Text styleAs="label" color="secondary">
           After
         </Text>
-      </div>
+      </GridLayout>
       {entries.map((entry) => (
-        <div key={entry.key} className={styles.grid}>
-          <div className={`${styles.row} ${styles[entry.status] ?? ''}`}>
-            <Text styleAs="notation" color="secondary">
-              {entry.key}
-            </Text>
-            <Text className={styles.value}>{render(entry.before)}</Text>
-          </div>
-          <div className={`${styles.row} ${styles[entry.status] ?? ''}`}>
-            <Text styleAs="notation" color="secondary">
-              {entry.key}
-            </Text>
-            <Text className={styles.value}>{render(entry.after)}</Text>
-          </div>
-        </div>
+        <GridLayout key={entry.key} columns={{ xs: 1, sm: 2 }} gap={2}>
+          <Panel variant="secondary">
+            <StackLayout gap={1}>
+              <FlexLayout gap={1} align="center">
+                <StatusIndicator status={statusFor(entry.status)} />
+                <Text styleAs="notation" color="secondary">
+                  {`${entry.key} · ${entry.status}`}
+                </Text>
+              </FlexLayout>
+              <Text styleAs="code">{render(entry.before)}</Text>
+            </StackLayout>
+          </Panel>
+          <Panel variant="secondary">
+            <StackLayout gap={1}>
+              <FlexLayout gap={1} align="center">
+                <StatusIndicator status={statusFor(entry.status)} />
+                <Text styleAs="notation" color="secondary">
+                  {`${entry.key} · ${entry.status}`}
+                </Text>
+              </FlexLayout>
+              <Text styleAs="code">{render(entry.after)}</Text>
+            </StackLayout>
+          </Panel>
+        </GridLayout>
       ))}
     </StackLayout>
   );

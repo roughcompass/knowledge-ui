@@ -1,7 +1,6 @@
 import { Avatar, Dropdown, FlexLayout, Option, StackLayout, Text } from '@salt-ds/core';
 
 import { popoverOverlayProps } from './FilterBar';
-import styles from './ScopeSwitcher.module.css';
 
 /**
  * The scope switcher that sits at the top of the navigation rail.
@@ -31,7 +30,7 @@ export function ScopeSwitcher({
   options: readonly ScopeOption[];
   currentKey: string | undefined;
   onChange: (key: string) => void;
-  /** Accessible name. There is no visible label — see the stylesheet. */
+  /** Accessible name for the compact rail control. */
   label: string;
 }) {
   if (options.length === 0) return null;
@@ -39,7 +38,7 @@ export function ScopeSwitcher({
   const current = options.find((o) => o.key === currentKey);
 
   return (
-    <div className={styles.switcher}>
+    <StackLayout gap={1}>
       <Dropdown
         aria-label={label}
         value={current?.label ?? ''}
@@ -57,7 +56,7 @@ export function ScopeSwitcher({
       >
         {options.map((option) => (
           <Option key={option.key} value={option.key}>
-            <StackLayout gap={0}>
+            <StackLayout gap={1}>
               <Text>{option.label}</Text>
               {option.description !== undefined ? (
                 <Text styleAs="notation" color="secondary">
@@ -68,7 +67,7 @@ export function ScopeSwitcher({
           </Option>
         ))}
       </Dropdown>
-    </div>
+    </StackLayout>
   );
 }
 

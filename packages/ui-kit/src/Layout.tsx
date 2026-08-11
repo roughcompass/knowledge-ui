@@ -1,9 +1,9 @@
+import { GridItem, GridLayout, StackLayout } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
-import styles from './Layout.module.css';
-
 /**
- * The two width constraints the app needs, as components rather than classes.
+ * The two width constraints the app needs, expressed through Salt's responsive
+ * grid rather than application markup or CSS.
  *
  * They live here because `packages/ui-kit` is the only workspace allowed a
  * stylesheet — the rule that keeps one-off CSS from spreading — so a page that
@@ -29,8 +29,14 @@ export function ContentColumn({
    */
   width?: 'standard' | 'wide' | 'full';
 }) {
-  const tier = width === 'standard' ? styles.standard : width === 'wide' ? styles.wide : undefined;
-  return <div className={tier ? `${styles.content} ${tier}` : styles.content}>{children}</div>;
+  const wide = width === 'wide' || width === 'full';
+  return (
+    <GridLayout columns={{ xs: 1, xl: 12 }}>
+      <GridItem colSpan={{ xs: 1, xl: wide ? 12 : 11 }}>
+        <StackLayout gap={3}>{children}</StackLayout>
+      </GridItem>
+    </GridLayout>
+  );
 }
 
 /**
@@ -40,5 +46,11 @@ export function ContentColumn({
  * controls that legitimately want the full column.
  */
 export function Prose({ children }: { children: ReactNode }) {
-  return <div className={styles.prose}>{children}</div>;
+  return (
+    <GridLayout columns={{ xs: 1, md: 3 }}>
+      <GridItem colSpan={{ xs: 1, md: 2 }}>
+        <StackLayout gap={2}>{children}</StackLayout>
+      </GridItem>
+    </GridLayout>
+  );
 }

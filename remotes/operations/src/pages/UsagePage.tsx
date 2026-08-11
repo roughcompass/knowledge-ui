@@ -296,6 +296,7 @@ export function UsagePage() {
     return (
       <StackLayout gap={3}>
         <PageHeader
+          eyebrow="Platform operations"
           title="Usage"
           description="Whether the contextplane is called, through which surface, and by how many — over a window the service itself reports back."
         />
@@ -320,6 +321,7 @@ export function UsagePage() {
 
   const header = (
     <PageHeader
+      eyebrow="Platform operations"
       title="Usage"
       description="Whether the contextplane is called, through which surface, and by how many — over a window the service itself reports back."
     />
@@ -576,7 +578,6 @@ export function UsagePage() {
                 {
                   key: 'capability_id',
                   header: 'Capability',
-                  linked: true,
                   /*
                       The operations remote emitted no links at all, and this column
                       is the one a producer follows most: "which capability is this

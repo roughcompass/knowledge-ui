@@ -190,9 +190,13 @@ function SeedDiagnostic({ personaKey, message }: { personaKey: string; message: 
           <Text styleAs="label">The contextplane refused this identity</Text>
           <Text>{message}</Text>
           <Text>
-            The persona <strong>{personaKey}</strong> authenticated successfully, so the token is
-            fine — the contextplane has no entitlements recorded for it. The entitlement service
-            keeps those in memory, so they are lost whenever its container restarts.
+            The persona{' '}
+            <Text as="span" styleAs="label">
+              {personaKey}
+            </Text>{' '}
+            authenticated successfully, so the token is fine — the contextplane has no entitlements
+            recorded for it. The entitlement service keeps those in memory, so they are lost
+            whenever its container restarts.
           </Text>
           <Text styleAs="code">npm run seed:personas</Text>
         </StackLayout>

@@ -1,5 +1,4 @@
 import { KLink, type KLinkProps } from './LinkAdapter';
-import styles from './LinkButton.module.css';
 
 /**
  * A navigation with button prominence.
@@ -15,16 +14,9 @@ import styles from './LinkButton.module.css';
  * `Button`.
  */
 export function LinkButton({
-  appearance = 'bordered',
+  appearance: _appearance = 'bordered',
   className: _ignored,
   ...rest
 }: KLinkProps & { appearance?: 'bordered' | 'solid' }) {
-  return (
-    <KLink
-      {...rest}
-      underline="never"
-      color="inherit"
-      className={`${styles.root} ${appearance === 'solid' ? styles.solid : styles.bordered}`}
-    />
-  );
+  return <KLink {...rest} underline="default" color="accent" styleAs="label" />;
 }

@@ -1,8 +1,7 @@
-import { Card, FlowLayout, StackLayout, Text } from '@salt-ds/core';
+import { Card, FlexLayout, FlowLayout, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 import { KLink } from './LinkAdapter';
-import styles from './NavCard.module.css';
 
 /**
  * A card-shaped destination whose contents are destinations too.
@@ -23,12 +22,15 @@ export function NavCard({
   to,
   title,
   description,
+  visual,
   links,
 }: {
   /** Where the card itself goes. */
   to: string;
   title: string;
   description?: ReactNode;
+  /** Salt icon treatment that distinguishes this product area. */
+  visual?: ReactNode;
   /**
    * The pages inside this destination, each a real link.
    *
@@ -38,30 +40,27 @@ export function NavCard({
   links?: readonly { label: string; to: string }[];
 }) {
   return (
-    <Card className={styles.card}>
-      <StackLayout gap={1}>
-        <Text styleAs="h4" as="h3">
-          <KLink to={to} underline="never" color="primary" className={styles.titleLink}>
-            {title}
-          </KLink>
-        </Text>
-        {description !== undefined ? <Text color="secondary">{description}</Text> : null}
-        {links && links.length > 0 ? (
-          <FlowLayout gap={1}>
-            {links.map((link) => (
-              <KLink
-                key={link.to}
-                to={link.to}
-                underline="never"
-                color="accent"
-                className={styles.pillLink}
-              >
-                {link.label}
-              </KLink>
-            ))}
-          </FlowLayout>
-        ) : null}
-      </StackLayout>
+    <Card hoverable accent="top">
+      <FlexLayout gap={2} align="start">
+        {visual}
+        <StackLayout gap={2}>
+          <Text styleAs="h3" as="h3">
+            <KLink to={to} underline="default" color="primary">
+              {title}
+            </KLink>
+          </Text>
+          {description !== undefined ? <Text color="secondary">{description}</Text> : null}
+          {links && links.length > 0 ? (
+            <FlowLayout gap={1}>
+              {links.map((link) => (
+                <KLink key={link.to} to={link.to} underline="default" color="accent">
+                  {link.label}
+                </KLink>
+              ))}
+            </FlowLayout>
+          ) : null}
+        </StackLayout>
+      </FlexLayout>
     </Card>
   );
 }

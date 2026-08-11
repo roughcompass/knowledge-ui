@@ -43,7 +43,11 @@ export function HealthPage() {
 
   return (
     <StackLayout gap={3}>
-      <PageHeader title="Health" description="Polled every ten seconds." />
+      <PageHeader
+        eyebrow="Platform operations"
+        title="Health"
+        description="Polled every ten seconds."
+      />
 
       <FlowLayout gap={2}>
         <StatTile

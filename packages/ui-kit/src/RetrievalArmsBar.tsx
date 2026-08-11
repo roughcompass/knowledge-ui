@@ -1,14 +1,12 @@
-import { FlexLayout, StackLayout, Text, Tooltip } from '@salt-ds/core';
-
-import styles from './RetrievalArmsBar.module.css';
+import { FlexLayout, LinearProgress, StackLayout, Tag, Text, Tooltip } from '@salt-ds/core';
 
 /**
  * How much each retrieval arm contributed to a search score.
  *
  * The contextplane fuses three independent arms — semantic, lexical and graph — and
- * returns each one's contribution alongside the total. That breakdown is the
- * most interesting thing on a search result and there is no Salt component for
- * it, so this is one of the three places a stylesheet is warranted.
+ * returns each one's contribution alongside the total. The breakdown uses Salt
+ * progress and tag components so its shape, labels and theme all remain owned by
+ * the design system.
  *
  * Accessibility is the reason this is not just three coloured boxes: the shape
  * carries the information, so it needs an accessible name that carries the same
@@ -22,9 +20,9 @@ export interface RetrievalArms {
 }
 
 const ARMS = [
-  { key: 'semantic', label: 'Semantic', className: styles.semantic },
-  { key: 'lexical', label: 'Lexical', className: styles.lexical },
-  { key: 'graph', label: 'Graph', className: styles.graph },
+  { key: 'semantic', label: 'Semantic' },
+  { key: 'lexical', label: 'Lexical' },
+  { key: 'graph', label: 'Graph' },
 ] as const;
 
 /** Percentage share per arm. Returns null when nothing contributed. */
@@ -72,38 +70,28 @@ export function RetrievalArmsBar({
   return (
     <StackLayout gap={1}>
       <Tooltip content={`Score ${score.toFixed(3)} — ${spoken}`}>
-        <div
-          className={styles.track}
+        <StackLayout
+          gap={1}
           role="img"
           aria-label={`Retrieval score ${score.toFixed(3)}. Contributions: ${spoken}.`}
         >
           {shares.map((share) =>
             share.pct > 0 ? (
-              <div
+              <LinearProgress
                 key={share.key}
-                className={`${styles.segment} ${ARMS.find((a) => a.key === share.key)?.className ?? ''}`}
-                // The only inline value in the component, and it has to be
-                // inline: the width is data, and a stylesheet cannot express a
-                // number that arrives at runtime.
-                style={{ inlineSize: `${share.pct}%` }}
+                value={share.pct}
+                aria-label={`${share.label} ${share.pct.toFixed(0)} percent`}
               />
             ) : null,
           )}
-        </div>
+        </StackLayout>
       </Tooltip>
       {showLegend ? (
-        // No `.legend` class: FlexLayout already provides flex, gap and wrap, and
-        // the stylesheet's own `gap` was overriding the component's.
         <FlexLayout gap={2} wrap>
           {shares.map((share) => (
             <FlexLayout key={share.key} gap={1} align="center">
-              <span
-                className={`${styles.swatch} ${ARMS.find((a) => a.key === share.key)?.className ?? ''}`}
-                aria-hidden="true"
-              />
-              <Text styleAs="notation" color="secondary">
-                {share.label} {share.pct.toFixed(0)}%
-              </Text>
+              <Tag>{share.label}</Tag>
+              <Text styleAs="notation" color="secondary">{`${share.pct.toFixed(0)}%`}</Text>
             </FlexLayout>
           ))}
         </FlexLayout>
@@ -127,12 +115,7 @@ export function RetrievalArmsLegend() {
         Retrieval arms
       </Text>
       {ARMS.map((arm) => (
-        <FlexLayout key={arm.key} gap={1} align="center">
-          <span className={`${styles.swatch} ${arm.className}`} aria-hidden="true" />
-          <Text styleAs="notation" color="secondary">
-            {arm.label}
-          </Text>
-        </FlexLayout>
+        <Tag key={arm.key}>{arm.label}</Tag>
       ))}
     </FlexLayout>
   );

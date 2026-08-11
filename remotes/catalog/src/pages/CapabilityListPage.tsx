@@ -129,7 +129,6 @@ export function CapabilityListPage() {
       {
         key: 'name',
         header: 'Name',
-        render: (row) => <Text>{row.name}</Text>,
         /*
           A real anchor, not a row handler. The row used to be the control, which gave
           up middle-click, "copy link address" and the link role a screen reader
@@ -205,7 +204,6 @@ export function CapabilityListPage() {
       {
         key: 'name',
         header: 'Name',
-        render: (row) => <Text>{row.name}</Text>,
         /*
           A real anchor, not a row handler. The row used to be the control, which gave
           up middle-click, "copy link address" and the link role a screen reader
@@ -351,6 +349,7 @@ export function CapabilityListPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Capability catalog"
         title="Capabilities"
         description={
           isSearching

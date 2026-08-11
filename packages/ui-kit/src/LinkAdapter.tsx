@@ -96,10 +96,9 @@ export type KLinkProps = Omit<LinkProps, 'href'> & {
  * Two presentations, both Salt's own API rather than a stylesheet:
  *
  * - prose and standalone links take the default, underlined at rest.
- * - dense contexts — a table cell, a list of ids — pass `underline="never"` with
- *   `color="accent"`, so a column of links does not become a wall of rules. Accent
- *   carries the affordance at rest, and the underline returns on hover, from one
- *   declaration in the global sheet.
+ * - dense contexts may pass `underline="never"` with `color="accent"` when another
+ *   non-colour affordance already identifies the destination. Tables use Salt's
+ *   default underline because the link itself is their only interaction cue.
  */
 /**
  * A destination inside this application, and demonstrably not somewhere else.

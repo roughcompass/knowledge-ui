@@ -54,6 +54,7 @@ export function NotificationsPage() {
 
   const header = (
     <PageHeader
+      eyebrow="Capability catalog"
       title="Notifications"
       description="Changes to the capabilities your tenant subscribes to. Open the capability to see what changed — these entries carry the fact of a change, not its contents."
       actions={

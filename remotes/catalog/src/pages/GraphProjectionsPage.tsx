@@ -88,7 +88,6 @@ export function GraphProjectionsPage() {
     {
       key: 'name',
       header: 'Name',
-      linked: true,
       render: (row) => (
         <KLink underline="never" color="accent" to={`../${row.name}`}>
           {row.name}
@@ -129,7 +128,6 @@ export function GraphProjectionsPage() {
     {
       key: 'src',
       header: 'From',
-      linked: true,
       render: (row) => (
         <EntityLink
           id={row.src_entity_id}
@@ -142,7 +140,6 @@ export function GraphProjectionsPage() {
     {
       key: 'dst',
       header: 'To',
-      linked: true,
       render: (row) => (
         <EntityLink
           id={row.dst_entity_id}
@@ -154,7 +151,6 @@ export function GraphProjectionsPage() {
     {
       key: 'properties',
       header: 'Properties',
-      wrap: true,
       render: (row) => {
         const entries = Object.entries(row.properties ?? {});
         if (entries.length === 0) return <Text color="secondary">None</Text>;
@@ -166,7 +162,7 @@ export function GraphProjectionsPage() {
   if (!allowed) {
     return (
       <StackLayout gap={3}>
-        <PageHeader title="Projections" />
+        <PageHeader eyebrow="Dependency intelligence" title="Projections" />
         <UnavailableNotice
           title="Projections"
           reason="This session holds no capability to read the graph projections."
@@ -183,6 +179,7 @@ export function GraphProjectionsPage() {
         filtering one. The description keeps to what a reader is choosing.
       */}
       <PageHeader
+        eyebrow="Dependency intelligence"
         title="Projections"
         description="What this tenant ships, and what it depends on — one page at a time."
       />

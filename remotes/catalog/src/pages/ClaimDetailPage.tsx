@@ -38,6 +38,7 @@ export function ClaimDetailPage() {
 
   const header = (
     <PageHeader
+      eyebrow="Capability catalog"
       title="Claim"
       description="One recalled observation, its subject, and the evidence recorded under it."
       actions={<KLink to="../claims">All Claims</KLink>}

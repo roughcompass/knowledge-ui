@@ -11,9 +11,6 @@ import '@fontsource/pt-mono/400.css';
 import '@salt-ds/theme/css/global.css';
 import '@salt-ds/theme/css/theme-next.css';
 
-// Repairs a token theme-next leaves dangling; see the file for why.
-import '@knowledge-ui/ui-kit/theme-fixups.css';
-
 import { StandaloneHarness } from './standalone/StandaloneHarness';
 
 /**

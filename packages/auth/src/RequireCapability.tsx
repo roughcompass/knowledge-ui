@@ -77,7 +77,11 @@ export function RequireCapability({
             <Text styleAs="label">Not available to this role</Text>
             <Text>
               This screen needs {grantingRoles.map((r) => `the ${r} role`).join(' or ')}. You are
-              signed in with the <strong>{session.role}</strong> role.
+              signed in with the{' '}
+              <Text as="span" styleAs="label">
+                {session.role}
+              </Text>{' '}
+              role.
             </Text>
             {/*
               Only for the reader it is about. The role-collapse explanation answers

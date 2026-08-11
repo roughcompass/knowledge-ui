@@ -15,7 +15,7 @@ export function NotFoundPage() {
 
   return (
     <StackLayout gap={3}>
-      <PageHeader title="Page not found" />
+      <PageHeader eyebrow="Knowledge platform" title="Page not found" />
       <EmptyState
         title="No such page"
         description="The address does not match any section of this application."

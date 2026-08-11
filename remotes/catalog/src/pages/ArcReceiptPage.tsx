@@ -55,6 +55,7 @@ export function ArcReceiptPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Evidence and retrieval"
         title="ARC Receipt Inspector"
         description="Inspect the retained evidence from a governed context resolution completed by a registered agent host."
         actions={

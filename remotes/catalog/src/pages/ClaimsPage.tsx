@@ -214,6 +214,7 @@ export function ClaimsPage() {
 
   const header = (
     <PageHeader
+      eyebrow="Capability catalog"
       title="Claims"
       description="What the memory believes about your capabilities, with the evidence behind each statement and how much to rely on it."
     />
@@ -397,7 +398,6 @@ export function ClaimsPage() {
                 {
                   key: 'subject_entity_id',
                   header: 'Subject',
-                  linked: true,
                   // First column, because a predicate and a value do not say what they
                   // are about. A list spanning entities without this is unreadable.
                   /*
@@ -422,7 +422,6 @@ export function ClaimsPage() {
                 {
                   key: 'claim_id',
                   header: 'Claim',
-                  linked: true,
                   /*
                     The way into the citation drill-in. Evidence counts were listed on
                     this page with nothing to open — the detail hook existed and no
@@ -459,7 +458,6 @@ export function ClaimsPage() {
                   // Running text, and the widest field in the row. Held to one line
                   // it pushes the trust columns — the ones the intro tells a reader
                   // to judge by — past the card edge.
-                  wrap: true,
                   render: (row) => <Text>{String(row.value)}</Text>,
                 },
                 {
@@ -489,7 +487,6 @@ export function ClaimsPage() {
                   // one idea.
                   // Excerpts are prose. One-lined, a single long citation decides the
                   // width of the whole table.
-                  wrap: true,
                   render: (row) => (
                     <StackLayout gap={0.5}>
                       <Text color="secondary" styleAs="label">

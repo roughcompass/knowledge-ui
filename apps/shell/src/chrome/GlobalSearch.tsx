@@ -228,7 +228,9 @@ export function GlobalSearch({ session, client }: { session: Session; client: Re
   ) : undefined;
 
   return (
-    <form
+    <StackLayout
+      as="form"
+      gap={1}
       onSubmit={onSubmit}
       role="search"
       aria-label="Search the catalog"
@@ -258,6 +260,6 @@ export function GlobalSearch({ session, client }: { session: Session; client: Re
           onChange={(event: ChangeEvent<HTMLInputElement>) => setValue(event.target.value)}
         />
       </SuggestionField>
-    </form>
+    </StackLayout>
   );
 }

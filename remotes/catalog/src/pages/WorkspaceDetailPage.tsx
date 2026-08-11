@@ -262,7 +262,7 @@ export function WorkspaceDetailPage() {
   if (workspace.isPending)
     return (
       <StackLayout gap={3}>
-        <PageHeader title="Workspace" />
+        <PageHeader eyebrow="Workspace memory" title="Workspace" />
         <LoadingPanel label="Loading workspace" />
       </StackLayout>
     );
@@ -270,7 +270,7 @@ export function WorkspaceDetailPage() {
   if (workspace.error) {
     return (
       <StackLayout gap={3}>
-        <PageHeader title="Workspace" />
+        <PageHeader eyebrow="Workspace memory" title="Workspace" />
         {/*
           A workspace nobody may see and a workspace that never existed both
           answer 404, deliberately — the server refuses to let a caller probe for
@@ -371,6 +371,7 @@ export function WorkspaceDetailPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Workspace memory"
         title={ws.name}
         description={ws.description ?? undefined}
         metadata={

@@ -105,7 +105,6 @@ export function SyncRunsPage() {
           and no destination, so reading what a connector actually reported meant
           going to the server logs.
         */
-        linked: true,
         render: (row) => (
           <KLink to={`runs/${String(row.sync_run_id)}`} underline="never" color="accent">
             {instantText(row.started_at) ?? '—'}
@@ -178,6 +177,7 @@ export function SyncRunsPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Platform operations"
         title="Sync runs"
         description={`Connector runs from the last ${DEFAULT_WINDOW_DAYS} days, newest first — older runs exist but are not shown.`}
       />

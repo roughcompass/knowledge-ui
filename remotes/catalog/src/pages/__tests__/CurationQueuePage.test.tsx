@@ -1,6 +1,6 @@
 import { createRegistryClient } from '@knowledge-ui/api-client';
 import { makeSession, renderWithProviders } from '@knowledge-ui/testing';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { CurationQueuePage } from '../CurationQueuePage';
@@ -37,7 +37,7 @@ describe('the curation queue', () => {
     // The row content, not the table: the loading skeleton renders a table of
     // its own, and asserting against that one proves nothing about the rows.
     const row = (await screen.findByText('system:github/unknown-repo')).closest('tr');
-    // The claim column declares itself linked, so the rows carry the hover cue.
-    expect(row?.className).toMatch(/clickableRow/);
+    if (!row) throw new Error('queued claim row missing');
+    expect(within(row).getByRole('link')).toBeInTheDocument();
   });
 });

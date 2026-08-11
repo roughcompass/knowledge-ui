@@ -209,22 +209,18 @@ describe('what each role is offered', () => {
   });
 });
 
-describe('the header readouts', () => {
-  it('renders tenant and role as text, not as pills', async () => {
-    /*
-     * Not a `Tag` in any variant. Salt's secondary variant fills the chip rather
-     * than quietening it, so asking for a calmer pill produced the loudest thing
-     * on the page — and a pill beside a page title reads as a filter the reader
-     * can remove, whichever way it is painted.
-     */
+describe('the page-level destinations', () => {
+  it('keeps claims and capabilities as distinct real links', async () => {
     renderDashboard('consumer', { '/v1/notifications': { items: [], next_cursor: null } });
 
-    const role = await screen.findByText('consumer');
-    const tenant = screen.getByText('Local Development Tenant');
-    expect(role.closest('[class*="saltTag"]')).toBeNull();
-    expect(tenant.closest('[class*="saltTag"]')).toBeNull();
-    expect(role.className).toMatch(/secondary/);
-    expect(tenant.className).toMatch(/secondary/);
+    expect(await screen.findByRole('link', { name: /browse claims/i })).toHaveAttribute(
+      'href',
+      '/catalog/claims',
+    );
+    expect(screen.getByRole('link', { name: /browse capabilities/i })).toHaveAttribute(
+      'href',
+      '/catalog',
+    );
   });
 });
 

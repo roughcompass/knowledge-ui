@@ -159,7 +159,6 @@ export function WorkspacesPage() {
         // The name is the way in, and the only control for it: anything that
         // navigates is an anchor, and a second row action for the same journey
         // reads as two journeys while leaving the real link unmarked.
-        linked: true,
         render: (row) => (
           <StackLayout gap={0.5}>
             <KLink underline="never" color="accent" to={row.workspace_id}>
@@ -219,6 +218,7 @@ export function WorkspacesPage() {
 
   const header = (
     <PageHeader
+      eyebrow="Workspace memory"
       title="Workspaces"
       description="Keep notes, decisions, and open questions beside the catalog."
       actions={

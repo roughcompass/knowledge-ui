@@ -76,17 +76,17 @@ describe('the change detail', () => {
     renderPage();
     const show = (await screen.findAllByRole('button', { name: 'Show' }))[0]!;
     const table = screen.getByRole('table', { name: /audit entries/i });
-    expect(within(table).queryByText('lifecycle')).not.toBeInTheDocument();
+    expect(within(table).queryByText('lifecycle · changed')).not.toBeInTheDocument();
 
     fireEvent.click(show);
 
-    expect(within(table).getAllByText('lifecycle').length).toBeGreaterThan(0);
+    expect(within(table).getAllByText('lifecycle · changed').length).toBeGreaterThan(0);
     expect(within(table).getByText('beta')).toBeInTheDocument();
     expect(within(table).getByText('ga')).toBeInTheDocument();
     // The detached below-the-table panel and its anonymous trigger are gone.
     expect(screen.queryByText('Change Detail')).not.toBeInTheDocument();
 
     fireEvent.click(within(table).getAllByRole('button', { name: 'Hide' })[0]!);
-    expect(within(table).queryByText('lifecycle')).not.toBeInTheDocument();
+    expect(within(table).queryByText('lifecycle · changed')).not.toBeInTheDocument();
   });
 });

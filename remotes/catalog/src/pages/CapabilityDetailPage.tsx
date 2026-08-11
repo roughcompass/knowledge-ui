@@ -176,6 +176,7 @@ export function CapabilityDetailPage() {
    */
   const header = (
     <PageHeader
+      eyebrow="Capability catalog"
       title={displayName ?? slug ?? 'Capability'}
       // The one sentence the reader came for, at the top instead of at the bottom.
       // Absent when the capability has no overview fact — an empty line here would

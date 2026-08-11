@@ -527,158 +527,156 @@ function ContextLabSession({
         </>
       ) : null}
 
-      <section aria-label="Context probe transcript">
-        <StackLayout gap={3}>
-          {turns.length === 0 ? (
-            <Text color="secondary">
-              Results appear here — pick a source above, describe a task, and run your first probe.
-            </Text>
-          ) : null}
+      <StackLayout as="section" aria-label="Context probe transcript" gap={3}>
+        {turns.length === 0 ? (
+          <Text color="secondary">
+            Results appear here — pick a source above, describe a task, and run your first probe.
+          </Text>
+        ) : null}
 
-          {turns.map((turn) => {
-            const label = sourceOption(turn.request.source).label;
-            return (
-              <section
-                aria-label={`${label} probe turn`}
-                id={`context-turn-${turn.id}`}
-                key={turn.id}
-                tabIndex={-1}
+        {turns.map((turn) => {
+          const label = sourceOption(turn.request.source).label;
+          return (
+            <StackLayout
+              as="section"
+              gap={2}
+              aria-label={`${label} probe turn`}
+              id={`context-turn-${turn.id}`}
+              key={turn.id}
+              tabIndex={-1}
+            >
+              <SectionCard
+                title="You Asked"
+                description={`${label} probe${
+                  turn.request.claimPersona
+                    ? ` · ${termText(turn.request.claimPersona)} persona`
+                    : ''
+                }`}
               >
+                <Text>{turn.request.query}</Text>
+              </SectionCard>
+
+              {turn.state === 'pending' ? <LoadingPanel label={`Probing ${label}`} /> : null}
+              {turn.state === 'error' && turn.error ? (
+                <ErrorPanel title={`${label} probe failed`} error={turn.error} />
+              ) : null}
+              {turn.state === 'success' && turn.result ? (
                 <StackLayout gap={2}>
+                  <FlexLayout gap={2} align="center" justify="space-between" wrap>
+                    <StackLayout gap={0.5}>
+                      <Text as="h2" styleAs="h3">
+                        Context Layer Returned
+                      </Text>
+                      <Text color="secondary">
+                        Exact records from the selected source, not a generated answer.
+                      </Text>
+                    </StackLayout>
+                    <Tag>{label}</Tag>
+                  </FlexLayout>
+
+                  <Suspense fallback={<LoadingPanel label="Preparing probe results" />}>
+                    <ContextProbeResults
+                      result={turn.result}
+                      evaluations={turn.evaluations}
+                      onEvaluation={(itemId, next) =>
+                        updateTurn(turn.id, (current) => ({
+                          ...current,
+                          evaluations: { ...current.evaluations, [itemId]: next },
+                        }))
+                      }
+                    />
+                  </Suspense>
+
+                  <RegressionComparison comparison={turn.comparison} />
+
                   <SectionCard
-                    title="You Asked"
-                    description={`${label} probe${
-                      turn.request.claimPersona
-                        ? ` · ${termText(turn.request.claimPersona)} persona`
-                        : ''
-                    }`}
+                    title="Evaluate This Probe"
+                    description="Label individual records above, then record context the source should have returned but did not."
                   >
-                    <Text>{turn.request.query}</Text>
-                  </SectionCard>
-
-                  {turn.state === 'pending' ? <LoadingPanel label={`Probing ${label}`} /> : null}
-                  {turn.state === 'error' && turn.error ? (
-                    <ErrorPanel title={`${label} probe failed`} error={turn.error} />
-                  ) : null}
-                  {turn.state === 'success' && turn.result ? (
                     <StackLayout gap={2}>
-                      <FlexLayout gap={2} align="center" justify="space-between" wrap>
-                        <StackLayout gap={0.5}>
-                          <Text as="h2" styleAs="h3">
-                            Context Layer Returned
-                          </Text>
-                          <Text color="secondary">
-                            Exact records from the selected source, not a generated answer.
-                          </Text>
-                        </StackLayout>
-                        <Tag>{label}</Tag>
-                      </FlexLayout>
-
-                      <Suspense fallback={<LoadingPanel label="Preparing probe results" />}>
-                        <ContextProbeResults
-                          result={turn.result}
-                          evaluations={turn.evaluations}
-                          onEvaluation={(itemId, next) =>
+                      <FormRow
+                        label="Missing Context"
+                        helperText="Qualitative evaluator evidence. It is not converted into a score."
+                      >
+                        <MultilineInput
+                          bordered
+                          rows={3}
+                          value={turn.missingContext}
+                          onChange={(event) =>
                             updateTurn(turn.id, (current) => ({
                               ...current,
-                              evaluations: { ...current.evaluations, [itemId]: next },
+                              missingContext: (event.target as HTMLTextAreaElement).value,
                             }))
                           }
                         />
-                      </Suspense>
+                      </FormRow>
 
-                      <RegressionComparison comparison={turn.comparison} />
+                      {turn.savedAs ? (
+                        <Note label="Case Saved" variant="success">
+                          {turn.savedAs} is available in this tab for this persona.
+                        </Note>
+                      ) : null}
 
-                      <SectionCard
-                        title="Evaluate This Probe"
-                        description="Label individual records above, then record context the source should have returned but did not."
-                      >
+                      {savingTurnId === turn.id ? (
                         <StackLayout gap={2}>
                           <FormRow
-                            label="Missing Context"
-                            helperText="Qualitative evaluator evidence. It is not converted into a score."
+                            label="Case Name"
+                            required
+                            error={caseNameError}
+                            helperText="Use a task and source name that will still make sense on a later rerun."
                           >
-                            <MultilineInput
+                            <Input
                               bordered
-                              rows={3}
-                              value={turn.missingContext}
-                              onChange={(event) =>
-                                updateTurn(turn.id, (current) => ({
-                                  ...current,
-                                  missingContext: (event.target as HTMLTextAreaElement).value,
-                                }))
-                              }
+                              value={caseName}
+                              onChange={(event) => {
+                                setCaseName((event.target as HTMLInputElement).value);
+                                setCaseNameError(undefined);
+                              }}
                             />
                           </FormRow>
-
-                          {turn.savedAs ? (
-                            <Note label="Case Saved" variant="success">
-                              {turn.savedAs} is available in this tab for this persona.
-                            </Note>
-                          ) : null}
-
-                          {savingTurnId === turn.id ? (
-                            <StackLayout gap={2}>
-                              <FormRow
-                                label="Case Name"
-                                required
-                                error={caseNameError}
-                                helperText="Use a task and source name that will still make sense on a later rerun."
-                              >
-                                <Input
-                                  bordered
-                                  value={caseName}
-                                  onChange={(event) => {
-                                    setCaseName((event.target as HTMLInputElement).value);
-                                    setCaseNameError(undefined);
-                                  }}
-                                />
-                              </FormRow>
-                              <FlexLayout gap={1} align="center" justify="end" wrap>
-                                <Button
-                                  appearance="transparent"
-                                  onClick={() => {
-                                    setSavingTurnId(undefined);
-                                    setCaseName('');
-                                    setCaseNameError(undefined);
-                                  }}
-                                >
-                                  Cancel Save
-                                </Button>
-                                <Button
-                                  appearance="solid"
-                                  sentiment="accented"
-                                  onClick={() => saveTurn(turn)}
-                                >
-                                  Save Regression Case
-                                </Button>
-                              </FlexLayout>
-                            </StackLayout>
-                          ) : (
-                            <FlexLayout justify="end">
-                              <Button
-                                appearance="bordered"
-                                sentiment="accented"
-                                onClick={() => {
-                                  setSavingTurnId(turn.id);
-                                  setCaseName('');
-                                  setCaseNameError(undefined);
-                                }}
-                              >
-                                Save Regression Case
-                              </Button>
-                            </FlexLayout>
-                          )}
+                          <FlexLayout gap={1} align="center" justify="end" wrap>
+                            <Button
+                              appearance="transparent"
+                              onClick={() => {
+                                setSavingTurnId(undefined);
+                                setCaseName('');
+                                setCaseNameError(undefined);
+                              }}
+                            >
+                              Cancel Save
+                            </Button>
+                            <Button
+                              appearance="solid"
+                              sentiment="accented"
+                              onClick={() => saveTurn(turn)}
+                            >
+                              Save Regression Case
+                            </Button>
+                          </FlexLayout>
                         </StackLayout>
-                      </SectionCard>
+                      ) : (
+                        <FlexLayout justify="end">
+                          <Button
+                            appearance="bordered"
+                            sentiment="accented"
+                            onClick={() => {
+                              setSavingTurnId(turn.id);
+                              setCaseName('');
+                              setCaseNameError(undefined);
+                            }}
+                          >
+                            Save Regression Case
+                          </Button>
+                        </FlexLayout>
+                      )}
                     </StackLayout>
-                  ) : null}
+                  </SectionCard>
                 </StackLayout>
-              </section>
-            );
-          })}
-        </StackLayout>
-      </section>
+              ) : null}
+            </StackLayout>
+          );
+        })}
+      </StackLayout>
     </StackLayout>
   );
 }
@@ -691,6 +689,7 @@ export function ContextLabPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
+        eyebrow="Evidence and retrieval"
         title="Context Lab"
         description="Test what evidence each source returns for a task — raw records, never generated answers."
         actions={

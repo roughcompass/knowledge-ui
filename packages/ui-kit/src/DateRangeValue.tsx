@@ -1,10 +1,9 @@
-import { Overlay, OverlayPanel, OverlayPanelContent, OverlayTrigger, Text } from '@salt-ds/core';
+import { Button, Overlay, OverlayPanel, OverlayPanelContent, OverlayTrigger } from '@salt-ds/core';
 import { useState } from 'react';
 
 import { DateRangeControls } from './DateRangeControls';
 import { formatDayRange } from './dateRange';
 import type { DayRange, WindowSelection } from './dateRange';
-import styles from './DateRangeValue.module.css';
 
 /**
  * The window a panel is reporting, shown prominently and clickable to change it.
@@ -50,17 +49,16 @@ export function DateRangeValue({
   return (
     <Overlay open={open} onOpenChange={setOpen} placement="bottom">
       <OverlayTrigger>
-        <button
+        <Button
           type="button"
-          className={styles.trigger}
+          appearance="transparent"
+          sentiment="accented"
           aria-label={`Window: ${label}. Change it.`}
         >
-          <Text styleAs="label" as="span" className={styles.value}>
-            {label}
-          </Text>
-        </button>
+          {label}
+        </Button>
       </OverlayTrigger>
-      <OverlayPanel className={styles.panel}>
+      <OverlayPanel>
         <OverlayPanelContent>
           <DateRangeControls value={selection} onChange={onSelectionChange} layout="stack" />
         </OverlayPanelContent>

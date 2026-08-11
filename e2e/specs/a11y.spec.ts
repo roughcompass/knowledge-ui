@@ -91,7 +91,7 @@ for (const mode of MODES) {
       // silently rendered light is a green result for a check that never happened,
       // which is the failure this whole sweep exists to stop being possible.
       // Salt's next theme carries the mode as an attribute, not a class.
-      await expect(page.locator('.salt-theme')).toHaveAttribute('data-mode', mode);
+      await expect(page.locator('html.salt-theme')).toHaveAttribute('data-mode', mode);
 
       const { violations } = await new AxeBuilder({ page })
         .include('#root')

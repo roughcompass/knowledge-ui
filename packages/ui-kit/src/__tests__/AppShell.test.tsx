@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -7,7 +7,7 @@ import { AppShell } from '../AppShell';
 function installNarrowViewport() {
   const media = {
     matches: true,
-    media: '(max-width: 48rem)',
+    media: '(max-width: 64rem)',
     onchange: null,
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
@@ -41,11 +41,15 @@ describe('AppShell narrow navigation', () => {
     const open = screen.getByRole('button', { name: 'Open navigation' });
     await user.click(open);
 
-    expect(screen.getByRole('dialog', { name: 'Catalog navigation' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Close navigation' })).toHaveFocus();
+    const dialog = screen.getByRole('dialog', { name: 'Catalog navigation' });
+    expect(dialog).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Close navigation' })).toHaveFocus(),
+    );
 
     await user.click(screen.getByRole('link', { name: 'Capabilities' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    fireEvent.animationEnd(dialog);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() => expect(open).toHaveFocus());
   });
 
@@ -61,9 +65,11 @@ describe('AppShell narrow navigation', () => {
 
     const open = screen.getByRole('button', { name: 'Open navigation' });
     await user.click(open);
+    const dialog = screen.getByRole('dialog', { name: 'Navigation' });
     await user.keyboard('{Escape}');
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    fireEvent.animationEnd(dialog);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() => expect(open).toHaveFocus());
   });
 });

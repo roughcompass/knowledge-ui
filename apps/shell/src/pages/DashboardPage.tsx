@@ -1,5 +1,26 @@
-import { FlexLayout, FlowLayout, StackLayout, Text } from '@salt-ds/core';
-import { useEffect, useState } from 'react';
+import {
+  Avatar,
+  Card,
+  Divider,
+  FlexLayout,
+  FlowLayout,
+  GridLayout,
+  SaltProviderNext,
+  StackLayout,
+  StatusIndicator,
+  Text,
+} from '@salt-ds/core';
+import {
+  ChatSolidIcon,
+  DashboardSolidIcon,
+  DatabaseSolidIcon,
+  ListIcon,
+  SearchIcon,
+  SettingsSolidIcon,
+  TreeSolidIcon,
+  WarningSolidIcon,
+} from '@salt-ds/icons';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   describeWindow,
   isSecondsReading,
@@ -14,8 +35,8 @@ import {
   countText,
   DataTable,
   ErrorPanel,
-  NavCard,
   Note,
+  PageColumns,
   PageHeader,
   SectionCard,
   StatTile,
@@ -41,6 +62,33 @@ const READINESS_TEXT = {
   unknown: 'Unknown',
 } as const;
 
+const SECTION_ICON: Record<string, typeof DatabaseSolidIcon> = {
+  catalog: DatabaseSolidIcon,
+  context: ChatSolidIcon,
+  graph: TreeSolidIcon,
+  operations: SettingsSolidIcon,
+};
+
+const SECTION_COLOR = {
+  catalog: 'accent',
+  context: 'category-2',
+  graph: 'category-3',
+  operations: 'category-4',
+} as const;
+
+type VisualColor = 'accent' | 'category-1' | 'category-2' | 'category-3' | 'category-4';
+
+function FeatureVisual({
+  Icon,
+  color = 'accent',
+  size = 1,
+}: {
+  Icon: typeof DatabaseSolidIcon;
+  color?: VisualColor;
+  size?: number;
+}) {
+  return <Avatar color={color} fallbackIcon={<Icon aria-hidden />} size={size} aria-hidden />;
+}
 /**
  * `info` rather than `warning` for the unknown case: not having heard back is not
  * a finding about the service, and colouring it as one would report a fault the
@@ -88,6 +136,14 @@ function greeting(): string {
   if (hour < 12) return 'Good morning';
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';
+}
+
+function todayLabel(): string {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date());
 }
 
 /**
@@ -148,43 +204,20 @@ export function DashboardPage({
         true, and there is no server-side notion of their day.
       */}
       <PageHeader
+        eyebrow="Global context"
         title={(() => {
           const name = personName(session.actorDisplayName);
           return name ? `${greeting()}, ${name}` : greeting();
         })()}
-        description="Everything teams here publish for others to build on."
-        metadata={
-          /*
-            Neutral, not accent: these two chips are readouts, and the accent
-            register is reserved for things a reader can click. Styled as the
-            bluest elements on the page they read as filters, and got clicked.
-          */
-          <FlexLayout gap={1} wrap>
-            {/*
-              Text, not `Tag`. Salt's `secondary` variant fills the chip rather
-              than quietening it, so the readouts came back louder than the
-              actions beside them — and any pill at all in this position reads as
-              a filter the reader can remove.
-            */}
-            <Text color="secondary">{session.tenantDisplayName}</Text>
-            <Text color="secondary">·</Text>
-            <Text color="secondary">{session.role}</Text>
-          </FlexLayout>
-        }
+        description={`${todayLabel()} · Everything teams here publish for others to build on.`}
         actions={
-          <FlexLayout gap={1} align="center">
-            {/*
-              Anchors, not buttons with click handlers — these navigate, so
-              middle-click and "copy link address" must work. The one solid action
-              on the page stays the catalog: the only destination no role is refused.
-            */}
-            <LinkButton to={remoteChildHref('catalog', 'claims')}>Browse Claims</LinkButton>
-            <LinkButton to={remoteFor('catalog').mountPath} appearance="solid">
-              Browse Capabilities
-            </LinkButton>
-          </FlexLayout>
+          <KLink to={remoteChildHref('catalog', 'claims')} color="accent">
+            <ListIcon aria-hidden /> Browse Claims
+          </KLink>
         }
       />
+
+      <KnowledgeHero session={session} readiness={readiness} />
 
       {/*
         Readiness alone, and only when it is not ready.
@@ -210,20 +243,19 @@ export function DashboardPage({
 
       <AtAGlance client={client} session={session} />
 
-      {/*
-        The auditor's one destination, where they can see it without scrolling.
-        `audit:read` is granted to exactly one role — the contextplane collapses a
-        principal to one role, so even an admin is refused there — which makes
-        this card the auditor's dispatch rather than a duplicate for everyone.
-      */}
-      {can(session, 'audit:read') ? (
-        <ResourceCard
-          title="Review what changed"
-          description="Every change to the contextplane, newest first, with what each one touched."
-          actionLabel="Open Audit Log"
-          to={remoteChildHref('operations', 'audit')}
-        />
-      ) : null}
+      <PageColumns
+        main={
+          <StackLayout gap={3}>
+            {can(session, 'notification:read') ? (
+              <RecentChanges client={client} session={session} />
+            ) : null}
+            {can(session, 'usage:read:owned') ? (
+              <WhatYouPublish client={client} session={session} />
+            ) : null}
+          </StackLayout>
+        }
+        aside={<DashboardRail session={session} available={available} />}
+      />
 
       {/*
         Learn the contextplane sits ABOVE the destination grid, not at the foot.
@@ -233,16 +265,18 @@ export function DashboardPage({
         these three cards answer the question the destination grid assumes — so they
         outrank it. A reader who already knows scrolls one card-height past them.
       */}
-      <StackLayout gap={1}>
-        <SectionHeading title="Learn the contextplane" />
-        <TileGrid columns={3}>
+      <StackLayout gap={2}>
+        <SectionHeading eyebrow="Guided workflows" title="Learn the contextplane" />
+        <GridLayout columns={{ xs: 1, sm: 3 }} gap={2}>
           <ResourceCard
+            visual={<FeatureVisual Icon={SearchIcon} color="accent" />}
             title="Retrieval and trust"
             description="How the catalog, claims and your notes answer separately, each with a trust label."
             actionLabel="Open Context Lab"
             to={remoteChildHref('catalog', 'context')}
           />
           <ResourceCard
+            visual={<FeatureVisual Icon={TreeSolidIcon} color="category-3" />}
             title="What depends on what"
             description="See dependents and blast radius before you ship a breaking change."
             actionLabel="Open Graph"
@@ -256,6 +290,7 @@ export function DashboardPage({
           */}
           {can(session, 'workspace:write:personal') || can(session, 'workspace:write:team') ? (
             <ResourceCard
+              visual={<FeatureVisual Icon={ChatSolidIcon} color="category-2" />}
               title="Keep your own notes"
               description="Decisions and open questions, private to you or your tenant."
               actionLabel="Open Workspaces"
@@ -263,37 +298,15 @@ export function DashboardPage({
             />
           ) : (
             <ResourceCard
+              visual={<FeatureVisual Icon={ChatSolidIcon} color="category-2" />}
               title="Read your tenant's notes"
               description="Decisions and open questions other teams keep beside the catalog. Your role can read them, not write them."
               actionLabel="Open Workspaces"
               to={remoteChildHref('catalog', 'workspaces')}
             />
           )}
-        </TileGrid>
+        </GridLayout>
       </StackLayout>
-
-      <StackLayout gap={1}>
-        <SectionHeading title="Explore" />
-        <TileGrid columns={2}>
-          {available.map((section) => (
-            <SectionNavCard key={section.key} section={section} />
-          ))}
-        </TileGrid>
-      </StackLayout>
-
-      {can(session, 'notification:read') ? (
-        <RecentChanges client={client} session={session} />
-      ) : null}
-
-      {/*
-        The producer's half of the page, gated on the scope rather than the role.
-        Its rows are the capabilities this tenant owns, so for a consumer the read
-        is refused and for a producer who publishes nothing it is empty — both of
-        which the panel says in words rather than showing as a blank.
-      */}
-      {can(session, 'usage:read:owned') ? (
-        <WhatYouPublish client={client} session={session} />
-      ) : null}
 
       {/*
         "Your access" is gone from this page. Identity already lives in the rail
@@ -309,10 +322,127 @@ export function DashboardPage({
         the three a reader wants when something is wrong or unclear, and none of them
         deserves a destination card competing with the sections above.
       */}
-      <FlexLayout gap={3} justify="center" wrap>
-        <KLink to="/ops">API Status</KLink>
-        <KLink to="/_session">Session Details</KLink>
-      </FlexLayout>
+      <StackLayout gap={2}>
+        <Divider variant="tertiary" />
+        <FlexLayout gap={3} justify="space-between" wrap>
+          <Text styleAs="notation" color="secondary">
+            Context is served by the registry API and scoped to this identity.
+          </Text>
+          <FlexLayout gap={3} wrap>
+            <KLink to="/ops">API Status</KLink>
+            <KLink to="/_session">Session Details</KLink>
+          </FlexLayout>
+        </FlexLayout>
+      </StackLayout>
+    </StackLayout>
+  );
+}
+function KnowledgeHero({
+  session,
+  readiness,
+}: {
+  session: Session;
+  readiness: 'ready' | 'not-ready' | 'unknown';
+}) {
+  const readinessStatus =
+    readiness === 'ready' ? 'success' : readiness === 'not-ready' ? 'error' : 'warning';
+
+  return (
+    <SaltProviderNext mode="dark">
+      <Card variant="primary" accent="top">
+        <GridLayout columns={{ xs: 1, md: 2 }} gap={4}>
+          <StackLayout gap={2}>
+            <FlexLayout gap={1} align="center">
+              <StatusIndicator status={readinessStatus} />
+              <Text styleAs="notation" color="secondary">
+                {`Live context · ${session.tenantDisplayName} · ${READINESS_TEXT[readiness]}`}
+              </Text>
+            </FlexLayout>
+            <Text styleAs="h1" as="h2">
+              Context for every platform decision
+            </Text>
+            <Text color="secondary">
+              Discover what teams ship, trace dependencies before change, and inspect the evidence
+              behind every claim.
+            </Text>
+            <FlexLayout gap={2} wrap>
+              <KLink to={remoteFor('catalog').mountPath} color="accent">
+                Browse Capabilities
+              </KLink>
+              <KLink to={remoteChildHref('catalog', 'context')} color="accent">
+                Probe Context
+              </KLink>
+            </FlexLayout>
+          </StackLayout>
+
+          <GridLayout columns={3} gap={2}>
+            <StackLayout gap={2}>
+              <FeatureVisual Icon={DatabaseSolidIcon} color="accent" />
+              <Text styleAs="h3">Discover</Text>
+              <Text styleAs="notation" color="secondary">
+                Capabilities and interfaces
+              </Text>
+            </StackLayout>
+            <StackLayout gap={2}>
+              <FeatureVisual Icon={TreeSolidIcon} color="category-3" />
+              <Text styleAs="h3">Assess</Text>
+              <Text styleAs="notation" color="secondary">
+                Dependencies and impact
+              </Text>
+            </StackLayout>
+            <StackLayout gap={2}>
+              <FeatureVisual Icon={SearchIcon} color="category-2" />
+              <Text styleAs="h3">Prove</Text>
+              <Text styleAs="notation" color="secondary">
+                Citations and confidence
+              </Text>
+            </StackLayout>
+          </GridLayout>
+        </GridLayout>
+      </Card>
+    </SaltProviderNext>
+  );
+}
+
+function DashboardRail({
+  session,
+  available,
+}: {
+  session: Session;
+  available: readonly NavigationSection[];
+}) {
+  return (
+    <StackLayout gap={3}>
+      {can(session, 'audit:read') ? (
+        <ResourceCard
+          visual={<FeatureVisual Icon={ListIcon} color="category-4" />}
+          title="Review what changed"
+          description="Every change to the contextplane, newest first, with what each one touched."
+          actionLabel="Open Audit Log"
+          to={remoteChildHref('operations', 'audit')}
+        />
+      ) : null}
+
+      <SectionCard
+        accent="top"
+        title="Action center"
+        description="The most useful destinations available to this identity."
+      >
+        <StackLayout gap={2} separators>
+          {available.slice(0, 4).map((section) => (
+            <FlexLayout key={section.key} gap={2} align="center">
+              <FeatureVisual
+                Icon={SECTION_ICON[section.key] ?? DatabaseSolidIcon}
+                color={SECTION_COLOR[section.key as keyof typeof SECTION_COLOR] ?? 'accent'}
+                size={0.8}
+              />
+              <KLink to={section.href} color="accent">
+                {section.label}
+              </KLink>
+            </FlexLayout>
+          ))}
+        </StackLayout>
+      </SectionCard>
     </StackLayout>
   );
 }
@@ -327,25 +457,26 @@ export function DashboardPage({
  * primitive invented for one page is one nobody else can find.
  */
 function ResourceCard({
+  visual,
   title,
   description,
   actionLabel,
   to,
 }: {
+  visual: ReactNode;
   title: string;
   description: string;
   actionLabel: string;
   to: string;
 }) {
   return (
-    <SectionCard title={title} description={description}>
+    <SectionCard title={title} description={description} visual={visual} accent="top" hoverable>
       <FlexLayout justify="start">
         <LinkButton to={to}>{actionLabel}</LinkButton>
       </FlexLayout>
     </SectionCard>
   );
 }
-
 /**
  * What this tenant publishes, and whether anything called it.
  *
@@ -374,6 +505,7 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
   return (
     <SectionCard
       banded
+      visual={<FeatureVisual Icon={DatabaseSolidIcon} color="category-2" size={0.8} />}
       title="What you publish"
       actions={
         <KLink to={usagePage} color="accent" underline="never">
@@ -403,7 +535,6 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
             {
               key: 'name',
               header: 'Capability',
-              linked: true,
               render: (row) => (
                 <KLink
                   underline="never"
@@ -434,7 +565,6 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
     </SectionCard>
   );
 }
-
 /**
  * What the reader can actually be told a number about.
  *
@@ -487,9 +617,14 @@ function RecentActivity({ session }: { session: Session }) {
 
   if (recents.length === 0) {
     return (
-      <Text color="secondary">
-        Your recent searches will appear here — search the catalog to start.
-      </Text>
+      <FlexLayout gap={2} align="center" justify="space-between" wrap>
+        <Text color="secondary">
+          Your recent searches will appear here after the first catalog query.
+        </Text>
+        <KLink to="/catalog" color="accent">
+          Search Catalog
+        </KLink>
+      </FlexLayout>
     );
   }
 
@@ -524,9 +659,16 @@ function AtAGlance({ client, session }: { client: RegistryClient; session: Sessi
   */
   if (!canOperator && !canOwned && !canOps) {
     return (
-      <StackLayout gap={1}>
-        <SectionHeading title="Pick up where you left off" />
-        <RecentActivity session={session} />
+      <StackLayout gap={2}>
+        <SectionHeading eyebrow="Your workspace" title="Pick up where you left off" />
+        <SectionCard
+          title="Recent searches"
+          headingLevel="h3"
+          visual={<FeatureVisual Icon={SearchIcon} color="accent" />}
+          variant="secondary"
+        >
+          <RecentActivity session={session} />
+        </SectionCard>
       </StackLayout>
     );
   }
@@ -543,8 +685,14 @@ function AtAGlance({ client, session }: { client: RegistryClient; session: Sessi
   if (canOwned && owned.data) windows.add(describeWindow(owned.data));
   const sharedWindow = windows.size === 1 ? [...windows][0] : undefined;
 
-  const tiles: Array<{ key: string; label: string; value: string; hint: string; href: string }> =
-    [];
+  const tiles: Array<{
+    key: string;
+    label: string;
+    value: string;
+    hint: string;
+    href: string;
+    visual: ReactNode;
+  }> = [];
 
   if (canOperator && summary.data) {
     const calls = summary.data.surfaces.reduce((total, s) => total + (s.calls ?? 0), 0);
@@ -558,6 +706,7 @@ function AtAGlance({ client, session }: { client: RegistryClient; session: Sessi
         ? 'Summed across every surface.'
         : `Summed across every surface, ${window}.`,
       href: '/ops/usage',
+      visual: <FeatureVisual Icon={DashboardSolidIcon} color="accent" />,
     });
     tiles.push({
       key: 'failed',
@@ -567,6 +716,7 @@ function AtAGlance({ client, session }: { client: RegistryClient; session: Sessi
         ? 'Counted, not rated — a rate over one reading would be invented.'
         : `Counted, not rated — a rate over one reading would be invented. ${window}.`,
       href: '/ops/usage',
+      visual: <FeatureVisual Icon={WarningSolidIcon} color="category-4" />,
     });
   }
 
@@ -580,6 +730,7 @@ function AtAGlance({ client, session }: { client: RegistryClient; session: Sessi
         ? 'A count of the response, which is complete rather than paged.'
         : `A count of the response, which is complete rather than paged. ${describeWindow(owned.data)}.`,
       href: '/ops/usage',
+      visual: <FeatureVisual Icon={DatabaseSolidIcon} color="category-2" />,
     });
   }
 
@@ -601,13 +752,15 @@ function AtAGlance({ client, session }: { client: RegistryClient; session: Sessi
         value: deepest,
         hint: 'The largest queue backlog in the latest snapshot, not a trend.',
         href: '/ops',
+        visual: <FeatureVisual Icon={SettingsSolidIcon} color="category-3" />,
       });
     }
   }
 
   return (
-    <StackLayout gap={1}>
+    <StackLayout gap={2}>
       <SectionHeading
+        eyebrow="Platform signals"
         title="At a glance"
         action={
           canOwned ? (
@@ -625,7 +778,13 @@ function AtAGlance({ client, session }: { client: RegistryClient; session: Sessi
       {tiles.length > 0 ? (
         <TileGrid columns={3}>
           {tiles.map((tile) => (
-            <StatTile key={tile.key} label={tile.label} value={tile.value} hint={tile.hint} />
+            <StatTile
+              key={tile.key}
+              label={tile.label}
+              value={tile.value}
+              hint={tile.hint}
+              visual={tile.visual}
+            />
           ))}
         </TileGrid>
       ) : null}
@@ -659,6 +818,7 @@ function RecentChanges({ client, session }: { client: RegistryClient; session: S
   return (
     <SectionCard
       banded
+      visual={<FeatureVisual Icon={ChatSolidIcon} color="category-2" size={0.8} />}
       title="Recent changes"
       actions={
         <KLink to={inbox} color="accent" underline="never">
@@ -684,7 +844,6 @@ function RecentChanges({ client, session }: { client: RegistryClient; session: S
             {
               key: 'slug',
               header: 'Capability',
-              linked: true,
               render: (row) => (
                 <KLink
                   underline="never"
@@ -706,28 +865,5 @@ function RecentChanges({ client, session }: { client: RegistryClient; session: S
         />
       )}
     </SectionCard>
-  );
-}
-
-/**
- * Binds `NavCard` to this app's router.
- *
- * The card itself is router-free — ui-kit takes no react-router dependency — so
- * resolving the path against the basename and performing the navigation are the
- * host's job. That is the whole of this adapter.
- */
-function SectionNavCard({ section }: { section: NavigationSection }) {
-  return (
-    <NavCard
-      to={section.href}
-      title={section.label}
-      description={section.description}
-      /*
-        The pages inside, as real links — taken from the section's own children so a
-        card cannot drift from the rail beside it. Capped at four: a card that lists
-        everything has told the reader nothing.
-      */
-      links={section.children.slice(0, 4).map((child) => ({ label: child.label, to: child.href }))}
-    />
   );
 }
