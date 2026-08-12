@@ -81,8 +81,8 @@ export function SectionCard({
   const hasHeading = title !== undefined || description !== undefined || actions !== undefined;
 
   const heading = hasHeading ? (
-    <FlexLayout gap={2} align="center" justify="space-between">
-      <FlexLayout gap={2} align="center">
+    <FlexLayout gap={2} align="start" justify="space-between">
+      <FlexLayout gap={2} align={description !== undefined ? 'start' : 'center'}>
         {visual}
         {title !== undefined ? (
           <CardHeading
@@ -96,7 +96,7 @@ export function SectionCard({
         ) : null}
       </FlexLayout>
       {actions !== undefined ? (
-        <FlexLayout gap={1} align="center" wrap>
+        <FlexLayout gap={1} align="start" wrap>
           {actions}
         </FlexLayout>
       ) : null}

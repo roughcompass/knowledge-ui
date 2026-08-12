@@ -9,6 +9,7 @@ import {
   Panel,
   StackLayout,
   Toolbar,
+  ToolbarContent,
   Tooltray,
 } from '@salt-ds/core';
 import { CloseIcon, MenuIcon } from '@salt-ds/icons';
@@ -40,6 +41,7 @@ function narrowViewport(): boolean {
 export function AppShell({
   rail,
   topBarStart,
+  topBarCenter,
   topBarEnd,
   footer,
   children,
@@ -47,6 +49,8 @@ export function AppShell({
 }: {
   rail: ReactNode;
   topBarStart?: ReactNode;
+  /** Content held on the toolbar midpoint, independent of unequal side controls. */
+  topBarCenter?: ReactNode;
   topBarEnd?: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
@@ -132,31 +136,42 @@ export function AppShell({
 
   return (
     <BorderLayout margin={VIEWPORT_EDGE_MARGIN}>
-      {topBarStart !== undefined || topBarEnd !== undefined ? (
+      {topBarStart !== undefined || topBarCenter !== undefined || topBarEnd !== undefined ? (
         <BorderItem ref={headerRef} as="header" position="north" sticky>
           <Panel variant="primary" style={headerPanelStyle}>
             <Toolbar appearance="transparent" variant="primary">
-              <Tooltray align="start" overflowMode="none">
-                {isNarrow ? (
-                  <Button
-                    ref={openButtonRef}
-                    appearance="transparent"
-                    sentiment="neutral"
-                    aria-label="Open navigation"
-                    aria-haspopup="dialog"
-                    aria-expanded={navigationOpen}
-                    aria-controls="app-navigation"
-                    onClick={() => setNavigationOpen(true)}
-                  >
-                    <MenuIcon aria-hidden />
-                  </Button>
-                ) : null}
-                {topBarStart}
-              </Tooltray>
-              {topBarEnd !== undefined ? (
-                <Tooltray align="end" overflowMode="none">
-                  {topBarEnd}
+              <ToolbarContent position="start">
+                <Tooltray align="start" overflowMode="none">
+                  {isNarrow ? (
+                    <Button
+                      ref={openButtonRef}
+                      appearance="transparent"
+                      sentiment="neutral"
+                      aria-label="Open navigation"
+                      aria-haspopup="dialog"
+                      aria-expanded={navigationOpen}
+                      aria-controls="app-navigation"
+                      onClick={() => setNavigationOpen(true)}
+                    >
+                      <MenuIcon aria-hidden />
+                    </Button>
+                  ) : null}
+                  {topBarStart}
                 </Tooltray>
+              </ToolbarContent>
+              {topBarCenter !== undefined ? (
+                <ToolbarContent position="center">
+                  <Tooltray align="center" overflowMode="none">
+                    {topBarCenter}
+                  </Tooltray>
+                </ToolbarContent>
+              ) : null}
+              {topBarEnd !== undefined ? (
+                <ToolbarContent position="end">
+                  <Tooltray align="end" overflowMode="none">
+                    {topBarEnd}
+                  </Tooltray>
+                </ToolbarContent>
               ) : null}
             </Toolbar>
           </Panel>

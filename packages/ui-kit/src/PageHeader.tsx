@@ -1,4 +1,4 @@
-import { FlexItem, FlexLayout, StackLayout, Text } from '@salt-ds/core';
+import { FlexItem, FlexLayout, SaltProviderNext, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 import { Prose } from './Layout';
@@ -11,8 +11,9 @@ import { Prose } from './Layout';
  * outside it.
  *
  * The title keeps `h1` semantics and Salt's `h1` visual scale, matching the
- * page-heading hierarchy used by the reference shell. The description stays
- * secondary body text rather than competing with it.
+ * page-heading hierarchy used by the reference shell. Title and description sit on
+ * consecutive line boxes with no added layout gap; the description uses Salt's
+ * 16px mobile-density body step so it remains readable without drifting away.
  *
  * `description` and `metadata` are separate props rather than one polymorphic slot.
  * There was one slot, branching on `typeof description === 'string'` to decide
@@ -53,16 +54,22 @@ export function PageHeader({
               {eyebrow}
             </Text>
           ) : null}
-          <Text styleAs="h1" as="h1">
-            {title}
-          </Text>
-          {description !== undefined ? (
-            // Measured, because several callers pass a full sentence of explanation and
-            // it otherwise ran the width of the viewport.
-            <Prose>
-              <Text color="secondary">{description}</Text>
-            </Prose>
-          ) : null}
+          <StackLayout gap={0}>
+            <FlexLayout as="h1" gap={0}>
+              <Text styleAs="h1" as="span">
+                {title}
+              </Text>
+            </FlexLayout>
+            {description !== undefined ? (
+              // Measured, because several callers pass a full sentence of explanation and
+              // it otherwise ran the width of the viewport.
+              <Prose>
+                <SaltProviderNext density="mobile" applyClassesTo="child">
+                  <Text color="secondary">{description}</Text>
+                </SaltProviderNext>
+              </Prose>
+            ) : null}
+          </StackLayout>
           {metadata}
         </StackLayout>
       </FlexItem>

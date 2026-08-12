@@ -48,6 +48,17 @@ function crumb(): HTMLElement {
   return screen.getByRole('list', { name: 'Location' });
 }
 
+describe('placement', () => {
+  it('belongs to the main content rather than the persistent shell header', () => {
+    const session = makeSession({ role: 'consumer', personaKey: 'consumer' });
+    renderFrame(session, neverCalledClient().client, '/catalog/claims');
+
+    const trail = crumb();
+    expect(within(screen.getByRole('main')).getByRole('list', { name: 'Location' })).toBe(trail);
+    expect(trail.closest('header')).toBeNull();
+  });
+});
+
 describe('page segments on refused routes', () => {
   it('names the audit log for a consumer instead of filing it under Health', () => {
     const session = makeSession({ role: 'consumer', personaKey: 'consumer' });

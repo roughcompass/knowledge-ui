@@ -25,8 +25,28 @@ function renderPage(personaKey = 'consumer') {
 
 beforeEach(() => sessionStorage.clear());
 
-describe('the context probe conversation', () => {
-  it('asks exactly one source per turn and labels the response as context, not an answer', async () => {
+describe('retrieval tests', () => {
+  it('starts as a compact workbench with separate result, test-case, and history views', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    expect(screen.getByRole('heading', { name: 'Retrieval Tests' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Test Setup' })).toBeInTheDocument();
+    expect(screen.getByText('Ready to Test')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Results' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Test Cases (0)' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Run History (0)' })).toBeInTheDocument();
+    expect(screen.queryByText('All Sources')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Test Cases (0)' }));
+    expect(screen.getByText('No Saved Test Cases')).toBeInTheDocument();
+    expect(screen.queryByText('Ready to Test')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Run History (0)' }));
+    expect(screen.getByText('No Runs Yet')).toBeInTheDocument();
+  });
+
+  it('asks exactly one source and presents returned records in an evaluation grid', async () => {
     const calls: string[] = [];
     server.use(
       http.get('*/v1/search', () => {
@@ -58,84 +78,81 @@ describe('the context probe conversation', () => {
     const user = userEvent.setup();
     renderPage();
 
-    /*
-      The framing moved from a banner into the page description — same promise,
-      one surface: evidence, never generated answers.
-    */
-    expect(screen.getByText(/raw records, never generated answers/i)).toBeInTheDocument();
-
-    await user.type(screen.getByRole('textbox', { name: /task or query/i }), 'Salt components');
+    expect(screen.getByText(/stored records, not a generated answer/i)).toBeInTheDocument();
+    await user.type(screen.getByRole('textbox', { name: /agent task/i }), 'Salt components');
     await user.keyboard('{Enter}');
 
-    expect(await screen.findByText('Context Layer Returned')).toBeInTheDocument();
-    expect(screen.getByText(/Exact records from the selected source/i)).toBeInTheDocument();
-    /*
-      This text is served by ContextProbeResults, which the page loads with
-      React.lazy behind a Suspense boundary. "Context Layer Returned" commits
-      outside that boundary, in the same pass as the loading fallback, so it can
-      be visible before the lazy chunk resolves. Only a find query observes the
-      chunk's own arrival instead of assuming it is already there.
-    */
-    expect(await screen.findByText('Server Relevance')).toBeInTheDocument();
     expect(
-      screen.getByText(/Catalog probe completed. Context is ready for review/i),
+      await screen.findByRole('heading', { name: 'Catalog Records Results' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole('columnheader', { name: 'Match' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Why It Matched' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Verdict' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Include salt-design-system' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Exclude salt-design-system' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Run History (1)' })).toBeInTheDocument();
+    expect(
+      screen.getByText(/Catalog Records test completed. Results are ready for review/i),
     ).toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.getByRole('region', { name: 'Catalog probe turn' })).toHaveFocus(),
+      expect(screen.getByRole('region', { name: 'Catalog Records test run' })).toHaveFocus(),
     );
     await waitFor(() => expect(calls).toEqual(['catalog']));
   });
 
-  it('uses claims-specific retrieval controls and keeps the recall warning visible once', async () => {
+  it('uses claims-specific controls and states the recall warning once', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(screen.getByRole('combobox', { name: /^source$/i }));
-    await user.click(await screen.findByRole('option', { name: 'Claims' }));
-    expect(screen.getByRole('combobox', { name: /claim persona/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('combobox', { name: /context source/i }));
+    await user.click(await screen.findByRole('option', { name: 'Recalled Claims' }));
+    expect(screen.getByRole('combobox', { name: /claims view/i })).toBeInTheDocument();
 
-    await user.type(screen.getByRole('textbox', { name: /task or query/i }), 'depends_on');
-    await user.click(screen.getByRole('button', { name: 'Probe Context' }));
+    await user.type(screen.getByRole('textbox', { name: /agent task/i }), 'depends_on');
+    await user.click(screen.getByRole('button', { name: 'Run Retrieval Test' }));
 
     expect(await screen.findByText(/design-tokens/)).toBeInTheDocument();
     expect(screen.getAllByText(/not an instruction to follow/i)).toHaveLength(1);
-    expect(screen.getByText('Extractor Confidence')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Trust' })).toBeInTheDocument();
     expect(screen.getByText('Owner Confirmed')).toBeInTheDocument();
     expect(screen.getAllByText(/ev-9002/).length).toBeGreaterThan(0);
   });
 
-  it('captures item labels and missing context in a session-scoped regression case', async () => {
+  it('saves direct row judgments and missing context as a session-scoped test case', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.type(screen.getByRole('textbox', { name: /task or query/i }), 'Salt');
-    await user.click(screen.getByRole('button', { name: 'Probe Context' }));
-    await screen.findByText('Context Layer Returned');
+    await user.type(screen.getByRole('textbox', { name: /agent task/i }), 'Salt');
+    await user.click(screen.getByRole('button', { name: 'Run Retrieval Test' }));
+    const include = await screen.findByRole('button', { name: 'Include salt-design-system' });
+    await user.click(include);
+    expect(include).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(/^1 of \d+ Reviewed$/)).toBeInTheDocument();
 
-    // Same lazily-loaded results chunk as above: wait for its own arrival.
-    await user.click(
-      await screen.findByRole('combobox', { name: 'Evaluation for salt-design-system' }),
-    );
-    await user.click(await screen.findByRole('option', { name: 'Expected' }));
+    await user.click(screen.getByRole('button', { name: 'Save as Test Case' }));
+    expect(screen.getByRole('dialog', { name: 'Save as Test Case' })).toBeInTheDocument();
+    const caseName = screen.getByRole('textbox', { name: /test case name/i });
+    expect(caseName).toHaveValue('Catalog Records: Salt');
+    await user.clear(caseName);
+    await user.type(caseName, 'Salt retrieval baseline');
     await user.type(
       screen.getByRole('textbox', { name: /missing context/i }),
       'Expected the migration guidance.',
     );
-    await user.click(screen.getByRole('button', { name: 'Save Regression Case' }));
-    await user.type(screen.getByRole('textbox', { name: /case name/i }), 'Salt retrieval baseline');
-    await user.click(screen.getByRole('button', { name: 'Save Regression Case' }));
+    await user.click(screen.getByRole('button', { name: 'Save Test Case' }));
 
-    expect(await screen.findByText(/available in this tab for this persona/i)).toBeInTheDocument();
+    expect(screen.getByText('Saved as Salt retrieval baseline')).toBeInTheDocument();
     const saved = loadSavedContextCases({ personaKey: 'consumer', tenantSlug: 'dev' });
     expect(saved).toHaveLength(1);
     expect(saved[0]?.expected_ids).toContain('salt-design-system');
     expect(saved[0]?.missing_context).toBe('Expected the migration guidance.');
     expect(loadSavedContextCases({ personaKey: 'producer', tenantSlug: 'dev' })).toEqual([]);
 
-    const savedSection = screen.getByText('Saved Cases').parentElement?.parentElement;
-    expect(savedSection).toBeTruthy();
+    await user.click(screen.getByRole('tab', { name: 'Test Cases (1)' }));
+    const savedRow = screen.getByText('Salt retrieval baseline').closest('tr');
+    expect(savedRow).not.toBeNull();
     expect(
-      within(savedSection as HTMLElement).getByText('Salt retrieval baseline'),
+      within(savedRow as HTMLElement).getByText('1 included · 0 excluded'),
     ).toBeInTheDocument();
 
     let releaseRerun: (() => void) | undefined;
@@ -150,15 +167,14 @@ describe('the context probe conversation', () => {
           ),
       ),
     );
-    await user.click(screen.getByRole('button', { name: 'Rerun Case' }));
-    expect(screen.getByRole('button', { name: 'Rerunning Case…' })).toBeDisabled();
+    await user.click(within(savedRow as HTMLElement).getByRole('button', { name: 'Run Again' }));
+    expect(screen.getByRole('button', { name: 'Running Test…' })).toBeDisabled();
     releaseRerun?.();
-    expect(
-      await screen.findByText('Regression Check · Salt retrieval baseline'),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Baseline Comparison' })).toBeInTheDocument();
+    expect(screen.getByText(/Expected Results Missing/)).toBeInTheDocument();
   });
 
-  it('keeps zero results distinct from a failed later turn', async () => {
+  it('keeps empty and failed runs distinct in the run history', async () => {
     server.use(
       http.get('*/v1/search', ({ request }) => {
         const q = new URL(request.url).searchParams.get('q');
@@ -174,39 +190,50 @@ describe('the context probe conversation', () => {
 
     const user = userEvent.setup();
     renderPage();
-    const task = screen.getByRole('textbox', { name: /task or query/i });
+    const task = screen.getByRole('textbox', { name: /agent task/i });
 
     await user.type(task, 'nothing');
-    await user.click(screen.getByRole('button', { name: 'Probe Context' }));
-    expect(await screen.findByText('No Context Matched This Probe')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Run Retrieval Test' }));
+    expect(await screen.findByText('No Records Matched')).toBeInTheDocument();
 
     await user.type(task, 'fail');
-    await user.click(screen.getByRole('button', { name: 'Probe Context' }));
-    expect(await screen.findByText('Catalog probe failed')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Run Retrieval Test' }));
+    expect(await screen.findByText('Catalog Records test failed')).toBeInTheDocument();
     expect(screen.getByText(/catalog search unavailable/i)).toBeInTheDocument();
-    // The earlier snapshot remains in the transcript instead of being replaced.
-    expect(screen.getByText('No Context Matched This Probe')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Run History (2)' }));
+    const emptyRun = screen.getByText('nothing').closest('tr');
+    const failedRun = screen.getByText('fail').closest('tr');
+    expect(emptyRun).not.toBeNull();
+    expect(failedRun).not.toBeNull();
+    expect(within(emptyRun as HTMLElement).getByText('Ready')).toBeInTheDocument();
+    expect(within(failedRun as HTMLElement).getByText('Failed')).toBeInTheDocument();
+
+    await user.click(within(emptyRun as HTMLElement).getByRole('button', { name: 'View Results' }));
+    expect(screen.getByText('No Records Matched')).toBeInTheDocument();
   });
 
-  it('says the source guidance once, and gives the task field its own helper', () => {
-    // The same sentence under two adjacent fields is a stutter the eye learns
-    // to skip; the source describes itself, the task row says what to type.
+  it('gives the source and task fields distinct guidance', () => {
     renderPage();
-    expect(screen.getAllByText(/cited facts that made each result match/)).toHaveLength(1);
-    expect(screen.getByText(/Describe the task in your own words/)).toBeInTheDocument();
+    expect(screen.getAllByText(/facts that made it relevant/)).toHaveLength(1);
+    expect(screen.getByText(/Describe the real task/)).toBeInTheDocument();
   });
 
-  it('uses Shift+Enter for a newline and Enter to submit', async () => {
+  it('uses Shift+Enter for a newline and Enter to run', async () => {
     const user = userEvent.setup();
     renderPage();
-    const task = screen.getByRole('textbox', { name: /task or query/i });
+    const task = screen.getByRole('textbox', { name: /agent task/i });
 
     await user.type(task, 'first line');
     await user.keyboard('{Shift>}{Enter}{/Shift}second line');
-    expect(screen.queryByText('Context Layer Returned')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Catalog Records Results' }),
+    ).not.toBeInTheDocument();
     expect(task).toHaveValue('first line\nsecond line');
 
     await user.keyboard('{Enter}');
-    expect(await screen.findByText('Context Layer Returned')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Catalog Records Results' }),
+    ).toBeInTheDocument();
   });
 });

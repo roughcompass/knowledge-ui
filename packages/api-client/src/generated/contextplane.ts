@@ -3117,6 +3117,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/intents/{intent_id}/checkpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Append Checkpoint
+         * @description Append one step to the task's chain.
+         *
+         *     The idempotency key is required rather than optional. An append with no key
+         *     cannot be retried safely, and the one thing a client does after a dropped
+         *     response is retry -- so a surface that accepts a keyless append is a surface
+         *     that produces duplicate steps under exactly the condition it will meet.
+         */
+        post: operations["append_checkpoint_v1_intents__intent_id__checkpoints_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/intents/{intent_id}/checkpoints/{checkpoint_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Checkpoint
+         * @description One checkpoint by id.
+         *
+         *     The task id in the path is part of the address rather than a second filter:
+         *     the service authorizes by the checkpoint's own task, so a mismatched pair is
+         *     a 404 rather than a read of somebody else's chain.
+         */
+        get: operations["get_checkpoint_v1_intents__intent_id__checkpoints__checkpoint_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/intents/{intent_id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Participants
+         * @description Everyone on this task, expired grants included.
+         */
+        get: operations["list_participants_v1_intents__intent_id__participants_get"];
+        put?: never;
+        /**
+         * Add Participant
+         * @description Grant one actor participation. Only a task owner may.
+         */
+        post: operations["add_participant_v1_intents__intent_id__participants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/intents/{intent_id}/participants/{actor_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Participant
+         * @description End one actor's participation now.
+         *
+         *     204 whether or not anything changed. Revoking an already-revoked grant is
+         *     not an error, and reporting 404 for it would tell a caller whether a grant
+         *     it may not read exists.
+         */
+        delete: operations["remove_participant_v1_intents__intent_id__participants__actor_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/learning/aggregates": {
         parameters: {
             query?: never;
@@ -4296,103 +4393,6 @@ export interface paths {
          *     Pass ``?view=audit`` to include bitemporal columns in the response.
          */
         patch: operations["_update_subscription_handler_v1_subscriptions__subscription_id__patch"];
-        trace?: never;
-    };
-    "/v1/tasks/{task_id}/checkpoints": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Append Checkpoint
-         * @description Append one step to the task's chain.
-         *
-         *     The idempotency key is required rather than optional. An append with no key
-         *     cannot be retried safely, and the one thing a client does after a dropped
-         *     response is retry -- so a surface that accepts a keyless append is a surface
-         *     that produces duplicate steps under exactly the condition it will meet.
-         */
-        post: operations["append_checkpoint_v1_tasks__task_id__checkpoints_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/tasks/{task_id}/checkpoints/{checkpoint_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Checkpoint
-         * @description One checkpoint by id.
-         *
-         *     The task id in the path is part of the address rather than a second filter:
-         *     the service authorizes by the checkpoint's own task, so a mismatched pair is
-         *     a 404 rather than a read of somebody else's chain.
-         */
-        get: operations["get_checkpoint_v1_tasks__task_id__checkpoints__checkpoint_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/tasks/{task_id}/participants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Participants
-         * @description Everyone on this task, expired grants included.
-         */
-        get: operations["list_participants_v1_tasks__task_id__participants_get"];
-        put?: never;
-        /**
-         * Add Participant
-         * @description Grant one actor participation. Only a task owner may.
-         */
-        post: operations["add_participant_v1_tasks__task_id__participants_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/tasks/{task_id}/participants/{actor_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Remove Participant
-         * @description End one actor's participation now.
-         *
-         *     204 whether or not anything changed. Revoking an already-revoked grant is
-         *     not an error, and reporting 404 for it would tell a caller whether a grant
-         *     it may not read exists.
-         */
-        delete: operations["remove_participant_v1_tasks__task_id__participants__actor_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/v1/usage/owned-capabilities": {
@@ -6027,6 +6027,11 @@ export interface components {
             digest: string;
             /** Goal */
             goal: string;
+            /**
+             * Intent Id
+             * Format: uuid
+             */
+            intent_id: string;
             /** Next Action */
             next_action: string | null;
             /** Open Questions */
@@ -6042,11 +6047,6 @@ export interface components {
             retention_policy: string;
             /** Sequence */
             sequence: number;
-            /**
-             * Task Id
-             * Format: uuid
-             */
-            task_id: string;
         };
         /**
          * Citation
@@ -6381,6 +6381,11 @@ export interface components {
              */
             arc_receipt_id?: string | null;
             /**
+             * Intent Ids
+             * @description Tasks whose workspace material may be recalled, subject to the caller's participation.
+             */
+            intent_ids?: string[];
+            /**
              * Lifecycle References
              * @description Where in a delivery lifecycle this request is being made, as references the registry does not own. Each `kind` must be one of ['run', 'stage', 'work_item', 'repository', 'artifact', 'action', 'build', 'deployment', 'incident', 'outcome']. Context recorded as applying somewhere else is withheld and reported, never silently dropped. Stage is your own system's name for it: nothing here is stored, ordered, or advanced.
              */
@@ -6402,11 +6407,6 @@ export interface components {
             query: string;
             /** Subject Entity Id */
             subject_entity_id?: string | null;
-            /**
-             * Task Ids
-             * @description Tasks whose workspace material may be recalled, subject to the caller's participation.
-             */
-            task_ids?: string[];
             /** @description Recall workspace material citing this external reference. */
             workspace_reference?: components["schemas"]["ExternalReferenceRequest"] | null;
             /**
@@ -7521,15 +7521,15 @@ export interface components {
             granted_at: string;
             /** Granted By */
             granted_by: string;
+            /**
+             * Intent Id
+             * Format: uuid
+             */
+            intent_id: string;
             /** Resolver Version */
             resolver_version: string;
             /** Role */
             role: string;
-            /**
-             * Task Id
-             * Format: uuid
-             */
-            task_id: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -8927,6 +8927,8 @@ export interface components {
         ReceiptResponse: {
             /** Cacheable */
             cacheable: boolean;
+            /** Intent Id */
+            intent_id: string | null;
             /**
              * Receipt Id
              * Format: uuid
@@ -8943,8 +8945,6 @@ export interface components {
             resolved_at: string;
             /** State */
             state: string;
-            /** Task Id */
-            task_id: string | null;
         };
         /**
          * RecordDispositionRequest
@@ -9256,8 +9256,8 @@ export interface components {
          *     branch starts work that already exists.
          */
         ResumeResponse: {
-            /** Ambiguous Task Ids */
-            ambiguous_task_ids?: string[];
+            /** Ambiguous Intent Ids */
+            ambiguous_intent_ids?: string[];
             /** Checkpoints */
             checkpoints: components["schemas"]["ResumeCheckpointResponse"][];
             /** Feedback */
@@ -9268,6 +9268,8 @@ export interface components {
             head_sequence: number | null;
             /** Head Summary */
             head_summary: string | null;
+            /** Intent Id */
+            intent_id: string | null;
             /** Learning */
             learning: components["schemas"]["ResumeLearningResponse"][];
             /** Next Action */
@@ -9283,8 +9285,6 @@ export interface components {
              * @description One of `resumed`, `empty`, `ambiguous`.
              */
             status: string;
-            /** Task Id */
-            task_id: string | null;
             /** Truncated */
             truncated: string[];
         };
@@ -15505,6 +15505,171 @@ export interface operations {
             };
         };
     };
+    append_checkpoint_v1_intents__intent_id__checkpoints_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                intent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckpointAppend"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckpointResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_checkpoint_v1_intents__intent_id__checkpoints__checkpoint_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                intent_id: string;
+                checkpoint_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckpointResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_participants_v1_intents__intent_id__participants_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                intent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrantListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_participant_v1_intents__intent_id__participants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                intent_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrantCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GrantResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_participant_v1_intents__intent_id__participants__actor_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                intent_id: string;
+                actor_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     read_aggregates_v1_learning_aggregates_get: {
         parameters: {
             query?: {
@@ -17193,171 +17358,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SubscriptionResponse"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    append_checkpoint_v1_tasks__task_id__checkpoints_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
-            };
-            path: {
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CheckpointAppend"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CheckpointResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_checkpoint_v1_tasks__task_id__checkpoints__checkpoint_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: string;
-                checkpoint_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CheckpointResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_participants_v1_tasks__task_id__participants_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GrantListResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_participant_v1_tasks__task_id__participants_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GrantCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GrantResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_participant_v1_tasks__task_id__participants__actor_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: string;
-                actor_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {

@@ -1,4 +1,5 @@
-import { FlexLayout, StackLayout, StatusIndicator, Text } from '@salt-ds/core';
+import { Avatar, FlexItem, FlexLayout, StackLayout, StatusIndicator, Text } from '@salt-ds/core';
+import { ChartBarIcon } from '@salt-ds/icons';
 import type { ReactNode } from 'react';
 
 import { SectionCard } from './SectionCard';
@@ -59,13 +60,9 @@ export function StatTile({
    */
   badge?: ReactNode;
   /**
-   * A small mark to the right of the value — a spark, a ring, a set of bars.
-   *
-   * Shape only. It carries no labels and no axis, because at this size it cannot
-   * carry them legibly, and a chart that cannot be read precisely must not be the
-   * only place a value appears. The number beside it is the reading; this is the
-   * direction of travel. Anything a reader needs to *compare* belongs in a figure
-   * with its data table, which is a different component and a hard rule.
+   * A visual anchor to the left of the reading. Prefer a Salt Avatar carrying an
+   * icon that identifies the metric's subject; omit it for the neutral chart mark.
+   * Decorative only — the heading and value remain the complete reading.
    */
   visual?: ReactNode;
   /** One control, for the action the reading most obviously prompts. */
@@ -83,54 +80,59 @@ export function StatTile({
    */
   isLoading?: boolean;
 }) {
+  const metricVisual = visual ?? (
+    <Avatar color="accent" fallbackIcon={<ChartBarIcon aria-hidden />} size={1} aria-hidden />
+  );
+
   return (
     <SectionCard>
-      <StackLayout gap={1}>
-        <FlexLayout gap={2} align="center" justify="space-between">
-          <Text styleAs="label" as={headingLevel} color="secondary">
-            {label}
-          </Text>
-          {isLoading ? <SkeletonBar index={1} /> : badge}
-        </FlexLayout>
-
-        <FlexLayout gap={2} align="center" justify="space-between">
+      <FlexLayout gap={2} align="start">
+        {metricVisual}
+        <FlexItem grow={1}>
           <StackLayout gap={1}>
-            {/*
-              The reading at display size. It rendered bare and inherited 14px body,
-              so a metric — the one thing a tile exists to show — was the same size
-              as its own caption. 24px is the only display number on a page, which
-              is what makes a row of tiles scannable.
-            */}
-            {isLoading ? (
-              // At display size, so the bar occupies exactly the line the number
-              // will: the tile does not grow by 10px when the value arrives.
-              <Text styleAs="h2" as="div">
-                <SkeletonBar index={0} />
+            <FlexLayout gap={2} align="center" justify="space-between">
+              <Text styleAs="label" as={headingLevel} color="secondary">
+                {label}
               </Text>
-            ) : status === undefined ? (
-              <Text styleAs="h2" as="div">
-                {value}
-              </Text>
-            ) : (
-              <FlexLayout gap={1} align="center">
-                <StatusIndicator status={status} />
+              {isLoading ? <SkeletonBar index={1} /> : badge}
+            </FlexLayout>
+
+            <StackLayout gap={0.5}>
+              {/*
+                The reading at display size. It rendered bare and inherited 14px body,
+                so a metric — the one thing a tile exists to show — was the same size
+                as its own caption. 24px is the only display number on a page, which
+                is what makes a row of tiles scannable.
+              */}
+              {isLoading ? (
+                // At display size, so the bar occupies exactly the line the number
+                // will: the tile does not grow by 10px when the value arrives.
+                <Text styleAs="h2" as="div">
+                  <SkeletonBar index={0} />
+                </Text>
+              ) : status === undefined ? (
                 <Text styleAs="h2" as="div">
                   {value}
                 </Text>
-              </FlexLayout>
-            )}
-            {isLoading || hint !== undefined ? (
-              <Text styleAs="notation" color="secondary">
-                {isLoading ? <SkeletonBar index={2} /> : hint}
-              </Text>
-            ) : null}
-          </StackLayout>
-          {/* Beside the reading, not under it: the eye reads value then trend on one line. */}
-          {visual}
-        </FlexLayout>
+              ) : (
+                <FlexLayout gap={1} align="center">
+                  <StatusIndicator status={status} />
+                  <Text styleAs="h2" as="div">
+                    {value}
+                  </Text>
+                </FlexLayout>
+              )}
+              {isLoading || hint !== undefined ? (
+                <Text styleAs="notation" color="secondary">
+                  {isLoading ? <SkeletonBar index={2} /> : hint}
+                </Text>
+              ) : null}
+            </StackLayout>
 
-        {action}
-      </StackLayout>
+            {action}
+          </StackLayout>
+        </FlexItem>
+      </FlexLayout>
     </SectionCard>
   );
 }

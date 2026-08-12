@@ -220,7 +220,7 @@ describe('the table is internally consistent', () => {
      */
     expect(NAVIGATION.map((section) => section.label)).toEqual([
       'Catalog',
-      'Context Lab',
+      'Context Testing',
       'Graph',
       'Operations',
     ]);
@@ -230,12 +230,12 @@ describe('the table is internally consistent', () => {
     }
   });
 
-  it('gives Context Lab a direct section with receipt inspection beside it', () => {
+  it('gives Context Testing a direct section with receipt inspection beside it', () => {
     const context = NAVIGATION.find((section) => section.key === 'context');
 
     expect(context?.href).toBe('/catalog/context');
     expect(context?.children).toEqual([
-      { href: '/catalog/context', label: 'Probes' },
+      { href: '/catalog/context', label: 'Retrieval Tests' },
       { href: '/catalog/context/receipts', label: 'Receipt Inspector' },
     ]);
     expect(navigationSectionForPath('/catalog/context')?.key).toBe('context');

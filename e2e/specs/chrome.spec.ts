@@ -31,6 +31,29 @@ test('the public product name is consistent across the document and shell', asyn
   ).toBeVisible();
 });
 
+test('the breadcrumb starts the main content instead of occupying shell chrome', async ({
+  page,
+}) => {
+  await ready(page, '/catalog/claims');
+
+  const main = page.getByRole('main');
+  const trail = main.getByRole('list', { name: 'Location' });
+  await expect(trail).toBeVisible();
+  await expect(page.getByRole('banner').getByRole('list', { name: 'Location' })).toHaveCount(0);
+
+  const placement = await trail.evaluate((element) => {
+    const mainElement = element.closest('main');
+    const heading = mainElement?.querySelector('h1');
+    if (!mainElement || !heading) return null;
+    return {
+      insideMain: mainElement.contains(element),
+      abovePageTitle: element.getBoundingClientRect().bottom < heading.getBoundingClientRect().top,
+    };
+  });
+
+  expect(placement).toEqual({ insideMain: true, abovePageTitle: true });
+});
+
 test('every section and its pages are visible at once', async ({ page }) => {
   await ready(page, '/');
 
@@ -60,7 +83,7 @@ test('a lateral move between sections costs one click', async ({ page }) => {
   await expect(page).toHaveURL(/\/ops$/);
 });
 
-test('Context Lab is directly available from the dashboard and top-level rail', async ({
+test('Context Testing is directly available from the dashboard and top-level rail', async ({
   page,
 }) => {
   await ready(page, '/');
@@ -68,7 +91,7 @@ test('Context Lab is directly available from the dashboard and top-level rail', 
   const rail = page.locator(RAIL);
   // A section is a disclosure now, not a destination — its href used to duplicate
   // its own first child's.
-  await expect(rail.getByRole('button', { name: 'Context Lab' })).toBeVisible();
+  await expect(rail.getByRole('button', { name: 'Context Testing' })).toBeVisible();
 
   /*
     The card stopped being one big anchor when its pills became real links —
@@ -77,13 +100,13 @@ test('Context Lab is directly available from the dashboard and top-level rail', 
   */
   const dashboardEntry = page
     .getByRole('main')
-    .getByRole('link', { name: 'Context Lab', exact: true });
+    .getByRole('link', { name: 'Context Testing', exact: true });
   await expect(dashboardEntry).toBeVisible();
   await dashboardEntry.click();
 
   await expect(page).toHaveURL(/\/catalog\/context$/);
-  await expect(page.getByRole('heading', { name: 'Context Lab' })).toBeVisible();
-  await expect(rail.getByRole('link', { name: 'Probes' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Retrieval Tests' })).toBeVisible();
+  await expect(rail.getByRole('link', { name: 'Retrieval Tests' })).toBeVisible();
   await expect(rail.getByRole('link', { name: 'Receipt Inspector' })).toBeVisible();
 });
 
@@ -98,17 +121,25 @@ test('the current item is derived from the route, not from click state', async (
   await expect(rail.getByRole('link', { name: 'Capabilities' })).toBeVisible();
 });
 
-test('a collapsed section still shows that it holds the current page', async ({ page }) => {
+test('section disclosures collapse without claiming the active state', async ({ page }) => {
   await ready(page, '/catalog/claims');
 
   const rail = page.locator(RAIL);
   const catalog = rail.getByRole('button', { name: 'Catalog' });
 
   await catalog.click();
-  // Collapsing hides the leaf, so the section itself has to carry the signal —
-  // otherwise closing a section loses where you are.
+  // A section only controls disclosure. It is not a destination and must not take
+  // the active treatment from the navigable leaf it hides.
   await expect(rail.getByRole('link', { name: 'Claims' })).toHaveCount(0);
   await expect(catalog).toHaveAttribute('aria-expanded', 'false');
+  await expect(catalog).not.toHaveAttribute('aria-current');
+  await expect(rail.locator('[aria-current="page"]')).toHaveCount(0);
+
+  const presentation = await catalog.evaluate((element) => ({
+    insideActiveSurface: element.closest('.saltPanel') !== null,
+    fontWeight: getComputedStyle(element.querySelector('.saltText') ?? element).fontWeight,
+  }));
+  expect(presentation).toEqual({ insideActiveSurface: false, fontWeight: '400' });
 
   // And the choice survives a reload, beside the rail's own width.
   await page.reload({ waitUntil: 'networkidle' });
@@ -242,16 +273,23 @@ test('the tablet chrome uses the reference compact icon rail', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Open navigation' })).toHaveCount(0);
   await expect(rail.getByRole('link', { name: 'Dashboard' })).toBeVisible();
   await expect(rail.getByRole('link', { name: 'Catalog' })).toBeVisible();
-  await expect(page.getByText('API ready', { exact: true })).toBeVisible();
+  await expect(page.getByText('API ready', { exact: true })).toHaveCount(0);
 
   const measured = await page.evaluate(() => {
     const header = document.querySelector('header');
     const sidePanel = document.querySelector<HTMLElement>('.saltSidePanel');
     const main = document.querySelector('main');
-    const tooltrays = header?.querySelectorAll<HTMLElement>('.saltTooltray');
-    const startTooltray = tooltrays?.item(0);
-    const endTooltray = tooltrays?.item(1);
-    if (!header || !sidePanel || !main || !startTooltray || !endTooltray) return null;
+    const startTooltray = header?.querySelector<HTMLElement>(
+      '.saltToolbarContent[data-position="start"] .saltTooltray',
+    );
+    const centerTooltray = header?.querySelector<HTMLElement>(
+      '.saltToolbarContent[data-position="center"] .saltTooltray',
+    );
+    const endTooltray = header?.querySelector<HTMLElement>(
+      '.saltToolbarContent[data-position="end"] .saltTooltray',
+    );
+    if (!header || !sidePanel || !main || !startTooltray || !centerTooltray || !endTooltray)
+      return null;
     return {
       headerHeight: Math.round(header.getBoundingClientRect().height),
       railWidth: Math.round(sidePanel.getBoundingClientRect().width),
@@ -259,7 +297,8 @@ test('the tablet chrome uses the reference compact icon rail', async ({ page }) 
       mainLeft: Math.round(main.getBoundingClientRect().left),
       mainPaddingLeft: Math.round(Number.parseFloat(getComputedStyle(main).paddingLeft)),
       headerTooltraysOverlap:
-        startTooltray.getBoundingClientRect().right > endTooltray.getBoundingClientRect().left,
+        startTooltray.getBoundingClientRect().right > centerTooltray.getBoundingClientRect().left ||
+        centerTooltray.getBoundingClientRect().right > endTooltray.getBoundingClientRect().left,
     };
   });
 
@@ -279,6 +318,7 @@ test('the mobile chrome is flush, contained, and opens the full navigation', asy
 
   const open = page.getByRole('button', { name: 'Open navigation' });
   await expect(open).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Search from anywhere' })).toBeVisible();
 
   const measured = await page.evaluate(() => {
     const header = document.querySelector('header');
@@ -363,26 +403,120 @@ test('table cell presentation is owned by Salt rather than application classes',
   expect(applicationClasses).toEqual([]);
 });
 
-test('card titles keep the reference scale and compact subtitle spacing', async ({ page }) => {
+test('page descriptions remain readable and visually attached to their titles', async ({
+  page,
+}) => {
+  await ready(page, '/catalog/notifications');
+
+  const heading = page.getByRole('heading', { level: 1, name: 'Notifications' });
+  const measured = await heading.evaluate((element) => {
+    const title = element.querySelector<HTMLElement>('.saltText');
+    const titleGroup = element.parentElement;
+    const description = titleGroup?.querySelector<HTMLElement>('.saltText-secondary');
+    if (!title || !titleGroup || !description) return null;
+
+    const headingBounds = element.getBoundingClientRect();
+    const descriptionBounds = description.getBoundingClientRect();
+    const headingStyle = getComputedStyle(element);
+    const titleGroupStyle = getComputedStyle(titleGroup);
+    const titleStyle = getComputedStyle(title);
+    const descriptionStyle = getComputedStyle(description);
+
+    return {
+      headingMarginTop: headingStyle.marginTop,
+      headingMarginBottom: headingStyle.marginBottom,
+      layoutGap: titleGroupStyle.rowGap,
+      titleFontSize: titleStyle.fontSize,
+      descriptionFontSize: descriptionStyle.fontSize,
+      descriptionLineHeight: descriptionStyle.lineHeight,
+      titleDescriptionGap: Math.round(descriptionBounds.top - headingBounds.bottom),
+    };
+  });
+
+  expect(measured).toEqual({
+    headingMarginTop: '0px',
+    headingMarginBottom: '0px',
+    layoutGap: '0px',
+    titleFontSize: '32px',
+    descriptionFontSize: '16px',
+    descriptionLineHeight: '21px',
+    titleDescriptionGap: 0,
+  });
+});
+
+test('standard content is centered at the harness width and contains mobile overflow', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1000 });
+  await ready(page, '/catalog/notifications');
+
+  const desktop = await page
+    .getByRole('heading', { level: 1, name: 'Notifications' })
+    .evaluate((heading) => {
+      const content = heading.closest<HTMLElement>('.saltGridItem');
+      const frame = content?.parentElement;
+      if (!content || !frame) return null;
+      const contentBounds = content.getBoundingClientRect();
+      const frameBounds = frame.getBoundingClientRect();
+      return {
+        width: Math.round(contentBounds.width),
+        leftInset: Math.round(contentBounds.left - frameBounds.left),
+        rightInset: Math.round(frameBounds.right - contentBounds.right),
+      };
+    });
+
+  expect(desktop).toEqual({ width: 1200, leftInset: 216, rightInset: 216 });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await ready(page, '/catalog/notifications');
+  const mobile = await page.evaluate(() => {
+    const heading = document.querySelector('h1');
+    const table = document.querySelector('table');
+    const scroller = table?.parentElement;
+    if (!heading || !scroller) return null;
+    const headingBounds = heading.getBoundingClientRect();
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      headingRight: Math.round(headingBounds.right),
+      scrollerOverflow: getComputedStyle(scroller).overflowX,
+      tableIsScrollable: scroller.scrollWidth > scroller.clientWidth,
+    };
+  });
+
+  expect(mobile).toEqual({
+    documentWidth: 390,
+    viewportWidth: 390,
+    headingRight: 378,
+    scrollerOverflow: 'auto',
+    tableIsScrollable: true,
+  });
+});
+
+test('card headings and actions share one aligned visual contract', async ({ page }) => {
   await ready(page, '/');
 
-  const heading = page.getByRole('heading', { level: 2, name: 'Retrieval and trust' });
+  const heading = page.getByRole('heading', { level: 2, name: 'Test context retrieval' });
   const measured = await heading.evaluate((element) => {
     const title = element.querySelector<HTMLElement>('.saltText');
     const titleGroup = element.parentElement;
     const description = titleGroup?.querySelector<HTMLElement>('.saltText-secondary');
     const header = titleGroup?.parentElement?.parentElement;
+    const icon = header?.querySelector<HTMLElement>('.saltAvatar');
     const content = header?.nextElementSibling;
     const card = element.closest<HTMLElement>('.saltCard');
-    if (!title || !description || !header || !content || !card) return null;
+    const action = card?.querySelector<HTMLElement>('a');
+    if (!title || !description || !header || !icon || !content || !card || !action) return null;
 
     const titleBounds = title.getBoundingClientRect();
     const descriptionBounds = description.getBoundingClientRect();
+    const iconBounds = icon.getBoundingClientRect();
     const headerBounds = header.getBoundingClientRect();
     const contentBounds = content.getBoundingClientRect();
     const headingStyle = getComputedStyle(element);
     const titleStyle = getComputedStyle(title);
     const descriptionStyle = getComputedStyle(description);
+    const actionStyle = getComputedStyle(action);
     const cardStyle = getComputedStyle(card);
 
     return {
@@ -394,26 +528,50 @@ test('card titles keep the reference scale and compact subtitle spacing', async 
       descriptionFontSize: descriptionStyle.fontSize,
       descriptionLineHeight: descriptionStyle.lineHeight,
       titleDescriptionGap: Math.round(descriptionBounds.top - titleBounds.bottom),
+      iconTitleTopDelta: Math.round(iconBounds.top - titleBounds.top),
+      layoutGap: getComputedStyle(card).rowGap,
       headerContentGap: Math.round(contentBounds.top - headerBounds.bottom),
+      actionFontSize: actionStyle.fontSize,
+      actionFontWeight: actionStyle.fontWeight,
+      actionTextDecoration: actionStyle.textDecorationLine,
+      actionHasIcon: action.querySelector('svg') !== null,
       cardPadding: cardStyle.paddingTop,
     };
   });
 
-  expect(measured).toEqual({
+  expect(measured).toMatchObject({
     tagName: 'H2',
     headingMarginTop: '0px',
     headingMarginBottom: '0px',
-    titleFontSize: '20px',
-    titleLineHeight: '26px',
-    descriptionFontSize: '14px',
-    descriptionLineHeight: '18px',
-    titleDescriptionGap: 6,
-    headerContentGap: 24,
+    titleFontSize: '22px',
+    titleLineHeight: '29px',
+    descriptionFontSize: '16px',
+    descriptionLineHeight: '21px',
+    titleDescriptionGap: 0,
+    iconTitleTopDelta: 0,
+    layoutGap: '24px',
+    actionFontSize: '14px',
+    actionFontWeight: '600',
+    actionTextDecoration: 'none',
+    actionHasIcon: true,
     cardPadding: '24px',
   });
+  expect(measured?.headerContentGap).toBeGreaterThanOrEqual(24);
+
+  const actionTops = await Promise.all(
+    ['Open Retrieval Tests', 'Open Graph', 'Open Workspaces'].map((name) =>
+      page
+        .getByRole('main')
+        .getByRole('link', { name })
+        .evaluate((element) => Math.round(element.getBoundingClientRect().top)),
+    ),
+  );
+  expect(Math.max(...actionTops) - Math.min(...actionTops)).toBeLessThanOrEqual(1);
 });
 
-test('the search panel is visible, not merely present', async ({ page }) => {
+test('global search is centered in the header and opens a bounded result surface', async ({
+  page,
+}) => {
   /*
    * The panel used to be an absolutely-positioned child of the search field, and
    * the top bar clips its children so a long breadcrumb cannot spill across the
@@ -426,23 +584,54 @@ test('the search panel is visible, not merely present', async ({ page }) => {
   await ready(page, '/');
 
   const field = page.getByRole('textbox', { name: 'Search from anywhere' });
+  await expect(
+    page.getByRole('banner').getByRole('textbox', { name: 'Search from anywhere' }),
+  ).toBeVisible();
+  await expect(
+    page.locator('nav').getByRole('textbox', { name: 'Search from anywhere' }),
+  ).toHaveCount(0);
   await field.click();
   await field.type('sa', { delay: 40 });
 
-  const panel = page.getByText('Press Enter for all results');
-  await expect(panel).toBeVisible();
+  const heading = page.getByText('Search results', { exact: true });
+  await expect(heading).toBeVisible();
+  await expect(page.getByRole('link', { name: 'View all results' })).toBeVisible();
+  await expect(page.getByText(/Relevance \d/).first()).toBeVisible();
 
-  const hit = await panel.evaluate((status) => {
-    const el = status.closest('.saltPanel');
-    if (!el) return null;
+  const hit = await heading.evaluate((title) => {
+    const el = title.closest<HTMLElement>('.saltCard');
+    const header = document.querySelector('header');
+    const input = document.querySelector<HTMLInputElement>('[aria-label="Search from anywhere"]');
+    const inputSurface = input?.closest<HTMLElement>('.saltInput');
+    if (!el || !header || !inputSurface) return null;
     const r = el.getBoundingClientRect();
+    const headerBounds = header.getBoundingClientRect();
+    const fieldBounds = inputSurface.getBoundingClientRect();
     const topmost = document.elementFromPoint(r.x + r.width / 2, r.y + 10);
-    return { insideClippedBar: !!el.closest('header'), ownsItsPixels: el.contains(topmost) };
+    return {
+      insideClippedBar: !!el.closest('header'),
+      ownsItsPixels: el.contains(topmost),
+      centerDelta: Math.round(
+        fieldBounds.left + fieldBounds.width / 2 - (headerBounds.left + headerBounds.width / 2),
+      ),
+      panelWidth: Math.round(r.width),
+      fieldWidth: Math.round(fieldBounds.width),
+      panelCenterDelta: Math.round(
+        r.left + r.width / 2 - (headerBounds.left + headerBounds.width / 2),
+      ),
+      borderStyle: getComputedStyle(el).borderTopStyle,
+      dividerCount: el.querySelectorAll('.saltDivider').length,
+    };
   });
 
   expect(hit, 'the suggestion panel must be in the document').not.toBeNull();
   expect(hit?.insideClippedBar).toBe(false);
   expect(hit?.ownsItsPixels).toBe(true);
+  expect(hit?.centerDelta).toBe(0);
+  expect(hit?.panelWidth).toBeGreaterThanOrEqual(hit?.fieldWidth ?? 0);
+  expect(hit?.panelCenterDelta).toBe(0);
+  expect(hit?.borderStyle).toBe('solid');
+  expect(hit?.dividerCount).toBeGreaterThan(0);
 });
 
 test('a link in a table cell is the colour of a link', async ({ page }) => {

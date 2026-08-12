@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   FlexLayout,
+  GridLayout,
   NavigationItem,
   Panel,
   SaltProviderNext,
@@ -168,9 +169,9 @@ const NAV_ICON: Record<string, typeof DatabaseSolidIcon> = {
  * item is current is derived from the route rather than from click state, so a deep
  * link opens with the rail already correct.
  *
- * The top bar carries the breadcrumb and the session controls, and nothing else.
- * Everything about *where you are* is in the rail and the breadcrumb; everything
- * about *what you are looking at* is in the page below.
+ * The top bar carries product identity and session controls. The breadcrumb sits
+ * inside the centered main-content column, immediately above the routed page, so
+ * location context belongs to the page rather than to persistent shell chrome.
  */
 export function AppFrame({
   session,
@@ -193,7 +194,8 @@ export function AppFrame({
   const { breakpoint } = useBreakpoint();
   const mobileChrome = breakpoint === 'xs';
   const compactRail = breakpoint === 'sm';
-  const fullHeaderContext = !mobileChrome && !compactRail;
+  const showHeaderRole = !mobileChrome && !compactRail;
+  const compactHeaderIdentity = mobileChrome || compactRail;
   const location = useLocation();
   const [narrowTablet, setNarrowTablet] = useState(false);
 
@@ -368,25 +370,32 @@ export function AppFrame({
                 color="accent"
                 fallbackIcon={<CompassSolidIcon aria-hidden />}
                 size={0.55}
-                aria-hidden
+                aria-label={compactHeaderIdentity ? PRODUCT_NAME : undefined}
+                aria-hidden={compactHeaderIdentity ? undefined : true}
               />
             </SaltProviderNext>
-            <SaltProviderNext density={mobileChrome ? 'low' : 'mobile'} applyClassesTo="child">
-              <Text styleAs="h4" as="span">
-                {PRODUCT_NAME}
-              </Text>
-            </SaltProviderNext>
-            {fullHeaderContext ? (
+            {!compactHeaderIdentity ? (
+              <SaltProviderNext density="mobile" applyClassesTo="child">
+                <Text styleAs="h4" as="span">
+                  {PRODUCT_NAME}
+                </Text>
+              </SaltProviderNext>
+            ) : null}
+            {showHeaderRole ? (
               <Text styleAs="notation" color="secondary">
                 {session.role}
               </Text>
             ) : null}
-            {fullHeaderContext ? <ScopeBreadcrumb segments={breadcrumb} label="Location" /> : null}
           </FlexLayout>
+        }
+        topBarCenter={
+          <GridLayout columns={{ xs: '10rem', sm: '18rem', md: '22rem', lg: '30rem' }} gap={0}>
+            <GlobalSearch session={session} client={client} />
+          </GridLayout>
         }
         topBarEnd={
           <FlexLayout align="center" gap={1 / 3}>
-            {!mobileChrome ? (
+            {showHeaderRole ? (
               <FlexLayout gap={1} align="center">
                 <StatusIndicator
                   status={
@@ -498,7 +507,6 @@ export function AppFrame({
                 </StackLayout>
               )
             }
-            search={compactRail ? undefined : <GlobalSearch session={session} client={client} />}
             footer={
               compactRail ? undefined : (
                 <StackLayout gap={2}>
@@ -562,8 +570,8 @@ export function AppFrame({
               lives in the other remote, then the change inbox. An auditor's crosses
               all three sections. The drill optimised for a reader who does not exist.
 
-              Salt's `NavigationItem` has published `parent`, `expanded`, `level` and
-              `blurActive` the whole time; the replace-the-panel behaviour was not a
+              Salt's `NavigationItem` has published `parent`, `expanded` and `level`
+              the whole time; the replace-the-panel behaviour was not a
               constraint of the component. An admin — the widest role — sees four
               sections and eighteen leaves, which fits the rail's scroll container.
               Every other role sees fewer, because capability gating already prunes
@@ -638,39 +646,29 @@ export function AppFrame({
                       (child) => child.need === undefined || can(session, child.need),
                     );
                     const expanded = !collapsed.includes(section.key);
-                    const holdsActive = crumbSection?.key === section.key;
 
                     return (
                       <Fragment key={section.key}>
-                        <NavigationSurface active={!expanded && holdsActive}>
-                          <NavigationItem
-                            parent
-                            expanded={expanded}
-                            level={FULL_RAIL_ROOT_LEVEL}
-                            orientation="vertical"
-                            /*
+                        <NavigationItem
+                          parent
+                          expanded={expanded}
+                          level={FULL_RAIL_ROOT_LEVEL}
+                          orientation="vertical"
+                          /*
                         A section is a disclosure, not a destination. Every section's
                         own href was its first child's, so "Catalog" and
                         "Capabilities" went to the same place and only the child ever
                         carried `aria-current`. Dropping the href removes the
-                        duplicate rather than papering over it.
+                        duplicate rather than papering over it. It never receives an
+                        active state: clicking it only expands or collapses its leaves.
                       */
-                            onExpand={() => toggleSection(section.key)}
-                            /*
-                        Marks a collapsed section that contains the current page, so
-                        closing a section does not lose where you are. Salt only
-                        honours this when the group is collapsed.
-                      */
-                            blurActive={!expanded && holdsActive}
-                          >
-                            <FlexLayout gap={1} align="center">
-                              {Icon ? <NavigationIcon Icon={Icon} /> : null}
-                              <Text as="span" styleAs={!expanded && holdsActive ? 'h4' : undefined}>
-                                {section.label}
-                              </Text>
-                            </FlexLayout>
-                          </NavigationItem>
-                        </NavigationSurface>
+                          onExpand={() => toggleSection(section.key)}
+                        >
+                          <FlexLayout gap={1} align="center">
+                            {Icon ? <NavigationIcon Icon={Icon} /> : null}
+                            <Text as="span">{section.label}</Text>
+                          </FlexLayout>
+                        </NavigationItem>
 
                         {expanded
                           ? children.map((child) => {
@@ -708,7 +706,9 @@ export function AppFrame({
           The one main landmark. `tabIndex={-1}` so the skip link can move focus
           here without making the region a tab stop of its own.
         */}
-        <StackLayout
+        <GridLayout
+          columns="minmax(0, 1fr)"
+          rows="auto"
           padding={{
             xs: 'calc(var(--salt-spacing-100) * 8 / 3) var(--salt-spacing-100) calc(var(--salt-spacing-100) * 10 / 3)',
             sm: `calc(var(--salt-spacing-100) * 10 / 3) ${
@@ -722,10 +722,11 @@ export function AppFrame({
         >
           <ContentColumn width={location.pathname === '/' ? 'wide' : 'standard'}>
             <StackLayout gap={3}>
+              <ScopeBreadcrumb segments={breadcrumb} label="Location" />
               <Outlet />
             </StackLayout>
           </ContentColumn>
-        </StackLayout>
+        </GridLayout>
       </AppShell>
     </>
   );

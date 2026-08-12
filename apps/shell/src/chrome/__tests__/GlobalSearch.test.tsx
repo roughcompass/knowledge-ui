@@ -33,6 +33,38 @@ beforeEach(() => {
 });
 
 describe('the suggestion status line', () => {
+  it('presents matching destinations with type, relevance, and a full-results action', async () => {
+    renderSearch(
+      searchClient(() =>
+        Promise.resolve({
+          items: [
+            {
+              entity_id: 'design-system',
+              name: 'Design System',
+              entity_type: 'platform_capability',
+              score: 0.91,
+              citations: [],
+            },
+          ],
+        }),
+      ),
+    );
+
+    await userEvent.type(screen.getByRole('textbox'), 'design');
+
+    expect(await screen.findByText('Search results')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Design System' })).toHaveAttribute(
+      'href',
+      '/catalog/design-system',
+    );
+    expect(screen.getByText(/platform capability/i)).toBeInTheDocument();
+    expect(screen.getByText('Relevance 0.91')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View all results' })).toHaveAttribute(
+      'href',
+      '/catalog?q=design',
+    );
+  });
+
   it('says zero hits is an answer, and where the full search is', async () => {
     renderSearch(searchClient(() => Promise.resolve({ items: [] })));
 

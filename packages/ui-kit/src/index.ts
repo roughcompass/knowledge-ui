@@ -12,6 +12,7 @@ export { LinkButton } from './LinkButton';
 export { StatTile } from './StatTile';
 export { StatusLabel } from './StatusLabel';
 export { NavCard } from './NavCard';
+export { ResourceCard } from './ResourceCard';
 
 /**
  * The only anchor in the app.

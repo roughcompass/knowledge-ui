@@ -72,6 +72,63 @@ test('bordered surfaces never nest another card', async ({ page }) => {
   }
 });
 
+test('usage metrics lead with strong visuals and fill a balanced two-card row', async ({
+  page,
+}) => {
+  await switchToAdmin(page);
+  await page.goto('/ops/usage', { waitUntil: 'networkidle' });
+
+  const rest = page.getByRole('heading', { level: 3, name: 'rest' });
+  const mcp = page.getByRole('heading', { level: 3, name: 'mcp' });
+  await expect(rest).toBeVisible();
+  await expect(mcp).toBeVisible();
+
+  const presentation = await rest.evaluate((heading) => {
+    const card = heading.closest<HTMLElement>('.saltCard');
+    const visual = card?.querySelector<HTMLElement>('.saltAvatar');
+    const value = [...(card?.querySelectorAll<HTMLElement>('.saltText') ?? [])].find(
+      (element) => element.textContent === '4,120',
+    );
+    const grid = card?.parentElement;
+    if (!card || !visual || !value || !grid) return null;
+
+    const cardBounds = card.getBoundingClientRect();
+    const visualBounds = visual.getBoundingClientRect();
+    const headingBounds = heading.getBoundingClientRect();
+    return {
+      columnCount: getComputedStyle(grid).gridTemplateColumns.split(' ').length,
+      cardPadding: getComputedStyle(card).paddingTop,
+      visualSize: Math.round(visualBounds.width),
+      visualBeforeLabel: visualBounds.right < headingBounds.left,
+      visualInset: Math.round(visualBounds.left - cardBounds.left),
+      valueFontSize: getComputedStyle(value).fontSize,
+    };
+  });
+
+  expect(presentation).toEqual({
+    columnCount: 2,
+    cardPadding: '24px',
+    visualSize: 36,
+    visualBeforeLabel: true,
+    visualInset: 25,
+    valueFontSize: '24px',
+  });
+
+  const row = await Promise.all(
+    [rest, mcp].map((heading) =>
+      heading.evaluate((element) => {
+        const card = element.closest<HTMLElement>('.saltCard');
+        const bounds = card?.getBoundingClientRect();
+        return bounds ? { top: Math.round(bounds.top), width: Math.round(bounds.width) } : null;
+      }),
+    ),
+  );
+  expect(row[0]).not.toBeNull();
+  expect(row[1]).not.toBeNull();
+  expect(row[0]?.top).toBe(row[1]?.top);
+  expect(row[0]?.width).toBe(row[1]?.width);
+});
+
 test('an admin reaches the sync pages and a consumer does not', async ({ page }) => {
   await page.goto('/ops/sync', { waitUntil: 'networkidle' });
   await expect(page.getByRole('main')).toBeVisible();

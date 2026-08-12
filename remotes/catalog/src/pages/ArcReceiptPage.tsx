@@ -45,7 +45,7 @@ export function ArcReceiptPage() {
   const inspect = () => {
     const next = draft.trim();
     if (!UUID.test(next)) {
-      setFieldError('Enter a complete receipt UUID.');
+      setFieldError('Enter the full receipt ID in UUID format.');
       return;
     }
     setFieldError(undefined);
@@ -55,35 +55,36 @@ export function ArcReceiptPage() {
   return (
     <StackLayout gap={3}>
       <PageHeader
-        eyebrow="Evidence and retrieval"
-        title="ARC Receipt Inspector"
-        description="Inspect the retained evidence from a governed context resolution completed by a registered agent host."
+        eyebrow="Context testing"
+        title="Run Receipt Inspector"
+        description="Trace why an agent host selected or omitted context during a completed run. Paste the receipt ID returned by the host."
         actions={
           <KLink to={receiptId ? '../..' : '..'} relative="path">
-            Context Lab
+            Retrieval Tests
           </KLink>
         }
       />
 
-      <Note label="Recorded Explanation" variant="neutral">
-        This explanation was recorded at run time and is not regenerated. This browser cannot issue
-        ARC challenges, sign attestations, or rerun the resolution.
+      <Note label="What This Inspector Shows" variant="neutral">
+        The receipt preserves selection decisions and event history from the original run. This page
+        cannot rerun or change the resolution.
       </Note>
 
       <SectionCard
-        title="Open a Receipt"
-        description="Missing and unauthorized receipts both return “receipt not found” so the interface does not disclose whether another tenant’s UUID exists."
+        title="Find a Run Receipt"
+        description="Get the receipt ID from the agent host that performed the run or from the request's audit record."
       >
         <StackLayout gap={2}>
           <FormRow
-            label="Receipt UUID"
+            label="Receipt ID"
             required
             error={fieldError}
-            helperText="Paste the UUID returned by a real ARC resolution."
+            helperText="Paste the complete ID. Missing and unauthorized receipt IDs both return “receipt not found.”"
           >
             <Input
               bordered
               value={draft}
+              placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               onChange={(event) => {
                 setDraft((event.target as HTMLInputElement).value);
                 setFieldError(undefined);
@@ -114,12 +115,12 @@ export function ArcReceiptPage() {
         */
         <StackLayout gap={3}>
           <EmptyState
-            title="No Receipt Open"
-            description="Paste a receipt UUID above. The inspector reads retained history; it does not construct or submit an ARC manifest."
+            title="Paste a Receipt ID to Begin"
+            description="The inspector reads a completed run's retained history. It does not create or submit a new context request."
           />
           <UnavailableNotice
-            title="Receipts cannot be browsed"
-            reason="The contextplane serves a receipt by id and publishes no index of them, so this console cannot offer a list to pick from. An id comes from the agent host that performed the resolution, or from the audit record of the request that produced it — not from anywhere in this app."
+            title="No receipt list is available"
+            reason="The service can retrieve a receipt by ID but does not publish a receipt index. This console cannot offer a list to browse."
           />
         </StackLayout>
       ) : null}
@@ -135,7 +136,7 @@ export function ArcReceiptPage() {
         The existing unit test asserted the empty state and the absence of the error,
         which is exactly the pair that leaves this visible.
       */}
-      {receiptId && receipt.isPending ? <LoadingPanel label="Reading ARC receipt" /> : null}
+      {receiptId && receipt.isPending ? <LoadingPanel label="Reading run receipt" /> : null}
       {receipt.error ? <ErrorPanel title="Receipt not available" error={receipt.error} /> : null}
 
       {receipt.data ? (

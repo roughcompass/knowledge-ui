@@ -195,7 +195,7 @@ describe('what each role is offered', () => {
     expect(screen.getByRole('link', { name: 'Open Audit Log' })).toBeInTheDocument();
 
     // `workspace:write:*` is producer-or-admin, so the notes card promises reading.
-    expect(screen.getByText("Read your tenant's notes")).toBeInTheDocument();
+    expect(screen.getByText('Read shared notes')).toBeInTheDocument();
     expect(screen.queryByText('Keep your own notes')).not.toBeInTheDocument();
   });
 

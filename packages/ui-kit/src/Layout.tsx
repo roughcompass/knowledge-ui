@@ -29,10 +29,24 @@ export function ContentColumn({
    */
   width?: 'standard' | 'wide' | 'full';
 }) {
-  const wide = width === 'wide' || width === 'full';
+  if (width === 'full') {
+    return (
+      <GridLayout columns="minmax(0, 1fr)" columnGap={0}>
+        <GridItem>
+          <StackLayout gap={3}>{children}</StackLayout>
+        </GridItem>
+      </GridLayout>
+    );
+  }
+
+  const centerTrack = width === 'wide' ? '1600px' : '1200px';
   return (
-    <GridLayout columns={{ xs: 1, xl: 12 }}>
-      <GridItem colSpan={{ xs: 1, xl: wide ? 12 : 11 }}>
+    <GridLayout
+      columns={`minmax(0, 1fr) minmax(min(100%, ${centerTrack}), ${centerTrack}) minmax(0, 1fr)`}
+      columnGap={0}
+    >
+      <GridItem aria-hidden />
+      <GridItem>
         <StackLayout gap={3}>{children}</StackLayout>
       </GridItem>
     </GridLayout>

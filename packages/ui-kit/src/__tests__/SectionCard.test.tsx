@@ -21,10 +21,10 @@ describe('SectionCard', () => {
     expect(heading.style.getPropertyValue('--flexLayout-margin')).toBe(
       'calc(var(--salt-spacing-100) * 0)',
     );
-    expect(title?.className).toContain('saltText-h3');
+    expect(title?.className).toContain('saltText-h2');
     expect(title?.className).toContain('salt-density-mobile');
     expect(titleGroup?.style.getPropertyValue('--stackLayout-gap')).toBe(
-      'calc(var(--salt-spacing-100) * 0.5)',
+      'calc(var(--salt-spacing-100) * 0)',
     );
     expect(screen.getByText('What the registry currently serves.').className).toContain(
       'saltText-secondary',

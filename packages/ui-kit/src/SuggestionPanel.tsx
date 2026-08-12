@@ -1,4 +1,11 @@
-import { Panel, StackLayout, Text, useFloatingComponent, useFloatingUI } from '@salt-ds/core';
+import {
+  Card,
+  GridLayout,
+  StackLayout,
+  Text,
+  useFloatingComponent,
+  useFloatingUI,
+} from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 /**
@@ -13,12 +20,11 @@ import type { ReactNode } from 'react';
  *
  * ## The panel is a floating layer, not an absolutely-positioned child
  *
- * It was the latter, and it was invisible for its whole life: the top bar clips its
- * children so a long breadcrumb cannot spill across the search field, and a panel
- * positioned below a field inside that bar is exactly the thing being clipped. The
- * markup was correct, the position was correct, the content was correct, and nothing
- * ever reached the screen — an absolutely-positioned element cannot escape an
- * ancestor's `overflow`, whatever its `z-index` says.
+ * It was the latter, and it was invisible for its whole life: the toolbar contains
+ * its own bands, so a panel positioned below a field inside that bar was clipped.
+ * The markup was correct, the position was correct, the content was correct, and
+ * nothing ever reached the screen — an absolutely-positioned element cannot escape
+ * an ancestor's `overflow`, whatever its `z-index` says.
  *
  * So it goes through Salt's own floating layer, which renders outside the shell
  * entirely and is the same machinery behind every Salt dropdown and tooltip. That
@@ -38,10 +44,13 @@ import type { ReactNode } from 'react';
 export function SuggestionField({
   children,
   panel,
+  panelWidth,
   status,
 }: {
   children: ReactNode;
   panel?: ReactNode;
+  /** Width of the floating result surface, selected by the owning responsive control. */
+  panelWidth?: number;
   /**
    * One line about the state of the suggestions themselves: still loading, zero
    * matches, unavailable. Those are three different facts and the caller names
@@ -54,7 +63,7 @@ export function SuggestionField({
   const { Component: FloatingComponent } = useFloatingComponent();
   const { refs, x, y, strategy, context } = useFloatingUI({
     open,
-    placement: 'bottom-start',
+    placement: 'bottom',
   });
 
   return (
@@ -69,14 +78,16 @@ export function SuggestionField({
         aria-hidden={!open}
         focusManagerProps={{ context, initialFocus: -1, returnFocus: false, modal: false }}
       >
-        <Panel variant="primary">
-          <StackLayout gap={1}>
-            {panel}
-            {status !== undefined && status !== null ? (
-              <Text color="secondary">{status}</Text>
-            ) : null}
-          </StackLayout>
-        </Panel>
+        <GridLayout columns={`${panelWidth ?? 288}px`}>
+          <Card variant="primary">
+            <StackLayout gap={1}>
+              {panel}
+              {status !== undefined && status !== null ? (
+                <Text color="secondary">{status}</Text>
+              ) : null}
+            </StackLayout>
+          </Card>
+        </GridLayout>
       </FloatingComponent>
     </StackLayout>
   );

@@ -80,6 +80,7 @@ describe('AppShell desktop frame', () => {
     render(
       <AppShell
         topBarStart={<span>Product toolbar</span>}
+        topBarCenter={<span>Global search</span>}
         rail={<span>Desktop navigation</span>}
         footer={<span>Product footer</span>}
       >
@@ -95,6 +96,10 @@ describe('AppShell desktop frame', () => {
     expect(banner.parentElement).toBe(railItem?.parentElement?.parentElement?.parentElement);
     expect(banner.querySelector('.saltPanel')?.getAttribute('style')).toContain(
       '--saltPanel-borderRadius: 0',
+    );
+    expect(screen.getByText('Global search').closest('.saltToolbarContent')).toHaveAttribute(
+      'data-position',
+      'center',
     );
     expect(screen.getByRole('contentinfo')).toHaveTextContent('Product footer');
   });

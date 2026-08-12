@@ -43,6 +43,7 @@ describe('SuggestionField', () => {
 
     const link = screen.getByRole('link', { name: 'one' });
     const status = screen.getByText('Searching…');
+    expect(link.closest('.saltCard')).not.toBeNull();
     expect(link.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 

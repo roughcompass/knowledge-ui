@@ -15,7 +15,6 @@ import type { CSSProperties, ReactNode } from 'react';
 
 export function AppSidebar({
   header,
-  search,
   children,
   footer,
   label = 'Main',
@@ -23,7 +22,6 @@ export function AppSidebar({
   compact = false,
 }: {
   header?: ReactNode;
-  search?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   label?: string;
@@ -49,15 +47,9 @@ export function AppSidebar({
         disableAnimation
         style={widthStyle}
       >
-        {header !== undefined || search !== undefined ? (
+        {header !== undefined ? (
           <StackLayout gap={2}>
             {header}
-            {search ? (
-              <>
-                <Divider variant="tertiary" />
-                {search}
-              </>
-            ) : null}
             <Divider variant="tertiary" />
           </StackLayout>
         ) : null}

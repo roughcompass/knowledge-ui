@@ -41,7 +41,7 @@ const ROUTES = [
   { path: '/catalog/notifications', name: 'notifications inbox' },
   { path: '/catalog/claims', name: 'claims browser' },
   { path: '/catalog/claims/queue', name: 'curation queue' },
-  { path: '/catalog/context', name: 'context lab' },
+  { path: '/catalog/context', name: 'retrieval tests' },
   { path: '/catalog/context/receipts', name: 'ARC receipt inspector' },
   { path: '/ops/usage', name: 'usage console' },
   { path: '/catalog/salt-design-system', name: 'capability detail (adopt + subscriptions)' },

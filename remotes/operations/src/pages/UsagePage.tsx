@@ -1,4 +1,5 @@
-import { Button, StackLayout, Text } from '@salt-ds/core';
+import { Avatar, Button, StackLayout, Text } from '@salt-ds/core';
+import { ApiIcon, WorkflowIcon } from '@salt-ds/icons';
 import {
   WORST_DAILY_P95_CAVEAT,
   WORST_DAILY_P95_LABEL,
@@ -154,6 +155,19 @@ function ReachBadge({ surface }: { surface: SurfaceSummary }) {
     <Text styleAs="notation" color="secondary">
       {reach.distinctActors.toLocaleString()} {reach.distinctActors === 1 ? 'actor' : 'actors'}
     </Text>
+  );
+}
+
+/** A stable visual anchor for each transport, using the same Salt shape as every metric tile. */
+function SurfaceVisual({ surface }: { surface: SurfaceSummary['surface'] }) {
+  const Icon = surface === 'rest' ? ApiIcon : WorkflowIcon;
+  return (
+    <Avatar
+      color={surface === 'rest' ? 'accent' : 'category-2'}
+      fallbackIcon={<Icon aria-hidden />}
+      size={1}
+      aria-hidden
+    />
   );
 }
 
@@ -404,7 +418,7 @@ export function UsagePage() {
             ) : null}
             {summary.error === null ? (
               <StackLayout gap={2}>
-                <TileGrid>
+                <TileGrid columns={2}>
                   {/*
                     While pending, one placeholder tile per surface the API can
                     return. The vocabulary is closed — the schema declares
@@ -427,6 +441,7 @@ export function UsagePage() {
                       */
                       badge={<ReachBadge surface={surface} />}
                       hint={surfaceTileHint(surface)}
+                      visual={<SurfaceVisual surface={surface.surface} />}
                       headingLevel="h3"
                     />
                   ))}

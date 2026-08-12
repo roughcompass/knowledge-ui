@@ -31,7 +31,7 @@ export function ScopeBreadcrumb({
   label?: string;
 }) {
   return (
-    <FlexLayout as="ol" gap={1} align="center" aria-label={label}>
+    <FlexLayout as="ol" gap={1} align="center" wrap aria-label={label}>
       {segments.map((segment, index) => (
         <FlexLayout as="li" key={segment.key} gap={1} align="center">
           {/*

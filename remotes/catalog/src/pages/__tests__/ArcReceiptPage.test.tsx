@@ -33,11 +33,13 @@ function renderReceipt(receiptId?: string) {
   );
 }
 
-describe('the ARC receipt inspector', () => {
+describe('the run receipt inspector', () => {
   it('reads the retained receipt and its stored event-chain explanation', async () => {
     renderReceipt(ARC_READY_RECEIPT_ID);
 
-    expect(screen.getByText(/recorded at run time and is not regenerated/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/preserves selection decisions and event history/i),
+    ).toBeInTheDocument();
     expect(await screen.findByText('Resolution Record')).toBeInTheDocument();
     expect(screen.getByText('Ready')).toBeInTheDocument();
     expect(screen.getByText('Rendered Content Bytes')).toBeInTheDocument();
@@ -70,7 +72,9 @@ describe('the ARC receipt inspector', () => {
   it('does not treat the empty form as a failed receipt query', () => {
     renderReceipt();
 
-    expect(screen.getByText('No Receipt Open')).toBeInTheDocument();
+    expect(screen.getByText('Paste a Receipt ID to Begin')).toBeInTheDocument();
+    expect(screen.getByText('No receipt list is available')).toBeInTheDocument();
+    expect(screen.getByText(/agent host that performed the run/i)).toBeInTheDocument();
     expect(screen.queryByText('Receipt not available')).not.toBeInTheDocument();
 
     /*
@@ -79,6 +83,6 @@ describe('the ARC receipt inspector', () => {
       a spinner at the same time, permanently. Checking only for the empty state and
       the absence of an error is precisely the pair that leaves that invisible.
     */
-    expect(screen.queryByText('Reading ARC receipt')).not.toBeInTheDocument();
+    expect(screen.queryByText('Reading run receipt')).not.toBeInTheDocument();
   });
 });

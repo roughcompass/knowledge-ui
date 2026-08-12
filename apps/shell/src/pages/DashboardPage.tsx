@@ -39,6 +39,7 @@ import {
   Note,
   PageColumns,
   PageHeader,
+  ResourceCard,
   SectionCard,
   StatTile,
   TileGrid,
@@ -285,9 +286,9 @@ export function DashboardPage({
         <GridLayout columns={{ xs: 1, sm: 3 }} gap={2}>
           <ResourceCard
             visual={<FeatureVisual Icon={SearchIcon} color="accent" />}
-            title="Retrieval and trust"
-            description="How the catalog, claims and your notes answer separately, each with a trust label."
-            actionLabel="Open Context Lab"
+            title="Test context retrieval"
+            description="Run an agent task against one context source, review the records, and save a baseline."
+            actionLabel="Open Retrieval Tests"
             to={remoteChildHref('catalog', 'context')}
           />
           <ResourceCard
@@ -307,15 +308,15 @@ export function DashboardPage({
             <ResourceCard
               visual={<FeatureVisual Icon={ChatSolidIcon} color="category-2" />}
               title="Keep your own notes"
-              description="Decisions and open questions, private to you or your tenant."
+              description="Record decisions and open questions for yourself or your tenant."
               actionLabel="Open Workspaces"
               to={remoteChildHref('catalog', 'workspaces')}
             />
           ) : (
             <ResourceCard
               visual={<FeatureVisual Icon={ChatSolidIcon} color="category-2" />}
-              title="Read your tenant's notes"
-              description="Decisions and open questions other teams keep beside the catalog. Your role can read them, not write them."
+              title="Read shared notes"
+              description="Review decisions and open questions other teams keep beside the catalog."
               actionLabel="Open Workspaces"
               to={remoteChildHref('catalog', 'workspaces')}
             />
@@ -367,7 +368,7 @@ function KnowledgeHero({
                 Browse Capabilities
               </KLink>
               <KLink to={remoteChildHref('catalog', 'context')} color="accent">
-                Probe Context
+                Test Retrieval
               </KLink>
             </FlexLayout>
           </StackLayout>
@@ -444,36 +445,6 @@ function DashboardRail({
 }
 
 /**
- * A destination with a sentence of why, and one control.
- *
- * The same shape as the navigation cards above, deliberately: a reader should not
- * have to learn two card idioms on one page. What differs is the job — those are the
- * sections of the product, these are the things worth understanding once. Kept as a
- * local component rather than a kit export because nothing else needs it yet, and a
- * primitive invented for one page is one nobody else can find.
- */
-function ResourceCard({
-  visual,
-  title,
-  description,
-  actionLabel,
-  to,
-}: {
-  visual: ReactNode;
-  title: string;
-  description: string;
-  actionLabel: string;
-  to: string;
-}) {
-  return (
-    <SectionCard title={title} description={description} visual={visual} hoverable>
-      <FlexLayout justify="start">
-        <LinkButton to={to}>{actionLabel}</LinkButton>
-      </FlexLayout>
-    </SectionCard>
-  );
-}
-/**
  * What this tenant publishes, and whether anything called it.
  *
  * The one panel on the page whose presence depends on the reader, and it earns
@@ -503,11 +474,7 @@ function WhatYouPublish({ client, session }: { client: RegistryClient; session: 
       banded
       visual={<FeatureVisual Icon={DatabaseSolidIcon} color="category-2" size={0.8} />}
       title="What you publish"
-      actions={
-        <KLink to={usagePage} color="accent" underline="never">
-          Full Usage
-        </KLink>
-      }
+      actions={<LinkButton to={usagePage}>Full Usage</LinkButton>}
       description={
         window
           ? `Capabilities your tenant owns that were called between ${window}, the window the service reports. Absence from this list means no calls were recorded, not that the capability is gone.`
@@ -816,11 +783,7 @@ function RecentChanges({ client, session }: { client: RegistryClient; session: S
       banded
       visual={<FeatureVisual Icon={ChatSolidIcon} color="category-2" size={0.8} />}
       title="Recent changes"
-      actions={
-        <KLink to={inbox} color="accent" underline="never">
-          View All
-        </KLink>
-      }
+      actions={<LinkButton to={inbox}>View All</LinkButton>}
       description="Unread changes to the capabilities your tenant subscribes to."
     >
       {query.error ? (

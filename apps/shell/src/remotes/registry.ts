@@ -149,11 +149,11 @@ export const NAVIGATION: readonly NavigationSection[] = [
      */
     key: 'context',
     href: remoteChildHref('catalog', 'context'),
-    label: 'Context Lab',
+    label: 'Context Testing',
     need: 'catalog:browse',
-    description: 'Test retrieval evidence and inspect governed context receipts.',
+    description: 'Check retrieval results, save baselines, and inspect run receipts.',
     children: [
-      { href: remoteChildHref('catalog', 'context'), label: 'Probes' },
+      { href: remoteChildHref('catalog', 'context'), label: 'Retrieval Tests' },
       { href: remoteChildHref('catalog', 'context/receipts'), label: 'Receipt Inspector' },
     ],
   },

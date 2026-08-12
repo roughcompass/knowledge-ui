@@ -1,8 +1,8 @@
-import { Input, StackLayout, Text } from '@salt-ds/core';
-import { SearchIcon } from '@salt-ds/icons';
+import { Divider, FlexLayout, Input, StackLayout, Text, useBreakpoint } from '@salt-ds/core';
+import { ArrowRightIcon, SearchIcon } from '@salt-ds/icons';
 import { useSearch, type RegistryClient } from '@knowledge-ui/api-client';
 import { can, type Session } from '@knowledge-ui/auth';
-import { KLink, SuggestionField } from '@knowledge-ui/ui-kit';
+import { KLink, SuggestionField, termText } from '@knowledge-ui/ui-kit';
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,6 +60,7 @@ const RECENTS_MAX = 5;
  */
 export function GlobalSearch({ session, client }: { session: Session; client: RegistryClient }) {
   const navigate = useNavigate();
+  const { breakpoint } = useBreakpoint();
   const [value, setValue] = useState('');
   const [debounced, setDebounced] = useState('');
   const [open, setOpen] = useState(false);
@@ -152,6 +153,8 @@ export function GlobalSearch({ session, client }: { session: Session; client: Re
   const hits = (suggestions.data?.items ?? []).slice(0, 5);
   const showRecents = debounced.length <= 1 && recents.length > 0;
   const showPanel = open && (hits.length > 0 || showRecents);
+  const panelWidth =
+    breakpoint === 'xs' || breakpoint === 'sm' ? 288 : breakpoint === 'md' ? 352 : 480;
 
   /*
    * One line about the state of the suggestions, for the moments the panel has no
@@ -176,53 +179,84 @@ export function GlobalSearch({ session, client }: { session: Session; client: Re
   }
 
   const panel = showPanel ? (
-    <StackLayout gap={1}>
-      <Text styleAs="notation" color="secondary">
-        {showRecents ? 'Recent searches' : 'Capabilities'}
-      </Text>
+    <StackLayout gap={2}>
+      <FlexLayout gap={2} align="center" justify="space-between">
+        <Text styleAs="label">{showRecents ? 'Recent searches' : 'Search results'}</Text>
+        {!showRecents ? (
+          <Text styleAs="notation" color="secondary">
+            {`${hits.length} shown`}
+          </Text>
+        ) : null}
+      </FlexLayout>
 
-      {showRecents
-        ? recents.map((entry) => (
-            <KLink
-              key={entry}
-              to={`/catalog?q=${encodeURIComponent(entry)}`}
-              underline="never"
-              color="primary"
-              onClick={() => {
-                setValue(entry);
-                setOpen(false);
-              }}
-            >
-              {entry}
-            </KLink>
-          ))
-        : hits.map((hit) => {
-            const id = hit.entity_id;
-            const name = hit.name || id;
-            return (
-              <KLink
-                key={id}
-                to={`/catalog/${encodeURIComponent(id)}`}
-                underline="never"
-                color="primary"
-                onClick={() => {
-                  remember(value.trim());
-                  setOpen(false);
-                }}
-              >
-                {name}
-              </KLink>
-            );
-          })}
+      <StackLayout as="ul" gap={1}>
+        {showRecents
+          ? recents.map((entry, index) => (
+              <StackLayout as="li" gap={1} key={entry}>
+                <KLink
+                  to={`/catalog?q=${encodeURIComponent(entry)}`}
+                  color="accent"
+                  onClick={() => {
+                    setValue(entry);
+                    setOpen(false);
+                  }}
+                >
+                  {entry}
+                </KLink>
+                {index < recents.length - 1 ? <Divider variant="tertiary" /> : null}
+              </StackLayout>
+            ))
+          : hits.map((hit, index) => {
+              const id = hit.entity_id;
+              const name = hit.name || id;
+              return (
+                <StackLayout as="li" gap={1} key={id}>
+                  <StackLayout gap={0.5}>
+                    <KLink
+                      to={`/catalog/${encodeURIComponent(id)}`}
+                      color="accent"
+                      onClick={() => {
+                        remember(value.trim());
+                        setOpen(false);
+                      }}
+                    >
+                      {name}
+                    </KLink>
+                    <FlexLayout gap={2} align="center" justify="space-between">
+                      <Text styleAs="notation" color="secondary">
+                        {termText(hit.entity_type)}
+                      </Text>
+                      <Text styleAs="notation" color="secondary">
+                        {`Relevance ${hit.score.toFixed(2)}`}
+                      </Text>
+                    </FlexLayout>
+                  </StackLayout>
+                  {index < hits.length - 1 ? <Divider variant="tertiary" /> : null}
+                </StackLayout>
+              );
+            })}
+      </StackLayout>
 
       {/*
         The full answer is always one keystroke away, and it is the one with a URL.
         The panel offers destinations; it never claims to be the result.
       */}
       {!showRecents ? (
-        <Text styleAs="notation" color="secondary">
-          Press Enter for all results
-        </Text>
+        <KLink
+          to={`/catalog?q=${encodeURIComponent(value.trim())}`}
+          underline="never"
+          color="accent"
+          styleAs="action"
+          onClick={() => {
+            remember(value.trim());
+            setOpen(false);
+          }}
+        >
+          <FlexLayout as="span" gap={0.5} align="center">
+            View all results
+            <ArrowRightIcon aria-hidden />
+          </FlexLayout>
+        </KLink>
       ) : null}
     </StackLayout>
   ) : undefined;
@@ -241,7 +275,7 @@ export function GlobalSearch({ session, client }: { session: Session; client: Re
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <SuggestionField panel={panel} status={status}>
+      <SuggestionField panel={panel} panelWidth={panelWidth} status={status}>
         <Input
           bordered
           inputRef={inputRef}

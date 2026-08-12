@@ -112,11 +112,17 @@ The contract, now baked into the kit components rather than re-chosen per screen
 | Page title              | 32            | `PageHeader` (`styleAs="h1"`)        |
 | Page description        | 16 regular    | `PageHeader`                         |
 | Section heading         | 20            | `SectionHeading` (`styleAs="h3"`)    |
-| Card / band title       | 20            | `SectionCard`                        |
+| Card / band title       | 22            | `SectionCard`                        |
 | Nav-card / tile title   | 16            | `NavCard`, `EmptyState`              |
 | Stat value              | 24            | `StatTile` — the only display number |
 | Body                    | 14            | —                                    |
+| Card description        | 16 regular    | `SectionCard`                        |
 | Label / hint / notation | 12, secondary | —                                    |
+
+The page title and description are one typographic unit on consecutive line boxes,
+with no added layout gap. The eyebrow and metadata remain separate context, with
+16px between those rows and the title unit. This keeps explanatory copy visibly
+attached to the page it describes without shrinking it into hint text.
 
 An earlier revision of this document held the page title at 24px as a reading of
 the reference; in practice, against 14px body and compressed card titles, it

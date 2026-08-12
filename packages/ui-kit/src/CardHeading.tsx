@@ -15,19 +15,28 @@ export interface CardHeadingProps {
  * contract also neutralises the browser's native h2/h3 margins. A plain heading
  * with styled text inside it left almost 27px between the title and description:
  * the native margin plus the layout gap. The nested mobile-density provider uses
- * Salt's published 20px h3 and 16px h4 steps without application CSS.
+ * Salt's published 22px h2 for section cards, 16px h4 for tiles, and 16px body copy
+ * for card descriptions without application CSS.
  */
 export function CardHeading({ title, description, headingLevel, scale }: CardHeadingProps) {
   return (
-    <StackLayout gap={0.5}>
+    <StackLayout gap={scale === 'card' ? 0 : 0.5}>
       <FlexLayout as={headingLevel} gap={0}>
         <SaltProviderNext density="mobile" applyClassesTo="child">
-          <Text as="span" styleAs={scale === 'card' ? 'h3' : 'h4'}>
+          <Text as="span" styleAs={scale === 'card' ? 'h2' : 'h4'}>
             {title}
           </Text>
         </SaltProviderNext>
       </FlexLayout>
-      {description !== undefined ? <Text color="secondary">{description}</Text> : null}
+      {description !== undefined ? (
+        scale === 'card' ? (
+          <SaltProviderNext density="mobile" applyClassesTo="child">
+            <Text color="secondary">{description}</Text>
+          </SaltProviderNext>
+        ) : (
+          <Text color="secondary">{description}</Text>
+        )
+      ) : null}
     </StackLayout>
   );
 }
