@@ -22,6 +22,10 @@ import {
 } from 'react';
 
 const NARROW_VIEWPORT_QUERY = '(max-width: 64rem)';
+const VIEWPORT_EDGE_MARGIN = 'calc(var(--salt-spacing-100) * -2 / 3)';
+const HEADER_PANEL_STYLE = {
+  '--saltPanel-padding': 'var(--salt-spacing-100)',
+} as CSSProperties;
 
 function narrowViewport(): boolean {
   return typeof window !== 'undefined' && window.matchMedia?.(NARROW_VIEWPORT_QUERY).matches;
@@ -114,33 +118,35 @@ export function AppShell({
       : undefined;
 
   return (
-    <BorderLayout>
+    <BorderLayout margin={VIEWPORT_EDGE_MARGIN}>
       {topBarStart !== undefined || topBarEnd !== undefined ? (
         <BorderItem ref={headerRef} as="header" position="north" sticky>
-          <Toolbar appearance="bordered" variant="primary">
-            <Tooltray align="start" overflowMode="none">
-              {isNarrow ? (
-                <Button
-                  ref={openButtonRef}
-                  appearance="transparent"
-                  sentiment="neutral"
-                  aria-label="Open navigation"
-                  aria-haspopup="dialog"
-                  aria-expanded={navigationOpen}
-                  aria-controls="app-navigation"
-                  onClick={() => setNavigationOpen(true)}
-                >
-                  <MenuIcon aria-hidden />
-                </Button>
-              ) : null}
-              {topBarStart}
-            </Tooltray>
-            {topBarEnd !== undefined ? (
-              <Tooltray align="end" overflowMode="none">
-                {topBarEnd}
+          <Panel variant="primary" style={HEADER_PANEL_STYLE}>
+            <Toolbar appearance="transparent" variant="primary">
+              <Tooltray align="start" overflowMode="none">
+                {isNarrow ? (
+                  <Button
+                    ref={openButtonRef}
+                    appearance="transparent"
+                    sentiment="neutral"
+                    aria-label="Open navigation"
+                    aria-haspopup="dialog"
+                    aria-expanded={navigationOpen}
+                    aria-controls="app-navigation"
+                    onClick={() => setNavigationOpen(true)}
+                  >
+                    <MenuIcon aria-hidden />
+                  </Button>
+                ) : null}
+                {topBarStart}
               </Tooltray>
-            ) : null}
-          </Toolbar>
+              {topBarEnd !== undefined ? (
+                <Tooltray align="end" overflowMode="none">
+                  {topBarEnd}
+                </Tooltray>
+              ) : null}
+            </Toolbar>
+          </Panel>
         </BorderItem>
       ) : null}
 

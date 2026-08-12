@@ -132,23 +132,29 @@ test('the sticky utility bar spans the viewport while content stays clear of the
     const railBounds = stickyRail?.getBoundingClientRect() ?? rail.getBoundingClientRect();
     const shellBounds = bar.parentElement?.getBoundingClientRect() ?? bar.getBoundingClientRect();
     const toolbar = bar.querySelector('.saltToolbar');
+    const headerSurface = bar.querySelector('.saltPanel');
     return {
       railRight: Math.round(railBounds.right),
+      railLeft: Math.round(railBounds.left),
       barLeft: Math.round(bar.getBoundingClientRect().left),
       barRight: Math.round(bar.getBoundingClientRect().right),
       barTop: Math.round(bar.getBoundingClientRect().top),
       mainLeft: Math.round(main.getBoundingClientRect().left),
       shellLeft: Math.round(shellBounds.left),
       shellRight: Math.round(shellBounds.right),
-      toolbarBackground: toolbar ? getComputedStyle(toolbar).backgroundColor : null,
+      headerBackground: headerSurface ? getComputedStyle(headerSurface).backgroundColor : null,
+      toolbarBorderStyle: toolbar ? getComputedStyle(toolbar).borderTopStyle : null,
     };
   });
 
   expect(bounds).not.toBeNull();
+  expect(bounds?.shellLeft).toBe(0);
   expect(bounds?.barLeft).toBe(bounds?.shellLeft);
   expect(bounds?.barRight).toBe(bounds?.shellRight);
+  expect(bounds?.railLeft).toBe(0);
   expect(bounds?.mainLeft).toBeGreaterThanOrEqual(bounds?.railRight ?? 0);
-  expect(bounds?.toolbarBackground).not.toBe('rgba(0, 0, 0, 0)');
+  expect(bounds?.headerBackground).not.toBe('rgba(0, 0, 0, 0)');
+  expect(bounds?.toolbarBorderStyle).toBe('none');
 
   await page.evaluate(() => window.scrollTo({ top: 600 }));
   const scrolled = await page.evaluate(() => {
