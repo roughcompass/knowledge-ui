@@ -35,6 +35,43 @@ async function switchToAdmin(page: Page) {
   await expect(page.getByText('admin', { exact: true }).first()).toBeVisible();
 }
 
+test('bordered surfaces never nest another card', async ({ page }) => {
+  // A component-name audit cannot prove this. `StatTile` hides a `SectionCard`
+  // and `EmptyState` used to do the same, so JSX with no visible Card can nest
+  // one at run time. Sweep the built app as an admin, where operational and
+  // ontology panels render their real content rather than a refusal.
+  await switchToAdmin(page);
+
+  const routes = [
+    '/',
+    '/catalog',
+    '/catalog/notifications',
+    '/catalog/claims',
+    '/catalog/claims/queue',
+    '/catalog/context',
+    '/catalog/context/receipts',
+    '/catalog/workspaces',
+    '/catalog/graph',
+    '/catalog/graph/projections',
+    '/catalog/graph/analytics',
+    '/catalog/graph/ontology',
+    '/catalog/salt-design-system',
+    '/catalog/salt-design-system/interface',
+    '/catalog/salt-design-system/impact',
+    '/catalog/salt-design-system/record',
+    '/ops',
+    '/ops/usage',
+    '/ops/sync',
+    '/ops/sync/runs',
+  ];
+
+  for (const route of routes) {
+    await page.goto(route, { waitUntil: 'networkidle' });
+    await expect(page.getByRole('main')).toBeVisible();
+    await expect(page.locator('.saltCard .saltCard'), `${route} nests a Salt Card`).toHaveCount(0);
+  }
+});
+
 test('an admin reaches the sync pages and a consumer does not', async ({ page }) => {
   await page.goto('/ops/sync', { waitUntil: 'networkidle' });
   await expect(page.getByRole('main')).toBeVisible();

@@ -13,6 +13,7 @@ import {
   ErrorPanel,
   LoadingPanel,
   SectionCard,
+  SectionHeading,
   StatTile,
   TileGrid,
   UnavailableNotice,
@@ -110,10 +111,11 @@ export function OperationalSections() {
 
   return (
     <StackLayout gap={3}>
-      <SectionCard
-        title="Queues"
-        description="Counted across the deployment from the database at read time, so these are correct however many replicas are running."
-      >
+      <StackLayout gap={2}>
+        <SectionHeading
+          title="Queues"
+          description="Counted across the deployment from the database at read time, so these are correct however many replicas are running."
+        />
         <TileGrid>
           {queues.map((reading) => (
             <StatTile
@@ -131,10 +133,11 @@ export function OperationalSections() {
                     ? describeScope(reading)
                     : undefined
               }
+              headingLevel="h3"
             />
           ))}
         </TileGrid>
-      </SectionCard>
+      </StackLayout>
 
       <SectionCard
         title="Identity and entitlement data quality"

@@ -28,6 +28,7 @@ import {
   Note,
   PageHeader,
   SectionCard,
+  SectionHeading,
   StatTile,
   TileGrid,
   UnavailableNotice,
@@ -606,12 +607,13 @@ export function GraphAnalyticsPage() {
         description="Reach, usage, and response times for the capability graph."
       />
 
-      <SectionCard
-        title="Reach"
-        description="How many entities depend on the chosen root, at each depth."
-      >
+      <StackLayout gap={2}>
+        <SectionHeading
+          title="Reach"
+          description="How many entities depend on the chosen root, at each depth."
+        />
         <ReachPanel session={session} client={client} />
-      </SectionCard>
+      </StackLayout>
 
       <FilterBar label="Usage window">
         <FilterField label="Window" basis="13rem">
@@ -630,12 +632,13 @@ export function GraphAnalyticsPage() {
         </FilterField>
       </FilterBar>
 
-      <SectionCard
-        title="Most-called capabilities"
-        description="Which parts of the graph are actually called, over the window above."
-      >
+      <StackLayout gap={2}>
+        <SectionHeading
+          title="Most-called capabilities"
+          description="Which parts of the graph are actually called, over the window above."
+        />
         <OperatorUsagePanel session={session} client={client} range={range} />
-      </SectionCard>
+      </StackLayout>
 
       <SectionCard
         title="Usage of your capabilities"

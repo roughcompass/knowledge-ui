@@ -2,8 +2,6 @@ import { StackLayout, Text } from '@salt-ds/core';
 import { FolderOpenIcon } from '@salt-ds/icons';
 import type { ReactNode } from 'react';
 
-import { SectionCard } from './SectionCard';
-
 /**
  * Shown when a request succeeded and returned nothing.
  *
@@ -14,10 +12,10 @@ import { SectionCard } from './SectionCard';
  * Centring comes from the layout component rather than a text-align rule, which
  * keeps this free of a stylesheet.
  *
- * The surface is `SectionCard`, not a raw Salt `Card`. A raw card brings an at-rest
- * shadow, a 9px radius and a 0.3-alpha border, so an empty table used to be the
- * heaviest-looking thing on the page — the state with the least to say drew the most
- * attention.
+ * The state is deliberately surface-neutral. Tables and titled sections commonly
+ * render it inside their own bordered surface; giving the empty state another Card
+ * produces the card-within-card frame the reference never uses. A standalone page
+ * can place it directly in the content column without inventing a second container.
  *
  * The title is a real `h2`. `styleAs="h4"` alone produced heading-*looking* text
  * that no screen reader could navigate to, on the one screen where knowing why
@@ -36,9 +34,8 @@ export function EmptyState({
   headingLevel?: 'h2' | 'h3';
 }) {
   return (
-    <SectionCard>
-      <StackLayout gap={1} align="center">
-        {/*
+    <StackLayout gap={1} align="center">
+      {/*
           The icon the design standard has specified since it was written, and which
           this component never rendered. Its own anatomy line asks for one at around
           32px above a Title Case title — the whole point being that a block of
@@ -51,13 +48,12 @@ export function EmptyState({
           from assistive technology because the title beneath it already says what
           this is, and an announced icon would repeat it.
         */}
-        <FolderOpenIcon size={2} aria-hidden />
-        <Text styleAs="h4" as={headingLevel}>
-          {title}
-        </Text>
-        {description ? <Text color="secondary">{description}</Text> : null}
-        {action}
-      </StackLayout>
-    </SectionCard>
+      <FolderOpenIcon size={2} aria-hidden />
+      <Text styleAs="h4" as={headingLevel}>
+        {title}
+      </Text>
+      {description ? <Text color="secondary">{description}</Text> : null}
+      {action}
+    </StackLayout>
   );
 }

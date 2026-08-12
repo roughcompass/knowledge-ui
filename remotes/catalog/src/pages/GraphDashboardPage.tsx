@@ -11,7 +11,7 @@ import {
   ErrorPanel,
   Note,
   PageHeader,
-  SectionCard,
+  SectionHeading,
   StatTile,
   TileGrid,
   UnavailableNotice,
@@ -183,34 +183,33 @@ function ProjectionPanel({
   const more = Boolean(query.data?.next_cursor);
 
   return (
-    <SectionCard title={title} description={description} headingLevel="h3">
-      <StackLayout gap={2}>
-        <TileGrid columns={2}>
-          {/*
+    <StackLayout gap={2}>
+      <SectionHeading title={title} description={description} headingLevel="h3" />
+      <TileGrid columns={2}>
+        {/*
             Labelled "on this page" in the label itself rather than in a footnote.
             A tile reading "Entities 20" beside a graph of unknown size is read as
             a total by everyone who does not read the footnote.
           */}
-          <StatTile
-            isLoading={query.isLoading}
-            label="Entities on the first page"
-            value={nodes.length}
-            hint={more ? 'More follow.' : 'This is the whole projection.'}
-            headingLevel="h3"
-          />
-          <StatTile
-            isLoading={query.isLoading}
-            label="Edges on the first page"
-            value={edges.length}
-            hint="Edges whose source is one of the entities above."
-            headingLevel="h3"
-          />
-        </TileGrid>
-        <Text>
-          <KLink to="projections">Open the projections</KLink> to page through the rest.
-        </Text>
-      </StackLayout>
-    </SectionCard>
+        <StatTile
+          isLoading={query.isLoading}
+          label="Entities on the first page"
+          value={nodes.length}
+          hint={more ? 'More follow.' : 'This is the whole projection.'}
+          headingLevel="h3"
+        />
+        <StatTile
+          isLoading={query.isLoading}
+          label="Edges on the first page"
+          value={edges.length}
+          hint="Edges whose source is one of the entities above."
+          headingLevel="h3"
+        />
+      </TileGrid>
+      <Text>
+        <KLink to="projections">Open the projections</KLink> to page through the rest.
+      </Text>
+    </StackLayout>
   );
 }
 
@@ -226,36 +225,38 @@ export function GraphDashboardPage() {
         description="How the catalog is connected: the ontology that constrains the graph, and the projections of what this tenant ships and consumes."
       />
 
-      <SectionCard
-        title="Ontology"
-        description="The definitions the graph is built from — what a node may be, how two entities may be related, and which of those shapes are enforced."
-        actions={
-          canReadOntology ? (
-            <KLink to="ontology">Ontology Detail</KLink>
-          ) : (
-            /*
+      <StackLayout gap={2}>
+        <SectionHeading
+          title="Ontology"
+          description="The definitions the graph is built from — what a node may be, how two entities may be related, and which of those shapes are enforced."
+          action={
+            canReadOntology ? (
+              <KLink to="ontology">Ontology Detail</KLink>
+            ) : (
+              /*
               Gated on the same capability as the page it opens. Ungated, the
               action walks a consumer straight into a refusal — an invitation to
               a door that does not open is worse than a visibly locked door.
             */
-            <Tooltip content="The ontology detail page needs the admin role.">
-              <Button appearance="transparent" sentiment="neutral" disabled focusableWhenDisabled>
-                Ontology Detail
-              </Button>
-            </Tooltip>
-          )
-        }
-      >
+              <Tooltip content="The ontology detail page needs the admin role.">
+                <Button appearance="transparent" sentiment="neutral" disabled focusableWhenDisabled>
+                  Ontology Detail
+                </Button>
+              </Tooltip>
+            )
+          }
+        />
         <OntologyPanel session={session} client={client} />
-      </SectionCard>
+      </StackLayout>
 
-      <SectionCard
-        title="Projections"
-        // The unstated half — the two directions are two endpoints, each paged
-        // by cursor — is machinery; what a reader needs is that these are first
-        // pages and the contextplane does not say how much follows.
-        description="The first page of each projection. More may follow, and the contextplane does not say how much."
-      >
+      <StackLayout gap={2}>
+        <SectionHeading
+          title="Projections"
+          // The unstated half — the two directions are two endpoints, each paged
+          // by cursor — is machinery; what a reader needs is that these are first
+          // pages and the contextplane does not say how much follows.
+          description="The first page of each projection. More may follow, and the contextplane does not say how much."
+        />
         <StackLayout gap={3}>
           <ProjectionPanel
             session={session}
@@ -272,7 +273,7 @@ export function GraphDashboardPage() {
             description="Entities something in this tenant depends on."
           />
         </StackLayout>
-      </SectionCard>
+      </StackLayout>
 
       {/*
         The absence is a first-class panel rather than a caveat in small print,

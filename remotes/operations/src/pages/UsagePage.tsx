@@ -25,6 +25,7 @@ import {
   Note,
   PageHeader,
   SectionCard,
+  SectionHeading,
   StatTile,
   TileGrid,
   UnavailableNotice,
@@ -392,11 +393,12 @@ export function UsagePage() {
 
       {operatorScoped ? (
         <>
-          <SectionCard
-            title="By surface"
-            description="Calls and reach per surface."
-            actions={windowValue(summary.data)}
-          >
+          <StackLayout gap={2}>
+            <SectionHeading
+              title="By surface"
+              description="Calls and reach per surface."
+              action={windowValue(summary.data)}
+            />
             {summary.error ? (
               <ErrorPanel error={summary.error} title="Could not read usage" />
             ) : null}
@@ -425,6 +427,7 @@ export function UsagePage() {
                       */
                       badge={<ReachBadge surface={surface} />}
                       hint={surfaceTileHint(surface)}
+                      headingLevel="h3"
                     />
                   ))}
                 </TileGrid>
@@ -480,7 +483,7 @@ export function UsagePage() {
                 </Text>
               </StackLayout>
             ) : null}
-          </SectionCard>
+          </StackLayout>
 
           <SectionCard
             title="Daily volume"

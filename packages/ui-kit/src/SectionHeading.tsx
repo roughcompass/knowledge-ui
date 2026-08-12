@@ -1,4 +1,4 @@
-import { FlexLayout, StackLayout, Text } from '@salt-ds/core';
+import { FlexItem, FlexLayout, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 /**
@@ -18,25 +18,33 @@ import type { ReactNode } from 'react';
 export function SectionHeading({
   eyebrow,
   title,
+  description,
   action,
+  headingLevel = 'h2',
 }: {
   eyebrow?: string;
   title: string;
+  description?: ReactNode;
   action?: ReactNode;
+  /** Set to `h3` when this group sits beneath another section heading. */
+  headingLevel?: 'h2' | 'h3';
 }) {
   return (
-    <FlexLayout gap={2} align="center" justify="space-between">
-      <StackLayout gap={1}>
-        {eyebrow ? (
-          <Text styleAs="notation" color="secondary">
-            {eyebrow}
+    <FlexLayout gap={2} align="start" justify="space-between" wrap>
+      <FlexItem basis={{ xs: '100%', sm: 0 }} grow={1} shrink={1}>
+        <StackLayout gap={1}>
+          {eyebrow ? (
+            <Text styleAs="notation" color="secondary">
+              {eyebrow}
+            </Text>
+          ) : null}
+          <Text styleAs="h3" as={headingLevel}>
+            {title}
           </Text>
-        ) : null}
-        <Text styleAs="h3" as="h2">
-          {title}
-        </Text>
-      </StackLayout>
-      {action}
+          {description !== undefined ? <Text color="secondary">{description}</Text> : null}
+        </StackLayout>
+      </FlexItem>
+      {action !== undefined ? <FlexItem shrink={0}>{action}</FlexItem> : null}
     </FlexLayout>
   );
 }
