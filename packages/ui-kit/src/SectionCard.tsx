@@ -36,7 +36,6 @@ export function SectionCard({
   flush = false,
   headingLevel = 'h2',
   variant = 'primary',
-  accent,
   hoverable = false,
   children,
 }: {
@@ -65,7 +64,6 @@ export function SectionCard({
   /** Set to `h3` when the section sits under another heading. */
   headingLevel?: 'h2' | 'h3';
   variant?: CardProps['variant'];
-  accent?: CardProps['accent'];
   hoverable?: boolean;
   children: ReactNode;
 }) {
@@ -102,7 +100,7 @@ export function SectionCard({
   ) : null;
 
   return (
-    <Card variant={variant} accent={accent} hoverable={hoverable}>
+    <Card variant={variant} hoverable={hoverable}>
       <StackLayout gap={flush ? 1 : 2}>
         {banded && heading ? (
           <>

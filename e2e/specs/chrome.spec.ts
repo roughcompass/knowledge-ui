@@ -27,7 +27,7 @@ test('the public product name is consistent across the document and shell', asyn
 
   await expect(page).toHaveTitle('DE Context Plane for Agents');
   await expect(
-    page.locator(RAIL).getByText('DE Context Plane for Agents', { exact: true }),
+    page.getByRole('banner').getByText('DE Context Plane for Agents', { exact: true }),
   ).toBeVisible();
 });
 
@@ -118,7 +118,7 @@ test('a collapsed section still shows that it holds the current page', async ({ 
   );
 });
 
-test('the utility bar and main content stay clear of the branded navigation rail', async ({
+test('the sticky utility bar spans the viewport while content stays clear of the rail', async ({
   page,
 }) => {
   await ready(page, '/catalog');
@@ -129,19 +129,33 @@ test('the utility bar and main content stay clear of the branded navigation rail
     const main = document.querySelector('main');
     if (!bar || !rail || !main) return null;
     const railBounds = rail.parentElement?.getBoundingClientRect() ?? rail.getBoundingClientRect();
+    const shellBounds = bar.parentElement?.getBoundingClientRect() ?? bar.getBoundingClientRect();
     return {
       railRight: Math.round(railBounds.right),
       barLeft: Math.round(bar.getBoundingClientRect().left),
+      barRight: Math.round(bar.getBoundingClientRect().right),
+      barTop: Math.round(bar.getBoundingClientRect().top),
       mainLeft: Math.round(main.getBoundingClientRect().left),
+      shellLeft: Math.round(shellBounds.left),
+      shellRight: Math.round(shellBounds.right),
     };
   });
 
   expect(bounds).not.toBeNull();
-  expect(bounds?.barLeft).toBeGreaterThanOrEqual(bounds?.railRight ?? 0);
+  expect(bounds?.barLeft).toBe(bounds?.shellLeft);
+  expect(bounds?.barRight).toBe(bounds?.shellRight);
   expect(bounds?.mainLeft).toBeGreaterThanOrEqual(bounds?.railRight ?? 0);
+
+  await page.evaluate(() => window.scrollTo({ top: 600 }));
+  const scrolledTop = await page
+    .locator('header')
+    .evaluate((header) => Math.round(header.getBoundingClientRect().top));
+  expect(scrolledTop).toBe(0);
 });
 
-test('the Salt navigation rail keeps a stable usable width across reloads', async ({ page }) => {
+test('the Salt navigation rail resizes and keeps its usable width across reloads', async ({
+  page,
+}) => {
   await ready(page, '/catalog');
 
   const rail = page.locator(RAIL);
@@ -150,13 +164,34 @@ test('the Salt navigation rail keeps a stable usable width across reloads', asyn
   );
   expect(before).toBeGreaterThan(200);
 
+  const widthControl = page.getByRole('slider', { name: 'Navigation width' });
+  await widthControl.press('ArrowRight');
+  await expect
+    .poll(() =>
+      rail.evaluate((element) =>
+        Math.round((element.parentElement ?? element).getBoundingClientRect().width),
+      ),
+    )
+    .toBeGreaterThan(before);
+
   await page.reload({ waitUntil: 'networkidle' });
   const after = await page
     .locator(RAIL)
     .evaluate((element) =>
       Math.round((element.parentElement ?? element).getBoundingClientRect().width),
     );
-  expect(after).toBe(before);
+  expect(after).toBeGreaterThan(before);
+});
+
+test('the shell footer closes every route with provenance and implementation context', async ({
+  page,
+}) => {
+  await ready(page, '/');
+
+  const footer = page.getByRole('contentinfo');
+  await expect(footer).toContainText('Context is served by the registry API');
+  await expect(footer).toContainText('Built with Salt Design System');
+  await expect(footer.getByRole('link', { name: 'API Status' })).toHaveAttribute('href', '/ops');
 });
 
 test('table cell presentation is owned by Salt rather than application classes', async ({

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AppShell } from '../AppShell';
+import { AppSidebar } from '../AppSidebar';
 
 function installNarrowViewport() {
   const media = {
@@ -71,5 +72,39 @@ describe('AppShell narrow navigation', () => {
     fireEvent.animationEnd(dialog);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await waitFor(() => expect(open).toHaveFocus());
+  });
+});
+
+describe('AppShell desktop frame', () => {
+  it('keeps the header above the rail and content, exposes the footer, and applies rail width', () => {
+    render(
+      <AppShell
+        topBar={<span>Product toolbar</span>}
+        rail={<span>Desktop navigation</span>}
+        footer={<span>Product footer</span>}
+      >
+        <span>Page content</span>
+      </AppShell>,
+    );
+
+    const banner = screen.getByRole('banner');
+    const navigation = screen.getByText('Desktop navigation');
+    const railItem = navigation.parentElement;
+
+    expect(banner.className).toMatch(/sticky/);
+    expect(banner.parentElement).toBe(railItem?.parentElement?.parentElement?.parentElement);
+    expect(screen.getByRole('contentinfo')).toHaveTextContent('Product footer');
+  });
+
+  it('applies a dynamic width through the Salt SidePanel variable', () => {
+    render(
+      <AppSidebar header={<span>Workspace</span>} width={304}>
+        <span>Navigation items</span>
+      </AppSidebar>,
+    );
+
+    const navigation = screen.getByRole('navigation');
+    const sidePanel = navigation.closest<HTMLElement>('.saltSidePanel');
+    expect(sidePanel?.style.getPropertyValue('--saltSidePanel-width')).toBe('304px');
   });
 });

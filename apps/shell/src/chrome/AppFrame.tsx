@@ -2,10 +2,10 @@ import {
   Avatar,
   Button,
   Card,
-  Divider,
   FlexLayout,
   NavigationItem,
   SkipLink,
+  Slider,
   StackLayout,
   StatusIndicator,
   Tag,
@@ -46,8 +46,12 @@ import { GlobalSearch } from './GlobalSearch';
 /** Shared by the skip link and the main landmark it targets. */
 const MAIN_ID = 'main-content';
 
-/** Sits beside `kui:sidebar-width`, which the rail already persists. */
+const RAIL_WIDTH_STORAGE_KEY = 'kui:sidebar-width';
 const COLLAPSED_STORAGE_KEY = 'kui:nav-collapsed';
+const DEFAULT_RAIL_WIDTH = 240;
+const MIN_RAIL_WIDTH = 240;
+const MAX_RAIL_WIDTH = 368;
+const RAIL_WIDTH_STEP = 32;
 
 /** The full 36-character form. Anything shorter is already a human-usable handle. */
 const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -157,7 +161,7 @@ export function AppFrame({
   client: RegistryClient;
 }) {
   const { breakpoint } = useBreakpoint();
-  const compactChrome = breakpoint === 'xs' || breakpoint === 'sm';
+  const compactChrome = breakpoint === 'xs' || breakpoint === 'sm' || breakpoint === 'md';
   const location = useLocation();
 
   const visible = NAVIGATION.filter((section) => can(session, section.need));
@@ -172,6 +176,7 @@ export function AppFrame({
    * rail's own width is: the standalone prerender pass has no `window`.
    */
   const [collapsed, setCollapsed] = useState<readonly string[]>([]);
+  const [railWidth, setRailWidth] = useState(DEFAULT_RAIL_WIDTH);
 
   useEffect(() => {
     try {
@@ -179,6 +184,17 @@ export function AppFrame({
       if (raw) setCollapsed(JSON.parse(raw) as string[]);
     } catch {
       /* private browsing, or a value someone hand-edited — open everything */
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stored = Number(window.localStorage.getItem(RAIL_WIDTH_STORAGE_KEY));
+      if (Number.isFinite(stored) && stored >= MIN_RAIL_WIDTH && stored <= MAX_RAIL_WIDTH) {
+        setRailWidth(stored);
+      }
+    } catch {
+      /* private browsing — the default width remains usable */
     }
   }, []);
 
@@ -194,6 +210,16 @@ export function AppFrame({
       }
       return next;
     });
+  }, []);
+
+  const persistRailWidth = useCallback((value: number) => {
+    const next = Math.min(MAX_RAIL_WIDTH, Math.max(MIN_RAIL_WIDTH, value));
+    setRailWidth(next);
+    try {
+      window.localStorage.setItem(RAIL_WIDTH_STORAGE_KEY, String(next));
+    } catch {
+      /* the width simply will not outlive the tab */
+    }
   }, []);
 
   /*
@@ -290,24 +316,20 @@ export function AppFrame({
       <SkipLink targetId={MAIN_ID}>Skip to main content</SkipLink>
 
       <AppShell
-        // Content only. `AppShell` owns the bar's element, height, padding and
-        // hairline so it can hold the same height as the rail's header.
+        // Content only. `AppShell` owns the full-width sticky header surface,
+        // spacing and divider so the rail begins below it like the reference.
         topBar={
           <FlexLayout align="center" justify="space-between" gap={3}>
             <FlexLayout align="center" gap={2}>
-              {compactChrome ? (
-                <>
-                  <Avatar
-                    color="accent"
-                    fallbackIcon={<CompassSolidIcon aria-hidden />}
-                    size={0.8}
-                    aria-hidden
-                  />
-                  <Text styleAs="h4" as="span">
-                    {PRODUCT_NAME}
-                  </Text>
-                </>
-              ) : null}
+              <Avatar
+                color="accent"
+                fallbackIcon={<CompassSolidIcon aria-hidden />}
+                size={0.8}
+                aria-hidden
+              />
+              <Text styleAs="h4" as="span">
+                {PRODUCT_NAME}
+              </Text>
               {!compactChrome ? <Tag>{session.role}</Tag> : null}
               {!compactChrome ? <ScopeBreadcrumb segments={breadcrumb} label="Location" /> : null}
             </FlexLayout>
@@ -332,7 +354,6 @@ export function AppFrame({
                   </Text>
                 </FlexLayout>
               ) : null}
-              {!compactChrome ? <GlobalSearch session={session} client={client} /> : null}
               {!compactChrome && can(session, 'notification:read') ? (
                 <Tooltip content="Notifications">
                   <StackLayout gap={1} padding={1}>
@@ -380,60 +401,88 @@ export function AppFrame({
             </FlexLayout>
           </FlexLayout>
         }
+        footer={
+          <FlexLayout gap={3} justify="space-between" align="center" wrap>
+            <Text styleAs="notation" color="secondary">
+              Context is served by the registry API and scoped to this identity.
+            </Text>
+            <FlexLayout gap={3} align="center" wrap>
+              <KLink to="/ops">API Status</KLink>
+              <KLink to="/_session">Session Details</KLink>
+              <Text styleAs="notation" color="secondary">
+                Built with Salt Design System
+              </Text>
+            </FlexLayout>
+          </FlexLayout>
+        }
         rail={
           <AppSidebar
             label="Sections"
+            width={railWidth}
             header={
-              <FlexLayout gap={2} align="center">
-                <Avatar
-                  color="accent"
-                  fallbackIcon={<CompassSolidIcon aria-hidden />}
-                  size={0.9}
-                  aria-hidden
+              <StackLayout gap={1}>
+                <Text styleAs="notation" color="secondary">
+                  Workspace
+                </Text>
+                <ScopeSwitcher
+                  label="Signed in as"
+                  options={personas.map((persona) => ({
+                    key: persona.key,
+                    label: persona.label,
+                    description: persona.description,
+                  }))}
+                  currentKey={session.personaKey}
+                  onChange={onSwitchPersona}
                 />
-                <StackLayout gap={0}>
-                  <Text styleAs="h4" as="span">
-                    {PRODUCT_NAME}
-                  </Text>
-                  <Text styleAs="notation" color="secondary">
-                    Governed capability context
-                  </Text>
-                </StackLayout>
-              </FlexLayout>
+              </StackLayout>
             }
-            search={compactChrome ? <GlobalSearch session={session} client={client} /> : undefined}
+            search={<GlobalSearch session={session} client={client} />}
             footer={
-              // Ambient session status only. Identity moved to the header, where
-              // the reference keeps scope; connectivity and appearance are
-              // readouts, not identity.
-              <Card variant="secondary">
-                <StackLayout gap={2}>
-                  <FlexLayout gap={1} align="center">
-                    <StatusIndicator
-                      status={
-                        readiness === 'ready'
-                          ? 'success'
-                          : readiness === 'not-ready'
-                            ? 'error'
-                            : 'warning'
-                      }
-                    />
-                    <StackLayout gap={0}>
-                      <Text styleAs="label">Secure session</Text>
-                      <Text styleAs="notation" color="secondary">
-                        {readiness === 'ready'
-                          ? 'API ready'
-                          : readiness === 'not-ready'
-                            ? 'API not ready'
-                            : 'API unknown'}
-                      </Text>
-                    </StackLayout>
-                  </FlexLayout>
-                  <KLink to="/_session" color="accent">
-                    Session details
-                  </KLink>
+              <StackLayout gap={2}>
+                <Card variant="secondary">
+                  <StackLayout gap={2}>
+                    <FlexLayout gap={1} align="center">
+                      <StatusIndicator
+                        status={
+                          readiness === 'ready'
+                            ? 'success'
+                            : readiness === 'not-ready'
+                              ? 'error'
+                              : 'warning'
+                        }
+                      />
+                      <StackLayout gap={0}>
+                        <Text styleAs="label">Secure session</Text>
+                        <Text styleAs="notation" color="secondary">
+                          {readiness === 'ready'
+                            ? 'API ready'
+                            : readiness === 'not-ready'
+                              ? 'API not ready'
+                              : 'API unknown'}
+                        </Text>
+                      </StackLayout>
+                    </FlexLayout>
+                    <KLink to="/_session" color="accent">
+                      Session details
+                    </KLink>
+                  </StackLayout>
+                </Card>
+                <StackLayout gap={1}>
+                  <Text styleAs="notation" color="secondary">
+                    Navigation width
+                  </Text>
+                  <Slider
+                    aria-label="Navigation width"
+                    min={MIN_RAIL_WIDTH}
+                    max={MAX_RAIL_WIDTH}
+                    step={RAIL_WIDTH_STEP}
+                    value={railWidth}
+                    format={(value) => `${value} pixels`}
+                    onChange={(_event, value) => setRailWidth(value)}
+                    onChangeEnd={(_event, value) => persistRailWidth(value)}
+                  />
                 </StackLayout>
-              </Card>
+              </StackLayout>
             }
           >
             {/*
@@ -454,92 +503,74 @@ export function AppFrame({
               Every other role sees fewer, because capability gating already prunes
               both levels.
             */}
-            <StackLayout gap={2}>
-              <StackLayout gap={1}>
-                <Text styleAs="notation" color="secondary">
-                  Workspace
-                </Text>
-                <ScopeSwitcher
-                  label="Signed in as"
-                  options={personas.map((persona) => ({
-                    key: persona.key,
-                    label: persona.label,
-                    description: persona.description,
-                  }))}
-                  currentKey={session.personaKey}
-                  onChange={onSwitchPersona}
-                />
-              </StackLayout>
-              <Divider variant="tertiary" />
-              <StackLayout gap={0}>
-                <NavigationItem
-                  href="/"
-                  active={location.pathname === '/'}
-                  orientation="vertical"
-                  render={(props) => <Link to="/" {...props} />}
-                >
-                  <FlexLayout gap={1} align="center">
-                    <DashboardSolidIcon aria-hidden />
-                    Dashboard
-                  </FlexLayout>
-                </NavigationItem>
+            <StackLayout gap={0}>
+              <NavigationItem
+                href="/"
+                active={location.pathname === '/'}
+                orientation="vertical"
+                render={(props) => <Link to="/" {...props} />}
+              >
+                <FlexLayout gap={1} align="center">
+                  <DashboardSolidIcon aria-hidden />
+                  Dashboard
+                </FlexLayout>
+              </NavigationItem>
 
-                {visible.map((section) => {
-                  const Icon = NAV_ICON[section.key];
-                  const children = section.children.filter(
-                    (child) => child.need === undefined || can(session, child.need),
-                  );
-                  const expanded = !collapsed.includes(section.key);
-                  const holdsActive = children.some((child) => child.href === location.pathname);
+              {visible.map((section) => {
+                const Icon = NAV_ICON[section.key];
+                const children = section.children.filter(
+                  (child) => child.need === undefined || can(session, child.need),
+                );
+                const expanded = !collapsed.includes(section.key);
+                const holdsActive = children.some((child) => child.href === location.pathname);
 
-                  return (
-                    <Fragment key={section.key}>
-                      <NavigationItem
-                        parent
-                        expanded={expanded}
-                        orientation="vertical"
-                        /*
+                return (
+                  <Fragment key={section.key}>
+                    <NavigationItem
+                      parent
+                      expanded={expanded}
+                      orientation="vertical"
+                      /*
                         A section is a disclosure, not a destination. Every section's
                         own href was its first child's, so "Catalog" and
                         "Capabilities" went to the same place and only the child ever
                         carried `aria-current`. Dropping the href removes the
                         duplicate rather than papering over it.
                       */
-                        onExpand={() => toggleSection(section.key)}
-                        /*
+                      onExpand={() => toggleSection(section.key)}
+                      /*
                         Marks a collapsed section that contains the current page, so
                         closing a section does not lose where you are. Salt only
                         honours this when the group is collapsed.
                       */
-                        blurActive={!expanded && holdsActive}
-                      >
-                        <FlexLayout gap={1} align="center">
-                          {Icon ? <Icon aria-hidden /> : null}
-                          {section.label}
-                        </FlexLayout>
-                      </NavigationItem>
+                      blurActive={!expanded && holdsActive}
+                    >
+                      <FlexLayout gap={1} align="center">
+                        {Icon ? <Icon aria-hidden /> : null}
+                        {section.label}
+                      </FlexLayout>
+                    </NavigationItem>
 
-                      {expanded
-                        ? children.map((child) => (
-                            <NavigationItem
-                              key={child.href}
-                              href={child.href}
-                              level={1}
-                              // Exact match: a prefix match would leave two items
-                              // claiming `aria-current` on a child route, which the
-                              // accessibility sweep asserts against.
-                              active={location.pathname === child.href}
-                              orientation="vertical"
-                              render={(props) => <Link to={child.href} {...props} />}
-                            >
-                              {child.label}
-                            </NavigationItem>
-                          ))
-                        : null}
-                    </Fragment>
-                  );
-                })}
-              </StackLayout>
+                    {expanded
+                      ? children.map((child) => (
+                          <NavigationItem
+                            key={child.href}
+                            href={child.href}
+                            level={1}
+                            // Exact match: a prefix match would leave two items
+                            // claiming `aria-current` on a child route, which the
+                            // accessibility sweep asserts against.
+                            active={location.pathname === child.href}
+                            orientation="vertical"
+                            render={(props) => <Link to={child.href} {...props} />}
+                          >
+                            {child.label}
+                          </NavigationItem>
+                        ))
+                      : null}
+                  </Fragment>
+                );
+              })}
             </StackLayout>
           </AppSidebar>
         }

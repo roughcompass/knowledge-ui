@@ -1,4 +1,4 @@
-import { FlexLayout, StackLayout, Text } from '@salt-ds/core';
+import { FlexItem, FlexLayout, StackLayout, Text } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
 import { Prose } from './Layout';
@@ -10,10 +10,9 @@ import { Prose } from './Layout';
  * Salt's Text carries the type scale, and a bare heading element would render
  * outside it.
  *
- * The title keeps `h1` semantics at Salt's `h2` visual scale. In a data-dense
- * console the larger display scale crowded out filters and tables; the smaller
- * scale remains unmistakably first in the outline when paired with the domain
- * eyebrow. The description stays secondary body text rather than competing with it.
+ * The title keeps `h1` semantics and Salt's `h1` visual scale, matching the
+ * page-heading hierarchy used by the reference shell. The description stays
+ * secondary body text rather than competing with it.
  *
  * `description` and `metadata` are separate props rather than one polymorphic slot.
  * There was one slot, branching on `typeof description === 'string'` to decide
@@ -46,26 +45,32 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <StackLayout gap={2}>
-      {eyebrow !== undefined ? (
-        <Text styleAs="notation" color="secondary">
-          {eyebrow}
-        </Text>
+    <FlexLayout gap={3} align="end" justify="space-between" wrap>
+      <FlexItem basis={{ xs: '100%', sm: 0 }} grow={1} shrink={1}>
+        <StackLayout gap={2}>
+          {eyebrow !== undefined ? (
+            <Text styleAs="notation" color="secondary">
+              {eyebrow}
+            </Text>
+          ) : null}
+          <Text styleAs="h1" as="h1">
+            {title}
+          </Text>
+          {description !== undefined ? (
+            // Measured, because several callers pass a full sentence of explanation and
+            // it otherwise ran the width of the viewport.
+            <Prose>
+              <Text color="secondary">{description}</Text>
+            </Prose>
+          ) : null}
+          {metadata}
+        </StackLayout>
+      </FlexItem>
+      {actions !== undefined ? (
+        <FlexLayout gap={2} align="center" wrap>
+          {actions}
+        </FlexLayout>
       ) : null}
-      <FlexLayout gap={2} align="center" justify="space-between">
-        <Text styleAs="h2" as="h1">
-          {title}
-        </Text>
-        {actions}
-      </FlexLayout>
-      {description !== undefined ? (
-        // Measured, because several callers pass a full sentence of explanation and
-        // it otherwise ran the width of the viewport.
-        <Prose>
-          <Text color="secondary">{description}</Text>
-        </Prose>
-      ) : null}
-      {metadata}
-    </StackLayout>
+    </FlexLayout>
   );
 }

@@ -40,7 +40,7 @@ export function NavCard({
   links?: readonly { label: string; to: string }[];
 }) {
   return (
-    <Card hoverable accent="top">
+    <Card hoverable>
       <FlexLayout gap={2} align="start">
         {visual}
         <StackLayout gap={2}>

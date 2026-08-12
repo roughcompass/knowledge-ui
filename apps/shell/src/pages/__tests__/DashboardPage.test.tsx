@@ -213,14 +213,26 @@ describe('the page-level destinations', () => {
   it('keeps claims and capabilities as distinct real links', async () => {
     renderDashboard('consumer', { '/v1/notifications': { items: [], next_cursor: null } });
 
-    expect(await screen.findByRole('link', { name: /browse claims/i })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: /review claims/i })).toHaveAttribute(
       'href',
       '/catalog/claims',
     );
-    expect(screen.getByRole('link', { name: /browse capabilities/i })).toHaveAttribute(
-      'href',
-      '/catalog',
-    );
+    expect(screen.getByRole('link', { name: /open catalog/i })).toHaveAttribute('href', '/catalog');
+  });
+
+  it('uses the reference greeting hierarchy and keeps feature cards border-consistent', async () => {
+    renderDashboard('consumer', { '/v1/notifications': { items: [], next_cursor: null } });
+
+    expect(await screen.findByText('Global context')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: /good (morning|afternoon|evening)/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/All context is consolidated for Local Development Tenant/),
+    ).toBeInTheDocument();
+
+    const actionCenter = screen.getByText('Action center').closest('.saltCard');
+    expect(actionCenter?.className).not.toMatch(/accentTop/);
   });
 });
 

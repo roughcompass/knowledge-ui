@@ -1,7 +1,6 @@
 import {
   Avatar,
   Card,
-  Divider,
   FlexLayout,
   FlowLayout,
   GridLayout,
@@ -209,11 +208,16 @@ export function DashboardPage({
           const name = personName(session.actorDisplayName);
           return name ? `${greeting()}, ${name}` : greeting();
         })()}
-        description={`${todayLabel()} · Everything teams here publish for others to build on.`}
+        description={`${todayLabel()} · All context is consolidated for ${session.tenantDisplayName} and this identity.`}
         actions={
-          <KLink to={remoteChildHref('catalog', 'claims')} color="accent">
-            <ListIcon aria-hidden /> Browse Claims
-          </KLink>
+          <>
+            <LinkButton to={remoteChildHref('catalog', 'claims')} appearance="bordered">
+              <ListIcon aria-hidden /> Review Claims
+            </LinkButton>
+            <LinkButton to={remoteFor('catalog').mountPath} appearance="solid">
+              <DatabaseSolidIcon aria-hidden /> Open Catalog
+            </LinkButton>
+          </>
         }
       />
 
@@ -316,24 +320,6 @@ export function DashboardPage({
         The audit-log explainer went with it: the audit route's own refusal state
         already names the auditor role and offers the switch.
       */}
-
-      {/*
-        The reference closes with a quiet row of links rather than a card. These are
-        the three a reader wants when something is wrong or unclear, and none of them
-        deserves a destination card competing with the sections above.
-      */}
-      <StackLayout gap={2}>
-        <Divider variant="tertiary" />
-        <FlexLayout gap={3} justify="space-between" wrap>
-          <Text styleAs="notation" color="secondary">
-            Context is served by the registry API and scoped to this identity.
-          </Text>
-          <FlexLayout gap={3} wrap>
-            <KLink to="/ops">API Status</KLink>
-            <KLink to="/_session">Session Details</KLink>
-          </FlexLayout>
-        </FlexLayout>
-      </StackLayout>
     </StackLayout>
   );
 }
@@ -349,7 +335,7 @@ function KnowledgeHero({
 
   return (
     <SaltProviderNext mode="dark">
-      <Card variant="primary" accent="top">
+      <Card variant="primary">
         <GridLayout columns={{ xs: 1, md: 2 }} gap={4}>
           <StackLayout gap={2}>
             <FlexLayout gap={1} align="center">
@@ -424,7 +410,6 @@ function DashboardRail({
       ) : null}
 
       <SectionCard
-        accent="top"
         title="Action center"
         description="The most useful destinations available to this identity."
       >
@@ -470,7 +455,7 @@ function ResourceCard({
   to: string;
 }) {
   return (
-    <SectionCard title={title} description={description} visual={visual} accent="top" hoverable>
+    <SectionCard title={title} description={description} visual={visual} hoverable>
       <FlexLayout justify="start">
         <LinkButton to={to}>{actionLabel}</LinkButton>
       </FlexLayout>

@@ -1,5 +1,5 @@
 import { Divider, SidePanel, SidePanelProvider, StackLayout } from '@salt-ds/core';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 /**
  * The navigation rail, composed from Salt's `SidePanel`, layout and divider
@@ -13,16 +13,28 @@ export function AppSidebar({
   children,
   footer,
   label = 'Main',
+  width,
 }: {
   header: ReactNode;
   search?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   label?: string;
+  /** Dynamic desktop width, expressed through Salt SidePanel's published variable. */
+  width?: number;
 }) {
+  const widthStyle =
+    width === undefined ? undefined : ({ '--saltSidePanel-width': `${width}px` } as CSSProperties);
+
   return (
     <SidePanelProvider defaultOpen>
-      <SidePanel position="left" variant="primary" aria-label={label} disableAnimation>
+      <SidePanel
+        position="left"
+        variant="primary"
+        aria-label={label}
+        disableAnimation
+        style={widthStyle}
+      >
         <StackLayout as="nav" aria-label={label} gap={2}>
           {header}
           {search ? (
