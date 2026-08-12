@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Button,
   Card,
   FlexLayout,
   FlowLayout,
@@ -20,6 +21,7 @@ import {
   WarningSolidIcon,
 } from '@salt-ds/icons';
 import { useEffect, useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   describeWindow,
   isSecondsReading,
@@ -186,6 +188,7 @@ export function DashboardPage({
   readiness: 'ready' | 'not-ready' | 'unknown';
 }) {
   const available = NAVIGATION.filter((section) => can(session, section.need));
+  const navigate = useNavigate();
 
   return (
     <StackLayout gap={3}>
@@ -211,12 +214,20 @@ export function DashboardPage({
         description={`${todayLabel()} · All context is consolidated for ${session.tenantDisplayName} and this identity.`}
         actions={
           <>
-            <LinkButton to={remoteChildHref('catalog', 'claims')} appearance="bordered">
+            <Button
+              appearance="bordered"
+              sentiment="accented"
+              onClick={() => navigate(remoteChildHref('catalog', 'claims'))}
+            >
               <ListIcon aria-hidden /> Review Claims
-            </LinkButton>
-            <LinkButton to={remoteFor('catalog').mountPath} appearance="solid">
+            </Button>
+            <Button
+              appearance="solid"
+              sentiment="accented"
+              onClick={() => navigate(remoteFor('catalog').mountPath)}
+            >
               <DatabaseSolidIcon aria-hidden /> Open Catalog
-            </LinkButton>
+            </Button>
           </>
         }
       />

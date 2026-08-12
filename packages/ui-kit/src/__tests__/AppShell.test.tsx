@@ -32,7 +32,7 @@ describe('AppShell narrow navigation', () => {
     render(
       <AppShell
         navigationLabel="Catalog navigation"
-        topBar={<span>Catalog</span>}
+        topBarStart={<span>Catalog</span>}
         rail={<a href="#catalog">Capabilities</a>}
       >
         <span>Page content</span>
@@ -59,7 +59,7 @@ describe('AppShell narrow navigation', () => {
     const user = userEvent.setup();
 
     render(
-      <AppShell topBar={<span>Catalog</span>} rail={<span>Navigation</span>}>
+      <AppShell topBarStart={<span>Catalog</span>} rail={<span>Navigation</span>}>
         <span>Page content</span>
       </AppShell>,
     );
@@ -79,7 +79,7 @@ describe('AppShell desktop frame', () => {
   it('keeps the header above the rail and content, exposes the footer, and applies rail width', () => {
     render(
       <AppShell
-        topBar={<span>Product toolbar</span>}
+        topBarStart={<span>Product toolbar</span>}
         rail={<span>Desktop navigation</span>}
         footer={<span>Product footer</span>}
       >

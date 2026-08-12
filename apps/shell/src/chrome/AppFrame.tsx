@@ -316,89 +316,89 @@ export function AppFrame({
       <SkipLink targetId={MAIN_ID}>Skip to main content</SkipLink>
 
       <AppShell
-        // Content only. `AppShell` owns the full-width sticky header surface,
-        // spacing and divider so the rail begins below it like the reference.
-        topBar={
-          <FlexLayout align="center" justify="space-between" gap={3}>
-            <FlexLayout align="center" gap={2}>
-              <Avatar
-                color="accent"
-                fallbackIcon={<CompassSolidIcon aria-hidden />}
-                size={0.8}
-                aria-hidden
-              />
-              <Text styleAs="h4" as="span">
-                {PRODUCT_NAME}
-              </Text>
-              {!compactChrome ? <Tag>{session.role}</Tag> : null}
-              {!compactChrome ? <ScopeBreadcrumb segments={breadcrumb} label="Location" /> : null}
-            </FlexLayout>
-            <FlexLayout align="center" gap={1}>
-              {!compactChrome ? (
-                <FlexLayout gap={1} align="center">
-                  <StatusIndicator
-                    status={
-                      readiness === 'ready'
-                        ? 'success'
-                        : readiness === 'not-ready'
-                          ? 'error'
-                          : 'warning'
-                    }
-                  />
-                  <Text styleAs="notation" color="secondary">
-                    {readiness === 'ready'
-                      ? 'API ready'
+        // Content only. `AppShell` owns the opaque, full-width sticky Toolbar
+        // and keeps the rail pinned immediately below its measured height.
+        topBarStart={
+          <FlexLayout align="center" gap={2}>
+            <Avatar
+              color="accent"
+              fallbackIcon={<CompassSolidIcon aria-hidden />}
+              size={0.8}
+              aria-hidden
+            />
+            <Text styleAs="h4" as="span">
+              {PRODUCT_NAME}
+            </Text>
+            {!compactChrome ? <Tag>{session.role}</Tag> : null}
+            {!compactChrome ? <ScopeBreadcrumb segments={breadcrumb} label="Location" /> : null}
+          </FlexLayout>
+        }
+        topBarEnd={
+          <FlexLayout align="center" gap={1}>
+            {!compactChrome ? (
+              <FlexLayout gap={1} align="center">
+                <StatusIndicator
+                  status={
+                    readiness === 'ready'
+                      ? 'success'
                       : readiness === 'not-ready'
-                        ? 'API not ready'
-                        : 'API unknown'}
-                  </Text>
-                </FlexLayout>
-              ) : null}
-              {!compactChrome && can(session, 'notification:read') ? (
-                <Tooltip content="Notifications">
-                  <StackLayout gap={1} padding={1}>
-                    <KLink
-                      to="/catalog/notifications"
-                      underline="never"
-                      color="primary"
-                      aria-label="Open notifications"
-                    >
-                      <NotificationIcon aria-hidden />
-                    </KLink>
-                  </StackLayout>
-                </Tooltip>
-              ) : null}
-              {!compactChrome ? (
-                <Tooltip content="Session details">
-                  <StackLayout gap={1} padding={1}>
-                    <KLink
-                      to="/_session"
-                      underline="never"
-                      color="primary"
-                      aria-label="Open session details"
-                    >
-                      <HelpCircleIcon aria-hidden />
-                    </KLink>
-                  </StackLayout>
-                </Tooltip>
-              ) : null}
-              <Tooltip content={mode === 'light' ? 'Use dark mode' : 'Use light mode'}>
-                <Button
-                  appearance="transparent"
-                  sentiment="neutral"
-                  onClick={onToggleMode}
-                  aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
-                >
-                  {mode === 'light' ? <DarkIcon aria-hidden /> : <LightIcon aria-hidden />}
-                </Button>
+                        ? 'error'
+                        : 'warning'
+                  }
+                />
+                <Text styleAs="notation" color="secondary">
+                  {readiness === 'ready'
+                    ? 'API ready'
+                    : readiness === 'not-ready'
+                      ? 'API not ready'
+                      : 'API unknown'}
+                </Text>
+              </FlexLayout>
+            ) : null}
+            {!compactChrome && can(session, 'notification:read') ? (
+              <Tooltip content="Notifications">
+                <StackLayout gap={1} padding={1}>
+                  <KLink
+                    to="/catalog/notifications"
+                    underline="never"
+                    color="primary"
+                    aria-label="Open notifications"
+                  >
+                    <NotificationIcon aria-hidden />
+                  </KLink>
+                </StackLayout>
               </Tooltip>
-              <Avatar
-                name={session.actorDisplayName ?? session.role}
-                size={0.8}
-                color="accent"
-                aria-label={session.actorDisplayName ?? `${session.role} session`}
-              />
-            </FlexLayout>
+            ) : null}
+            {!compactChrome ? (
+              <Tooltip content="Session details">
+                <StackLayout gap={1} padding={1}>
+                  <KLink
+                    to="/_session"
+                    underline="never"
+                    color="primary"
+                    aria-label="Open session details"
+                  >
+                    <HelpCircleIcon aria-hidden />
+                  </KLink>
+                </StackLayout>
+              </Tooltip>
+            ) : null}
+            <Tooltip content={mode === 'light' ? 'Use dark mode' : 'Use light mode'}>
+              <Button
+                appearance="transparent"
+                sentiment="neutral"
+                onClick={onToggleMode}
+                aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
+              >
+                {mode === 'light' ? <DarkIcon aria-hidden /> : <LightIcon aria-hidden />}
+              </Button>
+            </Tooltip>
+            <Avatar
+              name={session.actorDisplayName ?? session.role}
+              size={0.8}
+              color="accent"
+              aria-label={session.actorDisplayName ?? `${session.role} session`}
+            />
           </FlexLayout>
         }
         footer={

@@ -209,15 +209,12 @@ describe('what each role is offered', () => {
   });
 });
 
-describe('the page-level destinations', () => {
-  it('keeps claims and capabilities as distinct real links', async () => {
+describe('the page-level actions', () => {
+  it('renders distinct Salt controls for claims and the catalog', async () => {
     renderDashboard('consumer', { '/v1/notifications': { items: [], next_cursor: null } });
 
-    expect(await screen.findByRole('link', { name: /review claims/i })).toHaveAttribute(
-      'href',
-      '/catalog/claims',
-    );
-    expect(screen.getByRole('link', { name: /open catalog/i })).toHaveAttribute('href', '/catalog');
+    expect(await screen.findByRole('button', { name: /review claims/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /open catalog/i })).toBeInTheDocument();
   });
 
   it('uses the reference greeting hierarchy and keeps feature cards border-consistent', async () => {

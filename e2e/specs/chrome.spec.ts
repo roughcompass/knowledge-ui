@@ -128,8 +128,10 @@ test('the sticky utility bar spans the viewport while content stays clear of the
     const rail = document.querySelector('nav');
     const main = document.querySelector('main');
     if (!bar || !rail || !main) return null;
-    const railBounds = rail.parentElement?.getBoundingClientRect() ?? rail.getBoundingClientRect();
+    const stickyRail = rail.closest('.saltBorderItem');
+    const railBounds = stickyRail?.getBoundingClientRect() ?? rail.getBoundingClientRect();
     const shellBounds = bar.parentElement?.getBoundingClientRect() ?? bar.getBoundingClientRect();
+    const toolbar = bar.querySelector('.saltToolbar');
     return {
       railRight: Math.round(railBounds.right),
       barLeft: Math.round(bar.getBoundingClientRect().left),
@@ -138,6 +140,7 @@ test('the sticky utility bar spans the viewport while content stays clear of the
       mainLeft: Math.round(main.getBoundingClientRect().left),
       shellLeft: Math.round(shellBounds.left),
       shellRight: Math.round(shellBounds.right),
+      toolbarBackground: toolbar ? getComputedStyle(toolbar).backgroundColor : null,
     };
   });
 
@@ -145,12 +148,41 @@ test('the sticky utility bar spans the viewport while content stays clear of the
   expect(bounds?.barLeft).toBe(bounds?.shellLeft);
   expect(bounds?.barRight).toBe(bounds?.shellRight);
   expect(bounds?.mainLeft).toBeGreaterThanOrEqual(bounds?.railRight ?? 0);
+  expect(bounds?.toolbarBackground).not.toBe('rgba(0, 0, 0, 0)');
 
   await page.evaluate(() => window.scrollTo({ top: 600 }));
-  const scrolledTop = await page
-    .locator('header')
-    .evaluate((header) => Math.round(header.getBoundingClientRect().top));
-  expect(scrolledTop).toBe(0);
+  const scrolled = await page.evaluate(() => {
+    const bar = document.querySelector('header');
+    const stickyRail = document.querySelector('nav')?.closest<HTMLElement>('.saltBorderItem');
+    if (!bar || !stickyRail) return null;
+    const barBounds = bar.getBoundingClientRect();
+    const railBounds = stickyRail.getBoundingClientRect();
+    const pageScroll = window.scrollY;
+    stickyRail.scrollTop = 120;
+    return {
+      barTop: Math.round(barBounds.top),
+      barBottom: Math.round(barBounds.bottom),
+      railTop: Math.round(railBounds.top),
+      railBottom: Math.round(railBounds.bottom),
+      viewportBottom: window.innerHeight,
+      overflow: getComputedStyle(stickyRail).overflowY,
+      railScrollHeight: stickyRail.scrollHeight,
+      railClientHeight: stickyRail.clientHeight,
+      railScrollTop: stickyRail.scrollTop,
+      pageScroll,
+      pageScrollAfterRailScroll: window.scrollY,
+    };
+  });
+
+  expect(scrolled).not.toBeNull();
+  expect(scrolled?.pageScroll).toBeGreaterThan(0);
+  expect(scrolled?.barTop).toBe(0);
+  expect(scrolled?.railTop).toBe(scrolled?.barBottom);
+  expect(scrolled?.railBottom).toBeLessThanOrEqual(scrolled?.viewportBottom ?? 0);
+  expect(scrolled?.overflow).toBe('auto');
+  expect(scrolled?.railScrollHeight).toBeGreaterThan(scrolled?.railClientHeight ?? 0);
+  expect(scrolled?.railScrollTop).toBeGreaterThan(0);
+  expect(scrolled?.pageScrollAfterRailScroll).toBe(scrolled?.pageScroll);
 });
 
 test('the Salt navigation rail resizes and keeps its usable width across reloads', async ({

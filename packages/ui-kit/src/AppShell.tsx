@@ -5,13 +5,21 @@ import {
   Divider,
   Drawer,
   DrawerCloseButton,
-  FlexItem,
   FlexLayout,
   Panel,
   StackLayout,
+  Toolbar,
+  Tooltray,
 } from '@salt-ds/core';
 import { CloseIcon, MenuIcon } from '@salt-ds/icons';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 
 const NARROW_VIEWPORT_QUERY = '(max-width: 64rem)';
 
@@ -26,13 +34,15 @@ function narrowViewport(): boolean {
  */
 export function AppShell({
   rail,
-  topBar,
+  topBarStart,
+  topBarEnd,
   footer,
   children,
   navigationLabel = 'Navigation',
 }: {
   rail: ReactNode;
-  topBar?: ReactNode;
+  topBarStart?: ReactNode;
+  topBarEnd?: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
   /** Names the full-screen navigation dialog used on narrow viewports. */
@@ -42,6 +52,11 @@ export function AppShell({
   const [navigationOpen, setNavigationOpen] = useState(false);
   const openButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(() =>
+    typeof window === 'undefined' ? 0 : window.innerHeight,
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.matchMedia) return;
@@ -70,12 +85,40 @@ export function AppShell({
     return () => window.removeEventListener('keydown', onKeyDown, true);
   }, [closeNavigation, isNarrow, navigationOpen]);
 
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const measure = () => {
+      setHeaderHeight(header.getBoundingClientRect().height);
+      setViewportHeight(window.innerHeight);
+    };
+    measure();
+
+    const observer =
+      typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(measure);
+    observer?.observe(header);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  const railViewportStyle =
+    headerHeight > 0
+      ? ({
+          top: `${headerHeight}px`,
+          height: `${Math.max(0, viewportHeight - headerHeight)}px`,
+        } as CSSProperties)
+      : undefined;
+
   return (
     <BorderLayout>
-      {topBar ? (
-        <BorderItem as="header" position="north" sticky>
-          <StackLayout gap={0}>
-            <FlexLayout align="center" gap={2} padding={2}>
+      {topBarStart !== undefined || topBarEnd !== undefined ? (
+        <BorderItem ref={headerRef} as="header" position="north" sticky>
+          <Toolbar appearance="bordered" variant="primary">
+            <Tooltray align="start" overflowMode="none">
               {isNarrow ? (
                 <Button
                   ref={openButtonRef}
@@ -90,10 +133,14 @@ export function AppShell({
                   <MenuIcon aria-hidden />
                 </Button>
               ) : null}
-              <FlexItem grow={1}>{topBar}</FlexItem>
-            </FlexLayout>
-            <Divider variant="tertiary" />
-          </StackLayout>
+              {topBarStart}
+            </Tooltray>
+            {topBarEnd !== undefined ? (
+              <Tooltray align="end" overflowMode="none">
+                {topBarEnd}
+              </Tooltray>
+            ) : null}
+          </Toolbar>
         </BorderItem>
       ) : null}
 
@@ -129,7 +176,7 @@ export function AppShell({
               </FlexLayout>
             </Drawer>
           ) : (
-            <BorderItem position="west" sticky>
+            <BorderItem position="west" sticky style={railViewportStyle}>
               {rail}
             </BorderItem>
           )}
