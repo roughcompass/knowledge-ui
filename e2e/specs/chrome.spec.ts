@@ -22,6 +22,15 @@ async function ready(page: Page, path: string) {
   await expect(page.getByRole('main')).toBeVisible();
 }
 
+test('the public product name is consistent across the document and shell', async ({ page }) => {
+  await ready(page, '/');
+
+  await expect(page).toHaveTitle('DE Context Plane for Agents');
+  await expect(
+    page.locator(RAIL).getByText('DE Context Plane for Agents', { exact: true }),
+  ).toBeVisible();
+});
+
 test('every section and its pages are visible at once', async ({ page }) => {
   await ready(page, '/');
 

@@ -1,7 +1,8 @@
-# knowledge-ui
+# DE Context Plane for Agents
 
-The Salt Design System interface to the capability contextplane. A host shell owns
-identity, navigation and the API client; federated remotes own their own screens.
+DE Context Plane for Agents is the Salt Design System interface to the governed
+capability contextplane. A host shell owns identity, navigation, and the API client;
+federated remotes own their own screens.
 
 The contextplane is a governed, multi-tenant memory of what a platform ships —
 capabilities, their interfaces, their owners, their dependencies, and claims about

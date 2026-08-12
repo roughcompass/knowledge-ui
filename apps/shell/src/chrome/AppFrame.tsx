@@ -39,6 +39,7 @@ import {
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
+import { PRODUCT_NAME } from '../app/brand';
 import { NAVIGATION, navigationSectionForPath } from '../remotes/registry';
 import { GlobalSearch } from './GlobalSearch';
 
@@ -303,7 +304,7 @@ export function AppFrame({
                     aria-hidden
                   />
                   <Text styleAs="h4" as="span">
-                    Knowledge Platform
+                    {PRODUCT_NAME}
                   </Text>
                 </>
               ) : null}
@@ -392,10 +393,10 @@ export function AppFrame({
                 />
                 <StackLayout gap={0}>
                   <Text styleAs="h4" as="span">
-                    Knowledge Platform
+                    {PRODUCT_NAME}
                   </Text>
                   <Text styleAs="notation" color="secondary">
-                    Capability contextplane
+                    Governed capability context
                   </Text>
                 </StackLayout>
               </FlexLayout>

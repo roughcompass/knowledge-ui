@@ -1,9 +1,9 @@
-# Orientation
+# DE Context Plane for Agents: UI orientation
 
-This app is the human-readable face of a governed, multi-tenant memory of what a
-platform ships. The contextplane holds capabilities, their interfaces, their owners,
-their dependencies, and claims about them carrying provenance and confidence. This
-is where a person reads that memory and acts on it.
+DE Context Plane for Agents is the human-readable face of a governed, multi-tenant
+memory of what a platform ships. The contextplane holds capabilities, their
+interfaces, their owners, their dependencies, and claims about them carrying
+provenance and confidence. This is where a person reads that memory and acts on it.
 
 Four audiences, and the screens exist for them rather than for the data model:
 

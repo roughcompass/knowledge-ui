@@ -2,6 +2,8 @@ import { Button, StackLayout } from '@salt-ds/core';
 import { EmptyState, PageHeader } from '@knowledge-ui/ui-kit';
 import { useNavigate } from 'react-router-dom';
 
+import { PRODUCT_NAME } from '../app/brand';
+
 /**
  * The 404.
  *
@@ -15,7 +17,7 @@ export function NotFoundPage() {
 
   return (
     <StackLayout gap={3}>
-      <PageHeader eyebrow="Knowledge platform" title="Page not found" />
+      <PageHeader eyebrow={PRODUCT_NAME} title="Page not found" />
       <EmptyState
         title="No such page"
         description="The address does not match any section of this application."
