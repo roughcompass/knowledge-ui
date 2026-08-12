@@ -1,6 +1,8 @@
 import { Card, Divider, FlexLayout, StackLayout, Text, type CardProps } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
+import { CardHeading } from './CardHeading';
+
 /**
  * A titled section of a page, as a bordered card.
  *
@@ -79,17 +81,19 @@ export function SectionCard({
   const hasHeading = title !== undefined || description !== undefined || actions !== undefined;
 
   const heading = hasHeading ? (
-    <FlexLayout gap={2} align="start" justify="space-between">
-      <FlexLayout gap={2} align="start">
+    <FlexLayout gap={2} align="center" justify="space-between">
+      <FlexLayout gap={2} align="center">
         {visual}
-        <StackLayout gap={1}>
-          {title !== undefined ? (
-            <Text styleAs="h3" as={headingLevel}>
-              {title}
-            </Text>
-          ) : null}
-          {description !== undefined ? <Text color="secondary">{description}</Text> : null}
-        </StackLayout>
+        {title !== undefined ? (
+          <CardHeading
+            title={title}
+            description={description}
+            headingLevel={headingLevel}
+            scale="card"
+          />
+        ) : description !== undefined ? (
+          <Text color="secondary">{description}</Text>
+        ) : null}
       </FlexLayout>
       {actions !== undefined ? (
         <FlexLayout gap={1} align="center" wrap>

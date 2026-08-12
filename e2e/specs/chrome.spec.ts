@@ -245,6 +245,56 @@ test('table cell presentation is owned by Salt rather than application classes',
   expect(applicationClasses).toEqual([]);
 });
 
+test('card titles keep the reference scale and compact subtitle spacing', async ({ page }) => {
+  await ready(page, '/');
+
+  const heading = page.getByRole('heading', { level: 2, name: 'Retrieval and trust' });
+  const measured = await heading.evaluate((element) => {
+    const title = element.querySelector<HTMLElement>('.saltText');
+    const titleGroup = element.parentElement;
+    const description = titleGroup?.querySelector<HTMLElement>('.saltText-secondary');
+    const header = titleGroup?.parentElement?.parentElement;
+    const content = header?.nextElementSibling;
+    const card = element.closest<HTMLElement>('.saltCard');
+    if (!title || !description || !header || !content || !card) return null;
+
+    const titleBounds = title.getBoundingClientRect();
+    const descriptionBounds = description.getBoundingClientRect();
+    const headerBounds = header.getBoundingClientRect();
+    const contentBounds = content.getBoundingClientRect();
+    const headingStyle = getComputedStyle(element);
+    const titleStyle = getComputedStyle(title);
+    const descriptionStyle = getComputedStyle(description);
+    const cardStyle = getComputedStyle(card);
+
+    return {
+      tagName: element.tagName,
+      headingMarginTop: headingStyle.marginTop,
+      headingMarginBottom: headingStyle.marginBottom,
+      titleFontSize: titleStyle.fontSize,
+      titleLineHeight: titleStyle.lineHeight,
+      descriptionFontSize: descriptionStyle.fontSize,
+      descriptionLineHeight: descriptionStyle.lineHeight,
+      titleDescriptionGap: Math.round(descriptionBounds.top - titleBounds.bottom),
+      headerContentGap: Math.round(contentBounds.top - headerBounds.bottom),
+      cardPadding: cardStyle.paddingTop,
+    };
+  });
+
+  expect(measured).toEqual({
+    tagName: 'H2',
+    headingMarginTop: '0px',
+    headingMarginBottom: '0px',
+    titleFontSize: '20px',
+    titleLineHeight: '26px',
+    descriptionFontSize: '14px',
+    descriptionLineHeight: '18px',
+    titleDescriptionGap: 6,
+    headerContentGap: 24,
+    cardPadding: '24px',
+  });
+});
+
 test('the search panel is visible, not merely present', async ({ page }) => {
   /*
    * The panel used to be an absolutely-positioned child of the search field, and

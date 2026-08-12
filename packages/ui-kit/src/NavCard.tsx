@@ -1,6 +1,7 @@
-import { Card, FlexLayout, FlowLayout, StackLayout, Text } from '@salt-ds/core';
+import { Card, FlexLayout, FlowLayout, StackLayout } from '@salt-ds/core';
 import type { ReactNode } from 'react';
 
+import { CardHeading } from './CardHeading';
 import { KLink } from './LinkAdapter';
 
 /**
@@ -44,12 +45,16 @@ export function NavCard({
       <FlexLayout gap={2} align="start">
         {visual}
         <StackLayout gap={2}>
-          <Text styleAs="h3" as="h3">
-            <KLink to={to} underline="default" color="primary">
-              {title}
-            </KLink>
-          </Text>
-          {description !== undefined ? <Text color="secondary">{description}</Text> : null}
+          <CardHeading
+            title={
+              <KLink to={to} underline="default" color="primary">
+                {title}
+              </KLink>
+            }
+            description={description}
+            headingLevel="h3"
+            scale="tile"
+          />
           {links && links.length > 0 ? (
             <FlowLayout gap={1}>
               {links.map((link) => (
