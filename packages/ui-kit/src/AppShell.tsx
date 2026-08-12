@@ -21,10 +21,11 @@ import {
   type ReactNode,
 } from 'react';
 
-const NARROW_VIEWPORT_QUERY = '(max-width: 64rem)';
+const NARROW_VIEWPORT_QUERY = '(max-width: 47.9375rem)';
 const VIEWPORT_EDGE_MARGIN = 'calc(var(--salt-spacing-100) * -2 / 3)';
-const HEADER_PANEL_STYLE = {
-  '--saltPanel-padding': 'var(--salt-spacing-100)',
+const CONTENT_PANEL_STYLE = {
+  '--saltPanel-borderRadius': '0',
+  '--saltPanel-padding': '0',
 } as CSSProperties;
 
 function narrowViewport(): boolean {
@@ -117,11 +118,23 @@ export function AppShell({
         } as CSSProperties)
       : undefined;
 
+  const headerPanelStyle = {
+    '--saltPanel-borderRadius': '0',
+    '--saltPanel-padding': `${
+      isNarrow ? 'var(--salt-spacing-50)' : 'calc(var(--salt-size-fixed-700) / 2)'
+    } ${isNarrow ? 'var(--salt-spacing-100)' : 'var(--salt-spacing-200)'}`,
+  } as CSSProperties;
+
+  const footerPanelStyle = {
+    '--saltPanel-borderRadius': '0',
+    '--saltPanel-padding': isNarrow ? 'var(--salt-spacing-100)' : 'var(--salt-spacing-200)',
+  } as CSSProperties;
+
   return (
     <BorderLayout margin={VIEWPORT_EDGE_MARGIN}>
       {topBarStart !== undefined || topBarEnd !== undefined ? (
         <BorderItem ref={headerRef} as="header" position="north" sticky>
-          <Panel variant="primary" style={HEADER_PANEL_STYLE}>
+          <Panel variant="primary" style={headerPanelStyle}>
             <Toolbar appearance="transparent" variant="primary">
               <Tooltray align="start" overflowMode="none">
                 {isNarrow ? (
@@ -190,13 +203,17 @@ export function AppShell({
           <BorderItem position="center">
             <BorderLayout>
               <BorderItem position="center">
-                <Panel variant="secondary">{children}</Panel>
+                <Panel variant="secondary" style={CONTENT_PANEL_STYLE}>
+                  {children}
+                </Panel>
               </BorderItem>
               {footer ? (
                 <BorderItem as="footer" position="south">
                   <StackLayout gap={0}>
                     <Divider variant="tertiary" />
-                    <Panel variant="secondary">{footer}</Panel>
+                    <Panel variant="secondary" style={footerPanelStyle}>
+                      {footer}
+                    </Panel>
                   </StackLayout>
                 </BorderItem>
               ) : null}

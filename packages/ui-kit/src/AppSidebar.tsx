@@ -1,4 +1,10 @@
-import { Divider, SidePanel, SidePanelProvider, StackLayout } from '@salt-ds/core';
+import {
+  Divider,
+  SidePanel,
+  SidePanelContent,
+  SidePanelProvider,
+  StackLayout,
+} from '@salt-ds/core';
 import type { CSSProperties, ReactNode } from 'react';
 
 /**
@@ -14,17 +20,25 @@ export function AppSidebar({
   footer,
   label = 'Main',
   width,
+  compact = false,
 }: {
-  header: ReactNode;
+  header?: ReactNode;
   search?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   label?: string;
   /** Dynamic desktop width, expressed through Salt SidePanel's published variable. */
   width?: number;
+  /** Use the reference's 72px icon rail at tablet widths. */
+  compact?: boolean;
 }) {
-  const widthStyle =
-    width === undefined ? undefined : ({ '--saltSidePanel-width': `${width}px` } as CSSProperties);
+  const widthStyle = {
+    ...(width === undefined ? {} : { '--saltSidePanel-width': `${width}px` }),
+    '--saltSidePanel-padding': compact
+      ? 'var(--salt-spacing-200) calc(var(--salt-spacing-100) * 2 / 3)'
+      : 'var(--salt-spacing-200) calc(var(--salt-spacing-100) * 4 / 3)',
+    '--sidePanel-border': 'none',
+  } as CSSProperties;
 
   return (
     <SidePanelProvider defaultOpen>
@@ -35,23 +49,29 @@ export function AppSidebar({
         disableAnimation
         style={widthStyle}
       >
-        <StackLayout as="nav" aria-label={label} gap={2}>
-          {header}
-          {search ? (
-            <>
-              <Divider variant="tertiary" />
-              {search}
-            </>
-          ) : null}
-          <Divider variant="tertiary" />
-          <StackLayout gap={0}>{children}</StackLayout>
-          {footer ? (
-            <>
-              <Divider variant="tertiary" />
-              {footer}
-            </>
-          ) : null}
-        </StackLayout>
+        {header !== undefined || search !== undefined ? (
+          <StackLayout gap={2}>
+            {header}
+            {search ? (
+              <>
+                <Divider variant="tertiary" />
+                {search}
+              </>
+            ) : null}
+            <Divider variant="tertiary" />
+          </StackLayout>
+        ) : null}
+        <SidePanelContent aria-label={`${label} menu`}>
+          <StackLayout as="nav" aria-label={label} gap={0}>
+            {children}
+          </StackLayout>
+        </SidePanelContent>
+        {footer ? (
+          <StackLayout gap={2}>
+            <Divider variant="tertiary" />
+            {footer}
+          </StackLayout>
+        ) : null}
       </SidePanel>
     </SidePanelProvider>
   );

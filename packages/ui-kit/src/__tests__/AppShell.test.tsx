@@ -8,7 +8,7 @@ import { AppSidebar } from '../AppSidebar';
 function installNarrowViewport() {
   const media = {
     matches: true,
-    media: '(max-width: 64rem)',
+    media: '(max-width: 47.9375rem)',
     onchange: null,
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
@@ -93,18 +93,46 @@ describe('AppShell desktop frame', () => {
 
     expect(banner.className).toMatch(/sticky/);
     expect(banner.parentElement).toBe(railItem?.parentElement?.parentElement?.parentElement);
+    expect(banner.querySelector('.saltPanel')?.getAttribute('style')).toContain(
+      '--saltPanel-borderRadius: 0',
+    );
     expect(screen.getByRole('contentinfo')).toHaveTextContent('Product footer');
   });
 
-  it('applies a dynamic width through the Salt SidePanel variable', () => {
+  it('applies the dynamic width and keeps only the menu body scrollable', () => {
     render(
-      <AppSidebar header={<span>Workspace</span>} width={304}>
+      <AppSidebar
+        header={<span>Workspace</span>}
+        footer={<span>Session controls</span>}
+        width={304}
+      >
         <span>Navigation items</span>
       </AppSidebar>,
     );
 
     const navigation = screen.getByRole('navigation');
     const sidePanel = navigation.closest<HTMLElement>('.saltSidePanel');
+    const menuBody = navigation.closest<HTMLElement>('.saltSidePanelContent-body');
     expect(sidePanel?.style.getPropertyValue('--saltSidePanel-width')).toBe('304px');
+    expect(sidePanel?.style.getPropertyValue('--saltSidePanel-padding')).toContain(
+      'calc(var(--salt-spacing-100) * 4 / 3)',
+    );
+    expect(menuBody).toContainElement(navigation);
+    expect(menuBody).not.toContainElement(screen.getByText('Workspace'));
+    expect(menuBody).not.toContainElement(screen.getByText('Session controls'));
+  });
+
+  it('uses the reference 72px icon-rail in compact mode', () => {
+    render(
+      <AppSidebar compact width={72}>
+        <span>Compact navigation</span>
+      </AppSidebar>,
+    );
+
+    const sidePanel = screen.getByRole('navigation').closest<HTMLElement>('.saltSidePanel');
+    expect(sidePanel?.style.getPropertyValue('--saltSidePanel-width')).toBe('72px');
+    expect(sidePanel?.style.getPropertyValue('--saltSidePanel-padding')).toContain(
+      'calc(var(--salt-spacing-100) * 2 / 3)',
+    );
   });
 });

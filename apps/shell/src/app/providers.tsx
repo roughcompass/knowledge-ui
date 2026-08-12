@@ -74,7 +74,13 @@ export function AppProviders({
     // needs no token overrides. One quirk worth knowing rather than chasing:
     // Salt hard-wires `--salt-status-info-*` to the blue ramp, so info banners
     // stay blue while every actionable, selectable and focus token goes teal.
-    <SaltProviderNext mode={mode} density="low" accent="teal" corner="rounded">
+    <SaltProviderNext
+      mode={mode}
+      density="low"
+      accent="teal"
+      corner="rounded"
+      breakpoints={{ xs: 0, sm: 768, md: 1101, lg: 1280, xl: 1920 }}
+    >
       <QueryClientProvider client={client}>{children}</QueryClientProvider>
     </SaltProviderNext>
   );

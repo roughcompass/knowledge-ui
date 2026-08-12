@@ -139,6 +139,7 @@ test('the sticky utility bar spans the viewport while content stays clear of the
       barLeft: Math.round(bar.getBoundingClientRect().left),
       barRight: Math.round(bar.getBoundingClientRect().right),
       barTop: Math.round(bar.getBoundingClientRect().top),
+      barHeight: Math.round(bar.getBoundingClientRect().height),
       mainLeft: Math.round(main.getBoundingClientRect().left),
       shellLeft: Math.round(shellBounds.left),
       shellRight: Math.round(shellBounds.right),
@@ -151,6 +152,7 @@ test('the sticky utility bar spans the viewport while content stays clear of the
   expect(bounds?.shellLeft).toBe(0);
   expect(bounds?.barLeft).toBe(bounds?.shellLeft);
   expect(bounds?.barRight).toBe(bounds?.shellRight);
+  expect(bounds?.barHeight).toBe(56);
   expect(bounds?.railLeft).toBe(0);
   expect(bounds?.mainLeft).toBeGreaterThanOrEqual(bounds?.railRight ?? 0);
   expect(bounds?.headerBackground).not.toBe('rgba(0, 0, 0, 0)');
@@ -160,21 +162,22 @@ test('the sticky utility bar spans the viewport while content stays clear of the
   const scrolled = await page.evaluate(() => {
     const bar = document.querySelector('header');
     const stickyRail = document.querySelector('nav')?.closest<HTMLElement>('.saltBorderItem');
-    if (!bar || !stickyRail) return null;
+    const menuScroller = document.querySelector<HTMLElement>('.saltSidePanelContent-body');
+    if (!bar || !stickyRail || !menuScroller) return null;
     const barBounds = bar.getBoundingClientRect();
     const railBounds = stickyRail.getBoundingClientRect();
     const pageScroll = window.scrollY;
-    stickyRail.scrollTop = 120;
+    menuScroller.scrollTop = 120;
     return {
       barTop: Math.round(barBounds.top),
       barBottom: Math.round(barBounds.bottom),
       railTop: Math.round(railBounds.top),
       railBottom: Math.round(railBounds.bottom),
       viewportBottom: window.innerHeight,
-      overflow: getComputedStyle(stickyRail).overflowY,
-      railScrollHeight: stickyRail.scrollHeight,
-      railClientHeight: stickyRail.clientHeight,
-      railScrollTop: stickyRail.scrollTop,
+      overflow: getComputedStyle(menuScroller).overflowY,
+      railScrollHeight: menuScroller.scrollHeight,
+      railClientHeight: menuScroller.clientHeight,
+      railScrollTop: menuScroller.scrollTop,
       pageScroll,
       pageScrollAfterRailScroll: window.scrollY,
     };
@@ -189,6 +192,121 @@ test('the sticky utility bar spans the viewport while content stays clear of the
   expect(scrolled?.railScrollHeight).toBeGreaterThan(scrolled?.railClientHeight ?? 0);
   expect(scrolled?.railScrollTop).toBeGreaterThan(0);
   expect(scrolled?.pageScrollAfterRailScroll).toBe(scrolled?.pageScroll);
+});
+
+test('the rail follows the reference geometry and active item treatment', async ({ page }) => {
+  await ready(page, '/');
+
+  const measured = await page.evaluate(() => {
+    const rail = document.querySelector('nav');
+    const sidePanel = rail?.closest<HTMLElement>('.saltSidePanel');
+    const active = rail?.querySelector<HTMLElement>('[aria-current="page"]');
+    const activeSurface = active?.closest<HTMLElement>('.saltPanel');
+    const icon = active?.querySelector('svg');
+    if (!rail || !sidePanel || !active || !activeSurface || !icon) return null;
+    const railBounds = rail.getBoundingClientRect();
+    const sideBounds = sidePanel.getBoundingClientRect();
+    const itemBounds = active.getBoundingClientRect();
+    const iconBounds = icon.getBoundingClientRect();
+    return {
+      sideWidth: Math.round(sideBounds.width),
+      sideTop: Math.round(sideBounds.top),
+      railInset: Math.round(railBounds.left - sideBounds.left),
+      itemWidth: Math.round(itemBounds.width),
+      itemHeight: Math.round(itemBounds.height),
+      iconLeft: Math.round(iconBounds.left - sideBounds.left),
+      iconSize: Math.round(iconBounds.width),
+      activeBackground: getComputedStyle(activeSurface).backgroundColor,
+      activeWeight: getComputedStyle(active.querySelector('.saltText') ?? active).fontWeight,
+    };
+  });
+
+  expect(measured).toEqual({
+    sideWidth: 240,
+    sideTop: 56,
+    railInset: 16,
+    itemWidth: 208,
+    itemHeight: 48,
+    iconLeft: 28,
+    iconSize: 16,
+    activeBackground: 'rgb(219, 245, 247)',
+    activeWeight: '600',
+  });
+});
+
+test('the tablet chrome uses the reference compact icon rail', async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await ready(page, '/');
+
+  const rail = page.locator('nav');
+  await expect(page.getByRole('button', { name: 'Open navigation' })).toHaveCount(0);
+  await expect(rail.getByRole('link', { name: 'Dashboard' })).toBeVisible();
+  await expect(rail.getByRole('link', { name: 'Catalog' })).toBeVisible();
+  await expect(page.getByText('API ready', { exact: true })).toBeVisible();
+
+  const measured = await page.evaluate(() => {
+    const header = document.querySelector('header');
+    const sidePanel = document.querySelector<HTMLElement>('.saltSidePanel');
+    const main = document.querySelector('main');
+    const tooltrays = header?.querySelectorAll<HTMLElement>('.saltTooltray');
+    const startTooltray = tooltrays?.item(0);
+    const endTooltray = tooltrays?.item(1);
+    if (!header || !sidePanel || !main || !startTooltray || !endTooltray) return null;
+    return {
+      headerHeight: Math.round(header.getBoundingClientRect().height),
+      railWidth: Math.round(sidePanel.getBoundingClientRect().width),
+      railTop: Math.round(sidePanel.getBoundingClientRect().top),
+      mainLeft: Math.round(main.getBoundingClientRect().left),
+      mainPaddingLeft: Math.round(Number.parseFloat(getComputedStyle(main).paddingLeft)),
+      headerTooltraysOverlap:
+        startTooltray.getBoundingClientRect().right > endTooltray.getBoundingClientRect().left,
+    };
+  });
+
+  expect(measured).toEqual({
+    headerHeight: 56,
+    railWidth: 72,
+    railTop: 56,
+    mainLeft: 72,
+    mainPaddingLeft: 16,
+    headerTooltraysOverlap: false,
+  });
+});
+
+test('the mobile chrome is flush, contained, and opens the full navigation', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await ready(page, '/');
+
+  const open = page.getByRole('button', { name: 'Open navigation' });
+  await expect(open).toBeVisible();
+
+  const measured = await page.evaluate(() => {
+    const header = document.querySelector('header');
+    const main = document.querySelector('main');
+    if (!header || !main) return null;
+    return {
+      headerHeight: Math.round(header.getBoundingClientRect().height),
+      mainLeft: Math.round(main.getBoundingClientRect().left),
+      mainPaddingLeft: getComputedStyle(main).paddingLeft,
+      scrollWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+    };
+  });
+
+  expect(measured).toEqual({
+    headerHeight: 56,
+    mainLeft: 0,
+    mainPaddingLeft: '12px',
+    scrollWidth: 390,
+    viewportWidth: 390,
+  });
+
+  await open.click();
+  const navigationDialog = page.getByRole('dialog', { name: 'Sections' });
+  await expect(navigationDialog).toBeVisible();
+  await expect(
+    navigationDialog.getByRole('link', { name: 'Capabilities', exact: true }),
+  ).toBeVisible();
 });
 
 test('the Salt navigation rail resizes and keeps its usable width across reloads', async ({
