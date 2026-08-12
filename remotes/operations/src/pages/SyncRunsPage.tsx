@@ -5,7 +5,6 @@ import {
   Option,
   StackLayout,
   StatusIndicator,
-  Tag,
   Text,
 } from '@salt-ds/core';
 import {
@@ -126,7 +125,11 @@ export function SyncRunsPage() {
           </FlexLayout>
         ),
       },
-      { key: 'trigger', header: 'Trigger', render: (row) => <Tag>{row.trigger}</Tag> },
+      {
+        key: 'trigger',
+        header: 'Trigger',
+        render: (row) => <Text>{termText(row.trigger)}</Text>,
+      },
       {
         key: 'duration_s',
         header: 'Duration',

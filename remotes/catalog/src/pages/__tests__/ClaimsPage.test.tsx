@@ -179,7 +179,7 @@ describe('the claims page', () => {
      */
     renderPage();
     const table = await findLoadedTable(/claims/i);
-    expect(within(table).getByText('confirmed')).toBeInTheDocument();
+    expect(within(table).getByText('Confirmed')).toBeInTheDocument();
   });
 
   it('applies a confidence floor at the server, not in the browser', async () => {

@@ -10,6 +10,7 @@ export { SectionCard } from './SectionCard';
 export { SectionHeading } from './SectionHeading';
 export { LinkButton } from './LinkButton';
 export { StatTile } from './StatTile';
+export { StatusLabel } from './StatusLabel';
 export { NavCard } from './NavCard';
 
 /**

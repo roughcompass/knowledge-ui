@@ -7,7 +7,6 @@ import {
   TabList,
   TabTrigger,
   Tabs,
-  Tag,
   Text,
 } from '@salt-ds/core';
 import { useCapability, type RegistryClient } from '@knowledge-ui/api-client';
@@ -20,6 +19,7 @@ import {
   LoadingPanel,
   PageHeader,
   SectionCard,
+  StatusLabel,
   termText,
   Note,
 } from '@knowledge-ui/ui-kit';
@@ -185,8 +185,22 @@ export function CapabilityDetailPage() {
       metadata={
         query.isPending ? undefined : (
           <FlexLayout gap={1} align="center">
-            {lifecycle ? <Tag>{termText(lifecycle)}</Tag> : null}
-            <Tag>{termText(displayText(entity.entity_type ?? 'capability'))}</Tag>
+            {lifecycle ? (
+              <StatusLabel
+                status={
+                  lifecycle === 'ga'
+                    ? 'success'
+                    : lifecycle === 'deprecated' || lifecycle === 'retired'
+                      ? 'warning'
+                      : 'info'
+                }
+              >
+                {termText(lifecycle)}
+              </StatusLabel>
+            ) : null}
+            <Text styleAs="notation" color="secondary">
+              {termText(displayText(entity.entity_type ?? 'capability'))}
+            </Text>
             {/*
               Shown whenever it is not already the title, so the handle a reader
               needs for an import or an API call is always on the page.
@@ -352,7 +366,7 @@ export function CapabilityDetailPage() {
                 {
                   key: 'category',
                   header: 'Category',
-                  render: (row) => <Tag>{termText(String(row.category))}</Tag>,
+                  render: (row) => <Text>{termText(String(row.category))}</Text>,
                 },
                 { key: 'body', header: 'Body', render: (row) => <Text>{String(row.body)}</Text> },
               ]}

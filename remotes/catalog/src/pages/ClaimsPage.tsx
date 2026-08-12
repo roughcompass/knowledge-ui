@@ -21,6 +21,7 @@ import {
   Note,
   SectionCard,
   PageHeader,
+  StatusLabel,
   UnavailableNotice,
   isoDay,
   popoverOverlayProps,
@@ -445,7 +446,7 @@ export function ClaimsPage() {
                    */
                   render: (row) => (
                     <StackLayout gap={0.5}>
-                      <Tag>{row.predicate}</Tag>
+                      <Text styleAs="code">{row.predicate}</Text>
                       <Text color="secondary" styleAs="label">
                         {row.claim_category}
                       </Text>
@@ -472,7 +473,11 @@ export function ClaimsPage() {
                   // confidence: a confirmed low-confidence claim outranks an
                   // unconfirmed high-confidence one.
                   render: (row) =>
-                    row.human_confirmed ? <Tag>confirmed</Tag> : <Text color="secondary">—</Text>,
+                    row.human_confirmed ? (
+                      <StatusLabel status="success">Confirmed</StatusLabel>
+                    ) : (
+                      <StatusLabel status="info">Not confirmed</StatusLabel>
+                    ),
                 },
                 {
                   key: 'valid_from',

@@ -7,7 +7,6 @@ import {
   MultilineInput,
   Option,
   StackLayout,
-  Tag,
   Text,
   Tooltip,
 } from '@salt-ds/core';
@@ -41,6 +40,7 @@ import {
   Note,
   PageHeader,
   SectionCard,
+  StatusLabel,
   UnavailableNotice,
   instantText,
   popoverOverlayProps,
@@ -378,8 +378,10 @@ export function WorkspaceDetailPage() {
           // No "All workspaces" link: the breadcrumb above already goes there,
           // and two adjacent controls for one journey read as two journeys.
           <FlexLayout gap={1} align="center">
-            <Tag>{OWNERSHIP_LABEL[ws.owner_kind]}</Tag>
-            {archived ? <Tag>Archived</Tag> : null}
+            <Text styleAs="notation" color="secondary">
+              {OWNERSHIP_LABEL[ws.owner_kind]}
+            </Text>
+            {archived ? <StatusLabel status="warning">Archived</StatusLabel> : null}
           </FlexLayout>
         }
         actions={

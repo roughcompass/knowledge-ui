@@ -1,12 +1,12 @@
-import { FlexLayout, LinearProgress, StackLayout, Tag, Text, Tooltip } from '@salt-ds/core';
+import { FlexLayout, LinearProgress, StackLayout, Text, Tooltip } from '@salt-ds/core';
 
 /**
  * How much each retrieval arm contributed to a search score.
  *
  * The contextplane fuses three independent arms — semantic, lexical and graph — and
  * returns each one's contribution alongside the total. The breakdown uses Salt
- * progress and tag components so its shape, labels and theme all remain owned by
- * the design system.
+ * progress and typography components so its shape, labels and theme all remain
+ * owned by the design system.
  *
  * Accessibility is the reason this is not just three coloured boxes: the shape
  * carries the information, so it needs an accessible name that carries the same
@@ -90,7 +90,7 @@ export function RetrievalArmsBar({
         <FlexLayout gap={2} wrap>
           {shares.map((share) => (
             <FlexLayout key={share.key} gap={1} align="center">
-              <Tag>{share.label}</Tag>
+              <Text styleAs="notation">{share.label}</Text>
               <Text styleAs="notation" color="secondary">{`${share.pct.toFixed(0)}%`}</Text>
             </FlexLayout>
           ))}
@@ -115,7 +115,9 @@ export function RetrievalArmsLegend() {
         Retrieval arms
       </Text>
       {ARMS.map((arm) => (
-        <Tag key={arm.key}>{arm.label}</Tag>
+        <Text key={arm.key} styleAs="notation">
+          {arm.label}
+        </Text>
       ))}
     </FlexLayout>
   );

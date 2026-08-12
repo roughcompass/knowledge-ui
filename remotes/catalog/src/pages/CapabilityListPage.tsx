@@ -7,7 +7,6 @@ import {
   Pill,
   StackLayout,
   StatusAdornment,
-  Tag,
   Text,
 } from '@salt-ds/core';
 import {
@@ -143,7 +142,7 @@ export function CapabilityListPage() {
       {
         key: 'entity_type',
         header: 'Type',
-        render: (row) => <Tag>{termText(row.entity_type)}</Tag>,
+        render: (row) => <Text>{termText(row.entity_type)}</Text>,
       },
       {
         key: 'external_id',
@@ -218,7 +217,7 @@ export function CapabilityListPage() {
       {
         key: 'entity_type',
         header: 'Type',
-        render: (row) => <Tag>{termText(row.entity_type)}</Tag>,
+        render: (row) => <Text>{termText(row.entity_type)}</Text>,
       },
       {
         key: 'arms',

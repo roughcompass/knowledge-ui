@@ -33,7 +33,6 @@ import {
   MultilineInput,
   Option,
   StackLayout,
-  Tag,
   Text,
 } from '@salt-ds/core';
 import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 'react';
@@ -571,7 +570,9 @@ function ContextLabSession({
                         Exact records from the selected source, not a generated answer.
                       </Text>
                     </StackLayout>
-                    <Tag>{label}</Tag>
+                    <Text styleAs="notation" color="secondary">
+                      {label}
+                    </Text>
                   </FlexLayout>
 
                   <Suspense fallback={<LoadingPanel label="Preparing probe results" />}>

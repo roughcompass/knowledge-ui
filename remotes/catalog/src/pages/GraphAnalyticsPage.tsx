@@ -1,4 +1,4 @@
-import { Dropdown, Option, StackLayout, Tag, Text } from '@salt-ds/core';
+import { Dropdown, Option, StackLayout, Text } from '@salt-ds/core';
 import {
   TRAVERSAL_DEPTHS,
   WORST_DAILY_P95_CAVEAT,
@@ -289,7 +289,7 @@ function ReachPanel({ session, client }: { session: Session; client: RegistryCli
               {
                 key: 'rel',
                 header: 'Relationship',
-                render: (row) => <Tag>{termText(row.rel)}</Tag>,
+                render: (row) => <Text>{termText(row.rel)}</Text>,
               },
               {
                 key: 'count',
@@ -543,7 +543,7 @@ function LatencyPanel({
         isLoading={summary.isPending}
         caption="Response time and outcome by surface"
         columns={[
-          { key: 'surface', header: 'Surface', render: (row) => <Tag>{row.surface}</Tag> },
+          { key: 'surface', header: 'Surface', render: (row) => <Text>{row.surface}</Text> },
           {
             key: 'worst_daily_p95_ms',
             header: WORST_DAILY_P95_LABEL,

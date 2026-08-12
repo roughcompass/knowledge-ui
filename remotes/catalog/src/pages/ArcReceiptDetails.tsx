@@ -7,11 +7,12 @@ import {
   DescriptionList,
   EmptyState,
   SectionCard,
+  StatusLabel,
   displayText,
   instantText,
   termText,
 } from '@knowledge-ui/ui-kit';
-import { StackLayout, Tag, Text } from '@salt-ds/core';
+import { StackLayout, Text } from '@salt-ds/core';
 
 function reasonText(reasons: readonly string[]): string {
   return reasons.length > 0 ? reasons.map(termText).join(', ') : 'None recorded';
@@ -29,7 +30,11 @@ function SelectedDirective({ selected }: { selected: ArcSelectedDirective }) {
       description={`${selected.is_mandatory ? 'Mandatory' : 'Optional'} · ${
         selected.was_omitted ? 'omitted from the bundle' : 'selected for the bundle'
       }`}
-      actions={selected.audience_redacted ? <Tag>Source Redacted</Tag> : undefined}
+      actions={
+        selected.audience_redacted ? (
+          <StatusLabel status="warning">Source Redacted</StatusLabel>
+        ) : undefined
+      }
     >
       <DescriptionList
         caption={`Selected directive ${selected.directive_id}`}
@@ -81,7 +86,19 @@ function ReceiptOverview({ receipt }: { receipt: ArcReceipt }) {
     <SectionCard
       title="Resolution Record"
       description="The retained identity, selection configuration, outcome, and byte budget for this run."
-      actions={<Tag>{termText(receipt.resolution_status)}</Tag>}
+      actions={
+        <StatusLabel
+          status={
+            receipt.resolution_status === 'ready'
+              ? 'success'
+              : receipt.resolution_status === 'degraded'
+                ? 'warning'
+                : 'info'
+          }
+        >
+          {termText(receipt.resolution_status)}
+        </StatusLabel>
+      }
     >
       <DescriptionList
         caption="Resolution record"

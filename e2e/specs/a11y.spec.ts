@@ -163,15 +163,31 @@ test('every route has exactly one h1, including the ones that refuse', async ({ 
   }
 });
 
-test('informational chips are not focusable controls', async ({ page }) => {
+test('labels use semantic presentations instead of generic chips', async ({ page }) => {
   await ready(page, '/catalog');
 
   // Salt's Pill is a <button>; Tag is not. Using Pill for the tenant, role and
   // row type turned ~40 labels into tab stops that did nothing.
+  await expect(page.locator('header .saltTag')).toHaveCount(0);
+  await expect(page.locator('tbody .saltTag')).toHaveCount(0);
+
   const stops: string[] = [];
   for (let i = 0; i < 6; i++) {
     await page.keyboard.press('Tab');
     stops.push((await page.evaluate(() => document.activeElement?.textContent ?? '')).trim());
   }
   expect(stops.some((s) => s === 'consumer')).toBe(false);
+
+  await ready(page, '/catalog/claims');
+  const claimTags = await page.locator('tbody .saltTag').allTextContents();
+  expect(claimTags.every((label) => ['high', 'moderate', 'low'].includes(label.trim()))).toBe(true);
+  expect(await page.locator('tbody .saltStatusIndicator').count()).toBeGreaterThan(0);
+
+  await page.getByRole('combobox', { name: 'Signed in as' }).click();
+  await page.getByRole('option', { name: /admin/i }).first().click();
+  await expect(page.getByText('admin', { exact: true }).first()).toBeVisible();
+
+  await ready(page, '/ops/sync/runs');
+  await expect(page.locator('tbody .saltTag')).toHaveCount(0);
+  expect(await page.locator('tbody .saltStatusIndicator').count()).toBeGreaterThan(0);
 });

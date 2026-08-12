@@ -1,4 +1,4 @@
-import { StackLayout, Tag, Text } from '@salt-ds/core';
+import { StackLayout, Text } from '@salt-ds/core';
 import { useSyncRun, type RegistryClient } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
 import {
@@ -8,11 +8,20 @@ import {
   LoadingPanel,
   PageHeader,
   SectionCard,
+  StatusLabel,
   displayText,
   instantText,
   termText,
 } from '@knowledge-ui/ui-kit';
 import { useParams } from 'react-router-dom';
+
+const STATUS_TONE: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+  done: 'success',
+  partial: 'warning',
+  failed: 'error',
+  running: 'info',
+  queued: 'info',
+};
 
 /**
  * One sync run.
@@ -74,7 +83,9 @@ export function SyncRunDetailPage() {
               term: termText(key),
               detail:
                 key === 'status' ? (
-                  <Tag>{displayText(run[key])}</Tag>
+                  <StatusLabel status={STATUS_TONE[displayText(run[key])] ?? 'info'}>
+                    {termText(displayText(run[key]))}
+                  </StatusLabel>
                 ) : key.endsWith('_at') ? (
                   <Text>{instantText(run[key])}</Text>
                 ) : (

@@ -8,7 +8,6 @@ import {
   Slider,
   StackLayout,
   StatusIndicator,
-  Tag,
   Text,
   Tooltip,
   useBreakpoint,
@@ -329,7 +328,11 @@ export function AppFrame({
             <Text styleAs="h4" as="span">
               {PRODUCT_NAME}
             </Text>
-            {!compactChrome ? <Tag>{session.role}</Tag> : null}
+            {!compactChrome ? (
+              <Text styleAs="notation" color="secondary">
+                {session.role}
+              </Text>
+            ) : null}
             {!compactChrome ? <ScopeBreadcrumb segments={breadcrumb} label="Location" /> : null}
           </FlexLayout>
         }

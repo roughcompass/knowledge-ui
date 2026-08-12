@@ -1,7 +1,7 @@
-import { Button, FlexLayout, Tag, Text, Tooltip } from '@salt-ds/core';
+import { Button, FlexLayout, Text, Tooltip } from '@salt-ds/core';
 import { useAdopt, useAdoption, useUnadopt, type RegistryClient } from '@knowledge-ui/api-client';
 import { can, useSession } from '@knowledge-ui/auth';
-import { ActionResult, ConfirmDialog } from '@knowledge-ui/ui-kit';
+import { ActionResult, ConfirmDialog, StatusLabel } from '@knowledge-ui/ui-kit';
 import { useState } from 'react';
 
 /**
@@ -82,7 +82,9 @@ export function AdoptionControl({ handle }: { handle: string }) {
     return (
       <>
         <FlexLayout gap={1} align="center">
-          <Tag>Adopted{current.version_pin ? ` · pinned ${current.version_pin}` : ''}</Tag>
+          <StatusLabel status="success">
+            Adopted{current.version_pin ? ` · pinned ${current.version_pin}` : ''}
+          </StatusLabel>
           {!canChange ? null : (
             <Button
               appearance="bordered"

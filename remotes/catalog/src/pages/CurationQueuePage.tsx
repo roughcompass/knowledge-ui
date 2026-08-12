@@ -1,4 +1,4 @@
-import { StackLayout, Tag, Text } from '@salt-ds/core';
+import { StackLayout, Text } from '@salt-ds/core';
 import { useCurationQueue, type RegistryClient } from '@knowledge-ui/api-client';
 import { can, useSession } from '@knowledge-ui/auth';
 import {
@@ -93,7 +93,7 @@ export function CurationQueuePage() {
                 {
                   key: 'reason',
                   header: 'Reason',
-                  render: (row) => <Tag>{termText(displayText(row.reason ?? 'unknown'))}</Tag>,
+                  render: (row) => <Text>{termText(displayText(row.reason ?? 'unknown'))}</Text>,
                 },
                 {
                   key: 'claim_id',

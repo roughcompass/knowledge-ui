@@ -8,7 +8,6 @@ import {
   Option,
   StackLayout,
   StatusIndicator,
-  Tag,
   Text,
 } from '@salt-ds/core';
 import {
@@ -139,7 +138,7 @@ export function SyncSourcesPage() {
       {
         key: 'source_type',
         header: 'Connector',
-        render: (row) => <Tag>{row.source_type}</Tag>,
+        render: (row) => <Text>{termText(row.source_type)}</Text>,
       },
       {
         key: 'schedule',

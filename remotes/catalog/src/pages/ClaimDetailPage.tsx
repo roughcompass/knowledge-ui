@@ -1,4 +1,4 @@
-import { FlexLayout, StackLayout, StatusIndicator, Tag, Text } from '@salt-ds/core';
+import { FlexLayout, StackLayout, StatusIndicator, Text } from '@salt-ds/core';
 import { useClaim, type RegistryClient } from '@knowledge-ui/api-client';
 import { useSession } from '@knowledge-ui/auth';
 import {
@@ -95,9 +95,9 @@ export function ClaimDetailPage() {
             { term: 'Value', detail: <Text>{displayText(claim.value)}</Text> },
             {
               term: 'Trust',
-              // A caution, not a category. In the same calm pill as the Kind
-              // tags it reads as one more classification, and "untrusted" is
-              // the one value on the page a reader must not skim past.
+              // A caution, not a category. Rendered as a calm pill it reads as
+              // one more classification, and "untrusted" is the one value on
+              // the page a reader must not skim past.
               detail: (
                 <FlexLayout gap={1} align="center">
                   <StatusIndicator status="warning" />
@@ -125,7 +125,7 @@ export function ClaimDetailPage() {
           hideCaption
           zebra
           columns={[
-            { key: 'kind', header: 'Kind', render: (row) => <Tag>{displayText(row.kind)}</Tag> },
+            { key: 'kind', header: 'Kind', render: (row) => <Text>{displayText(row.kind)}</Text> },
             {
               key: 'excerpt',
               header: 'Excerpt',

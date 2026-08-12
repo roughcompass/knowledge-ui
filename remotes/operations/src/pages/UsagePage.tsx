@@ -1,4 +1,4 @@
-import { Button, StackLayout, Tag, Text } from '@salt-ds/core';
+import { Button, StackLayout, Text } from '@salt-ds/core';
 import {
   WORST_DAILY_P95_CAVEAT,
   WORST_DAILY_P95_LABEL,
@@ -440,7 +440,7 @@ export function UsagePage() {
                     {
                       key: 'surface',
                       header: 'Surface',
-                      render: (row) => <Tag>{row.surface}</Tag>,
+                      render: (row) => <Text>{row.surface}</Text>,
                     },
                     {
                       key: 'calls',

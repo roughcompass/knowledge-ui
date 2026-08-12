@@ -1,4 +1,4 @@
-import { StackLayout, Tag, Text } from '@salt-ds/core';
+import { StackLayout, Text } from '@salt-ds/core';
 import {
   GRAPH_VOCABULARY_KINDS,
   useCapabilityTypes,
@@ -16,6 +16,7 @@ import {
   Note,
   PageHeader,
   SectionCard,
+  StatusLabel,
   UnavailableNotice,
   instantText,
   termText,
@@ -76,9 +77,9 @@ export function GraphOntologyPage() {
       header: 'Status',
       render: (row) =>
         row.deprecated_at ? (
-          <Tag bordered>Deprecated {instantText(row.deprecated_at)}</Tag>
+          <StatusLabel status="warning">Deprecated {instantText(row.deprecated_at)}</StatusLabel>
         ) : (
-          'In use'
+          <StatusLabel status="success">In use</StatusLabel>
         ),
     },
   ];

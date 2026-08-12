@@ -5,7 +5,6 @@ import {
   Input,
   Option,
   StackLayout,
-  Tag,
   Text,
   Tooltip,
 } from '@salt-ds/core';
@@ -171,7 +170,7 @@ export function WorkspacesPage() {
       {
         key: 'owner_kind',
         header: 'Visibility',
-        render: (row) => <Tag>{OWNERSHIP_LABEL[row.owner_kind]}</Tag>,
+        render: (row) => <Text>{OWNERSHIP_LABEL[row.owner_kind]}</Text>,
       },
       {
         key: 'archived_at',

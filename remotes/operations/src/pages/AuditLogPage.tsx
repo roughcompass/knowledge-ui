@@ -3,7 +3,6 @@ import {
   FlexLayout,
   Input,
   StackLayout,
-  Tag,
   StatusAdornment,
   Text,
   Tooltip,
@@ -71,7 +70,11 @@ export function AuditLogPage() {
         figures: 'tabular' as const,
         render: (row) => <Text styleAs="notation">{instantText(row.ts) ?? '—'}</Text>,
       },
-      { key: 'action', header: 'Action', render: (row) => <Tag>{String(row.action)}</Tag> },
+      {
+        key: 'action',
+        header: 'Action',
+        render: (row) => <Text styleAs="code">{String(row.action)}</Text>,
+      },
       {
         key: 'actor_id',
         header: 'Actor',

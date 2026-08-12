@@ -1,4 +1,4 @@
-import { Dropdown, FlexLayout, Option, StackLayout, Tag, Text } from '@salt-ds/core';
+import { Dropdown, FlexLayout, Option, StackLayout, Text } from '@salt-ds/core';
 import {
   TRAVERSAL_DEPTHS,
   edgesByRelationship,
@@ -150,7 +150,9 @@ function EdgeGroups({ edges }: { edges: readonly EdgeRef[] }) {
         <StackLayout gap={1} key={relationship}>
           <FlexLayout gap={1} align="center">
             <Text styleAs="label">{relationship}</Text>
-            <Tag>{String(group.length)}</Tag>
+            <Text styleAs="notation" color="secondary">
+              {group.length} {group.length === 1 ? 'connection' : 'connections'}
+            </Text>
           </FlexLayout>
           <DataTable
             caption={`Entities related by ${relationship}`}
