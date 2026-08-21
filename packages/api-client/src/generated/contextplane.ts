@@ -118,69 +118,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/admin/capability-types": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Capability Types
-         * @description List all capability type schemas (current rows only: t_invalidated_at IS NULL).
-         */
-        get: operations["list_capability_types_v1_admin_capability_types_get"];
-        put?: never;
-        /**
-         * Create Capability Type
-         * @description Create a new capability type schema.
-         *
-         *     Honours ``X-Idempotency-Key``: same key + same body replays the
-         *     original response; same key + different body returns 409.
-         */
-        post: operations["create_capability_type_v1_admin_capability_types_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/admin/capability-types/{type_name}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Capability Type
-         * @description Get the current schema for a given type_name.
-         *
-         *     Emits an ``ETag`` header computed from the schema_id + t_ingested_at.
-         *     Clients can echo this value as ``If-Match`` on subsequent PATCH calls
-         *     for optimistic concurrency.
-         */
-        get: operations["get_capability_type_v1_admin_capability_types__type_name__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Patch Capability Type
-         * @description Update a capability type schema — currently supports flipping is_advisory.
-         *
-         *     Honours the ``If-Match`` request header (advisory): if present and stale,
-         *     returns 412 Precondition Failed; if absent, logs a debug warning and
-         *     accepts the write.  ETag is computed from schema_id + t_ingested_at before
-         *     the write so a stale precondition fails fast.
-         *
-         *     Recommended flow: GET /v1/admin/capability-types/{name} → ETag header
-         *     → PATCH with If-Match.
-         */
-        patch: operations["patch_capability_type_v1_admin_capability_types__type_name__patch"];
-        trace?: never;
-    };
     "/v1/admin/edge-property-schemas": {
         parameters: {
             query?: never;
@@ -224,9 +161,78 @@ export interface paths {
          *
          *     Full implementation is pending. Once wired, this endpoint will honour
          *     ``If-Match`` (advisory) using the schema's ``t_ingested_at`` timestamp
-         *     as the ETag source, matching the pattern used by capability-type PATCH.
+         *     as the ETag source, matching the pattern used by entity-type schema PATCH.
          */
         patch: operations["_update_edge_property_schema_v1_admin_edge_property_schemas__schema_id__patch"];
+        trace?: never;
+    };
+    "/v1/admin/entity-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Entity Type Schemas
+         * @description List all entity type schemas (current rows only: t_invalidated_at IS NULL).
+         */
+        get: operations["list_entity_type_schemas_v1_admin_entity_types_get"];
+        put?: never;
+        /**
+         * Create Entity Type Schema
+         * @description Create a new entity type schema.
+         *
+         *     ``entity_type`` is validated against the ``entity_type`` vocabulary first: a
+         *     schema registered for a type no entity may hold could never fire, so storing
+         *     one is a silent no-op dressed as governance. Unknown or deprecated values
+         *     raise ``VocabularyError`` (422), matching what ``create_entity`` already does
+         *     with the same value.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["create_entity_type_schema_v1_admin_entity_types_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/entity-types/{entity_type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Entity Type Schema
+         * @description Get the current schema for a given entity_type.
+         *
+         *     Emits an ``ETag`` header computed from the schema_id + t_ingested_at.
+         *     Clients can echo this value as ``If-Match`` on subsequent PATCH calls
+         *     for optimistic concurrency.
+         */
+        get: operations["get_entity_type_schema_v1_admin_entity_types__entity_type__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Patch Entity Type Schema
+         * @description Update an entity type schema — currently supports flipping is_advisory.
+         *
+         *     Honours the ``If-Match`` request header (advisory): if present and stale,
+         *     returns 412 Precondition Failed; if absent, logs a debug warning and
+         *     accepts the write.  ETag is computed from schema_id + t_ingested_at before
+         *     the write so a stale precondition fails fast.
+         *
+         *     Recommended flow: GET /v1/admin/entity-types/{entity_type} → ETag header
+         *     → PATCH with If-Match.
+         */
+        patch: operations["patch_entity_type_schema_v1_admin_entity_types__entity_type__patch"];
         trace?: never;
     };
     "/v1/admin/external-systems": {
@@ -1588,7 +1594,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List Artifact Families */
+        get: operations["list_artifact_families_v1_arc_artifacts_get"];
         put?: never;
         /** Create Artifact Family */
         post: operations["create_artifact_family_v1_arc_artifacts_post"];
@@ -2229,6 +2236,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/arc/sources/graph-promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Admit Source Graph Promotion
+         * @description Admit a claim the canonical graph already carries.
+         *
+         *     The caller names a promoted claim, the upstream system its evidence
+         *     points into, and a review deadline. It supplies no proof: the approving
+         *     authority is the promotion journal row, which this service reads and
+         *     re-checks — including whether the promotion was since reversed, and
+         *     whether the promoting actor was someone other than the claim's author.
+         */
+        post: operations["admit_source_graph_promotion_v1_arc_sources_graph_promotions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/arc/sources/uploads": {
         parameters: {
             query?: never;
@@ -2322,104 +2355,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/capabilities/{capability_id}/interface": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Read the capability's declared interface surface
-         * @description Return the active interface surface at ``as_of`` (or current truth).
-         *
-         *     The path segment accepts a UUID or slug-form name.
-         *
-         *     ``?view=audit`` is accepted for API consistency but is currently a no-op —
-         *     the interface service returns a composed record rather than raw attribute
-         *     rows, so no additional bitemporal metadata is available to surface.
-         */
-        get: operations["get_interface_v1_capabilities__capability_id__interface_get"];
-        /**
-         * Replace the capability's declared interface surface
-         * @description Normalize, soft-supersede prior versions, then write the new pair.
-         *
-         *     The path segment accepts a UUID or slug-form name.
-         */
-        put: operations["put_interface_v1_capabilities__capability_id__interface_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/capabilities/{capability_id}/preview-version": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Preview the impact of a proposed version + interface change
-         * @description Read-only advisory: normalize → semver → diff → blast-radius → filter.
-         *
-         *     The path segment accepts a UUID or slug-form name.
-         *
-         *     Returns the diff classification, the per-element changes, the
-         *     affected-consumer list (cross-tenant entries anonymised), and a
-         *     plain-text release-notes scaffold.
-         */
-        post: operations["preview_version_v1_capabilities__capability_id__preview_version_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/capabilities/{capability_id}/subscriptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List the caller's subscriptions for a capability
-         * @description Active subscriptions owned by ``ctx.tenant_id`` for this capability.
-         *
-         *     The path segment accepts a UUID or slug-form name. Tenants only see
-         *     their own subscriptions through this endpoint.
-         *
-         *     Pass ``?view=audit`` to include bitemporal columns in the response.
-         *
-         *     Pagination: ``next_cursor`` is always ``None`` — subscriptions per
-         *     capability per tenant are bounded (typically 1–5 rows), so keyset
-         *     pagination is not wired. The envelope exists for client shape consistency.
-         */
-        get: operations["list_subscriptions_for_capability_v1_capabilities__capability_id__subscriptions_get"];
-        put?: never;
-        /**
-         * Create a subscription for a capability
-         * @description Create an active subscription owned by the caller's tenant.
-         *
-         *     The path segment accepts a UUID or slug-form name. Visibility is enforced
-         *     before the row is written. Returns ``{"subscription_id": "<uuid>"}``; the
-         *     full record can be retrieved via the list endpoint.
-         *
-         *     Honours ``X-Idempotency-Key``: same key + same body replays the
-         *     original response; same key + different body returns 409.
-         */
-        post: operations["create_subscription_v1_capabilities__capability_id__subscriptions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/capabilities/{entity_id}": {
         parameters: {
             query?: never;
@@ -2471,6 +2406,75 @@ export interface paths {
          *     GET /v1/capabilities/{id} → ETag header → PATCH with If-Match.
          */
         patch: operations["patch_capability_v1_capabilities__entity_id__patch"];
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/adoptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active adoptions for a capability
+         * @description Return the calling tenant's active adoption for this capability,
+         *     if any.
+         *
+         *     Scoped to the caller's tenant — listing other tenants' adoptions for
+         *     the same capability is not supported through this endpoint (use the
+         *     projection endpoints for the provider-side view).
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns in the response.
+         *
+         *     Pagination: ``next_cursor`` is always ``None`` — adoptions per capability
+         *     per tenant are bounded (at most one active row), so keyset pagination is
+         *     not wired. The envelope exists for client shape consistency.
+         */
+        get: operations["list_adoptions_v1_capabilities__entity_id__adoptions_get"];
+        put?: never;
+        /**
+         * Adopt a provider capability (cross-tenant)
+         * @description Record an adoption event + provides_to edge.
+         *
+         *     The path segment accepts a UUID or a slug-form name. The consumer
+         *     tenant is ``ctx.tenant_id``. Returns ``201`` with the newly-created
+         *     adoption row. ``409`` if an active adoption already exists for the
+         *     (consumer, capability) pair (uniqueness constraint).
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns in the response.
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["adopt_capability_v1_capabilities__entity_id__adoptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/adoptions/{adoption_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Soft-delete (unadopt) an adoption
+         * @description Soft-delete by setting t_invalidated_at. The provides_to edge is
+         *     retained so historical bi-temporal traversal still surfaces the
+         *     relationship.
+         *
+         *     Idempotent: calling on an already-invalidated adoption is a no-op
+         *     (returns 204).
+         */
+        delete: operations["_unadopt_capability_v1_capabilities__entity_id__adoptions__adoption_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/capabilities/{entity_id}/artifacts": {
@@ -2615,6 +2619,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/capabilities/{entity_id}/interface": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the capability's declared interface surface
+         * @description Return the active interface surface at ``as_of`` (or current truth).
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     ``?view=audit`` is accepted for API consistency but is currently a no-op —
+         *     the interface service returns a composed record rather than raw attribute
+         *     rows, so no additional bitemporal metadata is available to surface.
+         */
+        get: operations["get_interface_v1_capabilities__entity_id__interface_get"];
+        /**
+         * Replace the capability's declared interface surface
+         * @description Normalize, soft-supersede prior versions, then write the new pair.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         */
+        put: operations["put_interface_v1_capabilities__entity_id__interface_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/capabilities/{entity_id}/lifecycle": {
         parameters: {
             query?: never;
@@ -2648,6 +2684,72 @@ export interface paths {
          *     404 if the entity does not exist.
          */
         patch: operations["patch_capability_lifecycle_v1_capabilities__entity_id__lifecycle_patch"];
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/preview-version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview the impact of a proposed version + interface change
+         * @description Read-only advisory: normalize → semver → diff → blast-radius → filter.
+         *
+         *     The path segment accepts a UUID or slug-form name.
+         *
+         *     Returns the diff classification, the per-element changes, the
+         *     affected-consumer list (cross-tenant entries anonymised), and a
+         *     plain-text release-notes scaffold.
+         */
+        post: operations["preview_version_v1_capabilities__entity_id__preview_version_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/capabilities/{entity_id}/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the caller's subscriptions for a capability
+         * @description Active subscriptions owned by ``ctx.tenant_id`` for this capability.
+         *
+         *     The path segment accepts a UUID or slug-form name. Tenants only see
+         *     their own subscriptions through this endpoint.
+         *
+         *     Pass ``?view=audit`` to include bitemporal columns in the response.
+         *
+         *     Pagination: ``next_cursor`` is always ``None`` — subscriptions per
+         *     capability per tenant are bounded (typically 1–5 rows), so keyset
+         *     pagination is not wired. The envelope exists for client shape consistency.
+         */
+        get: operations["list_subscriptions_for_capability_v1_capabilities__entity_id__subscriptions_get"];
+        put?: never;
+        /**
+         * Create a subscription for a capability
+         * @description Create an active subscription owned by the caller's tenant.
+         *
+         *     The path segment accepts a UUID or slug-form name. Visibility is enforced
+         *     before the row is written. Returns ``{"subscription_id": "<uuid>"}``; the
+         *     full record can be retrieved via the list endpoint.
+         *
+         *     Honours ``X-Idempotency-Key``: same key + same body replays the
+         *     original response; same key + different body returns 409.
+         */
+        post: operations["create_subscription_v1_capabilities__entity_id__subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/capabilities/{entity_id}/visibility": {
@@ -2684,75 +2786,6 @@ export interface paths {
          *     - 422 if visibility value is invalid or tenant-shared without shared_with_tenants.
          */
         patch: operations["set_visibility_handler_v1_capabilities__entity_id__visibility_patch"];
-        trace?: never;
-    };
-    "/v1/capabilities/{provider_cap_id}/adoptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List active adoptions for a capability
-         * @description Return the calling tenant's active adoption for this capability,
-         *     if any.
-         *
-         *     Scoped to the caller's tenant — listing other tenants' adoptions for
-         *     the same capability is not supported through this endpoint (use the
-         *     projection endpoints for the provider-side view).
-         *
-         *     Pass ``?view=audit`` to include bitemporal columns in the response.
-         *
-         *     Pagination: ``next_cursor`` is always ``None`` — adoptions per capability
-         *     per tenant are bounded (at most one active row), so keyset pagination is
-         *     not wired. The envelope exists for client shape consistency.
-         */
-        get: operations["list_adoptions_v1_capabilities__provider_cap_id__adoptions_get"];
-        put?: never;
-        /**
-         * Adopt a provider capability (cross-tenant)
-         * @description Record an adoption event + provides_to edge.
-         *
-         *     The path segment accepts a UUID or a slug-form name. The consumer
-         *     tenant is ``ctx.tenant_id``. Returns ``201`` with the newly-created
-         *     adoption row. ``409`` if an active adoption already exists for the
-         *     (consumer, capability) pair (uniqueness constraint).
-         *
-         *     Pass ``?view=audit`` to include bitemporal columns in the response.
-         *     Honours ``X-Idempotency-Key``: same key + same body replays the
-         *     original response; same key + different body returns 409.
-         */
-        post: operations["adopt_capability_v1_capabilities__provider_cap_id__adoptions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/capabilities/{provider_cap_id}/adoptions/{adoption_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Soft-delete (unadopt) an adoption
-         * @description Soft-delete by setting t_invalidated_at. The provides_to edge is
-         *     retained so historical bi-temporal traversal still surfaces the
-         *     relationship.
-         *
-         *     Idempotent: calling on an already-invalidated adoption is a no-op
-         *     (returns 204).
-         */
-        delete: operations["_unadopt_capability_v1_capabilities__provider_cap_id__adoptions__adoption_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/v1/checkpoints/by-digest/{digest}": {
@@ -2921,19 +2954,50 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Lookup entity by external system slug and external ID
-         * @description Return the entity mapped to ``(external_system, external_id)`` for the tenant.
-         *
-         *     Returns ``404 Not Found`` when no mapping exists.  The ``external_system``
-         *     and ``external_id`` query parameters are both required.
+         * Deprecated: use GET /v1/entities:lookup
+         * @deprecated
+         * @description The pre-rename path. Delegates; retires on the date in the contract.
          */
-        get: operations["lookup_entity_by_external_id_v1_entities_get"];
+        get: operations["lookup_entity_by_external_id_deprecated_v1_entities_get"];
+        put?: never;
+        /**
+         * Assert an entity through the generic profile-governed surface.
+         * @description Route one generic entity write by its stated intent.
+         */
+        post: operations["create_entity_v1_entities_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/entities/{entity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read one entity with the governance that accepted it.
+         * @description Return the row together with its profile, provenance, validation and readiness.
+         */
+        get: operations["get_entity_v1_entities__entity_id__get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Supersede an entity's properties through the generic surface.
+         * @description Update by the same three routes a create takes.
+         *
+         *     An update is not a lesser write. An observation that could amend a canonical
+         *     row directly would be a way around the whole intent split, so the routing here
+         *     is the same one `create_entity` uses and this handler adds nothing to it but
+         *     the subject.
+         */
+        patch: operations["update_entity"];
         trace?: never;
     };
     "/v1/entities/{entity_id}/external-ids": {
@@ -3034,6 +3098,77 @@ export interface paths {
          *     record is computed from the returned ``external_id_pk + updated_at`` values.
          */
         patch: operations["_patch_external_id_v1_entities__entity_id__external_ids__external_id_pk__patch"];
+        trace?: never;
+    };
+    "/v1/entities/{entity_id}:validate-readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report whether this entity's required relationships are present.
+         * @description Recount readiness on demand rather than reading a stored flag.
+         *
+         *     The stored `readiness_state` on an assertion is what was true when that row
+         *     was written — deliberately, so an audit can ask what was known then. A caller
+         *     asking "may this go active now?" needs today's answer, which is this.
+         */
+        post: operations["validate_readiness_v1_entities__entity_id__validate_readiness_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/entities:lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lookup entity by external system slug and external ID
+         * @description Return the entity mapped to ``(external_system, external_id)`` for the tenant.
+         *
+         *     Returns ``404 Not Found`` when no mapping exists.  The ``external_system``
+         *     and ``external_id`` query parameters are both required.
+         */
+        get: operations["lookup_entity_by_external_id_v1_entities_lookup_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/entities:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve a handle to one entity, refusing an ambiguous match.
+         * @description Look a handle up, qualified by type when the caller supplied one.
+         *
+         *     A bare name matching two types is refused rather than resolved. The refusal
+         *     carries `identity_ambiguous` so a client can branch on it without matching
+         *     message text, and so the fix — qualify the handle — is obvious from the code.
+         */
+        get: operations["resolve_entity_v1_entities_resolve_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/graph/consumer": {
@@ -4213,6 +4348,275 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/ownership/assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign ownership. The assignment lands in `draft`.
+         * @description Record a new assignment, checking the subject before anything is written.
+         */
+        post: operations["assign_v1_ownership_assignments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ownership/assignments/{assignment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read one assignment in whatever state it holds.
+         * @description Unfiltered by state: a revoked assignment is a different answer from none.
+         */
+        get: operations["get_assignment_v1_ownership_assignments__assignment_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ownership/assignments/{assignment_id}:transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Move an assignment through its lifecycle, recording actor, time and reason.
+         * @description Validate, supersede or revoke — whichever the lifecycle permits from here.
+         */
+        post: operations["transition_v1_ownership_assignments__assignment_id__transition_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ownership:owned-by": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Who owns this target — the same rows, from the other end.
+         * @description The inverse view. One row, two questions; nothing is duplicated to answer both.
+         */
+        get: operations["owned_by_v1_ownership_owned_by_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ownership:owns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * What this principal owns — a derived view.
+         * @description Derived from the same rows the other direction reads, never stored twice.
+         */
+        get: operations["owns_v1_ownership_owns_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/bindings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Plan Binding
+         * @description Draft a binding for the authenticated tenant.
+         */
+        post: operations["plan_binding_v1_profiles_bindings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/bindings/{binding_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Activate Binding
+         * @description Put a validated binding into force, closing the incumbent.
+         */
+        post: operations["activate_binding_v1_profiles_bindings__binding_id__activate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/bindings/{binding_id}/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Begin Rollback
+         * @description Start rolling an active binding back onto its recorded target.
+         */
+        post: operations["begin_rollback_v1_profiles_bindings__binding_id__rollback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/bindings/{binding_id}/rollback/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete Rollback
+         * @description Finish a rollback, restoring the target binding to active.
+         */
+        post: operations["complete_rollback_v1_profiles_bindings__binding_id__rollback_complete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/bindings/{binding_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate Binding
+         * @description Move a planned binding into validation. Still governs nothing.
+         */
+        post: operations["validate_binding_v1_profiles_bindings__binding_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/conformance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Conformance
+         * @description Report the binding governing the authenticated tenant, if any.
+         *
+         *     `bound: false` with a null binding is a real answer rather than a 404: a
+         *     tenant with no active binding is governed by core defaults, which is a
+         *     state a caller needs to be able to observe without treating it as an error.
+         */
+        get: operations["read_conformance_v1_profiles_conformance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/extensions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish Extension
+         * @description Publish this tenant's extension of a core revision.
+         */
+        post: operations["publish_extension_v1_profiles_extensions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/profiles/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish Revision
+         * @description Publish a core revision, or refuse with every conflict at once.
+         *
+         *     The definitions compiled here are the shipped core families. The request
+         *     does not carry a document: a caller-supplied profile body would let the
+         *     published authority differ from the one this deployment's compiler can
+         *     actually validate against.
+         */
+        post: operations["publish_revision_v1_profiles_revisions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/receipts/by-reference": {
         parameters: {
             query?: never;
@@ -4299,6 +4703,85 @@ export interface paths {
         get: operations["get_receipt_references_v1_receipts__receipt_id__references_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/relationships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assert a relationship through the generic profile-governed surface.
+         * @description Route one generic relationship write by its stated intent.
+         */
+        post: operations["create_relationship_v1_relationships_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/relationships/{relationship_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read one governed relationship with the governance that accepted it.
+         * @description Return the stored row together with its profile, provenance and readiness.
+         *
+         *     Emits an `ETag` over the row id and the later of its `recorded_at` and
+         *     `effective_to`. `effective_to` is in the inputs because a supersession does
+         *     not touch the row it ends except to close it: an ETag over the transaction
+         *     time alone would be unchanged by the one event a concurrent editor most
+         *     needs to hear about.
+         */
+        get: operations["get_relationship_v1_relationships__relationship_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Supersede a relationship through the generic surface.
+         * @description Supersede the named assertion, by the same three routes a create takes.
+         *
+         *     An observation that could amend a canonical edge directly would be a way
+         *     around the intent split, so this adds nothing to the routing but the subject.
+         *
+         *     Only the canonical route supersedes. The staged routes mint a claim id and
+         *     a review-entry id and persist neither — they are placeholders for a staging
+         *     surface that does not exist yet — so an observation or a request against
+         *     this path records nothing that names the edge it was about. That is the
+         *     behaviour a create already has, unchanged here rather than quietly widened.
+         */
+        patch: operations["update_relationship"];
+        trace?: never;
+    };
+    "/v1/relationships:query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Traverse one entity's relationships, bounded and one-directional.
+         * @description Read one page of relationships in force, forward or as inverse views.
+         */
+        post: operations["query_relationships_v1_relationships_query_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4784,7 +5267,7 @@ export interface components {
          * @description How a source's bytes entered the system.
          * @enum {string}
          */
-        AdmissionMethod: "connector_fetch" | "authorized_upload";
+        AdmissionMethod: "connector_fetch" | "authorized_upload" | "graph_promotion";
         /** AdoptionCreate */
         AdoptionCreate: {
             /** Intent */
@@ -5001,10 +5484,10 @@ export interface components {
             lower_scope_domain_id?: string | null;
             /** Lower Scope Environment */
             lower_scope_environment?: string | null;
+            /** Lower Scope Intent Kind */
+            lower_scope_intent_kind?: string | null;
             /** Lower Scope Kind */
             lower_scope_kind: string;
-            /** Lower Scope Task Kind */
-            lower_scope_task_kind?: string | null;
             /** Replacement Conflict Descriptor */
             replacement_conflict_descriptor: {
                 [key: string]: unknown;
@@ -5033,6 +5516,8 @@ export interface components {
             effective_until?: string | null;
             /** Environments */
             environments?: string[] | null;
+            /** Intent Kinds */
+            intent_kinds?: string[] | null;
             /** Is Mandatory */
             is_mandatory: boolean;
             /**
@@ -5044,11 +5529,9 @@ export interface components {
              * Scope
              * @enum {string}
              */
-            scope: "global" | "tenant" | "domain" | "capability" | "task";
+            scope: "global" | "tenant" | "domain" | "capability" | "intent";
             /** Target Tenant Id */
             target_tenant_id?: string | null;
-            /** Task Kinds */
-            task_kinds?: string[] | null;
         };
         /**
          * ArtifactDirective
@@ -5125,6 +5608,16 @@ export interface components {
             target_tenant_id?: string | null;
             /** Title */
             title: string;
+        };
+        /**
+         * ArtifactFamilyListResponse
+         * @description Cursor-paginated artifact families visible to the requesting tenant.
+         */
+        ArtifactFamilyListResponse: {
+            /** Items */
+            items: components["schemas"]["ArtifactFamilyResponse"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
         };
         /**
          * ArtifactFamilyResponse
@@ -5227,7 +5720,7 @@ export interface components {
         };
         /**
          * ArtifactSemantics
-         * @description Exactly the closed `arc_artifact_semantics_v1` profile object.
+         * @description Exactly the closed `arc_artifact_semantics_v2` profile object.
          */
         ArtifactSemantics: {
             /** Applicability */
@@ -5262,7 +5755,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "directive_bundle" | "task_summary_template";
+            kind: "directive_bundle" | "intent_summary_template";
             /** Materialiser Profile */
             materialiser_profile: string;
             /** Materialiser Version */
@@ -5272,10 +5765,10 @@ export interface components {
             owning_tenant_id?: string | null;
             /**
              * Profile
-             * @default arc_artifact_semantics_v1
+             * @default arc_artifact_semantics_v2
              * @constant
              */
-            profile: "arc_artifact_semantics_v1";
+            profile: "arc_artifact_semantics_v2";
             /** Projection Schema Version */
             projection_schema_version: number;
             /**
@@ -5323,7 +5816,7 @@ export interface components {
             /** Initial Freshness Basis */
             initial_freshness_basis?: ("connector_verified" | "revision_pinned_only") | null;
             /** Kind */
-            kind?: ("directive_bundle" | "task_summary_template") | null;
+            kind?: ("directive_bundle" | "intent_summary_template") | null;
             /** Materialiser Profile */
             materialiser_profile?: string | null;
             /** Materialiser Version */
@@ -5332,7 +5825,7 @@ export interface components {
             /** Owning Tenant Id */
             owning_tenant_id?: string | null;
             /** Profile */
-            profile?: "arc_artifact_semantics_v1" | null;
+            profile?: "arc_artifact_semantics_v2" | null;
             /** Projection Schema Version */
             projection_schema_version?: number | null;
             /** Review Expires At */
@@ -5394,6 +5887,79 @@ export interface components {
             value: unknown;
             /** Visibility */
             visibility: string;
+        };
+        /**
+         * AssertionProvenanceInputV1
+         * @description Where the assertion came from, as the caller can attest it.
+         *
+         *     The caller's half of the provenance record: the source it read, the times
+         *     it observed, and how it derived the value if it derived one. The platform's
+         *     half -- trust class, validating revision, ingest time, approver -- is added
+         *     on the server, and is refused here by name. Provenance changing must never
+         *     silently change trust, and it cannot if the trust half never arrives in a
+         *     request at all.
+         *
+         *     Missing provenance blocks the write, which is why every field that
+         *     identifies the source is required rather than defaulted to an empty string:
+         *     a blank source system passes an "is it set" check and tells a later reader
+         *     nothing about where the value came from.
+         */
+        AssertionProvenanceInputV1: {
+            /** Confidence */
+            confidence?: number | null;
+            /** Derivation Method */
+            derivation_method?: string | null;
+            /** Derivation Profile */
+            derivation_profile?: string | null;
+            /** Event Time */
+            event_time?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** External Record Id */
+            external_record_id: string;
+            /** External Record Revision */
+            external_record_revision?: string | null;
+            /**
+             * Observed Time
+             * Format: date-time
+             */
+            observed_time: string;
+            /** Source Namespace */
+            source_namespace: string;
+            /** Source System */
+            source_system: string;
+        };
+        /**
+         * AssignOwnershipRequestV1
+         * @description A new ownership assignment. Lands in `draft`; validation is a separate act.
+         */
+        AssignOwnershipRequestV1: {
+            /** Confidence */
+            confidence?: number | null;
+            /** Derivation Method */
+            derivation_method?: string | null;
+            /** Effective From */
+            effective_from?: string | null;
+            /**
+             * Owned Target Id
+             * Format: uuid
+             */
+            owned_target_id: string;
+            /** Owned Target Kind */
+            owned_target_kind: string;
+            /** Owner Principal */
+            owner_principal: string;
+            /**
+             * Profile Revision Id
+             * Format: uuid
+             */
+            profile_revision_id: string;
+            /** Role */
+            role: string;
+            /** Scope */
+            scope: string;
+            /** Source */
+            source: string;
         };
         /** AttachEvidenceRequest */
         AttachEvidenceRequest: {
@@ -5558,6 +6124,60 @@ export interface components {
         BelievedClaimsResponse: {
             /** Items */
             items: components["schemas"]["BelievedClaimResponse"][];
+        };
+        /**
+         * BindingResponse
+         * @description A binding as the administration surface reports it.
+         */
+        BindingResponse: {
+            /** Actor */
+            actor: string;
+            /** Audit Reference */
+            audit_reference: string | null;
+            /**
+             * Binding Id
+             * Format: uuid
+             */
+            binding_id: string;
+            /**
+             * Effective From
+             * Format: date-time
+             */
+            effective_from: string;
+            /** Effective To */
+            effective_to: string | null;
+            /** Extension Set Digest */
+            extension_set_digest: string;
+            /** Migration Run Id */
+            migration_run_id: string | null;
+            /**
+             * Profile Revision Id
+             * Format: uuid
+             */
+            profile_revision_id: string;
+            /** Reason */
+            reason: string;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Rollback Ready */
+            rollback_ready: boolean;
+            /** Rollback Target Binding Id */
+            rollback_target_binding_id: string | null;
+            /** State */
+            state: string;
+        };
+        /**
+         * BindingTransitionRequest
+         * @description Move a binding along its state machine.
+         */
+        BindingTransitionRequest: {
+            /** Audit Reference */
+            audit_reference?: string | null;
+            /** Reason */
+            reason: string;
         };
         /** Body_admit_source_upload_v1_arc_sources_uploads_post */
         Body_admit_source_upload_v1_arc_sources_uploads_post: {
@@ -5854,69 +6474,6 @@ export interface components {
             tenant_id: string;
         };
         /**
-         * CapabilityTypeSchemaCreate
-         * @description Body for POST /capability-types.
-         *
-         *     `is_advisory` (default true) controls whether validation failures block a write.
-         */
-        CapabilityTypeSchemaCreate: {
-            /**
-             * Is Advisory
-             * @default true
-             */
-            is_advisory: boolean;
-            /** Json Schema */
-            json_schema: {
-                [key: string]: unknown;
-            };
-            /** T Valid From */
-            t_valid_from?: string | null;
-            /** Type Name */
-            type_name: string;
-        };
-        /**
-         * CapabilityTypeSchemaPatch
-         * @description Body for PATCH /capability-types/{type_name}; today the only supported change is flipping `is_advisory`.
-         */
-        CapabilityTypeSchemaPatch: {
-            /** Is Advisory */
-            is_advisory?: boolean | null;
-        };
-        /**
-         * CapabilityTypeSchemaResponse
-         * @description A capability-type's JSON Schema and its bi-temporal validity window.
-         */
-        CapabilityTypeSchemaResponse: {
-            _links?: components["schemas"]["Links"] | null;
-            /** Is Advisory */
-            is_advisory: boolean;
-            /** Json Schema */
-            json_schema: {
-                [key: string]: unknown;
-            };
-            /**
-             * Schema Id
-             * Format: uuid
-             */
-            schema_id: string;
-            /**
-             * T Ingested At
-             * Format: date-time
-             */
-            t_ingested_at: string;
-            /** T Invalidated At */
-            t_invalidated_at: string | null;
-            /**
-             * T Valid From
-             * Format: date-time
-             */
-            t_valid_from: string;
-            /** T Valid To */
-            t_valid_to: string | null;
-            /** Type Name */
-            type_name: string;
-        };
-        /**
          * CapabilityUsageOut
          * @description One capability's call volume for the window, nested inside CapabilityRankingOut.
          */
@@ -6191,6 +6748,15 @@ export interface components {
             minimum_sample: number;
             /** Target Ratio */
             target_ratio: number;
+        };
+        /**
+         * ConformanceResponse
+         * @description What is governing this tenant right now.
+         */
+        ConformanceResponse: {
+            binding: components["schemas"]["BindingResponse"] | null;
+            /** Bound */
+            bound: boolean;
         };
         /**
          * ConnectorFetchRequest
@@ -6485,8 +7051,6 @@ export interface components {
             attributes?: {
                 [key: string]: unknown;
             };
-            /** Capability Type */
-            capability_type?: string | null;
             /**
              * Entity Type
              * @default capability
@@ -6954,6 +7518,44 @@ export interface components {
             tenant_id?: string | null;
         };
         /**
+         * EntityIdentityV1
+         * @description How this entity is named, qualified by its type.
+         *
+         *     The namespace and type accompany the name because a bare name is not an
+         *     identity in a profile-governed graph: two types may legitimately carry the
+         *     same name, and a reader holding only the name cannot tell which it has.
+         */
+        EntityIdentityV1: {
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Entity Type */
+            entity_type: string;
+            /** External Id */
+            external_id?: string | null;
+            /** Name */
+            name: string;
+        };
+        /**
+         * EntityReadV1
+         * @description One entity with the governance a generic reader needs to act on it.
+         */
+        EntityReadV1: {
+            identity: components["schemas"]["EntityIdentityV1"];
+            profile: components["schemas"]["ProfileAttributionV1"];
+            /** Properties */
+            properties?: {
+                [key: string]: unknown;
+            };
+            provenance: components["schemas"]["ProvenanceSummaryV1"];
+            /** Readiness State */
+            readiness_state: string;
+            temporal: components["schemas"]["TemporalStateV1Out"];
+            validation: components["schemas"]["ValidationOutcomeV1"];
+        };
+        /**
          * EntityRefItem
          * @description An entity as it appears in a list or as a graph node.
          *
@@ -7011,6 +7613,141 @@ export interface components {
              * Format: uuid
              */
             tenant_id: string;
+        };
+        /**
+         * EntityResolutionV1
+         * @description The result of a handle lookup.
+         */
+        EntityResolutionV1: {
+            identity: components["schemas"]["EntityIdentityV1"];
+        };
+        /**
+         * EntityTypeSchemaCreate
+         * @description Body for POST /entity-types.
+         *
+         *     `entity_type` must already exist in the `entity_type` vocabulary — registering
+         *     a schema for a type no entity can hold is rejected, not stored.
+         *     `is_advisory` (default true) controls whether validation failures block a write.
+         */
+        EntityTypeSchemaCreate: {
+            /** Entity Type */
+            entity_type: string;
+            /**
+             * Is Advisory
+             * @default true
+             */
+            is_advisory: boolean;
+            /** Json Schema */
+            json_schema: {
+                [key: string]: unknown;
+            };
+            /** T Valid From */
+            t_valid_from?: string | null;
+        };
+        /**
+         * EntityTypeSchemaPatch
+         * @description Body for PATCH /entity-types/{entity_type}; today the only supported change is flipping `is_advisory`.
+         */
+        EntityTypeSchemaPatch: {
+            /** Is Advisory */
+            is_advisory?: boolean | null;
+        };
+        /**
+         * EntityTypeSchemaResponse
+         * @description An entity-type's JSON Schema and its bi-temporal validity window.
+         */
+        EntityTypeSchemaResponse: {
+            _links?: components["schemas"]["Links"] | null;
+            /** Entity Type */
+            entity_type: string;
+            /** Is Advisory */
+            is_advisory: boolean;
+            /** Json Schema */
+            json_schema: {
+                [key: string]: unknown;
+            };
+            /**
+             * Schema Id
+             * Format: uuid
+             */
+            schema_id: string;
+            /**
+             * T Ingested At
+             * Format: date-time
+             */
+            t_ingested_at: string;
+            /** T Invalidated At */
+            t_invalidated_at: string | null;
+            /**
+             * T Valid From
+             * Format: date-time
+             */
+            t_valid_from: string;
+            /** T Valid To */
+            t_valid_to: string | null;
+        };
+        /**
+         * EntityWriteRequestV1
+         * @description A generic write whose subject is an entity.
+         *
+         *     Narrows `subject_kind` rather than dropping it. The field stays in the body so
+         *     one envelope serialises for both surfaces and a client library does not need a
+         *     different shape per path — but a body arriving here saying `relationship` is a
+         *     caller who has the wrong URL, and being told so beats having the field quietly
+         *     ignored.
+         */
+        EntityWriteRequestV1: {
+            /** Approval Reference */
+            approval_reference?: string | null;
+            /** Idempotency Key */
+            idempotency_key: string;
+            identity: components["schemas"]["ProfileWriteIdentityV1"];
+            /**
+             * Intent
+             * @enum {string}
+             */
+            intent: "observation" | "request" | "authorized_approval";
+            /** Properties */
+            properties?: {
+                [key: string]: unknown;
+            };
+            provenance: components["schemas"]["AssertionProvenanceInputV1"];
+            /**
+             * Subject Kind
+             * @default entity
+             * @constant
+             */
+            subject_kind: "entity";
+            /** Subject Type */
+            subject_type: string;
+            target_revision: components["schemas"]["TargetRevisionV1"];
+            temporal: components["schemas"]["TemporalStateV1"];
+        };
+        /**
+         * EntityWriteResultV1
+         * @description What a generic write did, named for the effect it actually had.
+         *
+         *     `entity_id` is populated only for a canonical write. An observation produces a
+         *     staged claim and a request produces a review entry; returning an entity id for
+         *     either would tell the caller its value is now in the graph when it is waiting
+         *     for somebody to agree.
+         */
+        EntityWriteResultV1: {
+            /** Effect */
+            effect: string;
+            /** Entity Id */
+            entity_id?: string | null;
+            /**
+             * Intent
+             * @enum {string}
+             */
+            intent: "observation" | "request" | "authorized_approval";
+            profile: components["schemas"]["ProfileAttributionV1"];
+            /** Review Entry Id */
+            review_entry_id?: string | null;
+            /** Staged Claim Id */
+            staged_claim_id?: string | null;
+            validation: components["schemas"]["ValidationOutcomeV1"];
         };
         /**
          * EntryCreateRequest
@@ -7181,7 +7918,7 @@ export interface components {
         };
         /**
          * ExpectedImpactEnvelope
-         * @description Exactly the closed `arc_expected_impact_envelope_v1` profile object.
+         * @description Exactly the closed `arc_expected_impact_envelope_v2` profile object.
          */
         ExpectedImpactEnvelope: {
             /** Author Issuer */
@@ -7202,10 +7939,10 @@ export interface components {
             items: components["schemas"]["ExpectedImpactEnvelopeItem"][];
             /**
              * Profile
-             * @default arc_expected_impact_envelope_v1
+             * @default arc_expected_impact_envelope_v2
              * @constant
              */
-            profile: "arc_expected_impact_envelope_v1";
+            profile: "arc_expected_impact_envelope_v2";
             /**
              * Proposal Id
              * Format: uuid
@@ -7231,6 +7968,33 @@ export interface components {
             minimum_count: number;
             /** Rationale Code */
             rationale_code: string;
+        };
+        /**
+         * ExtensionResponse
+         * @description A published extension's identity and what it extends.
+         */
+        ExtensionResponse: {
+            /** Document Digest */
+            document_digest: string;
+            /** Extension Points */
+            extension_points: string[];
+            /**
+             * Extension Revision Id
+             * Format: uuid
+             */
+            extension_revision_id: string;
+            /** Namespace */
+            namespace: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /**
+             * Target Core Revision Id
+             * Format: uuid
+             */
+            target_core_revision_id: string;
         };
         /**
          * ExternalIdCreate
@@ -7531,6 +8295,34 @@ export interface components {
             /** Role */
             role: string;
         };
+        /**
+         * GraphPromotionRequest
+         * @description Body for `POST /v1/arc/sources/graph-promotions`: admits a claim the
+         *     canonical graph already carries, vouched for by its promotion rather
+         *     than by a signature over bytes this deployment fetched.
+         *
+         *     No `claim`, `verifier_id`, or `proof`: every field those carry is read
+         *     from the promotion itself. Accepting them from the caller would let a
+         *     request assert an approving authority the graph does not record.
+         */
+        GraphPromotionRequest: {
+            /**
+             * Claim Id
+             * Format: uuid
+             */
+            claim_id: string;
+            /**
+             * Review Expires At
+             * Format: date-time
+             * @description When this citation must be revisited. A graph fact carries no deadline of its own, and every source evidence row has one.
+             */
+            review_expires_at: string;
+            /**
+             * Source System
+             * @description The upstream system the promoted claim's evidence points into, e.g. `bitbucket.org/acme/adr`. Not derived: an evidence ref names a revision, not the system that issued it.
+             */
+            source_system: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -7807,6 +8599,10 @@ export interface components {
             domain_ids?: string[];
             /** Environment */
             environment: string;
+            /** Intent Kind */
+            intent_kind: string;
+            /** Intent Summary */
+            intent_summary?: string | null;
             /** Repository Identity */
             repository_identity: string;
             /** Requested Action Classes */
@@ -7815,10 +8611,6 @@ export interface components {
             session_id: string;
             /** Supported Context Bundle Content Profiles */
             supported_context_bundle_content_profiles?: string[];
-            /** Task Kind */
-            task_kind: string;
-            /** Task Summary */
-            task_summary?: string | null;
         };
         /**
          * NormalizedSignalReference
@@ -7912,7 +8704,7 @@ export interface components {
         };
         /**
          * ObservationClassPredicate
-         * @description Exactly the closed `arc_observation_class_predicate_v1` profile object.
+         * @description Exactly the closed `arc_observation_class_predicate_v2` profile object.
          */
         ObservationClassPredicate: {
             /** Capability Ids */
@@ -7923,16 +8715,16 @@ export interface components {
             domain_ids?: string[] | null;
             /** Environment */
             environment?: string[] | null;
+            /** Intent Kind */
+            intent_kind?: string[] | null;
             /**
              * Profile
-             * @default arc_observation_class_predicate_v1
+             * @default arc_observation_class_predicate_v2
              * @constant
              */
-            profile: "arc_observation_class_predicate_v1";
+            profile: "arc_observation_class_predicate_v2";
             /** Requested Action Classes */
             requested_action_classes?: string[] | null;
-            /** Task Kind */
-            task_kind?: string[] | null;
         };
         /**
          * ObservationDecision
@@ -8067,6 +8859,75 @@ export interface components {
             payload_bytes: number | null;
         };
         /**
+         * OwnershipAssignmentV1
+         * @description One assignment as the surface reports it.
+         *
+         *     `is_pending` is computed and returned rather than left for a caller to derive
+         *     from the state name: a UI showing an unvalidated assignment without the label
+         *     presents a proposal as settled fact.
+         */
+        OwnershipAssignmentV1: {
+            /** Confidence */
+            confidence: number | null;
+            /** Derivation Method */
+            derivation_method: string | null;
+            /**
+             * Effective From
+             * Format: date-time
+             */
+            effective_from: string;
+            /** Effective To */
+            effective_to: string | null;
+            /** Is Pending */
+            is_pending: boolean;
+            /**
+             * Owned Target Id
+             * Format: uuid
+             */
+            owned_target_id: string;
+            /** Owned Target Kind */
+            owned_target_kind: string;
+            /** Owner Principal */
+            owner_principal: string;
+            /**
+             * Ownership Assignment Id
+             * Format: uuid
+             */
+            ownership_assignment_id: string;
+            /**
+             * Provenance Id
+             * Format: uuid
+             */
+            provenance_id: string;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Recorded By */
+            recorded_by: string;
+            /** Replaced By Assignment Id */
+            replaced_by_assignment_id: string | null;
+            /** Revocation Reason */
+            revocation_reason: string | null;
+            /** Role */
+            role: string;
+            /** Scope */
+            scope: string;
+            /** Source */
+            source: string;
+            /** Validation State */
+            validation_state: string;
+        };
+        /**
+         * OwnershipListV1
+         * @description A derived view — `owns` or `owned_by`, both read off the same rows.
+         */
+        OwnershipListV1: {
+            /** Items */
+            items: components["schemas"]["OwnershipAssignmentV1"][];
+        };
+        /**
          * OwningScope
          * @description Whether a resource is global or bound to one tenant.
          * @enum {string}
@@ -8184,6 +9045,30 @@ export interface components {
              */
             tenant_id: string;
         };
+        /**
+         * PlanBindingRequest
+         * @description Draft a binding. Governs nothing until it is validated and activated.
+         */
+        PlanBindingRequest: {
+            /** Audit Reference */
+            audit_reference?: string | null;
+            /**
+             * Effective From
+             * Format: date-time
+             */
+            effective_from: string;
+            /** Extension Revision Ids */
+            extension_revision_ids?: string[];
+            /** Migration Run Id */
+            migration_run_id?: string | null;
+            /**
+             * Profile Revision Id
+             * Format: uuid
+             */
+            profile_revision_id: string;
+            /** Reason */
+            reason: string;
+        };
         /** PredicateResponse */
         PredicateResponse: {
             /** Claim Category */
@@ -8215,6 +9100,69 @@ export interface components {
          * @enum {string}
          */
         PrincipalBindingKind: "exact_principal" | "provider_delegated";
+        /**
+         * ProfileAttributionV1
+         * @description Which governance accepted this row.
+         */
+        ProfileAttributionV1: {
+            /** Binding Id */
+            binding_id: string | null;
+            /** Enforcement Mode */
+            enforcement_mode: string;
+            /** Profile Revision Id */
+            profile_revision_id: string | null;
+        };
+        /**
+         * ProfileRevisionResponse
+         * @description A published revision's identity and its position in the chain.
+         *
+         *     Named for its area rather than `RevisionResponse` because the ARC
+         *     observation surface already publishes a `RevisionResponse` component. Two
+         *     models sharing a class name make FastAPI emit both as module-qualified
+         *     names, which silently renames the *other* area's published component --
+         *     a contract change to an endpoint this task never touched.
+         */
+        ProfileRevisionResponse: {
+            /** Compatibility */
+            compatibility: string;
+            /** Document Digest */
+            document_digest: string;
+            /** Predecessor Revision Id */
+            predecessor_revision_id: string | null;
+            /** Profile Family */
+            profile_family: string;
+            /** Profile Name */
+            profile_name: string;
+            /**
+             * Profile Revision Id
+             * Format: uuid
+             */
+            profile_revision_id: string;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /** Semantic Version */
+            semantic_version: string;
+        };
+        /**
+         * ProfileWriteIdentityV1
+         * @description Which thing is being written about: a stable id, a qualified handle, or both.
+         *
+         *     Both may be sent together, which is how a caller holding an id it read from
+         *     an earlier response can still say what it believes that id refers to.
+         *     Whether the two agree is not decidable here -- it takes a lookup -- so it is
+         *     the resolver's to answer; this shape only guarantees it was asked something.
+         *     Neither being present is refused: a write about nothing in particular is a
+         *     write whose subject the server would otherwise have to pick.
+         */
+        ProfileWriteIdentityV1: {
+            /** Handle */
+            handle?: string | null;
+            /** Subject Id */
+            subject_id?: string | null;
+        };
         /**
          * ProgressionDefinitionCreate
          * @description Body for POST .../progression-definitions.
@@ -8660,6 +9608,67 @@ export interface components {
          */
         ProvenanceClass: "source_backed" | "human_judgment" | "server_derived";
         /**
+         * ProvenanceSummaryV1
+         * @description Who asserted this and how far it may be trusted.
+         *
+         *     A summary rather than the whole provenance row: the fields here are the ones a
+         *     reader needs to decide whether to act on the value. `confidence` is present
+         *     only for a derived assertion, mirroring the rule the provenance record itself
+         *     enforces.
+         */
+        ProvenanceSummaryV1: {
+            /** Authority */
+            authority?: string | null;
+            /** Confidence */
+            confidence?: number | null;
+            /** External Record Id */
+            external_record_id?: string | null;
+            /** External Revision */
+            external_revision?: string | null;
+            /** Freshness State */
+            freshness_state?: string | null;
+            /** Source System */
+            source_system?: string | null;
+        };
+        /**
+         * PublishExtensionRequest
+         * @description Publish this tenant's extension of a core revision.
+         *
+         *     No tenant field: the extension belongs to whoever is authenticated. A
+         *     tenant that could publish into another's namespace could change what that
+         *     tenant's writes are validated against.
+         */
+        PublishExtensionRequest: {
+            /** Namespace */
+            namespace: string;
+            /**
+             * Target Core Revision Id
+             * Format: uuid
+             */
+            target_core_revision_id: string;
+        };
+        /**
+         * PublishRevisionRequest
+         * @description Publish a new core revision of a profile.
+         */
+        PublishRevisionRequest: {
+            /**
+             * Compatibility
+             * @description backward_compatible, breaking, or deprecating
+             */
+            compatibility: string;
+            /** Migration Plan Ref */
+            migration_plan_ref?: string | null;
+            /** Predecessor Revision Id */
+            predecessor_revision_id?: string | null;
+            /** Profile Family */
+            profile_family: string;
+            /** Profile Name */
+            profile_name: string;
+            /** Semantic Version */
+            semantic_version: string;
+        };
+        /**
          * PurgeResultResponse
          * @description JSON shape returned by DELETE /v1/admin/actors/{actor_id}/personal-data.
          *
@@ -8839,6 +9848,25 @@ export interface components {
             confirmations: components["schemas"]["ReachConfirmationItem"][];
         };
         /**
+         * ReadinessReportV1
+         * @description Whether this entity's required relationships are present.
+         *
+         *     `blocking` names what is missing rather than only counting it: a caller told
+         *     "not ready" with no list has to guess, and guessing is how a caller ends up
+         *     asserting relationships the profile never asked for.
+         */
+        ReadinessReportV1: {
+            /** Blocking */
+            blocking?: string[];
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Readiness State */
+            readiness_state: string;
+        };
+        /**
          * ReadingOut
          * @description One number and everything needed to read it correctly.
          *
@@ -9004,6 +10032,159 @@ export interface components {
          * @enum {string}
          */
         RefusalCode: "arc_source_admission_refused" | "arc_source_status_unavailable" | "arc_evidence_type_not_writable" | "arc_enrollment_challenge_required" | "arc_enrollment_verification_failed" | "arc_approval_challenge_expired" | "arc_approval_challenge_failed" | "arc_approval_challenge_superseded" | "arc_approval_already_completed" | "arc_approval_verification_failed" | "arc_approval_challenge_limit_reached" | "arc_proposal_state_conflict" | "arc_proposal_validation_failed" | "arc_provenance_invalid" | "arc_reach_confirmation_required" | "arc_envelope_invalid" | "arc_observation_insufficient" | "arc_observation_failed" | "arc_qualification_actor_invalid" | "arc_qualification_expired" | "arc_activation_predicate_failed" | "arc_operational_integrity_pending" | "arc_operational_integrity_failed" | "arc_drafter_model_disabled" | "arc_idempotency_conflict" | "arc_actor_not_caller_supplied";
+        /**
+         * RelationshipEndpointsV1
+         * @description The two entities an edge joins, in the stored direction.
+         */
+        RelationshipEndpointsV1: {
+            /**
+             * Destination Entity Id
+             * Format: uuid
+             */
+            destination_entity_id: string;
+            /**
+             * Source Entity Id
+             * Format: uuid
+             */
+            source_entity_id: string;
+        };
+        /**
+         * RelationshipPageV1
+         * @description One page of a traversal, with what a caller needs to ask for the next.
+         */
+        RelationshipPageV1: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["RelationshipReadV1"][];
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
+        /**
+         * RelationshipQueryV1
+         * @description A bounded traversal from one entity.
+         *
+         *     `direction` chooses the stored direction or the derived inverse view; there is
+         *     no "both", because a page mixing the two would have no stable order and a
+         *     caller could not tell which half it had.
+         */
+        RelationshipQueryV1: {
+            /** At */
+            at?: string | null;
+            /**
+             * Direction
+             * @default outgoing
+             * @enum {string}
+             */
+            direction: "outgoing" | "incoming";
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /**
+             * Limit
+             * @default 50
+             */
+            limit: number;
+            /**
+             * Offset
+             * @default 0
+             */
+            offset: number;
+            /** Relationship Type */
+            relationship_type?: string | null;
+        };
+        /**
+         * RelationshipReadV1
+         * @description One governed relationship with the governance a reader needs.
+         *
+         *     `is_inverse` travels with the row because an inverse is the same stored fact
+         *     read from the other end. A caller that treated one as a second edge would be
+         *     double-counting, and nothing else in the body would say which it held.
+         */
+        RelationshipReadV1: {
+            endpoints: components["schemas"]["RelationshipEndpointsV1"];
+            /**
+             * Is Inverse
+             * @default false
+             */
+            is_inverse: boolean;
+            profile: components["schemas"]["ProfileAttributionV1"];
+            /** Properties */
+            properties?: {
+                [key: string]: unknown;
+            };
+            provenance: components["schemas"]["ProvenanceSummaryV1"];
+            /** Readiness State */
+            readiness_state: string;
+            /**
+             * Relationship Id
+             * Format: uuid
+             */
+            relationship_id: string;
+            /** Relationship Type */
+            relationship_type: string;
+            temporal: components["schemas"]["TemporalStateV1Out"];
+            validation: components["schemas"]["ValidationOutcomeV1"];
+        };
+        /**
+         * RelationshipWriteRequestV1
+         * @description A generic write whose subject is a relationship.
+         */
+        RelationshipWriteRequestV1: {
+            /** Approval Reference */
+            approval_reference?: string | null;
+            endpoints: components["schemas"]["RelationshipEndpointsV1"];
+            /** Idempotency Key */
+            idempotency_key: string;
+            identity: components["schemas"]["ProfileWriteIdentityV1"];
+            /**
+             * Intent
+             * @enum {string}
+             */
+            intent: "observation" | "request" | "authorized_approval";
+            /** Properties */
+            properties?: {
+                [key: string]: unknown;
+            };
+            provenance: components["schemas"]["AssertionProvenanceInputV1"];
+            /**
+             * Subject Kind
+             * @default relationship
+             * @constant
+             */
+            subject_kind: "relationship";
+            /** Subject Type */
+            subject_type: string;
+            target_revision: components["schemas"]["TargetRevisionV1"];
+            temporal: components["schemas"]["TemporalStateV1"];
+        };
+        /**
+         * RelationshipWriteResultV1
+         * @description What a generic relationship write did, named for the effect it had.
+         */
+        RelationshipWriteResultV1: {
+            /** Effect */
+            effect: string;
+            /**
+             * Intent
+             * @enum {string}
+             */
+            intent: "observation" | "request" | "authorized_approval";
+            profile: components["schemas"]["ProfileAttributionV1"];
+            /** Readiness State */
+            readiness_state?: string | null;
+            /** Relationship Id */
+            relationship_id?: string | null;
+            /** Review Entry Id */
+            review_entry_id?: string | null;
+            /** Staged Claim Id */
+            staged_claim_id?: string | null;
+            validation: components["schemas"]["ValidationOutcomeV1"];
+        };
         /**
          * ReplayCorpusApprovalRequest
          * @description Body for `POST /v1/arc/admin/observation-replay-corpora`: approves a
@@ -9396,7 +10577,7 @@ export interface components {
          * @description Derived by import from `authoring_profile_shapes.RISK_CLASSIFICATIONS` (ADR 041 Section 2) -- both live in the schema layer, so this is a same-layer import that cannot drift from that tuple, unlike the cross-layer import `RevisionLifecycleState`/`ArtifactKind` avoid.
          * @enum {string}
          */
-        RiskClassification: "global_mandatory" | "global_non_mandatory" | "tenant_mandatory" | "tenant_non_mandatory" | "domain_mandatory" | "domain_non_mandatory" | "capability_mandatory" | "capability_non_mandatory" | "task_mandatory" | "task_non_mandatory";
+        RiskClassification: "global_mandatory" | "global_non_mandatory" | "tenant_mandatory" | "tenant_non_mandatory" | "domain_mandatory" | "domain_non_mandatory" | "capability_mandatory" | "capability_non_mandatory" | "intent_mandatory" | "intent_non_mandatory";
         /**
          * RouteCurationCaseRequest
          * @description Who becomes accountable for deciding the case.
@@ -10330,6 +11511,45 @@ export interface components {
             tenant_id: string;
         };
         /**
+         * TargetRevisionV1
+         * @description The profile revision the caller wrote against.
+         *
+         *     Sent by the caller rather than assumed from whatever is currently bound,
+         *     because a body composed against one revision and validated against another
+         *     passes or fails for reasons the caller cannot see.
+         */
+        TargetRevisionV1: {
+            /** Binding Revision */
+            binding_revision?: string | null;
+            /** Profile Revision */
+            profile_revision: string;
+        };
+        /**
+         * TemporalStateV1
+         * @description When the assertion is claimed to hold, in the world rather than in the store.
+         */
+        TemporalStateV1: {
+            /**
+             * Valid From
+             * Format: date-time
+             */
+            valid_from: string;
+            /** Valid To */
+            valid_to?: string | null;
+        };
+        /**
+         * TemporalStateV1Out
+         * @description When this row is in force.
+         */
+        TemporalStateV1Out: {
+            /** Effective From */
+            effective_from?: string | null;
+            /** Effective To */
+            effective_to?: string | null;
+            /** Recorded At */
+            recorded_at?: string | null;
+        };
+        /**
          * ToolRankingOut
          * @description Response body for GET /v1/admin/usage/tools: which MCP tools this tenant's agents actually call.
          */
@@ -10374,6 +11594,18 @@ export interface components {
              * @enum {string}
              */
             to_status: "acknowledged" | "accepted" | "declined" | "duplicate" | "resolved";
+        };
+        /**
+         * TransitionRequestV1
+         * @description A move, its reason, and — when superseding — what replaces it.
+         */
+        TransitionRequestV1: {
+            /** Reason */
+            reason: string;
+            /** Replaced By Assignment Id */
+            replaced_by_assignment_id?: string | null;
+            /** To State */
+            to_state: string;
         };
         /**
          * TraversalResultResponse
@@ -10508,6 +11740,27 @@ export interface components {
             message: string;
         };
         /**
+         * ValidationOutcomeV1
+         * @description What the profile said about this write.
+         *
+         *     `violations` can be non-empty on a successful write: that is what an advisory
+         *     binding means. A caller reading only the status code would miss it, so the
+         *     list travels with the row.
+         */
+        ValidationOutcomeV1: {
+            /** Mode */
+            mode: string;
+            /**
+             * Truncated
+             * @default false
+             */
+            truncated: boolean;
+            /** Valid */
+            valid: boolean;
+            /** Violations */
+            violations?: string[];
+        };
+        /**
          * ValidationResponse
          * @description Result of `POST {PV}/validate`: whether the current candidate
          *     passes closed-schema and conditional-requiredness checks.
@@ -10520,11 +11773,16 @@ export interface components {
         };
         /**
          * VerificationMethod
-         * @description How an `ApprovalProof` is checked: a detached signature or a
-         *     trusted provider's attestation.
+         * @description How a source's approval is checked.
+         *
+         *     Two of these three name an `ApprovalProof` variant. `GRAPH_PROMOTION`
+         *     does not, and deliberately has no variant in that union: the authority
+         *     is a promotion journal row this service reads itself, so there is no
+         *     proof for a caller to supply and no way for one to assert this method
+         *     on a request.
          * @enum {string}
          */
-        VerificationMethod: "detached_signature" | "verifier_attestation";
+        VerificationMethod: "detached_signature" | "verifier_attestation" | "graph_promotion";
         /**
          * VerifierAttestationProof
          * @description The other `ApprovalProof` variant: a trusted provider's own
@@ -10821,128 +12079,6 @@ export interface operations {
             };
         };
     };
-    list_capability_types_v1_admin_capability_types_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CapabilityTypeSchemaResponse"][];
-                };
-            };
-        };
-    };
-    create_capability_type_v1_admin_capability_types_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
-                "X-Idempotency-Key"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CapabilityTypeSchemaCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CapabilityTypeSchemaResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_capability_type_v1_admin_capability_types__type_name__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                type_name: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CapabilityTypeSchemaResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    patch_capability_type_v1_admin_capability_types__type_name__patch: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                type_name: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CapabilityTypeSchemaPatch"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CapabilityTypeSchemaResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_edge_property_schemas_v1_admin_edge_property_schemas_get: {
         parameters: {
             query?: never;
@@ -11005,6 +12141,128 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_entity_type_schemas_v1_admin_entity_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityTypeSchemaResponse"][];
+                };
+            };
+        };
+    };
+    create_entity_type_schema_v1_admin_entity_types_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntityTypeSchemaCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityTypeSchemaResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_entity_type_schema_v1_admin_entity_types__entity_type__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_type: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityTypeSchemaResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_entity_type_schema_v1_admin_entity_types__entity_type__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_type: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntityTypeSchemaPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityTypeSchemaResponse"];
                 };
             };
             /** @description Validation Error */
@@ -13018,6 +14276,41 @@ export interface operations {
             };
         };
     };
+    list_artifact_families_v1_arc_artifacts_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                q?: string | null;
+                kind?: components["schemas"]["ArtifactKind"] | null;
+                owning_scope?: components["schemas"]["OwningScope"] | null;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactFamilyListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_artifact_family_v1_arc_artifacts_post: {
         parameters: {
             query?: never;
@@ -14031,6 +15324,41 @@ export interface operations {
             };
         };
     };
+    admit_source_graph_promotion_v1_arc_sources_graph_promotions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GraphPromotionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceEvidenceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     admit_source_upload_v1_arc_sources_uploads_post: {
         parameters: {
             query?: never;
@@ -14203,191 +15531,6 @@ export interface operations {
             };
         };
     };
-    get_interface_v1_capabilities__capability_id__interface_get: {
-        parameters: {
-            query?: {
-                /** @description ISO-8601 UTC for time-travel */
-                as_of?: string | null;
-                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
-                view?: "default" | "audit";
-            };
-            header?: never;
-            path: {
-                /** @description Capability UUID or slug */
-                capability_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InterfaceReadResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    put_interface_v1_capabilities__capability_id__interface_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Capability UUID or slug */
-                capability_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InterfacePutRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InterfaceSurfaceResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    preview_version_v1_capabilities__capability_id__preview_version_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Capability UUID or slug */
-                capability_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PreviewVersionRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BreakingChangePreviewResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_subscriptions_for_capability_v1_capabilities__capability_id__subscriptions_get: {
-        parameters: {
-            query?: {
-                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
-                view?: "default" | "audit";
-            };
-            header?: never;
-            path: {
-                /** @description Capability UUID or slug */
-                capability_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionListResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_subscription_v1_capabilities__capability_id__subscriptions_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
-                "X-Idempotency-Key"?: string | null;
-            };
-            path: {
-                /** @description Capability UUID or slug */
-                capability_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscriptionCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     get_capability_v1_capabilities__entity_id__get: {
         parameters: {
             query?: {
@@ -14483,6 +15626,114 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CapabilityResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_adoptions_v1_capabilities__entity_id__adoptions_get: {
+        parameters: {
+            query?: {
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
+            };
+            header?: never;
+            path: {
+                /** @description Provider capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdoptionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    adopt_capability_v1_capabilities__entity_id__adoptions_post: {
+        parameters: {
+            query?: {
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
+            };
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Provider capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdoptionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdoptionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    _unadopt_capability_v1_capabilities__entity_id__adoptions__adoption_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Provider capability UUID or slug */
+                entity_id: string;
+                adoption_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -14774,6 +16025,79 @@ export interface operations {
             };
         };
     };
+    get_interface_v1_capabilities__entity_id__interface_get: {
+        parameters: {
+            query?: {
+                /** @description ISO-8601 UTC for time-travel */
+                as_of?: string | null;
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterfaceReadResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_interface_v1_capabilities__entity_id__interface_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterfacePutRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterfaceSurfaceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     patch_capability_lifecycle_v1_capabilities__entity_id__lifecycle_patch: {
         parameters: {
             query?: never;
@@ -14810,6 +16134,118 @@ export interface operations {
             };
         };
     };
+    preview_version_v1_capabilities__entity_id__preview_version_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewVersionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BreakingChangePreviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_subscriptions_for_capability_v1_capabilities__entity_id__subscriptions_get: {
+        parameters: {
+            query?: {
+                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
+                view?: "default" | "audit";
+            };
+            header?: never;
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_subscription_v1_capabilities__entity_id__subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "X-Idempotency-Key"?: string | null;
+            };
+            path: {
+                /** @description Capability UUID or slug */
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_visibility_handler_v1_capabilities__entity_id__visibility_patch: {
         parameters: {
             query?: never;
@@ -14833,114 +16269,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CapabilityResponse"];
                 };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    list_adoptions_v1_capabilities__provider_cap_id__adoptions_get: {
-        parameters: {
-            query?: {
-                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
-                view?: "default" | "audit";
-            };
-            header?: never;
-            path: {
-                /** @description Provider capability UUID or slug */
-                provider_cap_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdoptionListResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    adopt_capability_v1_capabilities__provider_cap_id__adoptions_post: {
-        parameters: {
-            query?: {
-                /** @description Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when. */
-                view?: "default" | "audit";
-            };
-            header?: {
-                "Idempotency-Key"?: string | null;
-                "X-Idempotency-Key"?: string | null;
-            };
-            path: {
-                /** @description Provider capability UUID or slug */
-                provider_cap_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AdoptionCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AdoptionResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    _unadopt_capability_v1_capabilities__provider_cap_id__adoptions__adoption_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Provider capability UUID or slug */
-                provider_cap_id: string;
-                adoption_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
             /** @description Validation Error */
             422: {
@@ -15220,7 +16548,7 @@ export interface operations {
             };
         };
     };
-    lookup_entity_by_external_id_v1_entities_get: {
+    lookup_entity_by_external_id_deprecated_v1_entities_get: {
         parameters: {
             query: {
                 /** @description External system slug (registered via /v1/admin/external-systems) */
@@ -15241,6 +16569,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EntityRefResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_entity_v1_entities_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntityWriteRequestV1"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityWriteResultV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_entity_v1_entities__entity_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityReadV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_entity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntityWriteRequestV1"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityWriteResultV1"];
                 };
             };
             /** @description Validation Error */
@@ -15380,6 +16807,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExternalIdResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_readiness_v1_entities__entity_id__validate_readiness_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadinessReportV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    lookup_entity_by_external_id_v1_entities_lookup_get: {
+        parameters: {
+            query: {
+                /** @description External system slug (registered via /v1/admin/external-systems) */
+                external_system: string;
+                /** @description The raw external ID string as it appears in the upstream system */
+                external_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityRefResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_entity_v1_entities_resolve_get: {
+        parameters: {
+            query: {
+                /** @description A `namespace:type/name` handle, or a bare name. */
+                handle: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntityResolutionV1"];
                 };
             };
             /** @description Validation Error */
@@ -17101,6 +18625,429 @@ export interface operations {
             };
         };
     };
+    assign_v1_ownership_assignments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignOwnershipRequestV1"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnershipAssignmentV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_assignment_v1_ownership_assignments__assignment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assignment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnershipAssignmentV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    transition_v1_ownership_assignments__assignment_id__transition_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assignment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequestV1"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnershipAssignmentV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    owned_by_v1_ownership_owned_by_get: {
+        parameters: {
+            query: {
+                owned_target_kind: string;
+                owned_target_id: string;
+                include_pending?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnershipListV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    owns_v1_ownership_owns_get: {
+        parameters: {
+            query: {
+                owner_principal: string;
+                include_pending?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnershipListV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    plan_binding_v1_profiles_bindings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanBindingRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BindingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    activate_binding_v1_profiles_bindings__binding_id__activate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BindingTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BindingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    begin_rollback_v1_profiles_bindings__binding_id__rollback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BindingTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BindingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    complete_rollback_v1_profiles_bindings__binding_id__rollback_complete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BindingTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BindingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    validate_binding_v1_profiles_bindings__binding_id__validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BindingTransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BindingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_conformance_v1_profiles_conformance_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConformanceResponse"];
+                };
+            };
+        };
+    };
+    publish_extension_v1_profiles_extensions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishExtensionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExtensionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_revision_v1_profiles_revisions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishRevisionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileRevisionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     receipts_by_reference_v1_receipts_by_reference_get: {
         parameters: {
             query: {
@@ -17218,6 +19165,143 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReferenceListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_relationship_v1_relationships_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelationshipWriteRequestV1"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipWriteResultV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_relationship_v1_relationships__relationship_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationship_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    /** @description Weak validator for this row's current version. Echo it as `If-Match` on a subsequent update to be refused with 412 rather than superseding a row that changed after it was read. */
+                    ETag?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipReadV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_relationship: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The `ETag` from this relationship's detail read. When present and stale the update is refused with 412; when absent the update proceeds, which is the advisory mode the rest of this API uses. */
+                "If-Match"?: string | null;
+            };
+            path: {
+                relationship_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelationshipWriteRequestV1"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipWriteResultV1"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    query_relationships_v1_relationships_query_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RelationshipQueryV1"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelationshipPageV1"];
                 };
             };
             /** @description Validation Error */

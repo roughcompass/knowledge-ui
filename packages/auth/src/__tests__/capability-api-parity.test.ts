@@ -109,17 +109,17 @@ const GATES: Record<Capability, Gate> = {
     note: 'One capability for the whole family because the server has one gate for all of it, via _admin_common.py.',
   },
   'adoption:read': {
-    endpoint: 'GET /v1/capabilities/{provider_cap_id}/adoptions',
+    endpoint: 'GET /v1/capabilities/{entity_id}/adoptions',
     serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
     note: '_list_adoptions_required admits all four. Split from the write because _adopt_required does not.',
   },
   'adoption:write': {
-    endpoint: 'POST /v1/capabilities/{provider_cap_id}/adoptions',
+    endpoint: 'POST /v1/capabilities/{entity_id}/adoptions',
     serverRoles: ['admin', 'producer'],
     note: 'require_roles([ROLE_PRODUCER, ROLE_ADMIN]) in adoptions.py — consumer is excluded outright, which is why this cannot share an entry with the read.',
   },
   'subscription:manage': {
-    endpoint: 'GET/POST /v1/capabilities/{capability_id}/subscriptions',
+    endpoint: 'GET/POST /v1/capabilities/{entity_id}/subscriptions',
     serverRoles: ['admin', 'producer', 'consumer', 'auditor'],
     note: "Tenant-scoped over the caller's own subscriptions, so get_tenant_context is the whole gate.",
   },
@@ -173,8 +173,8 @@ const GATES: Record<Capability, Gate> = {
   },
   'ontology:read': {
     endpoint:
-      'GET /v1/admin/vocabularies/{kind}, GET /v1/admin/capability-types, GET /v1/admin/edge-property-schemas',
-    serverPath: '/v1/admin/capability-types',
+      'GET /v1/admin/vocabularies/{kind}, GET /v1/admin/entity-types, GET /v1/admin/edge-property-schemas',
+    serverPath: '/v1/admin/entity-types',
     serverRoles: ['admin'],
     note: 'All three are under the /v1/admin prefix behind _admin_required in _admin_common.py. Separate from admin:manage because it is a read of the schema surface rather than the operator write, and a screen that offered both would ship sync-source controls to a reader who only asked what an edge relation is.',
   },

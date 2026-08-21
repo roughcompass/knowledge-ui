@@ -201,7 +201,8 @@
         "description": "How a source's bytes entered the system.",
         "enum": [
           "connector_fetch",
-          "authorized_upload"
+          "authorized_upload",
+          "graph_promotion"
         ],
         "title": "AdmissionMethod",
         "type": "string"
@@ -756,12 +757,7 @@
             ],
             "title": "Lower Scope Environment"
           },
-          "lower_scope_kind": {
-            "pattern": "^(tenant|domain|capability|task)$",
-            "title": "Lower Scope Kind",
-            "type": "string"
-          },
-          "lower_scope_task_kind": {
+          "lower_scope_intent_kind": {
             "anyOf": [
               {
                 "maxLength": 64,
@@ -771,7 +767,12 @@
                 "type": "null"
               }
             ],
-            "title": "Lower Scope Task Kind"
+            "title": "Lower Scope Intent Kind"
+          },
+          "lower_scope_kind": {
+            "pattern": "^(tenant|domain|capability|task)$",
+            "title": "Lower Scope Kind",
+            "type": "string"
           },
           "replacement_conflict_descriptor": {
             "additionalProperties": true,
@@ -905,6 +906,20 @@
             ],
             "title": "Environments"
           },
+          "intent_kinds": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Kinds"
+          },
           "is_mandatory": {
             "title": "Is Mandatory",
             "type": "boolean"
@@ -920,7 +935,7 @@
               "tenant",
               "domain",
               "capability",
-              "task"
+              "intent"
             ],
             "title": "Scope",
             "type": "string"
@@ -936,20 +951,6 @@
               }
             ],
             "title": "Target Tenant Id"
-          },
-          "task_kinds": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Task Kinds"
           }
         },
         "required": [
@@ -1221,6 +1222,35 @@
           "title"
         ],
         "title": "ArtifactFamilyCreate",
+        "type": "object"
+      },
+      "ArtifactFamilyListResponse": {
+        "additionalProperties": false,
+        "description": "Cursor-paginated artifact families visible to the requesting tenant.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactFamilyResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ArtifactFamilyListResponse",
         "type": "object"
       },
       "ArtifactFamilyResponse": {
@@ -1509,7 +1539,7 @@
       },
       "ArtifactSemantics": {
         "additionalProperties": false,
-        "description": "Exactly the closed `arc_artifact_semantics_v1` profile object.",
+        "description": "Exactly the closed `arc_artifact_semantics_v2` profile object.",
         "properties": {
           "applicability": {
             "items": {
@@ -1567,7 +1597,7 @@
           "kind": {
             "enum": [
               "directive_bundle",
-              "task_summary_template"
+              "intent_summary_template"
             ],
             "title": "Kind",
             "type": "string"
@@ -1596,8 +1626,8 @@
             "title": "Owning Tenant Id"
           },
           "profile": {
-            "const": "arc_artifact_semantics_v1",
-            "default": "arc_artifact_semantics_v1",
+            "const": "arc_artifact_semantics_v2",
+            "default": "arc_artifact_semantics_v2",
             "title": "Profile",
             "type": "string"
           },
@@ -1796,7 +1826,7 @@
               {
                 "enum": [
                   "directive_bundle",
-                  "task_summary_template"
+                  "intent_summary_template"
                 ],
                 "type": "string"
               },
@@ -1853,7 +1883,7 @@
           "profile": {
             "anyOf": [
               {
-                "const": "arc_artifact_semantics_v1",
+                "const": "arc_artifact_semantics_v2",
                 "type": "string"
               },
               {
@@ -2125,6 +2155,201 @@
           "is_contested"
         ],
         "title": "AssertClaimResponse",
+        "type": "object"
+      },
+      "AssertionProvenanceInputV1": {
+        "additionalProperties": false,
+        "description": "Where the assertion came from, as the caller can attest it.\n\nThe caller's half of the provenance record: the source it read, the times\nit observed, and how it derived the value if it derived one. The platform's\nhalf -- trust class, validating revision, ingest time, approver -- is added\non the server, and is refused here by name. Provenance changing must never\nsilently change trust, and it cannot if the trust half never arrives in a\nrequest at all.\n\nMissing provenance blocks the write, which is why every field that\nidentifies the source is required rather than defaulted to an empty string:\na blank source system passes an \"is it set\" check and tells a later reader\nnothing about where the value came from.",
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "derivation_method": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivation Method"
+          },
+          "derivation_profile": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivation Profile"
+          },
+          "event_time": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Event Time"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "external_record_id": {
+            "minLength": 1,
+            "title": "External Record Id",
+            "type": "string"
+          },
+          "external_record_revision": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Record Revision"
+          },
+          "observed_time": {
+            "format": "date-time",
+            "title": "Observed Time",
+            "type": "string"
+          },
+          "source_namespace": {
+            "minLength": 1,
+            "title": "Source Namespace",
+            "type": "string"
+          },
+          "source_system": {
+            "minLength": 1,
+            "title": "Source System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_system",
+          "source_namespace",
+          "external_record_id",
+          "observed_time"
+        ],
+        "title": "AssertionProvenanceInputV1",
+        "type": "object"
+      },
+      "AssignOwnershipRequestV1": {
+        "additionalProperties": false,
+        "description": "A new ownership assignment. Lands in `draft`; validation is a separate act.",
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "derivation_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivation Method"
+          },
+          "effective_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective From"
+          },
+          "owned_target_id": {
+            "format": "uuid",
+            "title": "Owned Target Id",
+            "type": "string"
+          },
+          "owned_target_kind": {
+            "minLength": 1,
+            "title": "Owned Target Kind",
+            "type": "string"
+          },
+          "owner_principal": {
+            "minLength": 1,
+            "title": "Owner Principal",
+            "type": "string"
+          },
+          "profile_revision_id": {
+            "format": "uuid",
+            "title": "Profile Revision Id",
+            "type": "string"
+          },
+          "role": {
+            "minLength": 1,
+            "title": "Role",
+            "type": "string"
+          },
+          "scope": {
+            "minLength": 1,
+            "title": "Scope",
+            "type": "string"
+          },
+          "source": {
+            "minLength": 1,
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner_principal",
+          "owned_target_kind",
+          "owned_target_id",
+          "role",
+          "scope",
+          "source",
+          "profile_revision_id"
+        ],
+        "title": "AssignOwnershipRequestV1",
         "type": "object"
       },
       "AttachEvidenceRequest": {
@@ -2549,6 +2774,145 @@
           "items"
         ],
         "title": "BelievedClaimsResponse",
+        "type": "object"
+      },
+      "BindingResponse": {
+        "additionalProperties": false,
+        "description": "A binding as the administration surface reports it.",
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "audit_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Reference"
+          },
+          "binding_id": {
+            "format": "uuid",
+            "title": "Binding Id",
+            "type": "string"
+          },
+          "effective_from": {
+            "format": "date-time",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "extension_set_digest": {
+            "title": "Extension Set Digest",
+            "type": "string"
+          },
+          "migration_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Run Id"
+          },
+          "profile_revision_id": {
+            "format": "uuid",
+            "title": "Profile Revision Id",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "rollback_ready": {
+            "title": "Rollback Ready",
+            "type": "boolean"
+          },
+          "rollback_target_binding_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rollback Target Binding Id"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "binding_id",
+          "profile_revision_id",
+          "extension_set_digest",
+          "state",
+          "effective_from",
+          "effective_to",
+          "migration_run_id",
+          "rollback_target_binding_id",
+          "rollback_ready",
+          "actor",
+          "reason",
+          "audit_reference",
+          "recorded_at"
+        ],
+        "title": "BindingResponse",
+        "type": "object"
+      },
+      "BindingTransitionRequest": {
+        "additionalProperties": false,
+        "description": "Move a binding along its state machine.",
+        "properties": {
+          "audit_reference": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Reference"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "BindingTransitionRequest",
         "type": "object"
       },
       "Body_admit_source_upload_v1_arc_sources_uploads_post": {
@@ -3223,140 +3587,6 @@
         "title": "CapabilityResponse",
         "type": "object"
       },
-      "CapabilityTypeSchemaCreate": {
-        "description": "Body for POST /capability-types.\n\n`is_advisory` (default true) controls whether validation failures block a write.",
-        "properties": {
-          "is_advisory": {
-            "default": true,
-            "title": "Is Advisory",
-            "type": "boolean"
-          },
-          "json_schema": {
-            "additionalProperties": true,
-            "title": "Json Schema",
-            "type": "object"
-          },
-          "t_valid_from": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "T Valid From"
-          },
-          "type_name": {
-            "title": "Type Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "type_name",
-          "json_schema"
-        ],
-        "title": "CapabilityTypeSchemaCreate",
-        "type": "object"
-      },
-      "CapabilityTypeSchemaPatch": {
-        "description": "Body for PATCH /capability-types/{type_name}; today the only supported change is flipping `is_advisory`.",
-        "properties": {
-          "is_advisory": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Is Advisory"
-          }
-        },
-        "title": "CapabilityTypeSchemaPatch",
-        "type": "object"
-      },
-      "CapabilityTypeSchemaResponse": {
-        "description": "A capability-type's JSON Schema and its bi-temporal validity window.",
-        "properties": {
-          "_links": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Links"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "is_advisory": {
-            "title": "Is Advisory",
-            "type": "boolean"
-          },
-          "json_schema": {
-            "additionalProperties": true,
-            "title": "Json Schema",
-            "type": "object"
-          },
-          "schema_id": {
-            "format": "uuid",
-            "title": "Schema Id",
-            "type": "string"
-          },
-          "t_ingested_at": {
-            "format": "date-time",
-            "title": "T Ingested At",
-            "type": "string"
-          },
-          "t_invalidated_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "T Invalidated At"
-          },
-          "t_valid_from": {
-            "format": "date-time",
-            "title": "T Valid From",
-            "type": "string"
-          },
-          "t_valid_to": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "T Valid To"
-          },
-          "type_name": {
-            "title": "Type Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "schema_id",
-          "type_name",
-          "json_schema",
-          "is_advisory",
-          "t_valid_from",
-          "t_valid_to",
-          "t_ingested_at",
-          "t_invalidated_at"
-        ],
-        "title": "CapabilityTypeSchemaResponse",
-        "type": "object"
-      },
       "CapabilityUsageOut": {
         "additionalProperties": false,
         "description": "One capability's call volume for the window, nested inside CapabilityRankingOut.",
@@ -3960,6 +4190,32 @@
         "title": "ConformancePolicyView",
         "type": "object"
       },
+      "ConformanceResponse": {
+        "additionalProperties": false,
+        "description": "What is governing this tenant right now.",
+        "properties": {
+          "binding": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BindingResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bound": {
+            "title": "Bound",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "bound",
+          "binding"
+        ],
+        "title": "ConformanceResponse",
+        "type": "object"
+      },
       "ConnectorFetchRequest": {
         "additionalProperties": false,
         "description": "Body for `POST /v1/arc/sources/connector-fetches`: admits a source\nbody a configured connector fetches, rather than one the caller\nuploads directly.",
@@ -4501,17 +4757,6 @@
             "additionalProperties": true,
             "title": "Attributes",
             "type": "object"
-          },
-          "capability_type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Capability Type"
           },
           "entity_type": {
             "const": "capability",
@@ -5646,6 +5891,83 @@
         "title": "EntityDetailResponse",
         "type": "object"
       },
+      "EntityIdentityV1": {
+        "additionalProperties": false,
+        "description": "How this entity is named, qualified by its type.\n\nThe namespace and type accompany the name because a bare name is not an\nidentity in a profile-governed graph: two types may legitimately carry the\nsame name, and a reader holding only the name cannot tell which it has.",
+        "properties": {
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "entity_type": {
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity_id",
+          "entity_type",
+          "name"
+        ],
+        "title": "EntityIdentityV1",
+        "type": "object"
+      },
+      "EntityReadV1": {
+        "additionalProperties": false,
+        "description": "One entity with the governance a generic reader needs to act on it.",
+        "properties": {
+          "identity": {
+            "$ref": "#/components/schemas/EntityIdentityV1"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileAttributionV1"
+          },
+          "properties": {
+            "additionalProperties": true,
+            "title": "Properties",
+            "type": "object"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ProvenanceSummaryV1"
+          },
+          "readiness_state": {
+            "title": "Readiness State",
+            "type": "string"
+          },
+          "temporal": {
+            "$ref": "#/components/schemas/TemporalStateV1Out"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationOutcomeV1"
+          }
+        },
+        "required": [
+          "identity",
+          "profile",
+          "provenance",
+          "validation",
+          "temporal",
+          "readiness_state"
+        ],
+        "title": "EntityReadV1",
+        "type": "object"
+      },
       "EntityRefItem": {
         "description": "An entity as it appears in a list or as a graph node.\n\n``tenant_id`` and ``is_active`` are audit-only. A caller reading its own\ntenant's data learns nothing from being told whose data it is, and every\nsurface returning this shape has already filtered inactive rows out.",
         "properties": {
@@ -5764,6 +6086,294 @@
           "created_at"
         ],
         "title": "EntityRefResponse",
+        "type": "object"
+      },
+      "EntityResolutionV1": {
+        "additionalProperties": false,
+        "description": "The result of a handle lookup.",
+        "properties": {
+          "identity": {
+            "$ref": "#/components/schemas/EntityIdentityV1"
+          }
+        },
+        "required": [
+          "identity"
+        ],
+        "title": "EntityResolutionV1",
+        "type": "object"
+      },
+      "EntityTypeSchemaCreate": {
+        "description": "Body for POST /entity-types.\n\n`entity_type` must already exist in the `entity_type` vocabulary \u2014 registering\na schema for a type no entity can hold is rejected, not stored.\n`is_advisory` (default true) controls whether validation failures block a write.",
+        "properties": {
+          "entity_type": {
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "is_advisory": {
+            "default": true,
+            "title": "Is Advisory",
+            "type": "boolean"
+          },
+          "json_schema": {
+            "additionalProperties": true,
+            "title": "Json Schema",
+            "type": "object"
+          },
+          "t_valid_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "T Valid From"
+          }
+        },
+        "required": [
+          "entity_type",
+          "json_schema"
+        ],
+        "title": "EntityTypeSchemaCreate",
+        "type": "object"
+      },
+      "EntityTypeSchemaPatch": {
+        "description": "Body for PATCH /entity-types/{entity_type}; today the only supported change is flipping `is_advisory`.",
+        "properties": {
+          "is_advisory": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Advisory"
+          }
+        },
+        "title": "EntityTypeSchemaPatch",
+        "type": "object"
+      },
+      "EntityTypeSchemaResponse": {
+        "description": "An entity-type's JSON Schema and its bi-temporal validity window.",
+        "properties": {
+          "_links": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Links"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "entity_type": {
+            "title": "Entity Type",
+            "type": "string"
+          },
+          "is_advisory": {
+            "title": "Is Advisory",
+            "type": "boolean"
+          },
+          "json_schema": {
+            "additionalProperties": true,
+            "title": "Json Schema",
+            "type": "object"
+          },
+          "schema_id": {
+            "format": "uuid",
+            "title": "Schema Id",
+            "type": "string"
+          },
+          "t_ingested_at": {
+            "format": "date-time",
+            "title": "T Ingested At",
+            "type": "string"
+          },
+          "t_invalidated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "T Invalidated At"
+          },
+          "t_valid_from": {
+            "format": "date-time",
+            "title": "T Valid From",
+            "type": "string"
+          },
+          "t_valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "T Valid To"
+          }
+        },
+        "required": [
+          "schema_id",
+          "entity_type",
+          "json_schema",
+          "is_advisory",
+          "t_valid_from",
+          "t_valid_to",
+          "t_ingested_at",
+          "t_invalidated_at"
+        ],
+        "title": "EntityTypeSchemaResponse",
+        "type": "object"
+      },
+      "EntityWriteRequestV1": {
+        "additionalProperties": false,
+        "description": "A generic write whose subject is an entity.\n\nNarrows `subject_kind` rather than dropping it. The field stays in the body so\none envelope serialises for both surfaces and a client library does not need a\ndifferent shape per path \u2014 but a body arriving here saying `relationship` is a\ncaller who has the wrong URL, and being told so beats having the field quietly\nignored.",
+        "properties": {
+          "approval_reference": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Reference"
+          },
+          "idempotency_key": {
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/ProfileWriteIdentityV1"
+          },
+          "intent": {
+            "enum": [
+              "observation",
+              "request",
+              "authorized_approval"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "properties": {
+            "additionalProperties": true,
+            "title": "Properties",
+            "type": "object"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/AssertionProvenanceInputV1"
+          },
+          "subject_kind": {
+            "const": "entity",
+            "default": "entity",
+            "title": "Subject Kind",
+            "type": "string"
+          },
+          "subject_type": {
+            "minLength": 1,
+            "title": "Subject Type",
+            "type": "string"
+          },
+          "target_revision": {
+            "$ref": "#/components/schemas/TargetRevisionV1"
+          },
+          "temporal": {
+            "$ref": "#/components/schemas/TemporalStateV1"
+          }
+        },
+        "required": [
+          "intent",
+          "subject_type",
+          "identity",
+          "target_revision",
+          "temporal",
+          "idempotency_key",
+          "provenance"
+        ],
+        "title": "EntityWriteRequestV1",
+        "type": "object"
+      },
+      "EntityWriteResultV1": {
+        "additionalProperties": false,
+        "description": "What a generic write did, named for the effect it actually had.\n\n`entity_id` is populated only for a canonical write. An observation produces a\nstaged claim and a request produces a review entry; returning an entity id for\neither would tell the caller its value is now in the graph when it is waiting\nfor somebody to agree.",
+        "properties": {
+          "effect": {
+            "title": "Effect",
+            "type": "string"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "intent": {
+            "enum": [
+              "observation",
+              "request",
+              "authorized_approval"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileAttributionV1"
+          },
+          "review_entry_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Entry Id"
+          },
+          "staged_claim_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staged Claim Id"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationOutcomeV1"
+          }
+        },
+        "required": [
+          "intent",
+          "effect",
+          "validation",
+          "profile"
+        ],
+        "title": "EntityWriteResultV1",
         "type": "object"
       },
       "EntryCreateRequest": {
@@ -6090,7 +6700,7 @@
       },
       "ExpectedImpactEnvelope": {
         "additionalProperties": false,
-        "description": "Exactly the closed `arc_expected_impact_envelope_v1` profile object.",
+        "description": "Exactly the closed `arc_expected_impact_envelope_v2` profile object.",
         "properties": {
           "author_issuer": {
             "title": "Author Issuer",
@@ -6119,8 +6729,8 @@
             "type": "array"
           },
           "profile": {
-            "const": "arc_expected_impact_envelope_v1",
-            "default": "arc_expected_impact_envelope_v1",
+            "const": "arc_expected_impact_envelope_v2",
+            "default": "arc_expected_impact_envelope_v2",
             "title": "Profile",
             "type": "string"
           },
@@ -6188,6 +6798,52 @@
           "rationale_code"
         ],
         "title": "ExpectedImpactEnvelopeItem",
+        "type": "object"
+      },
+      "ExtensionResponse": {
+        "additionalProperties": false,
+        "description": "A published extension's identity and what it extends.",
+        "properties": {
+          "document_digest": {
+            "title": "Document Digest",
+            "type": "string"
+          },
+          "extension_points": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Extension Points",
+            "type": "array"
+          },
+          "extension_revision_id": {
+            "format": "uuid",
+            "title": "Extension Revision Id",
+            "type": "string"
+          },
+          "namespace": {
+            "title": "Namespace",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "target_core_revision_id": {
+            "format": "uuid",
+            "title": "Target Core Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "extension_revision_id",
+          "namespace",
+          "target_core_revision_id",
+          "document_digest",
+          "extension_points",
+          "published_at"
+        ],
+        "title": "ExtensionResponse",
         "type": "object"
       },
       "ExternalIdCreate": {
@@ -6885,6 +7541,35 @@
         "title": "GrantResponse",
         "type": "object"
       },
+      "GraphPromotionRequest": {
+        "additionalProperties": false,
+        "description": "Body for `POST /v1/arc/sources/graph-promotions`: admits a claim the\ncanonical graph already carries, vouched for by its promotion rather\nthan by a signature over bytes this deployment fetched.\n\nNo `claim`, `verifier_id`, or `proof`: every field those carry is read\nfrom the promotion itself. Accepting them from the caller would let a\nrequest assert an approving authority the graph does not record.",
+        "properties": {
+          "claim_id": {
+            "format": "uuid",
+            "title": "Claim Id",
+            "type": "string"
+          },
+          "review_expires_at": {
+            "description": "When this citation must be revisited. A graph fact carries no deadline of its own, and every source evidence row has one.",
+            "format": "date-time",
+            "title": "Review Expires At",
+            "type": "string"
+          },
+          "source_system": {
+            "description": "The upstream system the promoted claim's evidence points into, e.g. `bitbucket.org/acme/adr`. Not derived: an evidence ref names a revision, not the system that issued it.",
+            "title": "Source System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_id",
+          "source_system",
+          "review_expires_at"
+        ],
+        "title": "GraphPromotionRequest",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -7575,6 +8260,24 @@
             "title": "Environment",
             "type": "string"
           },
+          "intent_kind": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Intent Kind",
+            "type": "string"
+          },
+          "intent_summary": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Summary"
+          },
           "repository_identity": {
             "maxLength": 512,
             "minLength": 1,
@@ -7600,29 +8303,11 @@
             },
             "title": "Supported Context Bundle Content Profiles",
             "type": "array"
-          },
-          "task_kind": {
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Task Kind",
-            "type": "string"
-          },
-          "task_summary": {
-            "anyOf": [
-              {
-                "maxLength": 2000,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Task Summary"
           }
         },
         "required": [
           "session_id",
-          "task_kind",
+          "intent_kind",
           "environment",
           "data_sensitivity",
           "repository_identity"
@@ -7849,7 +8534,7 @@
       },
       "ObservationClassPredicate": {
         "additionalProperties": false,
-        "description": "Exactly the closed `arc_observation_class_predicate_v1` profile object.",
+        "description": "Exactly the closed `arc_observation_class_predicate_v2` profile object.",
         "properties": {
           "capability_ids": {
             "anyOf": [
@@ -7908,9 +8593,23 @@
             ],
             "title": "Environment"
           },
+          "intent_kind": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Kind"
+          },
           "profile": {
-            "const": "arc_observation_class_predicate_v1",
-            "default": "arc_observation_class_predicate_v1",
+            "const": "arc_observation_class_predicate_v2",
+            "default": "arc_observation_class_predicate_v2",
             "title": "Profile",
             "type": "string"
           },
@@ -7927,20 +8626,6 @@
               }
             ],
             "title": "Requested Action Classes"
-          },
-          "task_kind": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Task Kind"
           }
         },
         "title": "ObservationClassPredicate",
@@ -8181,6 +8866,166 @@
           "payload_bytes"
         ],
         "title": "OwnedCapabilityUsageOut",
+        "type": "object"
+      },
+      "OwnershipAssignmentV1": {
+        "additionalProperties": false,
+        "description": "One assignment as the surface reports it.\n\n`is_pending` is computed and returned rather than left for a caller to derive\nfrom the state name: a UI showing an unvalidated assignment without the label\npresents a proposal as settled fact.",
+        "properties": {
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "derivation_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derivation Method"
+          },
+          "effective_from": {
+            "format": "date-time",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "is_pending": {
+            "title": "Is Pending",
+            "type": "boolean"
+          },
+          "owned_target_id": {
+            "format": "uuid",
+            "title": "Owned Target Id",
+            "type": "string"
+          },
+          "owned_target_kind": {
+            "title": "Owned Target Kind",
+            "type": "string"
+          },
+          "owner_principal": {
+            "title": "Owner Principal",
+            "type": "string"
+          },
+          "ownership_assignment_id": {
+            "format": "uuid",
+            "title": "Ownership Assignment Id",
+            "type": "string"
+          },
+          "provenance_id": {
+            "format": "uuid",
+            "title": "Provenance Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "recorded_by": {
+            "title": "Recorded By",
+            "type": "string"
+          },
+          "replaced_by_assignment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By Assignment Id"
+          },
+          "revocation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revocation Reason"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "validation_state": {
+            "title": "Validation State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ownership_assignment_id",
+          "owner_principal",
+          "owned_target_kind",
+          "owned_target_id",
+          "role",
+          "scope",
+          "source",
+          "derivation_method",
+          "confidence",
+          "validation_state",
+          "is_pending",
+          "effective_from",
+          "effective_to",
+          "provenance_id",
+          "replaced_by_assignment_id",
+          "revocation_reason",
+          "recorded_by",
+          "recorded_at"
+        ],
+        "title": "OwnershipAssignmentV1",
+        "type": "object"
+      },
+      "OwnershipListV1": {
+        "additionalProperties": false,
+        "description": "A derived view \u2014 `owns` or `owned_by`, both read off the same rows.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OwnershipAssignmentV1"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "OwnershipListV1",
         "type": "object"
       },
       "OwningScope": {
@@ -8453,6 +9298,67 @@
         "title": "PiiPatternResponse",
         "type": "object"
       },
+      "PlanBindingRequest": {
+        "additionalProperties": false,
+        "description": "Draft a binding. Governs nothing until it is validated and activated.",
+        "properties": {
+          "audit_reference": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Reference"
+          },
+          "effective_from": {
+            "format": "date-time",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "extension_revision_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Extension Revision Ids",
+            "type": "array"
+          },
+          "migration_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Run Id"
+          },
+          "profile_revision_id": {
+            "format": "uuid",
+            "title": "Profile Revision Id",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_revision_id",
+          "effective_from",
+          "reason"
+        ],
+        "title": "PlanBindingRequest",
+        "type": "object"
+      },
       "PredicateResponse": {
         "properties": {
           "claim_category": {
@@ -8529,6 +9435,139 @@
         ],
         "title": "PrincipalBindingKind",
         "type": "string"
+      },
+      "ProfileAttributionV1": {
+        "additionalProperties": false,
+        "description": "Which governance accepted this row.",
+        "properties": {
+          "binding_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Binding Id"
+          },
+          "enforcement_mode": {
+            "title": "Enforcement Mode",
+            "type": "string"
+          },
+          "profile_revision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Revision Id"
+          }
+        },
+        "required": [
+          "profile_revision_id",
+          "binding_id",
+          "enforcement_mode"
+        ],
+        "title": "ProfileAttributionV1",
+        "type": "object"
+      },
+      "ProfileRevisionResponse": {
+        "additionalProperties": false,
+        "description": "A published revision's identity and its position in the chain.\n\nNamed for its area rather than `RevisionResponse` because the ARC\nobservation surface already publishes a `RevisionResponse` component. Two\nmodels sharing a class name make FastAPI emit both as module-qualified\nnames, which silently renames the *other* area's published component --\na contract change to an endpoint this task never touched.",
+        "properties": {
+          "compatibility": {
+            "title": "Compatibility",
+            "type": "string"
+          },
+          "document_digest": {
+            "title": "Document Digest",
+            "type": "string"
+          },
+          "predecessor_revision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predecessor Revision Id"
+          },
+          "profile_family": {
+            "title": "Profile Family",
+            "type": "string"
+          },
+          "profile_name": {
+            "title": "Profile Name",
+            "type": "string"
+          },
+          "profile_revision_id": {
+            "format": "uuid",
+            "title": "Profile Revision Id",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "semantic_version": {
+            "title": "Semantic Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_revision_id",
+          "profile_family",
+          "profile_name",
+          "semantic_version",
+          "document_digest",
+          "compatibility",
+          "predecessor_revision_id",
+          "published_at"
+        ],
+        "title": "ProfileRevisionResponse",
+        "type": "object"
+      },
+      "ProfileWriteIdentityV1": {
+        "additionalProperties": false,
+        "description": "Which thing is being written about: a stable id, a qualified handle, or both.\n\nBoth may be sent together, which is how a caller holding an id it read from\nan earlier response can still say what it believes that id refers to.\nWhether the two agree is not decidable here -- it takes a lookup -- so it is\nthe resolver's to answer; this shape only guarantees it was asked something.\nNeither being present is refused: a write about nothing in particular is a\nwrite whose subject the server would otherwise have to pick.",
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "pattern": "^[a-z0-9][a-z0-9._-]*:[a-z0-9][a-z0-9._-]*/[^\\s/][^\\s]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          }
+        },
+        "title": "ProfileWriteIdentityV1",
+        "type": "object"
       },
       "ProgressionDefinitionCreate": {
         "description": "Body for POST .../progression-definitions.\n\nThe first definition for an entity_type starts as advisory by default.",
@@ -9437,6 +10476,164 @@
         "title": "ProvenanceClass",
         "type": "string"
       },
+      "ProvenanceSummaryV1": {
+        "additionalProperties": false,
+        "description": "Who asserted this and how far it may be trusted.\n\nA summary rather than the whole provenance row: the fields here are the ones a\nreader needs to decide whether to act on the value. `confidence` is present\nonly for a derived assertion, mirroring the rule the provenance record itself\nenforces.",
+        "properties": {
+          "authority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authority"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "external_record_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Record Id"
+          },
+          "external_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Revision"
+          },
+          "freshness_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Freshness State"
+          },
+          "source_system": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source System"
+          }
+        },
+        "title": "ProvenanceSummaryV1",
+        "type": "object"
+      },
+      "PublishExtensionRequest": {
+        "additionalProperties": false,
+        "description": "Publish this tenant's extension of a core revision.\n\nNo tenant field: the extension belongs to whoever is authenticated. A\ntenant that could publish into another's namespace could change what that\ntenant's writes are validated against.",
+        "properties": {
+          "namespace": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Namespace",
+            "type": "string"
+          },
+          "target_core_revision_id": {
+            "format": "uuid",
+            "title": "Target Core Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "namespace",
+          "target_core_revision_id"
+        ],
+        "title": "PublishExtensionRequest",
+        "type": "object"
+      },
+      "PublishRevisionRequest": {
+        "additionalProperties": false,
+        "description": "Publish a new core revision of a profile.",
+        "properties": {
+          "compatibility": {
+            "description": "backward_compatible, breaking, or deprecating",
+            "title": "Compatibility",
+            "type": "string"
+          },
+          "migration_plan_ref": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Plan Ref"
+          },
+          "predecessor_revision_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predecessor Revision Id"
+          },
+          "profile_family": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Profile Family",
+            "type": "string"
+          },
+          "profile_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Profile Name",
+            "type": "string"
+          },
+          "semantic_version": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Semantic Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_family",
+          "profile_name",
+          "semantic_version",
+          "compatibility"
+        ],
+        "title": "PublishRevisionRequest",
+        "type": "object"
+      },
       "PurgeResultResponse": {
         "description": "JSON shape returned by DELETE /v1/admin/actors/{actor_id}/personal-data.\n\n`purged_entries` and `purged_workspaces` are the workspace subsystem's\ncounts and are kept at the top level for callers that predate erasure\nreaching anything else.\n\n`subsystems` is the complete picture: one entry per subsystem the request\nreached, with that subsystem's own vocabulary for what it removed. A caller\nconfirming an erasure should read this rather than the two flat counts,\nwhich describe one subsystem out of several.",
         "properties": {
@@ -9876,6 +11073,34 @@
         "title": "ReachConfirmationResponse",
         "type": "object"
       },
+      "ReadinessReportV1": {
+        "additionalProperties": false,
+        "description": "Whether this entity's required relationships are present.\n\n`blocking` names what is missing rather than only counting it: a caller told\n\"not ready\" with no list has to guess, and guessing is how a caller ends up\nasserting relationships the profile never asked for.",
+        "properties": {
+          "blocking": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocking",
+            "type": "array"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "readiness_state": {
+            "title": "Readiness State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity_id",
+          "readiness_state"
+        ],
+        "title": "ReadinessReportV1",
+        "type": "object"
+      },
       "ReadingOut": {
         "additionalProperties": false,
         "description": "One number and everything needed to read it correctly.\n\n`scope` and `kind` have no defaults and are not optional. A response type\nthat could omit them would eventually omit them, and the result is a figure\nthat looks like a service-wide total and is one replica's count since it\nlast restarted.",
@@ -10236,6 +11461,333 @@
         ],
         "title": "RefusalCode",
         "type": "string"
+      },
+      "RelationshipEndpointsV1": {
+        "additionalProperties": false,
+        "description": "The two entities an edge joins, in the stored direction.",
+        "properties": {
+          "destination_entity_id": {
+            "format": "uuid",
+            "title": "Destination Entity Id",
+            "type": "string"
+          },
+          "source_entity_id": {
+            "format": "uuid",
+            "title": "Source Entity Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_entity_id",
+          "destination_entity_id"
+        ],
+        "title": "RelationshipEndpointsV1",
+        "type": "object"
+      },
+      "RelationshipPageV1": {
+        "additionalProperties": false,
+        "description": "One page of a traversal, with what a caller needs to ask for the next.",
+        "properties": {
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipReadV1"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "limit",
+          "offset",
+          "has_more"
+        ],
+        "title": "RelationshipPageV1",
+        "type": "object"
+      },
+      "RelationshipQueryV1": {
+        "additionalProperties": false,
+        "description": "A bounded traversal from one entity.\n\n`direction` chooses the stored direction or the derived inverse view; there is\nno \"both\", because a page mixing the two would have no stable order and a\ncaller could not tell which half it had.",
+        "properties": {
+          "at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
+          },
+          "direction": {
+            "default": "outgoing",
+            "enum": [
+              "outgoing",
+              "incoming"
+            ],
+            "title": "Direction",
+            "type": "string"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "relationship_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Type"
+          }
+        },
+        "required": [
+          "entity_id"
+        ],
+        "title": "RelationshipQueryV1",
+        "type": "object"
+      },
+      "RelationshipReadV1": {
+        "additionalProperties": false,
+        "description": "One governed relationship with the governance a reader needs.\n\n`is_inverse` travels with the row because an inverse is the same stored fact\nread from the other end. A caller that treated one as a second edge would be\ndouble-counting, and nothing else in the body would say which it held.",
+        "properties": {
+          "endpoints": {
+            "$ref": "#/components/schemas/RelationshipEndpointsV1"
+          },
+          "is_inverse": {
+            "default": false,
+            "title": "Is Inverse",
+            "type": "boolean"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileAttributionV1"
+          },
+          "properties": {
+            "additionalProperties": true,
+            "title": "Properties",
+            "type": "object"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ProvenanceSummaryV1"
+          },
+          "readiness_state": {
+            "title": "Readiness State",
+            "type": "string"
+          },
+          "relationship_id": {
+            "format": "uuid",
+            "title": "Relationship Id",
+            "type": "string"
+          },
+          "relationship_type": {
+            "title": "Relationship Type",
+            "type": "string"
+          },
+          "temporal": {
+            "$ref": "#/components/schemas/TemporalStateV1Out"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationOutcomeV1"
+          }
+        },
+        "required": [
+          "relationship_id",
+          "relationship_type",
+          "endpoints",
+          "profile",
+          "provenance",
+          "validation",
+          "temporal",
+          "readiness_state"
+        ],
+        "title": "RelationshipReadV1",
+        "type": "object"
+      },
+      "RelationshipWriteRequestV1": {
+        "additionalProperties": false,
+        "description": "A generic write whose subject is a relationship.",
+        "properties": {
+          "approval_reference": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Reference"
+          },
+          "endpoints": {
+            "$ref": "#/components/schemas/RelationshipEndpointsV1"
+          },
+          "idempotency_key": {
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/ProfileWriteIdentityV1"
+          },
+          "intent": {
+            "enum": [
+              "observation",
+              "request",
+              "authorized_approval"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "properties": {
+            "additionalProperties": true,
+            "title": "Properties",
+            "type": "object"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/AssertionProvenanceInputV1"
+          },
+          "subject_kind": {
+            "const": "relationship",
+            "default": "relationship",
+            "title": "Subject Kind",
+            "type": "string"
+          },
+          "subject_type": {
+            "minLength": 1,
+            "title": "Subject Type",
+            "type": "string"
+          },
+          "target_revision": {
+            "$ref": "#/components/schemas/TargetRevisionV1"
+          },
+          "temporal": {
+            "$ref": "#/components/schemas/TemporalStateV1"
+          }
+        },
+        "required": [
+          "intent",
+          "subject_type",
+          "identity",
+          "target_revision",
+          "temporal",
+          "idempotency_key",
+          "provenance",
+          "endpoints"
+        ],
+        "title": "RelationshipWriteRequestV1",
+        "type": "object"
+      },
+      "RelationshipWriteResultV1": {
+        "additionalProperties": false,
+        "description": "What a generic relationship write did, named for the effect it had.",
+        "properties": {
+          "effect": {
+            "title": "Effect",
+            "type": "string"
+          },
+          "intent": {
+            "enum": [
+              "observation",
+              "request",
+              "authorized_approval"
+            ],
+            "title": "Intent",
+            "type": "string"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileAttributionV1"
+          },
+          "readiness_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Readiness State"
+          },
+          "relationship_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Id"
+          },
+          "review_entry_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Entry Id"
+          },
+          "staged_claim_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staged Claim Id"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/ValidationOutcomeV1"
+          }
+        },
+        "required": [
+          "intent",
+          "effect",
+          "validation",
+          "profile"
+        ],
+        "title": "RelationshipWriteResultV1",
+        "type": "object"
       },
       "ReplayCorpusApprovalRequest": {
         "additionalProperties": false,
@@ -11206,8 +12758,8 @@
           "domain_non_mandatory",
           "capability_mandatory",
           "capability_non_mandatory",
-          "task_mandatory",
-          "task_non_mandatory"
+          "intent_mandatory",
+          "intent_non_mandatory"
         ],
         "title": "RiskClassification",
         "type": "string"
@@ -13330,6 +14882,106 @@
         "title": "SyncSourceResponse",
         "type": "object"
       },
+      "TargetRevisionV1": {
+        "additionalProperties": false,
+        "description": "The profile revision the caller wrote against.\n\nSent by the caller rather than assumed from whatever is currently bound,\nbecause a body composed against one revision and validated against another\npasses or fails for reasons the caller cannot see.",
+        "properties": {
+          "binding_revision": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Binding Revision"
+          },
+          "profile_revision": {
+            "minLength": 1,
+            "title": "Profile Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_revision"
+        ],
+        "title": "TargetRevisionV1",
+        "type": "object"
+      },
+      "TemporalStateV1": {
+        "additionalProperties": false,
+        "description": "When the assertion is claimed to hold, in the world rather than in the store.",
+        "properties": {
+          "valid_from": {
+            "format": "date-time",
+            "title": "Valid From",
+            "type": "string"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          }
+        },
+        "required": [
+          "valid_from"
+        ],
+        "title": "TemporalStateV1",
+        "type": "object"
+      },
+      "TemporalStateV1Out": {
+        "additionalProperties": false,
+        "description": "When this row is in force.",
+        "properties": {
+          "effective_from": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "recorded_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recorded At"
+          }
+        },
+        "title": "TemporalStateV1Out",
+        "type": "object"
+      },
       "ToolRankingOut": {
         "additionalProperties": false,
         "description": "Response body for GET /v1/admin/usage/tools: which MCP tools this tenant's agents actually call.",
@@ -13438,6 +15090,40 @@
           "to_status"
         ],
         "title": "TransitionRequestRequest",
+        "type": "object"
+      },
+      "TransitionRequestV1": {
+        "additionalProperties": false,
+        "description": "A move, its reason, and \u2014 when superseding \u2014 what replaces it.",
+        "properties": {
+          "reason": {
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "replaced_by_assignment_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By Assignment Id"
+          },
+          "to_state": {
+            "minLength": 1,
+            "title": "To State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "to_state",
+          "reason"
+        ],
+        "title": "TransitionRequestV1",
         "type": "object"
       },
       "TraversalResultResponse": {
@@ -13727,6 +15413,38 @@
         "title": "ValidationErrorItem",
         "type": "object"
       },
+      "ValidationOutcomeV1": {
+        "additionalProperties": false,
+        "description": "What the profile said about this write.\n\n`violations` can be non-empty on a successful write: that is what an advisory\nbinding means. A caller reading only the status code would miss it, so the\nlist travels with the row.",
+        "properties": {
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "valid": {
+            "title": "Valid",
+            "type": "boolean"
+          },
+          "violations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Violations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "valid",
+          "mode"
+        ],
+        "title": "ValidationOutcomeV1",
+        "type": "object"
+      },
       "ValidationResponse": {
         "additionalProperties": false,
         "description": "Result of `POST {PV}/validate`: whether the current candidate\npasses closed-schema and conditional-requiredness checks.",
@@ -13751,10 +15469,11 @@
         "type": "object"
       },
       "VerificationMethod": {
-        "description": "How an `ApprovalProof` is checked: a detached signature or a\ntrusted provider's attestation.",
+        "description": "How a source's approval is checked.\n\nTwo of these three name an `ApprovalProof` variant. `GRAPH_PROMOTION`\ndoes not, and deliberately has no variant in that union: the authority\nis a promotion journal row this service reads itself, so there is no\nproof for a caller to supply and no way for one to assert this method\non a request.",
         "enum": [
           "detached_signature",
-          "verifier_attestation"
+          "verifier_attestation",
+          "graph_promotion"
         ],
         "title": "VerificationMethod",
         "type": "string"
@@ -14389,200 +16108,6 @@
         ]
       }
     },
-    "/v1/admin/capability-types": {
-      "get": {
-        "description": "List all capability type schemas (current rows only: t_invalidated_at IS NULL).",
-        "operationId": "list_capability_types_v1_admin_capability_types_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/CapabilityTypeSchemaResponse"
-                  },
-                  "title": "Response List Capability Types V1 Admin Capability Types Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List Capability Types",
-        "tags": [
-          "admin: schemas"
-        ]
-      },
-      "post": {
-        "description": "Create a new capability type schema.\n\nHonours ``X-Idempotency-Key``: same key + same body replays the\noriginal response; same key + different body returns 409.",
-        "operationId": "create_capability_type_v1_admin_capability_types_post",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Idempotency-Key"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Idempotency-Key"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CapabilityTypeSchemaCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CapabilityTypeSchemaResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create Capability Type",
-        "tags": [
-          "admin: schemas"
-        ]
-      }
-    },
-    "/v1/admin/capability-types/{type_name}": {
-      "get": {
-        "description": "Get the current schema for a given type_name.\n\nEmits an ``ETag`` header computed from the schema_id + t_ingested_at.\nClients can echo this value as ``If-Match`` on subsequent PATCH calls\nfor optimistic concurrency.",
-        "operationId": "get_capability_type_v1_admin_capability_types__type_name__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "type_name",
-            "required": true,
-            "schema": {
-              "title": "Type Name",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CapabilityTypeSchemaResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Get Capability Type",
-        "tags": [
-          "admin: schemas"
-        ]
-      },
-      "patch": {
-        "description": "Update a capability type schema \u2014 currently supports flipping is_advisory.\n\nHonours the ``If-Match`` request header (advisory): if present and stale,\nreturns 412 Precondition Failed; if absent, logs a debug warning and\naccepts the write.  ETag is computed from schema_id + t_ingested_at before\nthe write so a stale precondition fails fast.\n\nRecommended flow: GET /v1/admin/capability-types/{name} \u2192 ETag header\n\u2192 PATCH with If-Match.",
-        "operationId": "patch_capability_type_v1_admin_capability_types__type_name__patch",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "type_name",
-            "required": true,
-            "schema": {
-              "title": "Type Name",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CapabilityTypeSchemaPatch"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CapabilityTypeSchemaResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Patch Capability Type",
-        "tags": [
-          "admin: schemas"
-        ]
-      }
-    },
     "/v1/admin/edge-property-schemas": {
       "get": {
         "description": "List all active edge property schemas for the tenant.  Edge-property schema management is not yet implemented.",
@@ -14631,7 +16156,7 @@
     },
     "/v1/admin/edge-property-schemas/{schema_id}": {
       "patch": {
-        "description": "Supersede an existing edge property schema (bi-temporal).\n\nFull implementation is pending. Once wired, this endpoint will honour\n``If-Match`` (advisory) using the schema's ``t_ingested_at`` timestamp\nas the ETag source, matching the pattern used by capability-type PATCH.",
+        "description": "Supersede an existing edge property schema (bi-temporal).\n\nFull implementation is pending. Once wired, this endpoint will honour\n``If-Match`` (advisory) using the schema's ``t_ingested_at`` timestamp\nas the ETag source, matching the pattern used by entity-type schema PATCH.",
         "operationId": "_update_edge_property_schema_v1_admin_edge_property_schemas__schema_id__patch",
         "parameters": [
           {
@@ -14672,6 +16197,200 @@
         "summary": " Update Edge Property Schema",
         "tags": [
           "admin: edge-schemas"
+        ]
+      }
+    },
+    "/v1/admin/entity-types": {
+      "get": {
+        "description": "List all entity type schemas (current rows only: t_invalidated_at IS NULL).",
+        "operationId": "list_entity_type_schemas_v1_admin_entity_types_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EntityTypeSchemaResponse"
+                  },
+                  "title": "Response List Entity Type Schemas V1 Admin Entity Types Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Entity Type Schemas",
+        "tags": [
+          "admin: schemas"
+        ]
+      },
+      "post": {
+        "description": "Create a new entity type schema.\n\n``entity_type`` is validated against the ``entity_type`` vocabulary first: a\nschema registered for a type no entity may hold could never fire, so storing\none is a silent no-op dressed as governance. Unknown or deprecated values\nraise ``VocabularyError`` (422), matching what ``create_entity`` already does\nwith the same value.\n\nHonours ``X-Idempotency-Key``: same key + same body replays the\noriginal response; same key + different body returns 409.",
+        "operationId": "create_entity_type_schema_v1_admin_entity_types_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntityTypeSchemaCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityTypeSchemaResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Entity Type Schema",
+        "tags": [
+          "admin: schemas"
+        ]
+      }
+    },
+    "/v1/admin/entity-types/{entity_type}": {
+      "get": {
+        "description": "Get the current schema for a given entity_type.\n\nEmits an ``ETag`` header computed from the schema_id + t_ingested_at.\nClients can echo this value as ``If-Match`` on subsequent PATCH calls\nfor optimistic concurrency.",
+        "operationId": "get_entity_type_schema_v1_admin_entity_types__entity_type__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_type",
+            "required": true,
+            "schema": {
+              "title": "Entity Type",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityTypeSchemaResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Entity Type Schema",
+        "tags": [
+          "admin: schemas"
+        ]
+      },
+      "patch": {
+        "description": "Update an entity type schema \u2014 currently supports flipping is_advisory.\n\nHonours the ``If-Match`` request header (advisory): if present and stale,\nreturns 412 Precondition Failed; if absent, logs a debug warning and\naccepts the write.  ETag is computed from schema_id + t_ingested_at before\nthe write so a stale precondition fails fast.\n\nRecommended flow: GET /v1/admin/entity-types/{entity_type} \u2192 ETag header\n\u2192 PATCH with If-Match.",
+        "operationId": "patch_entity_type_schema_v1_admin_entity_types__entity_type__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_type",
+            "required": true,
+            "schema": {
+              "title": "Entity Type",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntityTypeSchemaPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityTypeSchemaResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Patch Entity Type Schema",
+        "tags": [
+          "admin: schemas"
         ]
       }
     },
@@ -14930,7 +16649,7 @@
         },
         "summary": "Get Autopromote Allowlist",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -14972,7 +16691,7 @@
         },
         "summary": "Allow Autopromote Predicate",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -15014,7 +16733,7 @@
         },
         "summary": "Revoke Autopromote Predicate",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -15040,7 +16759,7 @@
         },
         "summary": "List Memory Calibration",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -15082,7 +16801,7 @@
         },
         "summary": "Refit Memory Calibration",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -15104,7 +16823,7 @@
         },
         "summary": "Get Promotion Policy",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       },
       "put": {
@@ -15144,7 +16863,7 @@
         },
         "summary": "Put Promotion Policy",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -15170,7 +16889,7 @@
         },
         "summary": "List Memory Sources",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       },
       "post": {
@@ -15210,7 +16929,7 @@
         },
         "summary": "Declare Memory Source",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -15264,7 +16983,7 @@
         },
         "summary": "Patch Memory Source",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -15308,7 +17027,7 @@
         },
         "summary": "Reset Memory Source Breaker",
         "tags": [
-          "admin: memory curation"
+          "admin: memory-curation"
         ]
       }
     },
@@ -17906,6 +19625,114 @@
       }
     },
     "/v1/arc/artifacts": {
+      "get": {
+        "operationId": "list_artifact_families_v1_arc_artifacts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ArtifactKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "owning_scope",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/OwningScope"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Owning Scope"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactFamilyListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Artifact Families",
+        "tags": [
+          "arc: authoring"
+        ]
+      },
       "post": {
         "operationId": "create_artifact_family_v1_arc_artifacts_post",
         "requestBody": {
@@ -19517,6 +21344,66 @@
         ]
       }
     },
+    "/v1/arc/sources/graph-promotions": {
+      "post": {
+        "description": "Admit a claim the canonical graph already carries.\n\nThe caller names a promoted claim, the upstream system its evidence\npoints into, and a review deadline. It supplies no proof: the approving\nauthority is the promotion journal row, which this service reads and\nre-checks \u2014 including whether the promotion was since reversed, and\nwhether the promoting actor was someone other than the claim's author.",
+        "operationId": "admit_source_graph_promotion_v1_arc_sources_graph_promotions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraphPromotionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceEvidenceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admit Source Graph Promotion",
+        "tags": [
+          "arc"
+        ]
+      }
+    },
     "/v1/arc/sources/uploads": {
       "post": {
         "description": "Admit source bytes the caller uploads directly.\n\nThe `body` part streams through a hard 10 MiB ceiling while this\ndeployment hashes it; the claim's own `source_content_digest` is\nchecked against that computed digest, never trusted in its place.",
@@ -19787,7 +21674,8 @@
         },
         "summary": "List Capabilities",
         "tags": [
-          "retrieval"
+          "retrieval",
+          "capabilities"
         ]
       },
       "post": {
@@ -19862,343 +21750,6 @@
         "summary": "Create Capability",
         "tags": [
           "capabilities"
-        ]
-      }
-    },
-    "/v1/capabilities/{capability_id}/interface": {
-      "get": {
-        "description": "Return the active interface surface at ``as_of`` (or current truth).\n\nThe path segment accepts a UUID or slug-form name.\n\n``?view=audit`` is accepted for API consistency but is currently a no-op \u2014\nthe interface service returns a composed record rather than raw attribute\nrows, so no additional bitemporal metadata is available to surface.",
-        "operationId": "get_interface_v1_capabilities__capability_id__interface_get",
-        "parameters": [
-          {
-            "description": "Capability UUID or slug",
-            "in": "path",
-            "name": "capability_id",
-            "required": true,
-            "schema": {
-              "description": "Capability UUID or slug",
-              "title": "Capability Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "ISO-8601 UTC for time-travel",
-            "in": "query",
-            "name": "as_of",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "ISO-8601 UTC for time-travel",
-              "title": "As Of"
-            }
-          },
-          {
-            "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
-            "in": "query",
-            "name": "view",
-            "required": false,
-            "schema": {
-              "default": "default",
-              "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
-              "enum": [
-                "default",
-                "audit"
-              ],
-              "title": "View",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InterfaceReadResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Read the capability's declared interface surface",
-        "tags": [
-          "interface"
-        ]
-      },
-      "put": {
-        "description": "Normalize, soft-supersede prior versions, then write the new pair.\n\nThe path segment accepts a UUID or slug-form name.",
-        "operationId": "put_interface_v1_capabilities__capability_id__interface_put",
-        "parameters": [
-          {
-            "description": "Capability UUID or slug",
-            "in": "path",
-            "name": "capability_id",
-            "required": true,
-            "schema": {
-              "description": "Capability UUID or slug",
-              "title": "Capability Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/InterfacePutRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InterfaceSurfaceResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Replace the capability's declared interface surface",
-        "tags": [
-          "interface"
-        ]
-      }
-    },
-    "/v1/capabilities/{capability_id}/preview-version": {
-      "post": {
-        "description": "Read-only advisory: normalize \u2192 semver \u2192 diff \u2192 blast-radius \u2192 filter.\n\nThe path segment accepts a UUID or slug-form name.\n\nReturns the diff classification, the per-element changes, the\naffected-consumer list (cross-tenant entries anonymised), and a\nplain-text release-notes scaffold.",
-        "operationId": "preview_version_v1_capabilities__capability_id__preview_version_post",
-        "parameters": [
-          {
-            "description": "Capability UUID or slug",
-            "in": "path",
-            "name": "capability_id",
-            "required": true,
-            "schema": {
-              "description": "Capability UUID or slug",
-              "title": "Capability Id",
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PreviewVersionRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BreakingChangePreviewResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Preview the impact of a proposed version + interface change",
-        "tags": [
-          "breaking-change"
-        ]
-      }
-    },
-    "/v1/capabilities/{capability_id}/subscriptions": {
-      "get": {
-        "description": "Active subscriptions owned by ``ctx.tenant_id`` for this capability.\n\nThe path segment accepts a UUID or slug-form name. Tenants only see\ntheir own subscriptions through this endpoint.\n\nPass ``?view=audit`` to include bitemporal columns in the response.\n\nPagination: ``next_cursor`` is always ``None`` \u2014 subscriptions per\ncapability per tenant are bounded (typically 1\u20135 rows), so keyset\npagination is not wired. The envelope exists for client shape consistency.",
-        "operationId": "list_subscriptions_for_capability_v1_capabilities__capability_id__subscriptions_get",
-        "parameters": [
-          {
-            "description": "Capability UUID or slug",
-            "in": "path",
-            "name": "capability_id",
-            "required": true,
-            "schema": {
-              "description": "Capability UUID or slug",
-              "title": "Capability Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
-            "in": "query",
-            "name": "view",
-            "required": false,
-            "schema": {
-              "default": "default",
-              "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
-              "enum": [
-                "default",
-                "audit"
-              ],
-              "title": "View",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubscriptionListResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List the caller's subscriptions for a capability",
-        "tags": [
-          "subscriptions"
-        ]
-      },
-      "post": {
-        "description": "Create an active subscription owned by the caller's tenant.\n\nThe path segment accepts a UUID or slug-form name. Visibility is enforced\nbefore the row is written. Returns ``{\"subscription_id\": \"<uuid>\"}``; the\nfull record can be retrieved via the list endpoint.\n\nHonours ``X-Idempotency-Key``: same key + same body replays the\noriginal response; same key + different body returns 409.",
-        "operationId": "create_subscription_v1_capabilities__capability_id__subscriptions_post",
-        "parameters": [
-          {
-            "description": "Capability UUID or slug",
-            "in": "path",
-            "name": "capability_id",
-            "required": true,
-            "schema": {
-              "description": "Capability UUID or slug",
-              "title": "Capability Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Idempotency-Key"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Idempotency-Key"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SubscriptionCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "title": "Response Create Subscription V1 Capabilities  Capability Id  Subscriptions Post",
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Create a subscription for a capability",
-        "tags": [
-          "subscriptions"
         ]
       }
     },
@@ -20419,6 +21970,216 @@
         "summary": "Patch Capability",
         "tags": [
           "capabilities"
+        ]
+      }
+    },
+    "/v1/capabilities/{entity_id}/adoptions": {
+      "get": {
+        "description": "Return the calling tenant's active adoption for this capability,\nif any.\n\nScoped to the caller's tenant \u2014 listing other tenants' adoptions for\nthe same capability is not supported through this endpoint (use the\nprojection endpoints for the provider-side view).\n\nPass ``?view=audit`` to include bitemporal columns in the response.\n\nPagination: ``next_cursor`` is always ``None`` \u2014 adoptions per capability\nper tenant are bounded (at most one active row), so keyset pagination is\nnot wired. The envelope exists for client shape consistency.",
+        "operationId": "list_adoptions_v1_capabilities__entity_id__adoptions_get",
+        "parameters": [
+          {
+            "description": "Provider capability UUID or slug",
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "description": "Provider capability UUID or slug",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "default": "default",
+              "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
+              "enum": [
+                "default",
+                "audit"
+              ],
+              "title": "View",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdoptionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List active adoptions for a capability",
+        "tags": [
+          "adoptions"
+        ]
+      },
+      "post": {
+        "description": "Record an adoption event + provides_to edge.\n\nThe path segment accepts a UUID or a slug-form name. The consumer\ntenant is ``ctx.tenant_id``. Returns ``201`` with the newly-created\nadoption row. ``409`` if an active adoption already exists for the\n(consumer, capability) pair (uniqueness constraint).\n\nPass ``?view=audit`` to include bitemporal columns in the response.\nHonours ``X-Idempotency-Key``: same key + same body replays the\noriginal response; same key + different body returns 409.",
+        "operationId": "adopt_capability_v1_capabilities__entity_id__adoptions_post",
+        "parameters": [
+          {
+            "description": "Provider capability UUID or slug",
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "description": "Provider capability UUID or slug",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "default": "default",
+              "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
+              "enum": [
+                "default",
+                "audit"
+              ],
+              "title": "View",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdoptionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdoptionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Adopt a provider capability (cross-tenant)",
+        "tags": [
+          "adoptions"
+        ]
+      }
+    },
+    "/v1/capabilities/{entity_id}/adoptions/{adoption_id}": {
+      "delete": {
+        "description": "Soft-delete by setting t_invalidated_at. The provides_to edge is\nretained so historical bi-temporal traversal still surfaces the\nrelationship.\n\nIdempotent: calling on an already-invalidated adoption is a no-op\n(returns 204).",
+        "operationId": "_unadopt_capability_v1_capabilities__entity_id__adoptions__adoption_id__delete",
+        "parameters": [
+          {
+            "description": "Provider capability UUID or slug",
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "description": "Provider capability UUID or slug",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "adoption_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Adoption Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete (unadopt) an adoption",
+        "tags": [
+          "adoptions"
         ]
       }
     },
@@ -21146,6 +22907,138 @@
         ]
       }
     },
+    "/v1/capabilities/{entity_id}/interface": {
+      "get": {
+        "description": "Return the active interface surface at ``as_of`` (or current truth).\n\nThe path segment accepts a UUID or slug-form name.\n\n``?view=audit`` is accepted for API consistency but is currently a no-op \u2014\nthe interface service returns a composed record rather than raw attribute\nrows, so no additional bitemporal metadata is available to surface.",
+        "operationId": "get_interface_v1_capabilities__entity_id__interface_get",
+        "parameters": [
+          {
+            "description": "Capability UUID or slug",
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "description": "Capability UUID or slug",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "ISO-8601 UTC for time-travel",
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "ISO-8601 UTC for time-travel",
+              "title": "As Of"
+            }
+          },
+          {
+            "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "default": "default",
+              "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
+              "enum": [
+                "default",
+                "audit"
+              ],
+              "title": "View",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterfaceReadResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read the capability's declared interface surface",
+        "tags": [
+          "interface"
+        ]
+      },
+      "put": {
+        "description": "Normalize, soft-supersede prior versions, then write the new pair.\n\nThe path segment accepts a UUID or slug-form name.",
+        "operationId": "put_interface_v1_capabilities__entity_id__interface_put",
+        "parameters": [
+          {
+            "description": "Capability UUID or slug",
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "description": "Capability UUID or slug",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterfacePutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterfaceSurfaceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace the capability's declared interface surface",
+        "tags": [
+          "interface"
+        ]
+      }
+    },
     "/v1/capabilities/{entity_id}/lifecycle": {
       "patch": {
         "description": "Apply a lifecycle state transition to a capability.\n\nThe path segment accepts a UUID or slug-form name.\n\nRequires ``admin`` or ``producer`` role.  When ``successor`` is a UUID the\nservice creates a ``replaced_by`` edge via ``CatalogService.create_edge``\nafter committing the attribute row.  When ``successor`` is ``\"none\"`` the\nentity is deprecated without a replacement.\n\nHonours the ``If-Match`` request header (advisory): if present and stale,\nreturns 412 Precondition Failed; if absent, logs a debug warning and\naccepts the write.  ETag is computed from the entity's current state before\nthe transition so a stale precondition fails fast.\n\nReturns 422 on policy violation (invalid transition, invalid successor value),\n404 if the entity does not exist.",
@@ -21198,6 +23091,211 @@
         "summary": "Patch Capability Lifecycle",
         "tags": [
           "lifecycle"
+        ]
+      }
+    },
+    "/v1/capabilities/{entity_id}/preview-version": {
+      "post": {
+        "description": "Read-only advisory: normalize \u2192 semver \u2192 diff \u2192 blast-radius \u2192 filter.\n\nThe path segment accepts a UUID or slug-form name.\n\nReturns the diff classification, the per-element changes, the\naffected-consumer list (cross-tenant entries anonymised), and a\nplain-text release-notes scaffold.",
+        "operationId": "preview_version_v1_capabilities__entity_id__preview_version_post",
+        "parameters": [
+          {
+            "description": "Capability UUID or slug",
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "description": "Capability UUID or slug",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BreakingChangePreviewResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Preview the impact of a proposed version + interface change",
+        "tags": [
+          "breaking-change"
+        ]
+      }
+    },
+    "/v1/capabilities/{entity_id}/subscriptions": {
+      "get": {
+        "description": "Active subscriptions owned by ``ctx.tenant_id`` for this capability.\n\nThe path segment accepts a UUID or slug-form name. Tenants only see\ntheir own subscriptions through this endpoint.\n\nPass ``?view=audit`` to include bitemporal columns in the response.\n\nPagination: ``next_cursor`` is always ``None`` \u2014 subscriptions per\ncapability per tenant are bounded (typically 1\u20135 rows), so keyset\npagination is not wired. The envelope exists for client shape consistency.",
+        "operationId": "list_subscriptions_for_capability_v1_capabilities__entity_id__subscriptions_get",
+        "parameters": [
+          {
+            "description": "Capability UUID or slug",
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "description": "Capability UUID or slug",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "default": "default",
+              "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
+              "enum": [
+                "default",
+                "audit"
+              ],
+              "title": "View",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List the caller's subscriptions for a capability",
+        "tags": [
+          "subscriptions"
+        ]
+      },
+      "post": {
+        "description": "Create an active subscription owned by the caller's tenant.\n\nThe path segment accepts a UUID or slug-form name. Visibility is enforced\nbefore the row is written. Returns ``{\"subscription_id\": \"<uuid>\"}``; the\nfull record can be retrieved via the list endpoint.\n\nHonours ``X-Idempotency-Key``: same key + same body replays the\noriginal response; same key + different body returns 409.",
+        "operationId": "create_subscription_v1_capabilities__entity_id__subscriptions_post",
+        "parameters": [
+          {
+            "description": "Capability UUID or slug",
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "description": "Capability UUID or slug",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Create Subscription V1 Capabilities  Entity Id  Subscriptions Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a subscription for a capability",
+        "tags": [
+          "subscriptions"
         ]
       }
     },
@@ -21254,216 +23352,6 @@
         ]
       }
     },
-    "/v1/capabilities/{provider_cap_id}/adoptions": {
-      "get": {
-        "description": "Return the calling tenant's active adoption for this capability,\nif any.\n\nScoped to the caller's tenant \u2014 listing other tenants' adoptions for\nthe same capability is not supported through this endpoint (use the\nprojection endpoints for the provider-side view).\n\nPass ``?view=audit`` to include bitemporal columns in the response.\n\nPagination: ``next_cursor`` is always ``None`` \u2014 adoptions per capability\nper tenant are bounded (at most one active row), so keyset pagination is\nnot wired. The envelope exists for client shape consistency.",
-        "operationId": "list_adoptions_v1_capabilities__provider_cap_id__adoptions_get",
-        "parameters": [
-          {
-            "description": "Provider capability UUID or slug",
-            "in": "path",
-            "name": "provider_cap_id",
-            "required": true,
-            "schema": {
-              "description": "Provider capability UUID or slug",
-              "title": "Provider Cap Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
-            "in": "query",
-            "name": "view",
-            "required": false,
-            "schema": {
-              "default": "default",
-              "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
-              "enum": [
-                "default",
-                "audit"
-              ],
-              "title": "View",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdoptionListResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "List active adoptions for a capability",
-        "tags": [
-          "adoptions"
-        ]
-      },
-      "post": {
-        "description": "Record an adoption event + provides_to edge.\n\nThe path segment accepts a UUID or a slug-form name. The consumer\ntenant is ``ctx.tenant_id``. Returns ``201`` with the newly-created\nadoption row. ``409`` if an active adoption already exists for the\n(consumer, capability) pair (uniqueness constraint).\n\nPass ``?view=audit`` to include bitemporal columns in the response.\nHonours ``X-Idempotency-Key``: same key + same body replays the\noriginal response; same key + different body returns 409.",
-        "operationId": "adopt_capability_v1_capabilities__provider_cap_id__adoptions_post",
-        "parameters": [
-          {
-            "description": "Provider capability UUID or slug",
-            "in": "path",
-            "name": "provider_cap_id",
-            "required": true,
-            "schema": {
-              "description": "Provider capability UUID or slug",
-              "title": "Provider Cap Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
-            "in": "query",
-            "name": "view",
-            "required": false,
-            "schema": {
-              "default": "default",
-              "description": "Response shape. `default` returns the fields a caller acts on. `audit` adds the bitemporal columns and the owning tenant, for reconstructing what the record looked like and when.",
-              "enum": [
-                "default",
-                "audit"
-              ],
-              "title": "View",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Idempotency-Key"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Idempotency-Key"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AdoptionCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdoptionResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Adopt a provider capability (cross-tenant)",
-        "tags": [
-          "adoptions"
-        ]
-      }
-    },
-    "/v1/capabilities/{provider_cap_id}/adoptions/{adoption_id}": {
-      "delete": {
-        "description": "Soft-delete by setting t_invalidated_at. The provides_to edge is\nretained so historical bi-temporal traversal still surfaces the\nrelationship.\n\nIdempotent: calling on an already-invalidated adoption is a no-op\n(returns 204).",
-        "operationId": "_unadopt_capability_v1_capabilities__provider_cap_id__adoptions__adoption_id__delete",
-        "parameters": [
-          {
-            "description": "Provider capability UUID or slug",
-            "in": "path",
-            "name": "provider_cap_id",
-            "required": true,
-            "schema": {
-              "description": "Provider capability UUID or slug",
-              "title": "Provider Cap Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "path",
-            "name": "adoption_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Adoption Id",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Soft-delete (unadopt) an adoption",
-        "tags": [
-          "adoptions"
-        ]
-      }
-    },
     "/v1/checkpoints/by-digest/{digest}": {
       "get": {
         "description": "One checkpoint by content digest.\n\nAddressed outside any task path on purpose: a digest names the content, and\na caller holding one from a receipt does not necessarily know which task it\nbelongs to. Authorization is unchanged -- the service still refuses a\ncheckpoint on a task this actor does not participate in.",
@@ -21503,7 +23391,7 @@
         },
         "summary": "Get Checkpoint By Digest",
         "tags": [
-          "task memory"
+          "intent"
         ]
       }
     },
@@ -21854,14 +23742,15 @@
         },
         "summary": "Resume Context",
         "tags": [
-          "context receipts"
+          "context: receipts"
         ]
       }
     },
     "/v1/entities": {
       "get": {
-        "description": "Return the entity mapped to ``(external_system, external_id)`` for the tenant.\n\nReturns ``404 Not Found`` when no mapping exists.  The ``external_system``\nand ``external_id`` query parameters are both required.",
-        "operationId": "lookup_entity_by_external_id_v1_entities_get",
+        "deprecated": true,
+        "description": "The pre-rename path. Delegates; retires on the date in the contract.",
+        "operationId": "lookup_entity_by_external_id_deprecated_v1_entities_get",
         "parameters": [
           {
             "description": "External system slug (registered via /v1/admin/external-systems)",
@@ -21908,9 +23797,147 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Lookup entity by external system slug and external ID",
+        "summary": "Deprecated: use GET /v1/entities:lookup",
         "tags": [
           "external-ids"
+        ],
+        "x-successor": "/v1/entities:lookup",
+        "x-sunset-on": "2026-11-20"
+      },
+      "post": {
+        "description": "Route one generic entity write by its stated intent.",
+        "operationId": "create_entity_v1_entities_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntityWriteRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityWriteResultV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assert an entity through the generic profile-governed surface.",
+        "tags": [
+          "entities"
+        ]
+      }
+    },
+    "/v1/entities/{entity_id}": {
+      "get": {
+        "description": "Return the row together with its profile, provenance, validation and readiness.",
+        "operationId": "get_entity_v1_entities__entity_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityReadV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read one entity with the governance that accepted it.",
+        "tags": [
+          "entities"
+        ]
+      },
+      "patch": {
+        "description": "Update by the same three routes a create takes.\n\nAn update is not a lesser write. An observation that could amend a canonical\nrow directly would be a way around the whole intent split, so the routing here\nis the same one `create_entity` uses and this handler adds nothing to it but\nthe subject.",
+        "operationId": "update_entity",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntityWriteRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityWriteResultV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Supersede an entity's properties through the generic surface.",
+        "tags": [
+          "entities"
         ]
       }
     },
@@ -22152,6 +24179,151 @@
         "summary": " Patch External Id",
         "tags": [
           "external-ids"
+        ]
+      }
+    },
+    "/v1/entities/{entity_id}:validate-readiness": {
+      "post": {
+        "description": "Recount readiness on demand rather than reading a stored flag.\n\nThe stored `readiness_state` on an assertion is what was true when that row\nwas written \u2014 deliberately, so an audit can ask what was known then. A caller\nasking \"may this go active now?\" needs today's answer, which is this.",
+        "operationId": "validate_readiness_v1_entities__entity_id__validate_readiness_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entity_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entity Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessReportV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Report whether this entity's required relationships are present.",
+        "tags": [
+          "entities"
+        ]
+      }
+    },
+    "/v1/entities:lookup": {
+      "get": {
+        "description": "Return the entity mapped to ``(external_system, external_id)`` for the tenant.\n\nReturns ``404 Not Found`` when no mapping exists.  The ``external_system``\nand ``external_id`` query parameters are both required.",
+        "operationId": "lookup_entity_by_external_id_v1_entities_lookup_get",
+        "parameters": [
+          {
+            "description": "External system slug (registered via /v1/admin/external-systems)",
+            "in": "query",
+            "name": "external_system",
+            "required": true,
+            "schema": {
+              "description": "External system slug (registered via /v1/admin/external-systems)",
+              "title": "External System",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The raw external ID string as it appears in the upstream system",
+            "in": "query",
+            "name": "external_id",
+            "required": true,
+            "schema": {
+              "description": "The raw external ID string as it appears in the upstream system",
+              "title": "External Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityRefResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lookup entity by external system slug and external ID",
+        "tags": [
+          "external-ids"
+        ]
+      }
+    },
+    "/v1/entities:resolve": {
+      "get": {
+        "description": "Look a handle up, qualified by type when the caller supplied one.\n\nA bare name matching two types is refused rather than resolved. The refusal\ncarries `identity_ambiguous` so a client can branch on it without matching\nmessage text, and so the fix \u2014 qualify the handle \u2014 is obvious from the code.",
+        "operationId": "resolve_entity_v1_entities_resolve_get",
+        "parameters": [
+          {
+            "description": "A `namespace:type/name` handle, or a bare name.",
+            "in": "query",
+            "name": "handle",
+            "required": true,
+            "schema": {
+              "description": "A `namespace:type/name` handle, or a bare name.",
+              "title": "Handle",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntityResolutionV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resolve a handle to one entity, refusing an ambiguous match.",
+        "tags": [
+          "entities"
         ]
       }
     },
@@ -22495,7 +24667,7 @@
         },
         "summary": "Append Checkpoint",
         "tags": [
-          "task memory"
+          "intent"
         ]
       }
     },
@@ -22549,7 +24721,7 @@
         },
         "summary": "Get Checkpoint",
         "tags": [
-          "task memory"
+          "intent"
         ]
       }
     },
@@ -22593,7 +24765,7 @@
         },
         "summary": "List Participants",
         "tags": [
-          "task memory"
+          "intent"
         ]
       },
       "post": {
@@ -22645,7 +24817,7 @@
         },
         "summary": "Add Participant",
         "tags": [
-          "task memory"
+          "intent"
         ]
       }
     },
@@ -22691,7 +24863,7 @@
         },
         "summary": "Remove Participant",
         "tags": [
-          "task memory"
+          "intent"
         ]
       }
     },
@@ -22853,7 +25025,7 @@
         },
         "summary": "List Capability Requests",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       },
       "post": {
@@ -22893,7 +25065,7 @@
         },
         "summary": "Raise Capability Request",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -22937,7 +25109,7 @@
         },
         "summary": "Get Capability Request",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       },
       "patch": {
@@ -22989,7 +25161,7 @@
         },
         "summary": "Transition Capability Request",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23033,7 +25205,7 @@
         },
         "summary": "Get Capability Request History",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23087,7 +25259,7 @@
         },
         "summary": "Link Capability Request To Promotion",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23321,7 +25493,8 @@
         },
         "summary": "Assert Claim",
         "tags": [
-          "memory curation"
+          "memory: curation",
+          "memory"
         ]
       }
     },
@@ -23392,7 +25565,7 @@
         },
         "summary": "Get Believed Claims",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23609,7 +25782,7 @@
         },
         "summary": "Get Claim History",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23663,7 +25836,7 @@
         },
         "summary": "Adjudicate Claim",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23707,7 +25880,7 @@
         },
         "summary": "Confirm Claim",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23761,7 +25934,7 @@
         },
         "summary": "Discard Claim",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23815,7 +25988,7 @@
         },
         "summary": "Link Claim Subject",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23865,7 +26038,7 @@
         },
         "summary": "List Contradiction Groups",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -23943,7 +26116,7 @@
         },
         "summary": "List Curation Cases",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       },
       "post": {
@@ -23983,7 +26156,7 @@
         },
         "summary": "Open Curation Case",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -24027,7 +26200,7 @@
         },
         "summary": "Get Curation Case",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -24081,7 +26254,7 @@
         },
         "summary": "Record Case Disposition",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -24135,7 +26308,7 @@
         },
         "summary": "Route Curation Case",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -24215,7 +26388,7 @@
         },
         "summary": "Get Curation Queue",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -24293,7 +26466,7 @@
         },
         "summary": "List Promotion Proposals",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -24337,7 +26510,7 @@
         },
         "summary": "Get Promotion Proposal",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       },
       "patch": {
@@ -24389,7 +26562,7 @@
         },
         "summary": "Review Promotion Proposal",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -24443,7 +26616,7 @@
         },
         "summary": "Reverse Promotion",
         "tags": [
-          "memory curation"
+          "memory: curation"
         ]
       }
     },
@@ -25290,6 +27463,628 @@
         ]
       }
     },
+    "/v1/ownership/assignments": {
+      "post": {
+        "description": "Record a new assignment, checking the subject before anything is written.",
+        "operationId": "assign_v1_ownership_assignments_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignOwnershipRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipAssignmentV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assign ownership. The assignment lands in `draft`.",
+        "tags": [
+          "ownership"
+        ]
+      }
+    },
+    "/v1/ownership/assignments/{assignment_id}": {
+      "get": {
+        "description": "Unfiltered by state: a revoked assignment is a different answer from none.",
+        "operationId": "get_assignment_v1_ownership_assignments__assignment_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipAssignmentV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read one assignment in whatever state it holds.",
+        "tags": [
+          "ownership"
+        ]
+      }
+    },
+    "/v1/ownership/assignments/{assignment_id}:transition": {
+      "post": {
+        "description": "Validate, supersede or revoke \u2014 whichever the lifecycle permits from here.",
+        "operationId": "transition_v1_ownership_assignments__assignment_id__transition_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipAssignmentV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Move an assignment through its lifecycle, recording actor, time and reason.",
+        "tags": [
+          "ownership"
+        ]
+      }
+    },
+    "/v1/ownership:owned-by": {
+      "get": {
+        "description": "The inverse view. One row, two questions; nothing is duplicated to answer both.",
+        "operationId": "owned_by_v1_ownership_owned_by_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owned_target_kind",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Owned Target Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "owned_target_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Owned Target Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_pending",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Pending",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipListV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Who owns this target \u2014 the same rows, from the other end.",
+        "tags": [
+          "ownership"
+        ]
+      }
+    },
+    "/v1/ownership:owns": {
+      "get": {
+        "description": "Derived from the same rows the other direction reads, never stored twice.",
+        "operationId": "owns_v1_ownership_owns_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner_principal",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Owner Principal",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_pending",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Pending",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnershipListV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What this principal owns \u2014 a derived view.",
+        "tags": [
+          "ownership"
+        ]
+      }
+    },
+    "/v1/profiles/bindings": {
+      "post": {
+        "description": "Draft a binding for the authenticated tenant.",
+        "operationId": "plan_binding_v1_profiles_bindings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanBindingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BindingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Plan Binding",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/v1/profiles/bindings/{binding_id}/activate": {
+      "post": {
+        "description": "Put a validated binding into force, closing the incumbent.",
+        "operationId": "activate_binding_v1_profiles_bindings__binding_id__activate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "binding_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Binding Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindingTransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BindingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Activate Binding",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/v1/profiles/bindings/{binding_id}/rollback": {
+      "post": {
+        "description": "Start rolling an active binding back onto its recorded target.",
+        "operationId": "begin_rollback_v1_profiles_bindings__binding_id__rollback_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "binding_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Binding Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindingTransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BindingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Begin Rollback",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/v1/profiles/bindings/{binding_id}/rollback/complete": {
+      "post": {
+        "description": "Finish a rollback, restoring the target binding to active.",
+        "operationId": "complete_rollback_v1_profiles_bindings__binding_id__rollback_complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "binding_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Binding Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindingTransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BindingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete Rollback",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/v1/profiles/bindings/{binding_id}/validate": {
+      "post": {
+        "description": "Move a planned binding into validation. Still governs nothing.",
+        "operationId": "validate_binding_v1_profiles_bindings__binding_id__validate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "binding_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Binding Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BindingTransitionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BindingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Validate Binding",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/v1/profiles/conformance": {
+      "get": {
+        "description": "Report the binding governing the authenticated tenant, if any.\n\n`bound: false` with a null binding is a real answer rather than a 404: a\ntenant with no active binding is governed by core defaults, which is a\nstate a caller needs to be able to observe without treating it as an error.",
+        "operationId": "read_conformance_v1_profiles_conformance_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConformanceResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Read Conformance",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/v1/profiles/extensions": {
+      "post": {
+        "description": "Publish this tenant's extension of a core revision.",
+        "operationId": "publish_extension_v1_profiles_extensions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishExtensionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtensionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish Extension",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
+    "/v1/profiles/revisions": {
+      "post": {
+        "description": "Publish a core revision, or refuse with every conflict at once.\n\nThe definitions compiled here are the shipped core families. The request\ndoes not carry a document: a caller-supplied profile body would let the\npublished authority differ from the one this deployment's compiler can\nactually validate against.",
+        "operationId": "publish_revision_v1_profiles_revisions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishRevisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileRevisionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish Revision",
+        "tags": [
+          "profiles"
+        ]
+      }
+    },
     "/v1/receipts/by-reference": {
       "get": {
         "description": "Every resolution citing one piece of external work, newest first.\n\nThe read somebody makes starting from a commit or a build, which is how a\nreceipt is reached in practice -- nobody holds a receipt id.",
@@ -25368,7 +28163,7 @@
         },
         "summary": "Receipts By Reference",
         "tags": [
-          "context receipts"
+          "context: receipts"
         ]
       }
     },
@@ -25412,7 +28207,7 @@
         },
         "summary": "Get Receipt",
         "tags": [
-          "context receipts"
+          "context: receipts"
         ]
       }
     },
@@ -25472,7 +28267,7 @@
         },
         "summary": "Get Receipt Exclusions",
         "tags": [
-          "context receipts"
+          "context: receipts"
         ]
       }
     },
@@ -25516,7 +28311,213 @@
         },
         "summary": "Get Receipt References",
         "tags": [
-          "context receipts"
+          "context: receipts"
+        ]
+      }
+    },
+    "/v1/relationships": {
+      "post": {
+        "description": "Route one generic relationship write by its stated intent.",
+        "operationId": "create_relationship_v1_relationships_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RelationshipWriteRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipWriteResultV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assert a relationship through the generic profile-governed surface.",
+        "tags": [
+          "relationships"
+        ]
+      }
+    },
+    "/v1/relationships/{relationship_id}": {
+      "get": {
+        "description": "Return the stored row together with its profile, provenance and readiness.\n\nEmits an `ETag` over the row id and the later of its `recorded_at` and\n`effective_to`. `effective_to` is in the inputs because a supersession does\nnot touch the row it ends except to close it: an ETag over the transaction\ntime alone would be unchanged by the one event a concurrent editor most\nneeds to hear about.",
+        "operationId": "get_relationship_v1_relationships__relationship_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "relationship_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Relationship Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipReadV1"
+                }
+              }
+            },
+            "description": "Successful Response",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for this row's current version. Echo it as `If-Match` on a subsequent update to be refused with 412 rather than superseding a row that changed after it was read.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read one governed relationship with the governance that accepted it.",
+        "tags": [
+          "relationships"
+        ]
+      },
+      "patch": {
+        "description": "Supersede the named assertion, by the same three routes a create takes.\n\nAn observation that could amend a canonical edge directly would be a way\naround the intent split, so this adds nothing to the routing but the subject.\n\nOnly the canonical route supersedes. The staged routes mint a claim id and\na review-entry id and persist neither \u2014 they are placeholders for a staging\nsurface that does not exist yet \u2014 so an observation or a request against\nthis path records nothing that names the edge it was about. That is the\nbehaviour a create already has, unchanged here rather than quietly widened.",
+        "operationId": "update_relationship",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "relationship_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Relationship Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The `ETag` from this relationship's detail read. When present and stale the update is refused with 412; when absent the update proceeds, which is the advisory mode the rest of this API uses.",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The `ETag` from this relationship's detail read. When present and stale the update is refused with 412; when absent the update proceeds, which is the advisory mode the rest of this API uses.",
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RelationshipWriteRequestV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipWriteResultV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Supersede a relationship through the generic surface.",
+        "tags": [
+          "relationships"
+        ]
+      }
+    },
+    "/v1/relationships:query": {
+      "post": {
+        "description": "Read one page of relationships in force, forward or as inverse views.",
+        "operationId": "query_relationships_v1_relationships_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RelationshipQueryV1"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelationshipPageV1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Traverse one entity's relationships, bounded and one-directional.",
+        "tags": [
+          "relationships"
         ]
       }
     },
@@ -26760,7 +29761,7 @@
       "name": "admin: vocabulary"
     },
     {
-      "description": "Register capability-type schemas (`integration`, custom tenant types) used to validate `capability.attributes` on write.",
+      "description": "Register entity-type schemas (`capability`, `integration`, custom tenant types) used to validate an entity's `attributes` on write.",
       "name": "admin: schemas"
     },
     {
