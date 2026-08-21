@@ -233,18 +233,23 @@ test('the rail follows the reference geometry and active item treatment', async 
     const sidePanel = rail?.closest<HTMLElement>('.saltSidePanel');
     const active = rail?.querySelector<HTMLElement>('[aria-current="page"]');
     const activeSurface = active?.closest<HTMLElement>('.saltPanel');
+    const activeIndicator = rail?.querySelector<HTMLElement>('[data-navigation-indicator]');
     const icon = active?.querySelector('svg');
-    if (!rail || !sidePanel || !active || !activeSurface || !icon) return null;
+    if (!rail || !sidePanel || !active || !activeSurface || !activeIndicator || !icon) return null;
     const railBounds = rail.getBoundingClientRect();
     const sideBounds = sidePanel.getBoundingClientRect();
     const itemBounds = active.getBoundingClientRect();
+    const indicatorBounds = activeIndicator.getBoundingClientRect();
     const iconBounds = icon.getBoundingClientRect();
     return {
       sideWidth: Math.round(sideBounds.width),
       sideTop: Math.round(sideBounds.top),
       railInset: Math.round(railBounds.left - sideBounds.left),
+      itemInset: Math.round(itemBounds.left - sideBounds.left),
       itemWidth: Math.round(itemBounds.width),
       itemHeight: Math.round(itemBounds.height),
+      indicatorInset: Math.round(indicatorBounds.left - sideBounds.left),
+      indicatorWidth: Math.round(indicatorBounds.width),
       iconLeft: Math.round(iconBounds.left - sideBounds.left),
       iconSize: Math.round(iconBounds.width),
       activeBackground: getComputedStyle(activeSurface).backgroundColor,
@@ -255,9 +260,12 @@ test('the rail follows the reference geometry and active item treatment', async 
   expect(measured).toEqual({
     sideWidth: 240,
     sideTop: 56,
-    railInset: 16,
+    railInset: 0,
+    itemInset: 16,
     itemWidth: 208,
     itemHeight: 48,
+    indicatorInset: 0,
+    indicatorWidth: 3,
     iconLeft: 28,
     iconSize: 16,
     activeBackground: 'rgb(219, 245, 247)',

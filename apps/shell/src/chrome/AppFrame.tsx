@@ -66,13 +66,45 @@ const ACTIVE_NAVIGATION_STYLE = {
   '--saltPanel-padding': '0',
 } as React.CSSProperties;
 
+const ACTIVE_NAVIGATION_INDICATOR_STYLE = {
+  '--saltPanel-background': 'var(--salt-navigable-accent-indicator-active)',
+  '--saltPanel-borderRadius':
+    '0 var(--salt-palette-corner-strongest) var(--salt-palette-corner-strongest) 0',
+  '--saltPanel-height': 'calc(var(--salt-size-base) - var(--salt-size-fixed-400))',
+  '--saltPanel-padding': '0',
+  '--saltPanel-width': 'var(--salt-size-fixed-300)',
+} as React.CSSProperties;
+
+const NAVIGATION_ITEM_STYLE = {
+  '--salt-navigable-accent-indicator-active': 'transparent',
+  '--salt-navigable-indicator-hover': 'transparent',
+} as React.CSSProperties;
+
 function NavigationSurface({ active, children }: { active: boolean; children: ReactNode }) {
-  return active ? (
-    <Panel variant="primary" style={ACTIVE_NAVIGATION_STYLE}>
-      {children}
-    </Panel>
-  ) : (
-    children
+  return (
+    <GridLayout
+      as="li"
+      columns="var(--appSidebar-inlineGutter) minmax(0, 1fr) var(--appSidebar-inlineGutter)"
+      gap={0}
+    >
+      <FlexLayout align="center">
+        {active ? (
+          <Panel
+            aria-hidden
+            data-navigation-indicator
+            variant="primary"
+            style={ACTIVE_NAVIGATION_INDICATOR_STYLE}
+          />
+        ) : null}
+      </FlexLayout>
+      {active ? (
+        <Panel variant="primary" style={ACTIVE_NAVIGATION_STYLE}>
+          {children}
+        </Panel>
+      ) : (
+        children
+      )}
+    </GridLayout>
   );
 }
 
@@ -577,7 +609,7 @@ export function AppFrame({
               Every other role sees fewer, because capability gating already prunes
               both levels.
             */}
-            <StackLayout gap={1 / 3}>
+            <StackLayout as="ul" gap="var(--salt-spacing-fixed-100)" margin={0} padding={0}>
               {compactRail ? (
                 <>
                   <Tooltip content="Dashboard">
@@ -587,6 +619,7 @@ export function AppFrame({
                         level={COMPACT_RAIL_ROOT_LEVEL}
                         active={location.pathname === '/'}
                         orientation="vertical"
+                        style={NAVIGATION_ITEM_STYLE}
                         render={(props) => <Link to="/" {...props} aria-label="Dashboard" />}
                       >
                         <NavigationIcon Icon={DashboardSolidIcon} />
@@ -610,6 +643,7 @@ export function AppFrame({
                             level={COMPACT_RAIL_ROOT_LEVEL}
                             active={holdsActive}
                             orientation="vertical"
+                            style={NAVIGATION_ITEM_STYLE}
                             render={(props) => (
                               <Link to={destination.href} {...props} aria-label={section.label} />
                             )}
@@ -629,6 +663,7 @@ export function AppFrame({
                       level={FULL_RAIL_ROOT_LEVEL}
                       active={location.pathname === '/'}
                       orientation="vertical"
+                      style={NAVIGATION_ITEM_STYLE}
                       render={(props) => <Link to="/" {...props} />}
                     >
                       <FlexLayout gap={1} align="center">
@@ -649,12 +684,14 @@ export function AppFrame({
 
                     return (
                       <Fragment key={section.key}>
-                        <NavigationItem
-                          parent
-                          expanded={expanded}
-                          level={FULL_RAIL_ROOT_LEVEL}
-                          orientation="vertical"
-                          /*
+                        <NavigationSurface active={false}>
+                          <NavigationItem
+                            parent
+                            expanded={expanded}
+                            level={FULL_RAIL_ROOT_LEVEL}
+                            orientation="vertical"
+                            style={NAVIGATION_ITEM_STYLE}
+                            /*
                         A section is a disclosure, not a destination. Every section's
                         own href was its first child's, so "Catalog" and
                         "Capabilities" went to the same place and only the child ever
@@ -662,13 +699,14 @@ export function AppFrame({
                         duplicate rather than papering over it. It never receives an
                         active state: clicking it only expands or collapses its leaves.
                       */
-                          onExpand={() => toggleSection(section.key)}
-                        >
-                          <FlexLayout gap={1} align="center">
-                            {Icon ? <NavigationIcon Icon={Icon} /> : null}
-                            <Text as="span">{section.label}</Text>
-                          </FlexLayout>
-                        </NavigationItem>
+                            onExpand={() => toggleSection(section.key)}
+                          >
+                            <FlexLayout gap={1} align="center">
+                              {Icon ? <NavigationIcon Icon={Icon} /> : null}
+                              <Text as="span">{section.label}</Text>
+                            </FlexLayout>
+                          </NavigationItem>
+                        </NavigationSurface>
 
                         {expanded
                           ? children.map((child) => {
@@ -683,6 +721,7 @@ export function AppFrame({
                                     // accessibility sweep asserts against.
                                     active={active}
                                     orientation="vertical"
+                                    style={NAVIGATION_ITEM_STYLE}
                                     render={(props) => <Link to={child.href} {...props} />}
                                   >
                                     <Text as="span" styleAs={active ? 'h4' : undefined}>

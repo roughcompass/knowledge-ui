@@ -119,7 +119,10 @@ describe('AppShell desktop frame', () => {
     const sidePanel = navigation.closest<HTMLElement>('.saltSidePanel');
     const menuBody = navigation.closest<HTMLElement>('.saltSidePanelContent-body');
     expect(sidePanel?.style.getPropertyValue('--saltSidePanel-width')).toBe('304px');
-    expect(sidePanel?.style.getPropertyValue('--saltSidePanel-padding')).toContain(
+    expect(sidePanel?.style.getPropertyValue('--saltSidePanel-padding')).toBe(
+      'var(--salt-spacing-200) 0',
+    );
+    expect(sidePanel?.style.getPropertyValue('--appSidebar-inlineGutter')).toBe(
       'calc(var(--salt-spacing-100) * 4 / 3)',
     );
     expect(menuBody).toContainElement(navigation);
@@ -136,7 +139,10 @@ describe('AppShell desktop frame', () => {
 
     const sidePanel = screen.getByRole('navigation').closest<HTMLElement>('.saltSidePanel');
     expect(sidePanel?.style.getPropertyValue('--saltSidePanel-width')).toBe('72px');
-    expect(sidePanel?.style.getPropertyValue('--saltSidePanel-padding')).toContain(
+    expect(sidePanel?.style.getPropertyValue('--saltSidePanel-padding')).toBe(
+      'var(--salt-spacing-200) 0',
+    );
+    expect(sidePanel?.style.getPropertyValue('--appSidebar-inlineGutter')).toBe(
       'calc(var(--salt-spacing-100) * 2 / 3)',
     );
   });

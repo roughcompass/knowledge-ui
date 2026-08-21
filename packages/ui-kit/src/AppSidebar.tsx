@@ -1,5 +1,6 @@
 import {
   Divider,
+  GridLayout,
   SidePanel,
   SidePanelContent,
   SidePanelProvider,
@@ -32,9 +33,10 @@ export function AppSidebar({
 }) {
   const widthStyle = {
     ...(width === undefined ? {} : { '--saltSidePanel-width': `${width}px` }),
-    '--saltSidePanel-padding': compact
-      ? 'var(--salt-spacing-200) calc(var(--salt-spacing-100) * 2 / 3)'
-      : 'var(--salt-spacing-200) calc(var(--salt-spacing-100) * 4 / 3)',
+    '--appSidebar-inlineGutter': compact
+      ? 'calc(var(--salt-spacing-100) * 2 / 3)'
+      : 'calc(var(--salt-spacing-100) * 4 / 3)',
+    '--saltSidePanel-padding': 'var(--salt-spacing-200) 0',
     '--sidePanel-border': 'none',
   } as CSSProperties;
 
@@ -48,10 +50,12 @@ export function AppSidebar({
         style={widthStyle}
       >
         {header !== undefined ? (
-          <StackLayout gap={2}>
-            {header}
-            <Divider variant="tertiary" />
-          </StackLayout>
+          <GridLayout padding="0 var(--appSidebar-inlineGutter)">
+            <StackLayout gap={2}>
+              {header}
+              <Divider variant="tertiary" />
+            </StackLayout>
+          </GridLayout>
         ) : null}
         <SidePanelContent aria-label={`${label} menu`}>
           <StackLayout as="nav" aria-label={label} gap={0}>
@@ -59,10 +63,12 @@ export function AppSidebar({
           </StackLayout>
         </SidePanelContent>
         {footer ? (
-          <StackLayout gap={2}>
-            <Divider variant="tertiary" />
-            {footer}
-          </StackLayout>
+          <GridLayout padding="0 var(--appSidebar-inlineGutter)">
+            <StackLayout gap={2}>
+              <Divider variant="tertiary" />
+              {footer}
+            </StackLayout>
+          </GridLayout>
         ) : null}
       </SidePanel>
     </SidePanelProvider>

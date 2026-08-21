@@ -187,6 +187,12 @@ the whole time; the replace-the-panel behaviour was never a constraint of the
 component. The widest role sees four sections and eighteen leaves, which fits the
 rail's existing scroll container.
 
+**The active indicator touches the viewport edge; the item does not.** The three-pixel
+accent starts at the rail's outside edge, while the active surface and every label keep
+the rail's 16-pixel inline gutter. Moving the indicator inward with the menu content
+makes the rail look like a card floating inside another card and weakens the location
+signal.
+
 Three rules follow from nesting:
 
 - **A section is not a destination.** Every section's href used to be its own first
